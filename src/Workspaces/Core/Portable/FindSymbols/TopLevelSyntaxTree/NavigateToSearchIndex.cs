@@ -69,6 +69,9 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
         public bool LengthCheckProbablyMatches(string patternName)
             => index._navigateToSearchInfo.LengthCheckPasses(patternName);
 
+        public bool BigramCountCheckProbablyMatches(string patternName)
+            => index._navigateToSearchInfo.BigramCountCheckPasses(patternName);
+
         public bool ContainerCheckProbablyMatches(string patternContainer)
             => index._navigateToSearchInfo.ContainerProbablyMatches(patternContainer);
 

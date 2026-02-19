@@ -101,23 +101,66 @@ internal sealed partial class NavigateToSearchIndex
         /// A 64-bit bitset indicating which symbol name lengths exist in the document. Bit <c>i</c> is set
         /// if some symbol has a name of length <c>i</c> (lengths ≥ 63 share bit <see cref="MaxBitIndex"/>).
         /// Used for fuzzy-match pre-filtering: a fuzzy match requires the candidate and pattern lengths to
-        /// differ by at most 2, so if no symbol length is within ±2 of the pattern length, the document can
-        /// be skipped.
+        /// differ by at most <see cref="WordSimilarityChecker.GetThreshold(int)"/>, so if no symbol length
+        /// is within that range, the document can be skipped.
         /// </summary>
         private readonly ulong _symbolNameLengthBitset;
+
+        /// <summary>
+        /// Number of distinct character indices in the fuzzy bigram alphabet: lowercase letters a-z (26),
+        /// digits 0-9 (10), underscore (1), and a single "other" bucket for all remaining characters
+        /// (Unicode letters, etc.). Total: 38.
+        /// </summary>
+        private const int FuzzyBigramAlphabetSize = 38;
+
+        /// <summary>
+        /// Total number of bits in the fuzzy bigram bitset: one bit per ordered character pair, giving
+        /// <see cref="FuzzyBigramAlphabetSize"/> × <see cref="FuzzyBigramAlphabetSize"/> = 1369 bits.
+        /// </summary>
+        private const int FuzzyBigramBitCount = FuzzyBigramAlphabetSize * FuzzyBigramAlphabetSize;
+
+        /// <summary>
+        /// Number of <see langword="ulong"/> elements needed to store <see cref="FuzzyBigramBitCount"/> bits.
+        /// </summary>
+        private const int FuzzyBigramUlongCount = (FuzzyBigramBitCount + 63) / 64;
+
+        /// <summary>
+        /// Exact bitset storing lowercased bigrams (2-character sliding windows) of all symbol names in the
+        /// document. For example, "GooBar" contributes bigrams "go", "oo", "ob", "ba", "ar" (lowercased).
+        /// <para/>
+        /// Used for fuzzy-match pre-filtering via the q-gram count lemma (Ukkonen, 1992): each edit
+        /// operation can destroy at most q=2 bigrams, so if <c>edit_distance(pattern, candidate) &lt;= k</c>,
+        /// then at least <c>|pattern| - 1 - 2k</c> of the pattern's bigrams must also be bigrams of the
+        /// candidate. If the count of matching bigrams falls below this threshold, the document can be
+        /// skipped for fuzzy matching.
+        /// <para/>
+        /// See: Ukkonen, E. (1992). "Approximate string-matching with q-grams and maximal matches."
+        /// <i>Theoretical Computer Science</i>, 92(1), 191–211.
+        /// <see href="https://doi.org/10.1016/0304-3975(92)90143-4"/>
+        /// <para/>
+        /// Characters are mapped to a 38-element alphabet via <see cref="FuzzyBigramCharIndex"/>:
+        /// a-z → 0..25, 0-9 → 26..35, '_' → 36, everything else → 37 ("other"). This gives a
+        /// 38×38 = 1444-bit bitset (23 ulongs, 184 bytes) — compact enough to store per-document with
+        /// near-exact precision. The "other" bucket means two distinct Unicode characters (e.g. 'α' and
+        /// 'β') hash to the same index, but this is rare in practice and only causes a slightly higher
+        /// false-positive rate for those characters.
+        /// </summary>
+        private readonly ulong[]? _fuzzyBigramBitset;
 
         private NavigateToSearchInfo(
             FrozenSet<string>? humpSet,
             BloomFilter? humpPrefixFilter,
             BloomFilter? trigramFilter,
             FrozenSet<char>? containerCharSet,
-            ulong symbolNameLengthBitset)
+            ulong symbolNameLengthBitset,
+            ulong[]? fuzzyBigramBitset)
         {
             _humpSet = humpSet;
             _humpPrefixFilter = humpPrefixFilter;
             _trigramFilter = trigramFilter;
             _containerCharSet = containerCharSet;
             _symbolNameLengthBitset = symbolNameLengthBitset;
+            _fuzzyBigramBitset = fuzzyBigramBitset;
         }
 
         public static NavigateToSearchInfo Create(IReadOnlyList<DeclaredSymbolInfo> infos)
@@ -130,6 +173,7 @@ internal sealed partial class NavigateToSearchIndex
             using var _3 = PooledHashSet<string>.GetInstance(out var trigramStrings);
             using var _4 = PooledHashSet<char>.GetInstance(out var containerChars);
             var lengthBitset = 0UL;
+            var fuzzyBigramBitset = new ulong[FuzzyBigramUlongCount];
 
             // Find the longest name so we can allocate a single buffer for lowercasing.
             var maxNameLength = 0;
@@ -156,7 +200,8 @@ internal sealed partial class NavigateToSearchIndex
                 humpPrefixStrings.Count > 0 ? new BloomFilter(FalsePositiveProbability, isCaseSensitive: true, humpPrefixStrings) : null,
                 trigramStrings.Count > 0 ? new BloomFilter(FalsePositiveProbability, isCaseSensitive: true, trigramStrings) : null,
                 containerChars.Count > 0 ? containerChars.ToFrozenSet() : null,
-                lengthBitset);
+                lengthBitset,
+                fuzzyBigramBitset);
 
             void AddNameData(string name, Span<char> loweredName)
             {
@@ -166,6 +211,15 @@ internal sealed partial class NavigateToSearchIndex
                 // Record symbol name length in the bitset for fuzzy-match pre-filtering.
                 var lengthBit = Math.Min(name.Length, MaxBitIndex);
                 lengthBitset |= 1UL << lengthBit;
+
+                // Populate the fuzzy bigram bitset with lowercased bigrams (2-character sliding windows)
+                // of the full name. For "GooBar" this stores: "go", "oo", "ob", "ba", "ar".
+                for (var i = 0; i < name.Length - 1; i++)
+                {
+                    var idx = FuzzyBigramCharIndex(char.ToLowerInvariant(name[i])) * FuzzyBigramAlphabetSize
+                            + FuzzyBigramCharIndex(char.ToLowerInvariant(name[i + 1]));
+                    fuzzyBigramBitset[idx >> 6] |= 1UL << (idx & 63);
+                }
 
                 // Lowercase the name into the provided buffer for hump-prefix and trigram storage.
                 name.ToLowerInvariant(loweredName);
@@ -255,7 +309,11 @@ internal sealed partial class NavigateToSearchIndex
         public bool ProbablyContainsMatch(string patternName, string? patternContainer, out bool allowFuzzyMatching)
         {
             var nonFuzzyPasses = NonFuzzyCheckPasses(patternName);
-            allowFuzzyMatching = LengthCheckPasses(patternName);
+
+            // Fuzzy matching requires BOTH: (1) a symbol of compatible length exists in the document,
+            // AND (2) enough of the pattern's bigrams are present. The length check is cheap and fast;
+            // the bigram check uses the q-gram count lemma to filter more precisely for longer patterns.
+            allowFuzzyMatching = LengthCheckPasses(patternName) && BigramCountCheckPasses(patternName);
 
             if (!nonFuzzyPasses && !allowFuzzyMatching)
                 return false;
@@ -530,18 +588,22 @@ internal sealed partial class NavigateToSearchIndex
 
         /// <summary>
         /// Checks if any symbol name length in the document is close enough to the pattern length
-        /// for a fuzzy match to be possible (within ±2).
+        /// for a fuzzy match to be possible. The allowed delta is determined by
+        /// <see cref="WordSimilarityChecker.GetThreshold(int)"/>: ±1 for patterns of length 3–4,
+        /// ±2 for length 5+. Patterns shorter than <see cref="WordSimilarityChecker.MinFuzzyLength"/>
+        /// are rejected outright because <see cref="WordSimilarityChecker.AreSimilar(string, out double)"/>
+        /// disables fuzzy matching for them.
         /// </summary>
         public bool LengthCheckPasses(ReadOnlySpan<char> pattern)
         {
-            if (_symbolNameLengthBitset == 0)
+            if (_symbolNameLengthBitset == 0 || pattern.Length < WordSimilarityChecker.MinFuzzyLength)
                 return false;
 
-            var patternLength = pattern.Length;
+            var threshold = WordSimilarityChecker.GetThreshold(pattern.Length);
 
-            for (var delta = -2; delta <= 2; delta++)
+            for (var delta = -threshold; delta <= threshold; delta++)
             {
-                var candidateLength = patternLength + delta;
+                var candidateLength = pattern.Length + delta;
                 if (candidateLength < 0)
                     continue;
 
@@ -551,6 +613,64 @@ internal sealed partial class NavigateToSearchIndex
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Maps a character to its index in the <see cref="FuzzyBigramAlphabetSize"/>-element alphabet used
+        /// by <see cref="_fuzzyBigramBitset"/>. Lowercase letters get unique indices (0–25), digits get
+        /// unique indices (26–35), underscore gets index 36, and all other characters (Unicode letters,
+        /// etc.) map to a single "other" bucket (37).
+        /// </summary>
+        private static int FuzzyBigramCharIndex(char c)
+            => c switch
+            {
+                >= 'a' and <= 'z' => c - 'a',
+                >= '0' and <= '9' => 26 + (c - '0'),
+                '_' => 36,
+                _ => 37,
+            };
+
+        /// <summary>
+        /// Checks whether enough of the pattern's lowercased bigrams are present in
+        /// <see cref="_fuzzyBigramBitset"/> for a fuzzy match to be possible, using the q-gram count
+        /// lemma (Ukkonen, 1992): if <c>edit_distance(pattern, candidate) &lt;= k</c>, then at least
+        /// <c>|pattern| - 1 - 2k</c> of the pattern's bigram positions must have a matching bigram in
+        /// the candidate. (Each edit operation can destroy at most <c>q = 2</c> bigrams.)
+        /// <para/>
+        /// <b>Effectiveness by pattern length</b> (k from <see cref="WordSimilarityChecker.GetThreshold(int)"/>):
+        /// <list type="bullet">
+        /// <item>Length 3: k=1, min_shared = 3−1−2 = 0 → cannot filter (always returns true)</item>
+        /// <item>Length 4: k=1, min_shared = 4−1−2 = 1 → need ≥ 1 of 3 bigrams</item>
+        /// <item>Length 5: k=2, min_shared = 5−1−4 = 0 → cannot filter (always returns true)</item>
+        /// <item>Length 6: k=2, min_shared = 6−1−4 = 1 → need ≥ 1 of 5 bigrams</item>
+        /// <item>Length 7: k=2, min_shared = 7−1−4 = 2 → need ≥ 2 of 6 bigrams</item>
+        /// <item>Length 8+: increasingly strong filtering</item>
+        /// </list>
+        /// <para/>
+        /// See: Ukkonen, E. (1992). "Approximate string-matching with q-grams and maximal matches."
+        /// <i>Theoretical Computer Science</i>, 92(1), 191–211.
+        /// <see href="https://doi.org/10.1016/0304-3975(92)90143-4"/>
+        /// </summary>
+        public bool BigramCountCheckPasses(ReadOnlySpan<char> pattern)
+        {
+            if (_fuzzyBigramBitset == null)
+                return false;
+
+            var k = WordSimilarityChecker.GetThreshold(pattern.Length);
+            var minShared = pattern.Length - 1 - 2 * k;
+            if (minShared <= 0)
+                return true;
+
+            var count = 0;
+            for (var i = 0; i < pattern.Length - 1; i++)
+            {
+                var idx = FuzzyBigramCharIndex(char.ToLowerInvariant(pattern[i])) * FuzzyBigramAlphabetSize
+                        + FuzzyBigramCharIndex(char.ToLowerInvariant(pattern[i + 1]));
+                if ((_fuzzyBigramBitset[idx >> 6] & (1UL << (idx & 63))) != 0)
+                    count++;
+            }
+
+            return count >= minShared;
         }
 
         private static bool ContainsChar(FrozenSet<string> set, char c)
@@ -589,6 +709,7 @@ internal sealed partial class NavigateToSearchIndex
             WriteBloomFilter(writer, _humpPrefixFilter);
             WriteBloomFilter(writer, _trigramFilter);
             WriteCharSet(writer, _containerCharSet);
+            WriteBigramBitset(writer, _fuzzyBigramBitset);
         }
 
         private static void WriteStringSet(ObjectWriter writer, FrozenSet<string>? set)
@@ -643,7 +764,8 @@ internal sealed partial class NavigateToSearchIndex
                 var humpPrefixFilter = ReadBloomFilter(reader);
                 var trigramFilter = ReadBloomFilter(reader);
                 var containerCharSet = ReadCharSet(reader);
-                return new NavigateToSearchInfo(humpSet, humpPrefixFilter, trigramFilter, containerCharSet, lengthBitset);
+                var fuzzyBigramBitset = ReadBigramBitset(reader);
+                return new NavigateToSearchInfo(humpSet, humpPrefixFilter, trigramFilter, containerCharSet, lengthBitset, fuzzyBigramBitset);
             }
             catch (Exception)
             {
@@ -680,6 +802,32 @@ internal sealed partial class NavigateToSearchIndex
                 return BloomFilter.ReadFrom(reader);
 
             return null;
+        }
+
+        private static void WriteBigramBitset(ObjectWriter writer, ulong[]? bitset)
+        {
+            if (bitset != null)
+            {
+                writer.WriteBoolean(true);
+                for (var i = 0; i < FuzzyBigramUlongCount; i++)
+                    writer.WriteUInt64(bitset[i]);
+            }
+            else
+            {
+                writer.WriteBoolean(false);
+            }
+        }
+
+        private static ulong[]? ReadBigramBitset(ObjectReader reader)
+        {
+            if (!reader.ReadBoolean())
+                return null;
+
+            var bitset = new ulong[FuzzyBigramUlongCount];
+            for (var i = 0; i < FuzzyBigramUlongCount; i++)
+                bitset[i] = reader.ReadUInt64();
+
+            return bitset;
         }
     }
 }
