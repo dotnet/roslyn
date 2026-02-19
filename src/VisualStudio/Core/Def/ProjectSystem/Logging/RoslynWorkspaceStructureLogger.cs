@@ -240,7 +240,8 @@ internal static class RoslynWorkspaceStructureLogger
                 if (string.Equals(p.FullName, project.FilePath, StringComparison.OrdinalIgnoreCase))
                 {
                     langProjProject = p.Object as VSLangProj.VSProject;
-                    break;
+                    if (langProjProject is not null)
+                        break;
                 }
             }
             catch (NotImplementedException)
