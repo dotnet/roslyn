@@ -17,6 +17,9 @@ parameters:
   default: ''
 - name: poolParameters
   type: object
+- name: locale
+  type: string
+  default: 'en_US.UTF-8'
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -25,6 +28,7 @@ jobs:
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
+    LC_ALL: ${{ parameters.locale }}
   steps:
     - checkout: none
 
@@ -33,7 +37,7 @@ jobs:
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-    
+
     - task: ShellScript@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
