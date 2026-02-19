@@ -8245,8 +8245,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</comment>
   </data>
   <data name="ERR_UnsafeMemberOperation" xml:space="preserve">
-    <value>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</value>
-    <comment>'unsafe' and 'extern' are keywords, should not be localized.</comment>
+    <value>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</value>
+    <comment>'RequiresUnsafe' and 'extern' should not be localized.</comment>
   </data>
   <data name="ERR_UnsafeMemberOperationCompat" xml:space="preserve">
     <value>'{0}' must be used in an unsafe context because it has pointers in its signature</value>

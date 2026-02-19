@@ -22,6 +22,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         ParamCollectionAttribute = 0x400,
         ExtensionMarkerAttribute = 0x800,
         MemorySafetyRulesAttribute = 0x1000,
-        RequiresUnsafeAttribute = 0x2000,
     }
 }

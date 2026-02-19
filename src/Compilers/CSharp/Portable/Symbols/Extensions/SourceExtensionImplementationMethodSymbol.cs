@@ -65,12 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            // Copy ORPA from the property onto the implementation accessors
+            // Copy some attributes from the property onto the implementation accessors
             if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
                 foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
                 {
-                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) ||
+                        attr.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
                     {
                         AddSynthesizedAttribute(ref attributes, attr);
                     }

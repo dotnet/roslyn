@@ -9400,7 +9400,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isUsableAsField = eventSymbol.HasAssociatedField && this.IsAccessible(eventSymbol.AssociatedField, ref useSiteInfo, (receiver != null) ? receiver.Type : null);
             diagnostics.Add(node, useSiteInfo);
 
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, node);
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
+            Debug.Assert(eventSymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
+                (eventSymbol.AddMethod is null || eventSymbol.AddMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode) ||
+                (eventSymbol.RemoveMethod is null || eventSymbol.RemoveMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);
 

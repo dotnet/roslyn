@@ -744,6 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiverOpt, method, diagnostics);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node.OperatorToken);
                 }
 
                 if (eventSymbol.IsWindowsRuntimeEvent)
