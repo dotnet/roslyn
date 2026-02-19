@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal sealed partial class TopLevelSyntaxTreeIndex
+internal sealed partial class NavigateToSearchIndex
 {
-    private static TopLevelSyntaxTreeIndex CreateIndex(
+    private static NavigateToSearchIndex CreateIndex(
         ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
     {
         var infoFactory = project.LanguageServices.GetRequiredService<IDeclaredSymbolInfoFactoryService>();
@@ -23,13 +23,9 @@ internal sealed partial class TopLevelSyntaxTreeIndex
             infoFactory.AddDeclaredSymbolInfos(
                 project, root, declaredSymbolInfos, extensionMemberInfo, cancellationToken);
 
-            return new TopLevelSyntaxTreeIndex(
+            return new NavigateToSearchIndex(
                 checksum,
-                new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
-                new ExtensionMemberInfo(
-                    extensionMemberInfo.ToImmutableDictionary(
-                        static kvp => kvp.Key,
-                        static kvp => kvp.Value.ToImmutable())));
+                NavigateToSearchInfo.Create(declaredSymbolInfos));
         }
         finally
         {

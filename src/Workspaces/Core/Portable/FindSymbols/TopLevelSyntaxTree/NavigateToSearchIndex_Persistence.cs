@@ -10,9 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal sealed partial class TopLevelSyntaxTreeIndex
+internal sealed partial class NavigateToSearchIndex
 {
-    public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
+    public static Task<NavigateToSearchIndex?> LoadAsync(
         IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
     {
         return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
@@ -20,22 +20,19 @@ internal sealed partial class TopLevelSyntaxTreeIndex
 
     public override void WriteTo(ObjectWriter writer)
     {
-        _declarationInfo.WriteTo(writer);
-        _extensionMemberInfo.WriteTo(writer);
+        _navigateToSearchInfo.WriteTo(writer);
     }
 
-    private static TopLevelSyntaxTreeIndex? ReadIndex(
+    private static NavigateToSearchIndex? ReadIndex(
         StringTable stringTable, ObjectReader reader, Checksum? checksum)
     {
-        var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
-        var extensionMemberInfo = ExtensionMemberInfo.TryReadFrom(reader);
+        var navigateToSearchInfo = NavigateToSearchInfo.TryReadFrom(reader);
 
-        if (declarationInfo == null || extensionMemberInfo == null)
+        if (navigateToSearchInfo == null)
             return null;
 
-        return new TopLevelSyntaxTreeIndex(
+        return new NavigateToSearchIndex(
             checksum,
-            declarationInfo.Value,
-            extensionMemberInfo.Value);
+            navigateToSearchInfo.Value);
     }
 }
