@@ -217,31 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
             string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
-<<<<<<< HEAD
-            // 1. Collect new extension members
-            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateExtensionBlockMembersInSingleBinder(
-                result, name, arity, options, originalBinder, trackImplementationsToShadow: true, ref useSiteInfo);
-
-            // 2. Collect classic extension methods
-            var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            this.GetCandidateExtensionMethodsInSingleBinder(extensionMethods, name, arity, options, originalBinder: originalBinder);
-
-            foreach (var method in extensionMethods)
-            {
-                // Prefer instance extension declarations vs. their implementations
-                if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
-                {
-                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
-                    if (resultOfThisMember.Kind != LookupResultKind.Empty)
-                    {
-                        result.Add(resultOfThisMember);
-                    }
-                }
-            }
-
-            extensionMethods.Free();
-            implementationsToShadow?.Free();
-=======
             var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
             this.GetAllExtensionCandidatesInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
@@ -260,7 +235,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             extensionCandidates.Free();
->>>>>>> dotnet/main
         }
 
         private PooledHashSet<MethodSymbol>? EnumerateExtensionBlockMembersInSingleBinder(
@@ -275,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
             var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
-            this.GetCandidateExtensionMembersInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
+            this.GetAllExtensionCandidatesInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
             foreach (var candidate in extensionCandidates)
             {

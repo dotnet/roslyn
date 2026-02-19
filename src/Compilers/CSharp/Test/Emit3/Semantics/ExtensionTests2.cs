@@ -38946,7 +38946,6 @@ public static class E
     }
 
     [Fact]
-<<<<<<< HEAD
     public void CallerMemberName_01()
     {
         var src = """
@@ -39104,7 +39103,9 @@ static class E
             // (5,21): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
             // E.get_Property(s) = span;
             Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 21));
-=======
+    }
+
+    [Fact]
     public void Script_01()
     {
         var source = """
@@ -39113,7 +39114,6 @@ static class E
     extension(object o)
     {
         static void F() { }
->>>>>>> dotnet/main
     }
 }
 

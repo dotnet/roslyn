@@ -472,14 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagPropertyEvaluation e:
                                     {
                                         Debug.Assert(inputSlot > 0);
-<<<<<<< HEAD
-                                        var property = e.Property.IsExtensionBlockMember()
-                                            ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, receiver: new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).Member
-                                            : (PropertySymbol)AsMemberOfType(inputType, e.Property);
-
-=======
                                         var property = getReInferredProperty(inputType, e);
->>>>>>> dotnet/main
                                         var type = property.TypeWithAnnotations;
 
                                         var output = e.MakeResultTemp();
@@ -950,20 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetOrCreatePlaceholderSlot(slotKey, type);
             }
 
-<<<<<<< HEAD
-            void addTemp(BoundDagEvaluation e, TypeSymbol t, int index = 0)
-            {
-                var type = TypeWithAnnotations.Create(t, NullableAnnotation.Annotated);
-                var output = new BoundDagTemp(e.Syntax, type.Type, e, index: index);
-                int outputSlot = makeDagTempSlot(type, output);
-                Debug.Assert(outputSlot > 0);
-                addToTempMap(output, outputSlot, type.Type);
-            }
-
             TypeWithAnnotations getIndexerOutputType(TypeSymbol inputType, BoundExpression e, bool isSlice)
-=======
-            static TypeWithAnnotations getIndexerOutputType(TypeSymbol inputType, BoundExpression e, bool isSlice)
->>>>>>> dotnet/main
             {
                 switch (e)
                 {

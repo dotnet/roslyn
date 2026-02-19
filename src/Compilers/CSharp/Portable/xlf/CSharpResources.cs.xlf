@@ -843,13 +843,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-<<<<<<< HEAD
         <source>An expression tree may not contain an extension property or indexer access</source>
         <target state="new">An expression tree may not contain an extension property or indexer access</target>
-=======
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Strom výrazů nesmí obsahovat přístup k vlastnosti rozšíření.</target>
->>>>>>> dotnet/main
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">

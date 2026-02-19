@@ -427,29 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DoGetExtensionMethods(members, name, arity, options, implementationsToShadow);
                 if (alternativeName is not null)
                 {
-<<<<<<< HEAD
-                    continue;
-                }
-
-                var candidates = name is null || alternativeName is not null
-                    ? nestedType.GetMembersUnordered()
-                    : nestedType.GetMembers(name);
-
-                foreach (var candidate in candidates)
-                {
-                    if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
-                    {
-                        // Not supported yet
-                        continue;
-                    }
-
-                    if (extensionMemberMatches(candidate, name, alternativeName, arity, options, fieldsBeingBound))
-                    {
-                        members.Add(candidate);
-                    }
-=======
                     DoGetExtensionMethods(members, alternativeName, arity, options, implementationsToShadow);
->>>>>>> dotnet/main
                 }
             }
 
@@ -473,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var candidate in candidates)
                     {
-                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
                         {
                             // Not supported yet
                             continue;
