@@ -1904,6 +1904,16 @@ End Module").Path
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
             Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sHa384", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha384, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
+
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sha512", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha512, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
+
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)

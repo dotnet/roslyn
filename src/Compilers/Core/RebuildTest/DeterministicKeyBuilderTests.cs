@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
         {
             SourceHashAlgorithm.Sha1,
-            SourceHashAlgorithm.Sha256
+            SourceHashAlgorithm.Sha256,
+            SourceHashAlgorithm.Sha384,
+            SourceHashAlgorithm.Sha512
         };
 
         protected static void AssertJson(

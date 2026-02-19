@@ -341,7 +341,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
+                                  SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -391,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opcje kompilatora Visual Basic
+        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
 
                                   - PLIK WYJŚCIOWY -
 -out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.
