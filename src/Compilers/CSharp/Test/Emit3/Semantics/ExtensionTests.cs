@@ -2773,9 +2773,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): error CS0592: Attribute 'System.Obsolete' is not valid on this declaration type. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
             //     [System.Obsolete]
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Obsolete").WithArguments("System.Obsolete", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(3, 6));
+            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "System.Obsolete").WithLocation(3, 6));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -2801,13 +2801,282 @@ public class MyAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): error CS0592: Attribute 'My' is not valid on this declaration type. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
+            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
             //     [My(nameof(o)), My(nameof(Extensions))]
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "My").WithArguments("My", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(3, 6),
+            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "My").WithLocation(3, 6),
             // (3,21): error CS0579: Duplicate 'My' attribute
             //     [My(nameof(o)), My(nameof(Extensions))]
             Diagnostic(ErrorCode.ERR_DuplicateAttribute, "My").WithArguments("My").WithLocation(3, 21)
             );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
+    public void Attributes_03()
+    {
+        var src = """
+public static class E
+{
+    [return: System.Obsolete]
+    extension(object) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
+            //     [return: System.Obsolete]
+            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "return").WithLocation(3, 6));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(type);
+        AssertEx.SetEqual([], symbol.GetAttributes().Select(a => a.ToString()));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
+    [InlineData("return")]
+    [InlineData("assembly")]
+    [InlineData("module")]
+    [InlineData("type")]
+    [InlineData("method")]
+    [InlineData("field")]
+    [InlineData("property")]
+    [InlineData("typevar")]
+    public void Attributes_04(string target)
+    {
+        var src = $$"""
+public static class E
+{
+    [{{target}}: My]
+    extension(object o) { }
+}
+
+public class MyAttribute : System.Attribute { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
+            //     [return: My]
+            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, target).WithLocation(3, 6));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(type);
+        AssertEx.SetEqual([], symbol.GetAttributes().Select(a => a.ToString()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
+    public void Attributes_05()
+    {
+        var src = """
+public static class E
+{
+    extension<[typevar: My] T>(object o) { }
+}
+
+public class MyAttribute : System.Attribute { }
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(type);
+        AssertEx.SetEqual(["MyAttribute"], symbol.TypeParameters[0].GetAttributes().Select(a => a.ToString()));
+
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$F3EC63F55CD2663D3F6B00F6D7E0AC7E`1'<$T0>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$6BF82573E4B1538004B57C462825CE6A'<T>
+            extends [mscorlib]System.Object
+        {
+            .param type T
+                .custom instance void MyAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    object o
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$6BF82573E4B1538004B57C462825CE6A'::'<Extension>$'
+        } // end of class <M>$6BF82573E4B1538004B57C462825CE6A
+    } // end of class <G>$F3EC63F55CD2663D3F6B00F6D7E0AC7E`1
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
+    public void Attributes_06()
+    {
+        var src = """
+public static class Extensions
+{
+    [typevar: My]
+    extension<T>(object o) { }
+}
+
+public class MyAttribute : System.Attribute { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
+            //     [typevar: My]
+            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "typevar").WithLocation(3, 6));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(type);
+        AssertEx.SetEqual([], symbol.TypeParameters[0].GetAttributes().Select(a => a.ToString()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
+    public void Attributes_07()
+    {
+        var src = """
+public static class Extensions
+{
+    extension([param: My] object o) { }
+}
+
+public class MyAttribute : System.Attribute { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(type);
+        AssertEx.SetEqual(["MyAttribute"], symbol.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
+    public void Attributes_08()
+    {
+        var src = $$"""
+public static class E
+{
+    [fake: My]
+    extension(object o) { }
+}
+
+public class MyAttribute : System.Attribute { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,6): warning CS0658: 'fake' is not a recognized attribute location. Valid attribute locations for this declaration are ''. All attributes in this block will be ignored.
+            //     [fake: My]
+            Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "fake").WithArguments("fake", "").WithLocation(3, 6));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(type);
+        AssertEx.SetEqual([], symbol.GetAttributes().Select(a => a.ToString()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
+    public void Attributes_09()
+    {
+        var src = """
+public static class E
+{
+    extension<[typevar: A] T>(object o) { }
+    extension<[typevar: B] U>(object o) { }
+}
+
+public class AAttribute : System.Attribute { }
+public class BAttribute : System.Attribute { }
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$F3EC63F55CD2663D3F6B00F6D7E0AC7E`1'<$T0>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$79443493B28002B8C849C38A5107CBE5'<T>
+            extends [mscorlib]System.Object
+        {
+            .param type T
+                .custom instance void AAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    object o
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$79443493B28002B8C849C38A5107CBE5'::'<Extension>$'
+        } // end of class <M>$79443493B28002B8C849C38A5107CBE5
+        .class nested public auto ansi abstract sealed specialname '<M>$892BEE6C9B63CFFC80DE2A9BC76F34AB'<U>
+            extends [mscorlib]System.Object
+        {
+            .param type U
+                .custom instance void BAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    object o
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$892BEE6C9B63CFFC80DE2A9BC76F34AB'::'<Extension>$'
+        } // end of class <M>$892BEE6C9B63CFFC80DE2A9BC76F34AB
+    } // end of class <G>$F3EC63F55CD2663D3F6B00F6D7E0AC7E`1
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]

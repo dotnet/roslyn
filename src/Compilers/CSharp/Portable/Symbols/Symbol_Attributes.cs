@@ -733,6 +733,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics.Add(ErrorCode.ERR_GlobalAttributesNotAllowed, targetOpt.Identifier.GetLocation());
                                 break;
 
+                            case AttributeLocation.None:
+                                // No attributes are allowed on this declaration (e.g. extension blocks).
+                                diagnostics.Add(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, targetOpt.Identifier.GetLocation());
+                                break;
+
                             default:
                                 // currently this can't happen
                                 throw ExceptionUtilities.UnexpectedValue(attributeTarget.DefaultAttributeLocation);
@@ -922,8 +927,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((attributeTarget & attributeUsageInfo.ValidTargets) == 0)
             {
-                // generate error
-                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.GetErrorDisplayName(), attributeUsageInfo.GetValidTargetsErrorArgument());
+                if (this is NamedTypeSymbol { IsExtension: true })
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, node.Name.Location);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.GetErrorDisplayName(), attributeUsageInfo.GetValidTargetsErrorArgument());
+                }
+
                 return false;
             }
 

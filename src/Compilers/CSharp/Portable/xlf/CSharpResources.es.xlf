@@ -142,6 +142,11 @@
         <target state="translated">“{0}” no se puede aplicar manualmente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotAllowedOnExtensionBlock">
+        <source>Attributes are not allowed on extension blocks.</source>
+        <target state="new">Attributes are not allowed on extension blocks.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">El atributo "{0}" no es válido en descriptores de acceso de eventos. Solo es válido en declaraciones "{1}".</target>
