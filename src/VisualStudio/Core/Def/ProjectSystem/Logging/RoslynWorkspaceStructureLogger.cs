@@ -54,9 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                 filters);
 
             if (string.IsNullOrEmpty(path))
-            {
                 return;
-            }
 
             var threadingContext = serviceProvider.GetMefService<IThreadingContext>();
 
@@ -121,16 +119,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     // Dump MSBuild <Reference> nodes
                     var msbuildReferencesElement = CreateMsBuildReferencesElement(project);
                     if (msbuildReferencesElement != null)
-                    {
                         projectElement.Add(msbuildReferencesElement);
-                    }
 
                     // Dump DTE references
                     var dteReferencesElement = await CreateDteReferencesElementAsync(serviceProvider, threadingContext, project);
                     if (dteReferencesElement != null)
-                    {
                         projectElement.Add(dteReferencesElement);
-                    }
 
                     // Dump the actual metadata references in the workspace
                     var workspaceReferencesElement = new XElement("workspaceReferences");
@@ -147,9 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                         var referenceElement = new XElement("projectReference", new XAttribute("id", SanitizePath(projectReference.ProjectId.ToString())));
 
                         if (!project.ProjectReferences.Contains(projectReference))
-                        {
                             referenceElement.SetAttributeValue("missingInSolution", "true");
-                        }
 
                         workspaceReferencesElement.Add(referenceElement);
                     }
@@ -220,9 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
         private static XElement? CreateMsBuildReferencesElement(Project project)
         {
             if (project.FilePath == null)
-            {
                 return null;
-            }
 
             var msbuildProject = XDocument.Load(project.FilePath);
             var msbuildNamespace = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
@@ -260,9 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             }
 
             if (langProjProject == null)
-            {
                 return null;
-            }
 
             var dteReferences = new XElement("dteReferences");
 
@@ -297,9 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             {
                 var index = s.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
                 if (index == -1)
-                {
                     return s;
-                }
 
                 s = s.Substring(0, index) + newValue + s.Substring(index + oldValue.Length);
             }
@@ -373,16 +359,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
 
                 var clientName = document.DocumentServiceProvider.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName;
                 if (clientName != null)
-                {
                     documentElement.SetAttributeValue("clientName", clientName);
-                }
 
                 var loadDiagnostic = await document.State.GetFailedToLoadExceptionMessageAsync(cancellationToken);
 
                 if (loadDiagnostic != null)
-                {
                     documentElement.Add(new XElement("loadDiagnostic", loadDiagnostic));
-                }
 
                 elements.Add(documentElement);
             }
