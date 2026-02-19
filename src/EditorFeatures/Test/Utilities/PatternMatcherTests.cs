@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -421,14 +421,14 @@ public sealed class PatternMatcherTests
     [Fact]
     public void TestCachingOfPriorResult()
     {
-        using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, allowFuzzyMatching: true);
+        using var matcher = PatternMatcher.CreateFuzzyPatternMatcher("Goo", includeMatchedSpans: true);
         matcher.Matches("Go");
 
         // Ensure that the above call ended up caching the result.
-        Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: true, candidateText: "Go"));
+        Assert.True(((PatternMatcher.FuzzyPatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: true, candidateText: "Go"));
 
         matcher.Matches("DefNotAMatch");
-        Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: false, candidateText: "DefNotAMatch"));
+        Assert.True(((PatternMatcher.FuzzyPatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: false, candidateText: "DefNotAMatch"));
     }
 
     private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)
@@ -458,7 +458,7 @@ public sealed class PatternMatcherTests
     {
         MarkupTestFile.GetSpans(candidate, out candidate, out var spans);
 
-        var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false)
+        var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true)
             .GetFirstMatch(candidate);
 
         if (match == null)
@@ -478,7 +478,7 @@ public sealed class PatternMatcherTests
         MarkupTestFile.GetSpans(candidate, out candidate, out var expectedSpans);
 
         using var matches = TemporaryArray<PatternMatch>.Empty;
-        PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false).AddMatches(candidate, ref matches.AsRef());
+        PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, ref matches.AsRef());
 
         if (matches.Count == 0)
         {

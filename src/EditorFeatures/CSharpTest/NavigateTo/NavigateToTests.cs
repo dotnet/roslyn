@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1864,7 +1864,7 @@ public sealed class NavigateToTests : AbstractNavigateToTests
     /// <summary>
     /// Verifies that a fuzzy match is found when the length bitset check passes (symbol length
     /// within ±2 of pattern length). With the split fuzzy/non-fuzzy pre-filtering, the length
-    /// check sets 'allowFuzzyMatching', enabling the PatternMatcher's edit-distance computation.
+    /// and bigram checks enable the FuzzyPatternMatcher's edit-distance computation.
     /// "ToEror" (length 6) fuzzy-matches "ToError" (length 7), delta=1, within ±2.
     /// </summary>
     [Theory, CombinatorialData]

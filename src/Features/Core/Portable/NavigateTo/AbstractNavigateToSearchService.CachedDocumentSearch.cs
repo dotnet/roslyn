@@ -155,7 +155,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 {
                     // First, load the lightweight filter index to check if this document could possibly match.
                     var filterIndex = await GetFilterIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
-                    if (filterIndex is null || !filterIndex.CouldContainNavigateToMatch(patternName, patternContainer, out var nameMatchKinds))
+                    if (filterIndex is null || !filterIndex.CouldContainNavigateToMatch(patternName, patternContainer, out var couldNonFuzzyMatch, out var couldFuzzyMatch))
                         return;
 
                     // The filter passed — now load the full index with all declared symbols.
@@ -165,7 +165,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
                     ProcessIndex(
                         documentKey, document: null, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                        nameMatchKinds, index, linkedIndices: null, onItemFound, cancellationToken);
+                        couldFuzzyMatch, index, linkedIndices: null, onItemFound, cancellationToken);
                 }).ConfigureAwait(false);
 
             // done with project.  Let the host know.

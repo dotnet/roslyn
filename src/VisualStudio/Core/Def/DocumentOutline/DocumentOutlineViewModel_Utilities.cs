@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -140,22 +140,25 @@ internal sealed partial class DocumentOutlineViewModel
         cancellationToken.ThrowIfCancellationRequested();
 
         using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var filteredDocumentSymbols);
-        using var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
+        using var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false);
+        using var fuzzyPatternMatcher = PatternMatcher.CreateFuzzyPatternMatcher(pattern, includeMatchedSpans: false);
 
         foreach (var documentSymbol in documentSymbolData)
         {
             var filteredChildren = SearchDocumentSymbolData(documentSymbol.Children, pattern, cancellationToken);
-            if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
+            if (SearchNodeTree(documentSymbol, patternMatcher, fuzzyPatternMatcher, cancellationToken))
                 filteredDocumentSymbols.Add(documentSymbol with { Children = filteredChildren });
         }
 
         return filteredDocumentSymbols.ToImmutableAndClear();
 
         // Returns true if the name of one of the tree nodes results in a pattern match.
-        static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
+        static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, PatternMatcher fuzzyPatternMatcher, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return patternMatcher.Matches(tree.Name) || tree.Children.Any(c => SearchNodeTree(c, patternMatcher, cancellationToken));
+            return patternMatcher.Matches(tree.Name)
+                || fuzzyPatternMatcher.Matches(tree.Name)
+                || tree.Children.Any(c => SearchNodeTree(c, patternMatcher, fuzzyPatternMatcher, cancellationToken));
         }
     }
 }

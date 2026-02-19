@@ -133,7 +133,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: Combined reject (bigram saves)")]
     public bool SameLength_Combined_Reject()
-        => _sameLengthIndex.CouldContainNavigateToMatch("XyzWvq", null, out _);
+        => _sameLengthIndex.CouldContainNavigateToMatch("XyzWvq", null, out _, out _);
 
     /// <summary>
     /// Pattern "AabBxx": hump check passes (A,B stored), length check passes, bigram check
@@ -141,7 +141,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: Combined pass")]
     public bool SameLength_Combined_Pass()
-        => _sameLengthIndex.CouldContainNavigateToMatch("AabBxx", null, out _);
+        => _sameLengthIndex.CouldContainNavigateToMatch("AabBxx", null, out _, out _);
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Longer patterns: bigram filtering gets stronger

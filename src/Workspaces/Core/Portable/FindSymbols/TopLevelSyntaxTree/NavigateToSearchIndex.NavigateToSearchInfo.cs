@@ -303,19 +303,20 @@ internal sealed partial class NavigateToSearchIndex
         /// definitely does not contain such a symbol (modulo intentionally unsupported match kinds like
         /// <see cref="PatternMatching.PatternMatchKind.NonLowercaseSubstring"/>).
         /// <para/>
-        /// When returning <see langword="true"/>, <paramref name="allowFuzzyMatching"/> indicates whether the caller
-        /// should enable fuzzy matching as a fallback after non-fuzzy checks.
+        /// When returning <see langword="true"/>, <paramref name="couldNonFuzzyMatch"/> and
+        /// <paramref name="couldFuzzyMatch"/> indicate independently which matching strategies
+        /// are worth attempting on this document's symbols.
         /// </summary>
-        public bool ProbablyContainsMatch(string patternName, string? patternContainer, out bool allowFuzzyMatching)
+        public bool ProbablyContainsMatch(string patternName, string? patternContainer, out bool couldNonFuzzyMatch, out bool couldFuzzyMatch)
         {
-            var nonFuzzyPasses = NonFuzzyCheckPasses(patternName);
+            couldNonFuzzyMatch = NonFuzzyCheckPasses(patternName);
 
             // Fuzzy matching requires BOTH: (1) a symbol of compatible length exists in the document,
             // AND (2) enough of the pattern's bigrams are present. The length check is cheap and fast;
             // the bigram check uses the q-gram count lemma to filter more precisely for longer patterns.
-            allowFuzzyMatching = LengthCheckPasses(patternName) && BigramCountCheckPasses(patternName);
+            couldFuzzyMatch = LengthCheckPasses(patternName) && BigramCountCheckPasses(patternName);
 
-            if (!nonFuzzyPasses && !allowFuzzyMatching)
+            if (!couldNonFuzzyMatch && !couldFuzzyMatch)
                 return false;
 
             return patternContainer == null || ContainerProbablyMatches(patternContainer);

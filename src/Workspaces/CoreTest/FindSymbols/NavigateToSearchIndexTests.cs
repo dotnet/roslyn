@@ -35,8 +35,13 @@ public sealed class NavigateToSearchIndexTests
 
     private static PatternMatch? GetNameMatch(string candidate, string pattern)
     {
-        using var matcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
-        return matcher.GetFirstMatch(candidate);
+        using var matcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false);
+        var match = matcher.GetFirstMatch(candidate);
+        if (match != null)
+            return match;
+
+        using var fuzzyMatcher = PatternMatcher.CreateFuzzyPatternMatcher(pattern, includeMatchedSpans: false);
+        return fuzzyMatcher.GetFirstMatch(candidate);
     }
 
     private static bool GetContainerMatch(string container, string containerPattern)
@@ -667,8 +672,9 @@ public sealed class NavigateToSearchIndexTests
         // "Xyzwvq" is mixed case (X then lowercase), one hump 'X'. 'X' is not a hump initial of
         // any symbol. Not all-lowercase, so trigram check doesn't apply either. The bigram check
         // also fails. With all three checks failing, the document is skipped entirely.
-        Assert.False(index.CouldContainNavigateToMatch("Xyzwvq", null, out var allowFuzzyMatching));
-        Assert.False(allowFuzzyMatching);
+        Assert.False(index.CouldContainNavigateToMatch("Xyzwvq", null, out var couldNonFuzzyMatch, out var couldFuzzyMatch));
+        Assert.False(couldNonFuzzyMatch);
+        Assert.False(couldFuzzyMatch);
     }
 
     /// <summary>
@@ -896,13 +902,15 @@ public sealed class NavigateToSearchIndexTests
     {
         var index = CreateIndex((symbolName, symbolContainer));
 
-        Assert.True(index.CouldContainNavigateToMatch(patternName, patternContainer, out var allowFuzzyMatching));
+        Assert.True(index.CouldContainNavigateToMatch(patternName, patternContainer, out var couldNonFuzzyMatch, out var couldFuzzyMatch));
 
         // All these test cases have simple patterns, so non-fuzzy checks pass.
+        Assert.True(couldNonFuzzyMatch);
+
         // Fuzzy is enabled only when BOTH length check AND bigram count check pass.
         var expectedFuzzy = index.GetTestAccessor().LengthCheckProbablyMatches(patternName)
                          && index.GetTestAccessor().BigramCountCheckProbablyMatches(patternName);
-        Assert.Equal(expectedFuzzy, allowFuzzyMatching);
+        Assert.Equal(expectedFuzzy, couldFuzzyMatch);
 
         var nameMatch = GetNameMatch(symbolName, patternName);
         Assert.NotNull(nameMatch);
@@ -936,7 +944,7 @@ public sealed class NavigateToSearchIndexTests
     {
         var index = CreateIndex((symbolName, symbolContainer));
 
-        Assert.False(index.CouldContainNavigateToMatch(patternName, patternContainer, out _));
+        Assert.False(index.CouldContainNavigateToMatch(patternName, patternContainer, out _, out _));
 
         if (patternContainer == null)
         {
@@ -984,19 +992,19 @@ public sealed class NavigateToSearchIndexTests
             ("GooBar", ""),
             ("Quux", "System.Collections"));
 
-        Assert.True(index.CouldContainNavigateToMatch("GB", null, out _));
-        Assert.True(index.CouldContainNavigateToMatch("Al", null, out _));
-        Assert.True(index.CouldContainNavigateToMatch("Qu", "Co", out _));
+        Assert.True(index.CouldContainNavigateToMatch("GB", null, out _, out _));
+        Assert.True(index.CouldContainNavigateToMatch("Al", null, out _, out _));
+        Assert.True(index.CouldContainNavigateToMatch("Qu", "Co", out _, out _));
 
         // "XyzXyzXyzXyz" matches nothing (long enough to escape the ±2 length check too).
-        Assert.False(index.CouldContainNavigateToMatch("XyzXyzXyzXyz", null, out _));
+        Assert.False(index.CouldContainNavigateToMatch("XyzXyzXyzXyz", null, out _, out _));
     }
 
     [Fact]
     public void ProbablyContainsMatch_EmptyDocument()
     {
         var index = CreateIndex();
-        Assert.False(index.CouldContainNavigateToMatch("anything", null, out _));
+        Assert.False(index.CouldContainNavigateToMatch("anything", null, out _, out _));
     }
 
     #endregion
@@ -1073,8 +1081,9 @@ public sealed class NavigateToSearchIndexTests
 
         // Overall: CouldContainNavigateToMatch returns true (trigram check saves it).
         // Fuzzy is disabled because the length check failed.
-        Assert.True(index.CouldContainNavigateToMatch("line", null, out var allowFuzzyMatching));
-        Assert.False(allowFuzzyMatching);
+        Assert.True(index.CouldContainNavigateToMatch("line", null, out var couldNonFuzzyMatch, out var couldFuzzyMatch));
+        Assert.True(couldNonFuzzyMatch);
+        Assert.False(couldFuzzyMatch);
     }
 
     /// <summary>
@@ -1118,13 +1127,15 @@ public sealed class NavigateToSearchIndexTests
     {
         var index = CreateIndex(("static", ""));
 
-        Assert.True(index.CouldContainNavigateToMatch("@static", null, out var allowFuzzyMatching));
+        Assert.True(index.CouldContainNavigateToMatch("@static", null, out var couldNonFuzzyMatch, out var couldFuzzyMatch));
 
-        // Fuzzy enabled because stripping '@' → "static" passes hump check AND length/bigram checks.
-        Assert.True(allowFuzzyMatching);
+        // Non-fuzzy passes because stripping '@' → "static" passes hump check.
+        Assert.True(couldNonFuzzyMatch);
+        // Fuzzy also enabled because length/bigram checks pass.
+        Assert.True(couldFuzzyMatch);
 
-        // Verify the PatternMatcher finds the Exact match with the pre-filter's matchKinds.
-        using var matcher = PatternMatcher.CreatePatternMatcher("@static", includeMatchedSpans: false, allowFuzzyMatching);
+        // Verify the PatternMatcher finds the Exact match.
+        using var matcher = PatternMatcher.CreatePatternMatcher("@static", includeMatchedSpans: false);
         var match = matcher.GetFirstMatch("static");
         Assert.NotNull(match);
         Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
@@ -1140,13 +1151,13 @@ public sealed class NavigateToSearchIndexTests
     {
         var index = CreateIndex(("get_key_word", ""), ("GetKeyWord", ""));
 
-        Assert.True(index.CouldContainNavigateToMatch("get word", null, out var allowFuzzyMatching));
+        Assert.True(index.CouldContainNavigateToMatch("get word", null, out var couldNonFuzzyMatch, out var couldFuzzyMatch));
 
         // Non-fuzzy checks pass because splitting at space → "get" passes hump check (hump 'G' exists).
-        Assert.True(allowFuzzyMatching);
+        Assert.True(couldNonFuzzyMatch);
 
         // Verify the PatternMatcher finds a non-fuzzy match.
-        using var matcher = PatternMatcher.CreatePatternMatcher("get word", includeMatchedSpans: false, allowFuzzyMatching);
+        using var matcher = PatternMatcher.CreatePatternMatcher("get word", includeMatchedSpans: false);
         var match = matcher.GetFirstMatch("get_key_word");
         Assert.NotNull(match);
         Assert.NotEqual(PatternMatchKind.Fuzzy, match.Value.Kind);
@@ -1164,14 +1175,15 @@ public sealed class NavigateToSearchIndexTests
     {
         var index = CreateIndex(("Readline", ""));
 
-        Assert.True(index.CouldContainNavigateToMatch("line", null, out var allowFuzzyMatching));
+        Assert.True(index.CouldContainNavigateToMatch("line", null, out var couldNonFuzzyMatch, out var couldFuzzyMatch));
 
         // NonFuzzy set via trigram check. Fuzzy not set (length 4 vs 8, delta 4 > ±2).
-        Assert.False(allowFuzzyMatching);
+        Assert.True(couldNonFuzzyMatch);
+        Assert.False(couldFuzzyMatch);
 
         // PatternMatcher returns LowercaseSubstring, NOT Substring.
         // "line" is all-lowercase and matches at position 4 in "Readline" (not at a word boundary).
-        using var matcher = PatternMatcher.CreatePatternMatcher("line", includeMatchedSpans: false, allowFuzzyMatching);
+        using var matcher = PatternMatcher.CreatePatternMatcher("line", includeMatchedSpans: false);
         var match = matcher.GetFirstMatch("Readline");
         Assert.NotNull(match);
         Assert.Equal(PatternMatchKind.LowercaseSubstring, match.Value.Kind);
@@ -1194,12 +1206,16 @@ public sealed class NavigateToSearchIndexTests
         // k=2, min_shared=1, matches=4 → passes.
         Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("Xoobar"));
 
-        Assert.True(index.CouldContainNavigateToMatch("Xoobar", null, out var allowFuzzyMatching));
-        Assert.True(allowFuzzyMatching);
+        Assert.True(index.CouldContainNavigateToMatch("Xoobar", null, out var couldNonFuzzyMatch, out var couldFuzzyMatch));
+        Assert.False(couldNonFuzzyMatch);
+        Assert.True(couldFuzzyMatch);
 
-        // PatternMatcher with fuzzy: non-fuzzy is skipped, fuzzy finds edit-distance match.
-        using var matcher = PatternMatcher.CreatePatternMatcher("Xoobar", includeMatchedSpans: false, allowFuzzyMatching);
-        var match = matcher.GetFirstMatch("GooBar");
+        // Non-fuzzy matcher won't find a match, so try fuzzy.
+        using var matcher = PatternMatcher.CreatePatternMatcher("Xoobar", includeMatchedSpans: false);
+        Assert.Null(matcher.GetFirstMatch("GooBar"));
+
+        using var fuzzyMatcher = PatternMatcher.CreateFuzzyPatternMatcher("Xoobar", includeMatchedSpans: false);
+        var match = fuzzyMatcher.GetFirstMatch("GooBar");
         Assert.NotNull(match);
         Assert.Equal(PatternMatchKind.Fuzzy, match.Value.Kind);
     }
