@@ -65,15 +65,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
 
         public static async Task LogAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, string path)
         {
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             Assumes.Present(componentModel);
-            var dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(SDTE));
 
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
+            // Start a threaded wait dialog
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             var dialogFactory = (IVsThreadedWaitDialogFactory)serviceProvider.GetService(typeof(SVsThreadedWaitDialogFactory));
             Assumes.Present(dialogFactory);
             using var session = dialogFactory.StartWaitDialog(
@@ -134,28 +133,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     }
 
                     // Dump DTE references
-                    var langProjProject = await TryFindLangProjProjectAsync(threadingContext, dte, project);
-
-                    if (langProjProject != null)
+                    var dteReferencesElement = await CreateDteReferencesElementAsync(serviceProvider, threadingContext, project);
+                    if (dteReferencesElement != null)
                     {
-                        // Use of DTE is going to require the UI thread
-                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        var dteReferences = new XElement("dteReferences");
-                        projectElement.Add(dteReferences);
-
-                        foreach (var reference in langProjProject.References.Cast<VSLangProj.Reference>())
-                        {
-                            if (reference.SourceProject != null)
-                            {
-                                dteReferences.Add(new XElement("projectReference", new XAttribute("projectName", reference.SourceProject.Name)));
-                            }
-                            else
-                            {
-                                dteReferences.Add(new XElement("metadataReference",
-                                    reference.Path != null ? new XAttribute("path", SanitizePath(reference.Path)) : null,
-                                    new XAttribute("name", reference.Name)));
-                            }
-                        }
+                        projectElement.Add(dteReferencesElement);
                     }
 
                     // Dump the actual metadata references in the workspace
@@ -243,17 +224,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             }
         }
 
-        private static async Task<VSLangProj.VSProject?> TryFindLangProjProjectAsync(IThreadingContext threadingContext, EnvDTE.DTE dte, Project project)
+        private static async Task<XElement?> CreateDteReferencesElementAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, Project project)
         {
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            var dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(SDTE));
+
+            VSLangProj.VSProject? langProjProject = null;
             foreach (EnvDTE.Project p in dte.Solution.Projects)
             {
                 try
                 {
                     if (string.Equals(p.FullName, project.FilePath, StringComparison.OrdinalIgnoreCase))
                     {
-                        return p.Object as VSLangProj.VSProject;
+                        langProjProject = p.Object as VSLangProj.VSProject;
+                        break;
                     }
                 }
                 catch (NotImplementedException)
@@ -262,7 +247,28 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                 }
             }
 
-            return null;
+            if (langProjProject == null)
+            {
+                return null;
+            }
+
+            var dteReferences = new XElement("dteReferences");
+
+            foreach (var reference in langProjProject.References.Cast<VSLangProj.Reference>())
+            {
+                if (reference.SourceProject != null)
+                {
+                    dteReferences.Add(new XElement("projectReference", new XAttribute("projectName", reference.SourceProject.Name)));
+                }
+                else
+                {
+                    dteReferences.Add(new XElement("metadataReference",
+                        reference.Path != null ? new XAttribute("path", SanitizePath(reference.Path)) : null,
+                        new XAttribute("name", reference.Name)));
+                }
+            }
+
+            return dteReferences;
         }
 
         private static string SanitizePath(string s)
