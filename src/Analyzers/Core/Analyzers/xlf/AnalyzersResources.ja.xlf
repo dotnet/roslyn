@@ -502,9 +502,9 @@
         <target state="translated">スロー' 式を使用する</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
-        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="translated">'{0}' ステートメントは、'{1}' を暗黙的に '{2}' に変換します。実行時に失敗する可能性があるため、インテントをより明確にするために明示的なキャストを追加します</target>
+      <trans-unit id="_0_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="translated">'{0}' は '{1}' を '{2}' に暗黙的に変換します。実行時に失敗する可能性があるため、意図をより明確にするために明示的なキャストを追加します</target>
         <note />
       </trans-unit>
       <trans-unit id="unsafe_modifier_is_unnecessary">

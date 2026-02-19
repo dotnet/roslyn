@@ -2,15 +2,15 @@
 
 ## Layers
 
-The roslyn repository produces components for a number of different products that push varying ship and TFM constraints on us. A summary of some of our dependencies are : 
+The roslyn repository produces components for a number of different products that push varying ship and TFM constraints on us. A summary of some of our dependencies are: 
 
 - Build Tools: requires us to ship compilers on `net472`
-- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net9.0`)
+- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net10.0`)
 - Repository Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net10.0` and `net9.0` respectively). This is because the output of repository source build is an input to other repository source build and those could be targeting either `$(NetCurrent)` or `$(NetPrevious)`.
 - Full Source build: requires us to ship `$(NetCurrent)`
 - Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net8.0`) for private runtime components.
 - Visual Studio Code: expects us to ship against the same runtime as DevKit (presently `net10.0`) to avoid two runtime downloads.
-- MSBuildWorkspace: requires to ship a process that must be usable on the lowest supported SDK (presently `net6.0`)
+- MSBuildWorkspace: requires us to ship a process that must be usable on the lowest supported SDK (presently `net8.0`)
 
 It is not reasonable for us to take the union of all TFM and multi-target every single project to them. That would add several hundred compilations to any build operation which would in turn negatively impact our developer throughput. Instead we attempt to use the TFM where needed. That keeps our builds smaller but increases complexity a bit as we end up shipping a mix of TFM for binaries across our layers.
 
@@ -29,7 +29,7 @@ Projects in our repository should include the following values in `<TargetFramew
 7. `$(NetRoslynBuildHostNetCoreVersion)`: the target used for the .NET Core BuildHost process used by MSBuildWorkspace.
 8. `$(NetRoslynNext)`: code that needs to run on the next .NET Core version. This is used during the transition to a new .NET Core version where we need to move forward but don't want to hard code a .NET Core TFM into the build files.
 
-This properties `$(NetCurrent)`, `$(NetPrevious)` and `$(NetMinimum)` are not used in our project files because they change in ways that make it hard for us to maintain corect product deployments. Our product ships on VS and VS Code which are not captured by arcade `$(Net...)` macros. Further as the arcade properties change it's very easy for us to end up with duplicate entries in a `<TargetFarmeworks>` setting. Instead our repo uses the above values and when inside source build or VMR our properties are initialized with arcade properties.
+This properties `$(NetCurrent)`, `$(NetPrevious)` and `$(NetMinimum)` are not used in our project files because they change in ways that make it hard for us to maintain correct product deployments. Our product ships on VS and VS Code which are not captured by arcade `$(Net...)` macros. Further as the arcade properties change it's very easy for us to end up with duplicate entries in a `<TargetFrameworks>` setting. Instead our repo uses the above values and when inside source build or VMR our properties are initialized with arcade properties.
 
 **DO NOT** hard code .NET Core TFMs in project files. Instead use the properties above as that lets us centrally manage them and structure the properties to avoid duplication. It is fine to hard code other TFMs like `netstandard2.0` or `net472` as those are not expected to change.
 

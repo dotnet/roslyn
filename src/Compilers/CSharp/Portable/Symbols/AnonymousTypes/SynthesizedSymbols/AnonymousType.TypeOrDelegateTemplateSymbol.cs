@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return true; }
             }
 
-            public sealed override bool MightContainExtensionMethods
+            public sealed override bool MightContainExtensions
             {
                 get { return false; }
             }

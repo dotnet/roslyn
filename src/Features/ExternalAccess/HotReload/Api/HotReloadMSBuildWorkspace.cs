@@ -46,21 +46,33 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
         _projectGraphFileInfoProvider = new ProjectFileInfoProvider(getBuildProjects, _loader.ProjectFileExtensionRegistry);
     }
 
-    public async ValueTask<Solution> UpdateProjectConeAsync(string projectPath, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfFalse(Path.IsPathFullyQualified(projectPath));
+    // TODO: remove
+    public ValueTask<Solution> UpdateProjectConeAsync(string projectPath, CancellationToken cancellationToken)
+        => UpdateProjectGraphAsync([projectPath], cancellationToken);
 
-        var oldSolution = CurrentSolution;
+    /// <summary>
+    /// Updates all projects in the workspace whose file paths are specified in <paramref name="projectPaths"/> and all their transitive dependencies.
+    /// </summary>
+    public async ValueTask<Solution> UpdateProjectGraphAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(projectPaths.All(Path.IsPathFullyQualified));
 
         var projectMap = ProjectMap.Create();
 
         var projectInfos = await _loader.LoadInfosAsync(
-            [projectPath],
+            projectPaths,
             _projectGraphFileInfoProvider,
             projectMap,
             progress: null,
             cancellationToken).ConfigureAwait(false);
 
+        return UpdateSolution(projectInfos);
+    }
+
+    // internal for testing
+    internal Solution UpdateSolution(ImmutableArray<ProjectInfo> projectInfos)
+    {
+        var oldSolution = CurrentSolution;
         var oldProjectIdsByPath = oldSolution.Projects.ToDictionary(keySelector: static p => (p.FilePath!, p.Name), elementSelector: static p => p.Id);
 
         // Map new project id to the corresponding old one based on file path and project name (includes TFM), if it exists, and null for added projects.
@@ -100,6 +112,7 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
                 isSubmission: false,
                 hostObjectType: null,
                 outputRefFilePath: newProjectInfo.OutputRefFilePath)
+                .WithChecksumAlgorithm(newProjectInfo.ChecksumAlgorithm)
                 .WithAnalyzerConfigDocuments(MapDocuments(oldProjectId, newProjectInfo.AnalyzerConfigDocuments))
                 .WithCompilationOutputInfo(newProjectInfo.CompilationOutputInfo));
         }

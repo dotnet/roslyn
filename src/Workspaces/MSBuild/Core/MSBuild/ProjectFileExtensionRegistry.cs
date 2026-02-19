@@ -14,19 +14,19 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class ProjectFileExtensionRegistry
 {
-    private readonly SolutionServices _solutionServices;
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly Dictionary<string, string> _extensionToLanguageMap;
     private readonly NonReentrantLock _dataGuard;
 
-    public ProjectFileExtensionRegistry(SolutionServices solutionServices, DiagnosticReporter diagnosticReporter)
+    public ProjectFileExtensionRegistry(DiagnosticReporter diagnosticReporter)
     {
-        _solutionServices = solutionServices;
         _diagnosticReporter = diagnosticReporter;
+
         _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "csproj", LanguageNames.CSharp },
-            { "vbproj", LanguageNames.VisualBasic }
+            { "vbproj", LanguageNames.VisualBasic },
+            { "fsproj", LanguageNames.FSharp }
         };
 
         _dataGuard = new NonReentrantLock();
@@ -58,27 +58,11 @@ internal sealed class ProjectFileExtensionRegistry
             if (extension is ['.', .. var rest])
                 extension = rest;
 
-            if (_extensionToLanguageMap.TryGetValue(extension, out var language))
-            {
-                if (_solutionServices.SupportedLanguages.Contains(language) &&
-                    _solutionServices.GetLanguageServices(language).GetService<ICommandLineParserService>() is not null)
-                {
-                    languageName = language;
-                    return true;
-                }
-                else
-                {
-                    _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectFilePath, language));
-                    languageName = null;
-                    return false;
-                }
-            }
-            else
-            {
-                _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
-                languageName = null;
-                return false;
-            }
+            if (_extensionToLanguageMap.TryGetValue(extension, out languageName))
+                return true;
+
+            _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
+            return false;
         }
     }
 }

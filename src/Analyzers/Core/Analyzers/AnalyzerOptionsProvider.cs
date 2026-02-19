@@ -64,6 +64,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     public CodeStyleOption2<ParenthesesPreference> RelationalBinaryParentheses => GetOption(CodeStyleOptions2.RelationalBinaryParentheses);
     public CodeStyleOption2<ParenthesesPreference> OtherParentheses => GetOption(CodeStyleOptions2.OtherParentheses);
     public CodeStyleOption2<ForEachExplicitCastInSourcePreference> ForEachExplicitCastInSource => GetOption(CodeStyleOptions2.ForEachExplicitCastInSource);
+    public CodeStyleOption2<bool> PreferNonHiddenExplicitCastInSource => GetOption(CodeStyleOptions2.PreferNonHiddenExplicitCastInSource);
     public CodeStyleOption2<bool> PreferNamespaceAndFolderMatchStructure => GetOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure);
     public CodeStyleOption2<bool> AllowMultipleBlankLines => GetOption(CodeStyleOptions2.AllowMultipleBlankLines);
     public CodeStyleOption2<bool> AllowStatementImmediatelyAfterBlock => GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock);

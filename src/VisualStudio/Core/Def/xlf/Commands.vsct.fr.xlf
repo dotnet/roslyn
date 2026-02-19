@@ -587,16 +587,6 @@
         <target state="translated">Accéder à l'implémentation</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Arborescence des symboles de l’Explorateur de solutions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Arborescence des symboles de l’Explorateur de solutions</target>
-        <note />
-      </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
         <target state="translated">Rechercher toutes les références</target>

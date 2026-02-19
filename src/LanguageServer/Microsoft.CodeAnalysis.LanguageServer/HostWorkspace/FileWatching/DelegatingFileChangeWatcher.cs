@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// <summary>
 /// A MEF export for <see cref="IFileChangeWatcher" />. This checks if we're able to create an <see
 /// cref="LspFileChangeWatcher" /> if the client supports file watching. If we do, we create that and delegate to it.
-/// Otherwise we use a <see cref="SimpleFileChangeWatcher" />.
+/// Otherwise we use a <see cref="DefaultFileChangeWatcher" />.
 /// </summary>
 /// <remarks>
 /// LSP clients don't always support file watching; this allows us to be flexible and use it when we can, but fall back
@@ -38,7 +38,7 @@ internal sealed class DelegatingFileChangeWatcher(
                 return new LspFileChangeWatcher(instance, asynchronousOperationListenerProvider);
 
             loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
-            return new SimpleFileChangeWatcher();
+            return new DefaultFileChangeWatcher();
         });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)

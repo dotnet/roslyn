@@ -2682,17 +2682,32 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Move_static_members_to_another_type" xml:space="preserve">
     <value>Move static members to another type...</value>
   </data>
-  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
+  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application" xml:space="preserve">
     <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
   </data>
-  <data name="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application" xml:space="preserve">
+  <data name="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</value>
   </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
   </data>
-  <data name="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
-    <value>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</value>
+  <data name="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2" xml:space="preserve">
+    <value>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</value>
+  </data>
+  <data name="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2" xml:space="preserve">
+    <value>Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</value>
+  </data>
+  <data name="_0_does_not_support_Hot_Reload" xml:space="preserve">
+    <value>{0} does not support Hot Reload.</value>
+  </data>
+  <data name="the_content_of_the_document_is_stale" xml:space="preserve">
+    <value>the content of the document is stale.</value>
+  </data>
+  <data name="the_project_contains_stale_document_0" xml:space="preserve">
+    <value>the project contains stale document '{0}'.</value>
+  </data>
+  <data name="the_project_has_not_been_built" xml:space="preserve">
+    <value>the project has not been built.</value>
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ICollection<string> IAssemblySymbol.NamespaceNames => UnderlyingAssemblySymbol.NamespaceNames;
 
-        bool IAssemblySymbol.MightContainExtensionMethods => UnderlyingAssemblySymbol.MightContainExtensionMethods;
+        bool IAssemblySymbol.MightContainExtensionMethods => UnderlyingAssemblySymbol.MightContainExtensions;
 
         AssemblyMetadata IAssemblySymbol.GetMetadata() => UnderlyingAssemblySymbol.GetMetadata();
 

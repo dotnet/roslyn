@@ -39,6 +39,7 @@ internal sealed class RemoteLegacySolutionEventsAggregationService : BrokeredSer
         WorkspaceChangeKind kind,
         ProjectId? projectId,
         DocumentId? documentId,
+        bool processSourceGeneratedDocuments,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(oldSolutionChecksum, newSolutionChecksum,
@@ -46,7 +47,7 @@ internal sealed class RemoteLegacySolutionEventsAggregationService : BrokeredSer
             {
                 var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
                 await aggregationService.OnWorkspaceChangedAsync(
-                    new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId), cancellationToken).ConfigureAwait(false);
+                    new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId), processSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
     }
 }

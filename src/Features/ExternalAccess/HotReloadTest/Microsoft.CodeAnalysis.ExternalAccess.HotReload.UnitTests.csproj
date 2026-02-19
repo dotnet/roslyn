@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build"/>
     <PackageReference Include="Basic.Reference.Assemblies.Net90" />
   </ItemGroup>
 </Project>

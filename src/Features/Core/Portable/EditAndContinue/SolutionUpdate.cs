@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal readonly struct SolutionUpdate(
     ModuleUpdates moduleUpdates,
-    ImmutableDictionary<ProjectId, Guid> staleProjects,
+    ImmutableDictionary<ProjectId, StaleProjectInfo> staleProjects,
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
     ImmutableArray<ProjectBaseline> projectBaselines,
     ImmutableArray<ProjectDiagnostics> diagnostics,
@@ -21,7 +21,7 @@ internal readonly struct SolutionUpdate(
     ImmutableArray<ProjectId> projectsToRedeploy)
 {
     public readonly ModuleUpdates ModuleUpdates = moduleUpdates;
-    public readonly ImmutableDictionary<ProjectId, Guid> StaleProjects = staleProjects;
+    public readonly ImmutableDictionary<ProjectId, StaleProjectInfo> StaleProjects = staleProjects;
     public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions = nonRemappableRegions;
     public readonly ImmutableArray<ProjectBaseline> ProjectBaselines = projectBaselines;
 
@@ -35,7 +35,7 @@ internal readonly struct SolutionUpdate(
     public static SolutionUpdate Empty(
         ImmutableArray<ProjectDiagnostics> diagnostics,
         Diagnostic? syntaxError,
-        ImmutableDictionary<ProjectId, Guid> staleProjects,
+        ImmutableDictionary<ProjectId, StaleProjectInfo> staleProjects,
         ModuleUpdateStatus status)
         => new(
             new(status, Updates: []),

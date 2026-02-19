@@ -1906,4 +1906,8 @@ Additional information: {1}</value>
     <value>Warning {0} does not bind to type</value>
     <comment>{0} is a type name</comment>
   </data>
+  <data name="Include_Roslyn_source_generated_files" xml:space="preserve">
+    <value>Include Roslyn source-generated files</value>
+    <comment>Used in the unified settings registration for real-time test discovery</comment>
+  </data>
 </root>

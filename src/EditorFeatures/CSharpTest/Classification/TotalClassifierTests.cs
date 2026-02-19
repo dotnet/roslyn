@@ -3266,4 +3266,22 @@ Punctuation.CloseCurly);
             XmlDoc.Delimiter("</"),
             XmlDoc.Name("code"),
             XmlDoc.Delimiter(">"));
+
+    [Theory, CombinatorialData]
+    public Task TestWithElement(TestHost testHost)
+        => TestAsync(
+            """
+            var v = [with(0)]
+            """,
+            testHost,
+            parseOptions: null,
+            Keyword("var"),
+            Local("v"),
+            Operators.Equals,
+            Punctuation.OpenBracket,
+            Keyword("with"),
+            Punctuation.OpenParen,
+            Number("0"),
+            Punctuation.CloseParen,
+            Punctuation.CloseBracket);
 }

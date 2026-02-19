@@ -60,8 +60,6 @@
     <Content Include="MetadataTests\Invalid\LongTypeFormInSignature.cs" />
     <EmbeddedResource Include="MetadataTests\Invalid\LongTypeFormInSignature.dll" />
     <EmbeddedResource Include="MetadataTests\Invalid\ManyMethodSpecs.vb" />
-    <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated.dll" />
-    <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated2.dll" />
     <Content Include="MetadataTests\Invalid\Signatures\build.bat" />
     <Content Include="MetadataTests\Invalid\Signatures\munge.csx" />
     <Content Include="MetadataTests\Invalid\Signatures\SignatureCycle2.il" />

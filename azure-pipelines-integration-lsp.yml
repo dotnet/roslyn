@@ -53,12 +53,9 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.amd64.open
+  default: windows.vs2022.amd64.open
   values:
   - windows.vs2022.amd64.open
-  - windows.vs2022.scout.amd64.open
-  - windows.vs2022preview.amd64.open
-  - windows.vs2022preview.scout.amd64.open
 - name: timeout
   displayName: Timeout in Minutes
   type: number

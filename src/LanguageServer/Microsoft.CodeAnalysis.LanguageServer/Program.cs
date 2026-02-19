@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -15,15 +16,9 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
-
-// Setting the title can fail if the process is run without a window, such
-// as when launched detached from nodejs
-IOUtilities.PerformIO(() => Console.Title = "Microsoft.CodeAnalysis.LanguageServer");
 
 WindowsErrorReporting.SetErrorModeOnWindows();
 
@@ -46,7 +41,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
         }
 
-        // Redirect Console.Out to try prevent the standard output stream from being corrupted. 
+        // Redirect Console.Out to try prevent the standard output stream from being corrupted.
         // This should be done before the logger is created as it can write to the standard output.
         Console.SetOut(new StreamWriter(Console.OpenStandardError()));
     }
@@ -100,13 +95,15 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(AppContext.BaseDirectory, extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
 
-    // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
-    // 'automatic' for now.
     var globalOptionService = exportProvider.GetExportedValue<Microsoft.CodeAnalysis.Options.IGlobalOptionService>();
-    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, serverConfiguration.SourceGeneratorExecutionPreference);
+    logger.LogTrace("Source generator execution preference set to {preference}", serverConfiguration.SourceGeneratorExecutionPreference);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
-    Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
+    if (serverConfiguration.ExtensionLogDirectory is not null)
+    {
+        Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
+    }
 
     // Initialize the server configuration MEF exported value.
     exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
@@ -120,9 +117,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
-    // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-    Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
     LanguageServerHost? server = null;
     if (serverConfiguration.UseStdIo)
@@ -131,23 +125,39 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
     else
     {
-        var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
-            ? CreateNewPipeNames()
-            : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
+        Stream pipe;
+        if (serverConfiguration.ServerPipeName is not null)
+        {
+            // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
+            // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
+            // and the full socket path on Unix.
+            var pipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? serverConfiguration.ServerPipeName.Replace(@"\\.\pipe\", "")
+                : serverConfiguration.ServerPipeName;
+            var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+            await pipeClient.ConnectAsync(cancellationToken);
+            pipe = pipeClient;
+        }
+        else
+        {
+            var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
+                ? CreateNewPipeNames()
+                : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
+            var pipeServer = new NamedPipeServerStream(serverPipeName,
+                PipeDirection.InOut,
+                maxNumberOfServerInstances: 1,
+                PipeTransmissionMode.Byte,
+                PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
-        var pipeServer = new NamedPipeServerStream(serverPipeName,
-            PipeDirection.InOut,
-            maxNumberOfServerInstances: 1,
-            PipeTransmissionMode.Byte,
-            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+            // Send the named pipe connection info to the client
+            Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
-        // Send the named pipe connection info to the client 
-        Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
+            // Wait for connection from client
+            await pipeServer.WaitForConnectionAsync(cancellationToken);
+            pipe = pipeServer;
+        }
 
-        // Wait for connection from client
-        await pipeServer.WaitForConnectionAsync(cancellationToken);
-
-        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory, typeRefResolver);
+        server = new LanguageServerHost(pipe, pipe, exportProvider, loggerFactory, typeRefResolver);
     }
 
     server.Start();
@@ -157,6 +167,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     try
     {
+        if (serverConfiguration.ClientProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
+            logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
+
         await server.WaitForExitAsync();
     }
     finally
@@ -183,14 +196,9 @@ static RootCommand CreateCommand()
         Required = false,
     };
 
-    var logLevelOption = new Option<LogLevel>("--logLevel")
+    var logLevelOption = new Option<LogLevel?>("--logLevel")
     {
         Description = "The minimum log verbosity.",
-        Required = true,
-    };
-    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
-    {
-        Description = "The location of the starred completion component (if one exists).",
         Required = false,
     };
 
@@ -199,10 +207,10 @@ static RootCommand CreateCommand()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         Required = false,
     };
-    var extensionLogDirectoryOption = new Option<string>("--extensionLogDirectory")
+    var extensionLogDirectoryOption = new Option<string?>("--extensionLogDirectory")
     {
         Description = "The directory where we should write log files to",
-        Required = true,
+        Required = false,
     };
 
     var sessionIdOption = new Option<string?>("--sessionId")
@@ -252,7 +260,27 @@ static RootCommand CreateCommand()
         Description = "Use stdio for communication with the client.",
         Required = false,
         DefaultValueFactory = _ => false,
+    };
 
+    var autoLoadProjectsOption = new Option<bool>("--autoLoadProjects")
+    {
+        Description = "The server should automatically discover and load projects based on the workspace folders",
+        Required = false,
+        DefaultValueFactory = _ => false,
+    };
+
+    var sourceGeneratorExecutionOption = new Option<SourceGeneratorExecutionPreference>("--sourceGeneratorExecutionPreference")
+    {
+        Description = "Controls when source generators are executed.",
+        Required = false,
+        // Balanced mode requires additional client side support (to trigger refreshes), so by default run in automatic to ensure tool scenarios without client support run generators.
+        DefaultValueFactory = _ => SourceGeneratorExecutionPreference.Automatic,
+    };
+
+    var clientProcessIdOption = new Option<int?>("--clientProcessId")
+    {
+        Description = "The process ID of the client process. The server will terminate when the client process exits.",
+        Required = false,
     };
 
     var rootCommand = new RootCommand()
@@ -260,7 +288,6 @@ static RootCommand CreateCommand()
         debugOption,
         brokeredServicePipeNameOption,
         logLevelOption,
-        starredCompletionsPathOption,
         telemetryLevelOption,
         sessionIdOption,
         extensionAssemblyPathsOption,
@@ -270,28 +297,32 @@ static RootCommand CreateCommand()
         csharpDesignTimePathOption,
         extensionLogDirectoryOption,
         serverPipeNameOption,
-        useStdIoOption
+        useStdIoOption,
+        autoLoadProjectsOption,
+        sourceGeneratorExecutionOption,
+        clientProcessIdOption,
     };
 
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
         var launchDebugger = parseResult.GetValue(debugOption);
         var logLevel = parseResult.GetValue(logLevelOption);
-        var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var csharpDesignTimePath = parseResult.GetValue(csharpDesignTimePathOption);
-        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
+        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption);
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
         var useStdIo = parseResult.GetValue(useStdIoOption);
+        var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
+        var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
+        var clientProcessId = parseResult.GetValue(clientProcessIdOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
-            LogConfiguration: new LogConfiguration(logLevel),
-            StarredCompletionsPath: starredCompletionsPath,
+            LogConfiguration: new LogConfiguration(logLevel ?? LogLevel.Information),
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
@@ -300,7 +331,10 @@ static RootCommand CreateCommand()
             CSharpDesignTimePath: csharpDesignTimePath,
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,
-            ExtensionLogDirectory: extensionLogDirectory);
+            ExtensionLogDirectory: extensionLogDirectory,
+            AutoLoadProjects: autoLoadProjects,
+            SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
+            ClientProcessId: clientProcessId);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
@@ -315,7 +349,7 @@ static (string clientPipe, string serverPipe) CreateNewPipeNames()
     const string WINDOWS_DOTNET_PREFIX = @"\\.\";
 
     // The pipe name constructed by some systems is very long (due to temp path).
-    // Shorten the unique id for the pipe. 
+    // Shorten the unique id for the pipe.
     var newGuid = Guid.NewGuid().ToString();
     var pipeName = newGuid.Split('-')[0];
 

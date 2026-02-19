@@ -16,6 +16,7 @@ internal enum StackFrameKind
     GenericTypeIdentifier,
     GeneratedIdentifier,
     LocalMethodIdentifier,
+    StateMachineMethodIdentifier,
     TypeArgument,
     TypeIdentifier,
     Parameter,
