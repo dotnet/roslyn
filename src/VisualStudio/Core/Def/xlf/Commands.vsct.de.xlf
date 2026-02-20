@@ -587,6 +587,16 @@
         <target state="translated">Zur Implementierung wechseln</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidShowInheritanceMargin|ButtonText">
+        <source>Show Inheritance</source>
+        <target state="new">Show Inheritance</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidShowInheritanceMargin|LocCanonicalName">
+        <source>Show Inheritance</source>
+        <target state="new">Show Inheritance</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
         <target state="translated">Alle Verweise suchen</target>

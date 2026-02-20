@@ -8,11 +8,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Threading;
 using StreamJsonRpc;
 
@@ -230,7 +230,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // Ensure we've actually been asked to shutdown before waiting.
             if (_shutdownRequestTask == null)
             {
-                throw new InvalidOperationException("The language server has not yet been asked to shutdown.");
+                throw new ServerNotShutDownException("The language server has not yet been asked to shutdown.");
             }
         }
 
@@ -265,7 +265,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
             // Allow implementations to do any additional cleanup on shutdown.
             var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
-            await lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
+            await lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
 
             await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
         }
@@ -275,14 +275,16 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// Tells the LSP server to exit.  Requires that <see cref="ShutdownAsync(string)"/> was called first.
     /// Typically called from an LSP exit notification.
     /// </summary>
-    public Task ExitAsync()
+    /// <param name="shutdownException">Optional exception that caused the server to shutdown.
+    /// When provided, <see cref="WaitForExitAsync"/> will throw this exception so callers can observe the error.</param>
+    public Task ExitAsync(Exception? shutdownException = null)
     {
         Task exitTask;
         lock (_lifeCycleLock)
         {
             if (_shutdownRequestTask?.IsCompleted != true)
             {
-                throw new InvalidOperationException("The language server has not yet been asked to shutdown or has not finished shutting down.");
+                throw new ServerNotShutDownException("The language server has not yet been asked to shutdown or has not finished shutting down.");
             }
 
             // Run exit or return the already running exit request.
@@ -319,8 +321,14 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             }
             finally
             {
-                Logger.LogInformation("Exiting server");
-                _serverExitedSource.TrySetResult(null);
+                if (shutdownException is not null)
+                {
+                    _serverExitedSource.TrySetException(shutdownException);
+                }
+                else
+                {
+                    _serverExitedSource.TrySetResult(null);
+                }
             }
         }
     }
@@ -340,20 +348,34 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
         async Task JsonRpc_DisconnectedAsync(object? sender, JsonRpcDisconnectedEventArgs e)
         {
-            if (e.Exception != null)
-            {
-                // Only report an error if we encountered an exception that was caused by the server.
-                // There's nothing we can do if the client decides to disconnect.
-                if (e.Reason != DisconnectedReason.RemotePartyTerminated || e.Reason == DisconnectedReason.LocallyDisposed)
-                {
-                    FatalError.ReportNonFatalError(e.Exception, ErrorSeverity.Critical);
-                }
-            }
+            var exceptionToReport = TryGetReportableException(e);
 
             // It is possible this gets called during normal shutdown and exit.
             // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.
             await ShutdownAsync(message: $"Shutdown triggered by JsonRpc disconnect {e.Reason}").ConfigureAwait(false);
-            await ExitAsync().ConfigureAwait(false);
+            await ExitAsync(exceptionToReport).ConfigureAwait(false);
+        }
+
+        Exception? TryGetReportableException(JsonRpcDisconnectedEventArgs e)
+        {
+            if (e.Exception == null)
+            {
+                return null;
+            }
+
+            if (e.Reason == DisconnectedReason.RemotePartyTerminated || e.Reason == DisconnectedReason.LocallyDisposed)
+            {
+                // These are expected disconnect reasons that can occur during normal shutdown or if the client disconnects.
+                return null;
+            }
+
+            if (e.Exception is IOException)
+            {
+                // Server communication is done over named pipes, IO exceptions are normal if the client disconnects unexpectedly while the server is in the middle of reading or writing.
+                return null;
+            }
+
+            return e.Exception;
         }
     }
 

@@ -33,4 +33,8 @@ internal sealed class CommandBindings
     [Export]
     [CommandBinding(Guids.RoslynGroupIdString, ID.RoslynCommands.GoToValueTrackingWindow, typeof(ValueTrackingEditorCommandArgs))]
     internal CommandBindingDefinition gotoDataFlowToolCommandBinding;
+
+    [Export]
+    [CommandBinding(Guids.RoslynGroupIdString, ID.RoslynCommands.ShowInheritanceMargin, typeof(ShowInheritanceMarginCommandArgs))]
+    internal CommandBindingDefinition showInheritanceMarginCommandBinding;
 }

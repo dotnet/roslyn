@@ -1910,4 +1910,7 @@ Additional information: {1}</value>
     <value>Include Roslyn source-generated files</value>
     <comment>Used in the unified settings registration for real-time test discovery</comment>
   </data>
+  <data name="Show_Inheritance" xml:space="preserve">
+    <value>Show Inheritance</value>
+  </data>
 </root>
