@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.AnalyzerConfig;
 using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
 using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
+using SectionKeyCachingKey = (string? RequiredPrefix, System.Collections.Generic.List<Microsoft.CodeAnalysis.AnalyzerConfig.Section> Sections);
 
 namespace Microsoft.CodeAnalysis
 {
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis
             new ConcurrentDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
 
         // PERF: Most files will probably have the same options, so share the dictionary instances
-        private readonly ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult> _optionsCache =
-            new ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult>(50, SequenceEqualComparer.Instance); // arbitrary size
+        private readonly ConcurrentCache<SectionKeyCachingKey, AnalyzerConfigOptionsResult> _optionsCache =
+            new ConcurrentCache<SectionKeyCachingKey, AnalyzerConfigOptionsResult>(50, OptionsCacheComparer.Instance); // arbitrary size
 
         private readonly ObjectPool<TreeOptions.Builder> _treeOptionsPool =
             new ObjectPool<TreeOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(Section.PropertiesKeyComparer));
@@ -61,25 +62,30 @@ namespace Microsoft.CodeAnalysis
 
         private SingleInitNullable<AnalyzerConfigOptionsResult> _lazyConfigOptions;
 
-        private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
+        private sealed class OptionsCacheComparer : IEqualityComparer<SectionKeyCachingKey>
         {
-            public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
+            public static OptionsCacheComparer Instance { get; } = new OptionsCacheComparer();
 
-            public bool Equals(List<Section>? x, List<Section>? y)
+            public bool Equals(SectionKeyCachingKey x, SectionKeyCachingKey y)
             {
-                if (x is null || y is null)
-                {
-                    return x is null && y is null;
-                }
-
-                if (x.Count != y.Count)
+                if (!string.Equals(x.RequiredPrefix, y.RequiredPrefix, StringComparison.Ordinal))
                 {
                     return false;
                 }
 
-                for (int i = 0; i < x.Count; i++)
+                if (x.Sections is null || y.Sections is null)
                 {
-                    if (!ReferenceEquals(x[i], y[i]))
+                    return x.Sections is null && y.Sections is null;
+                }
+
+                if (x.Sections.Count != y.Sections.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < x.Sections.Count; i++)
+                {
+                    if (!ReferenceEquals(x.Sections[i], y.Sections[i]))
                     {
                         return false;
                     }
@@ -88,7 +94,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public int GetHashCode(List<Section> obj) => Hash.CombineValues(obj);
+            public int GetHashCode(SectionKeyCachingKey obj) => Hash.Combine(obj.RequiredPrefix, Hash.CombineValues(obj.Sections));
         }
 
         private static readonly DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis
             // into `{projectBaseDirectory}/$generated$/{generatedFileRelativePath}`. This is the additional path where we
             // will respect `dotnet_diagnostic` options.
             var generatedFileRelativePath = PathUtilities.GetRelativePath(generatedFilesBaseDirectory, generatedFileOutputPath);
-            var projectDirectoryBasedPath = Path.Combine(projectBaseDirectory, "$generated$", generatedFileRelativePath);
+            var projectDirectoryBasedPath = Path.Combine(projectBaseDirectory, GeneratedPathSectionMarker, generatedFileRelativePath);
 
             return GetOptionsForSourcePath(
                 generatedFileOutputPath,
@@ -293,7 +299,7 @@ namespace Microsoft.CodeAnalysis
 
             // Try to avoid creating extra dictionaries if we've already seen an options result with the
             // exact same options
-            if (!_optionsCache.TryGetValue(sectionKey, out var result))
+            if (!_optionsCache.TryGetValue((requiredDiagnosticSectionPrefix, sectionKey), out var result))
             {
                 var treeOptionsBuilder = _treeOptionsPool.Allocate();
                 var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
@@ -356,7 +362,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : DictionaryAnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
 
-                if (_optionsCache.TryAdd(sectionKey, result))
+                if (_optionsCache.TryAdd((requiredDiagnosticSectionPrefix, sectionKey), result))
                 {
                     // Release the pooled object to be used as a key
                     _sectionKeyPool.ForgetTrackedObject(sectionKey);

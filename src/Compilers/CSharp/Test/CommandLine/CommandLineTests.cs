@@ -15312,7 +15312,7 @@ dotnet_diagnostic.Warning01.severity = error;
                 analyzers: [new WarningDiagnosticAnalyzer()],
                 generators: [generator.AsSourceGenerator()],
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                expectedWarningCount: 2);
+                expectedWarningCount: 1);
 
             // Without the globalconfig, the diagnostic is in all the files.
             VerifyOutput(
