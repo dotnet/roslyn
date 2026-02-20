@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             verifyCount<ParseOptions>(11);
             verifyCount<CSharpParseOptions>(13);
-            verifyCount<CompilationOptions>(63);
+            verifyCount<CompilationOptions>(65);
             verifyCount<CSharpCompilationOptions>(9);
 
             static void verifyCount<T>(int expected)
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""referencesSupersedeLowerVersions"": false,
       ""reportSuppressedDiagnostics"": false,
       ""nullableContextOptions"": ""Disable"",
+      ""projectBaseDirectory"": """",
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
@@ -255,6 +256,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""referencesSupersedeLowerVersions"": false,
       ""reportSuppressedDiagnostics"": false,
       ""nullableContextOptions"": ""Disable"",
+      ""projectBaseDirectory"": """",
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
@@ -456,6 +458,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""referencesSupersedeLowerVersions"": false,
       ""reportSuppressedDiagnostics"": false,
       ""nullableContextOptions"": ""Disable"",
+      ""projectBaseDirectory"": """",
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
@@ -503,6 +506,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.Equal(0, result);
 
             var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
+            var projectBaseDirectory = Roslyn.Utilities.JsonWriter.EscapeString(System.IO.Path.GetDirectoryName(sourceFile.FilePath)!);
             var expected = $$"""
 
 {
@@ -527,6 +531,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "referencesSupersedeLowerVersions": false,
       "reportSuppressedDiagnostics": false,
       "nullableContextOptions": "Disable",
+      "projectBaseDirectory": "{{projectBaseDirectory}}",
       "specificDiagnosticOptions": [],
       "localtime": null,
       "unsafe": false,

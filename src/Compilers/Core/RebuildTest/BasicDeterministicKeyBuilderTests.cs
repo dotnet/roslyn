@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             verifyCount<ParseOptions>(11);
             verifyCount<VisualBasicParseOptions>(10);
-            verifyCount<CompilationOptions>(63);
+            verifyCount<CompilationOptions>(65);
             verifyCount<VisualBasicCompilationOptions>(22);
 
             static void verifyCount<T>(int expected)
@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""referencesSupersedeLowerVersions"": false,
       ""reportSuppressedDiagnostics"": false,
       ""nullableContextOptions"": ""Disable"",
+      ""projectBaseDirectory"": """",
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""rootNamespace"": """",
@@ -317,6 +318,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.Equal(0, result);
 
             var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
+            var projectBaseDirectory = Roslyn.Utilities.JsonWriter.EscapeString(System.IO.Path.GetDirectoryName(sourceFile.FilePath)!);
             var expected = @$"
 {{
   ""compilation"": {{
@@ -337,10 +339,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""warningLevel"": 1,
       ""deterministic"": true,
       ""debugPlusMode"": false,
-      ""referencesSupersedeLowerVersions"": false,
-      ""reportSuppressedDiagnostics"": false,
-      ""nullableContextOptions"": ""Disable"",
-      ""specificDiagnosticOptions"": [],
+       ""referencesSupersedeLowerVersions"": false,
+       ""reportSuppressedDiagnostics"": false,
+       ""nullableContextOptions"": ""Disable"",
+       ""projectBaseDirectory"": ""{projectBaseDirectory}"",
+       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""rootNamespace"": """",
       ""optionStrict"": ""Off"",

@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "AssemblyIdentityComparer",
                 "Language",
                 "CheckOverflow",
+                "ProjectBaseDirectory",
                 "ConcurrentBuild",
                 "CryptoKeyContainer",
                 "CryptoKeyFile",
