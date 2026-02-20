@@ -86,11 +86,17 @@ variables:
     ${{ else }}:
       value: Windows.10.Amd64
 
-  - name: HelixWindowsVsQueueName
+  - name: HelixWindowsVs2022QueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: windows.amd64.vs2022.pre.open
     ${{ else }}:
       value: windows.amd64.vs2022.pre
+
+  - name: HelixWindowsVs2026QueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.amd64.vs2026.pre.scout.open
+    ${{ else }}:
+      value: windows.amd64.vs2026.pre.scout
 
   - name: HelixWindowsSpanishQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -215,7 +221,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
-        helixQueueName: $(HelixWindowsVsQueueName)
+        helixQueueName: $(HelixWindowsVs2026QueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 
@@ -226,7 +232,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsVsQueueName)
+      helixQueueName: $(HelixWindowsVs2026QueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -243,7 +249,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      helixQueueName: $(HelixWindowsVsQueueName)
+      helixQueueName: $(HelixWindowsVs2026QueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -255,7 +261,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        helixQueueName: $(HelixWindowsVsQueueName)
+        helixQueueName: $(HelixWindowsVs2026QueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 
