@@ -1356,7 +1356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     visitElements = false;
 
+#if DEBUG
                     TrackVisit(objectCreation);
+#endif
 
                     return objectCreation.Update(
                         objectCreation.Constructor,
