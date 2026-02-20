@@ -1344,6 +1344,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
 
+            // Ensure a collection expression like `[with(args), elements]`
+            // is analyzed like the equivalent `new(args) { elements }`.
             BoundExpression transformCollectionCreation(BoundCollectionExpression node, BoundExpression expression, out bool visitElements)
             {
                 if (!node.Elements.IsDefaultOrEmpty &&
