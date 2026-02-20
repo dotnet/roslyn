@@ -2394,6 +2394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                bool useType = !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureInstanceMemberInNameof);
                 boundArgument = methodGroup.Update(
                     methodGroup.TypeArgumentsOpt,
                     methodGroup.Name,
@@ -2402,7 +2403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.LookupError,
                     methodGroup.Flags,
                     methodGroup.FunctionType,
-                    receiverOpt: ReplaceTypeOrValueReceiver(methodGroup.ReceiverOpt, useType: false, BindingDiagnosticBag.Discarded), //only change
+                    receiverOpt: ReplaceTypeOrValueReceiver(methodGroup.ReceiverOpt, useType: useType, BindingDiagnosticBag.Discarded), //only change
                     methodGroup.ResultKind);
             }
             else if (boundArgument is BoundPropertyAccess propertyAccess)

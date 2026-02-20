@@ -3296,5 +3296,48 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 //             nameof(r[0]);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(14, 22));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_FieldInitializer()
+        {
+            var source = """
+                #pragma warning disable CS0169, CS0414, CS0649 // unused field
+                class C
+                {
+                    string F = nameof(D.M);
+                    D D;
+                }
+                class D
+                {
+                    public void M() { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_Attribute()
+        {
+            var source = """
+                #pragma warning disable CS0169 // unused field
+                [A(nameof(D.M))] class C
+                {
+                    D D;
+                }
+                class D
+                {
+                    public void M() { }
+                }
+                class A : System.Attribute
+                {
+                    public A(string s) { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
+        }
     }
 }
