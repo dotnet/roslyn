@@ -253,6 +253,10 @@ internal sealed class HelixTestRunner
             command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD=LatestMajor");
             command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
             command.AppendLine(isUnix ? $"ls -l" : $"dir");
+            if (!isUnix)
+            {
+                command.AppendLine(@"dir /s %SYSTEMDRIVE%\arcade-tools");
+            }
             command.AppendLine("dotnet --info");
 
             string[] knownEnvironmentVariables =
