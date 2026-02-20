@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
-        internal override bool HasUnionAttribute => false;
+        internal override bool IsUnionTypeCore => false;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 

@@ -1465,7 +1465,7 @@ next:;
         }
 
 #nullable enable
-        internal override bool HasUnionAttribute
+        internal override bool IsUnionTypeCore
         {
             get
             {

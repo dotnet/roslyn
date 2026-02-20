@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool HasUnionAttribute
+        internal override bool IsUnionTypeCore
         {
             get
             {

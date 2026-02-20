@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool HasCompilerLoweringPreserveAttribute => false;
 
-            internal override bool HasUnionAttribute => false;
+            internal override bool IsUnionTypeCore => false;
 
             internal sealed override bool IsInterpolatedStringHandlerType => false;
 

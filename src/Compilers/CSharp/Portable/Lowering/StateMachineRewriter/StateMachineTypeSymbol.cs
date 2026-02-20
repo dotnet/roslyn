@@ -88,6 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
-        internal override bool HasUnionAttribute => false;
+        internal override bool IsUnionTypeCore => false;
     }
 }

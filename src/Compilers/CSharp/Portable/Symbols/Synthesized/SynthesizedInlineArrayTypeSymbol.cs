@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
-        internal override bool HasUnionAttribute => false;
+        internal override bool IsUnionTypeCore => false;
 
         internal override bool GetGuidString(out string? guidString)
         {
