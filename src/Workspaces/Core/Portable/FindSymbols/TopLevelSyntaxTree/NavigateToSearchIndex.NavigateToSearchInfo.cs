@@ -6,9 +6,12 @@ using System;
 using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -144,7 +147,7 @@ internal sealed partial class NavigateToSearchIndex
         /// 'β') hash to the same index, but this is rare in practice and only causes a slightly higher
         /// false-positive rate for those characters.
         /// </summary>
-        private readonly ulong[] _fuzzyBigramBitset;
+        private readonly ImmutableArray<ulong> _fuzzyBigramBitset;
 
         private NavigateToSearchInfo(
             FrozenSet<string>? humpSet,
@@ -152,7 +155,7 @@ internal sealed partial class NavigateToSearchIndex
             BloomFilter? trigramFilter,
             FrozenSet<char>? containerCharSet,
             ulong symbolNameLengthBitset,
-            ulong[] fuzzyBigramBitset)
+            ImmutableArray<ulong> fuzzyBigramBitset)
         {
             _humpSet = humpSet;
             _humpPrefixFilter = humpPrefixFilter;
@@ -197,7 +200,7 @@ internal sealed partial class NavigateToSearchIndex
                 trigramStrings.Count > 0 ? new BloomFilter(FalsePositiveProbability, isCaseSensitive: true, trigramStrings) : null,
                 containerChars.Count > 0 ? containerChars.ToFrozenSet() : null,
                 lengthBitset,
-                fuzzyBigramBitset);
+                ImmutableCollectionsMarshal.AsImmutableArray(fuzzyBigramBitset));
 
             void AddNameData(string name, Span<char> loweredName)
             {
@@ -812,19 +815,10 @@ internal sealed partial class NavigateToSearchIndex
             return null;
         }
 
-        private static void WriteBigramBitset(ObjectWriter writer, ulong[] bitset)
-        {
-            foreach (var value in bitset)
-                writer.WriteUInt64(value);
-        }
+        private static void WriteBigramBitset(ObjectWriter writer, ImmutableArray<ulong> bitset)
+            => writer.WriteArray(bitset, static (writer, value) => writer.WriteUInt64(value));
 
-        private static ulong[] ReadBigramBitset(ObjectReader reader)
-        {
-            var bitset = new ulong[FuzzyBigramUlongCount];
-            for (var i = 0; i < FuzzyBigramUlongCount; i++)
-                bitset[i] = reader.ReadUInt64();
-
-            return bitset;
-        }
+        private static ImmutableArray<ulong> ReadBigramBitset(ObjectReader reader)
+            => reader.ReadArray(static reader => reader.ReadUInt64());
     }
 }
