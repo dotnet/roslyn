@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsUnionMatching)
             {
                 Debug.Assert(NarrowedType.IsObjectType() ||
-                             NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+                             NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions) ||
+                             (ConstantValue == ConstantValue.Null && !InputType.IsValueType && NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions)));
             }
             else
             {

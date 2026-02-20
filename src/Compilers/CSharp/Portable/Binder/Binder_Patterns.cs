@@ -650,6 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
+            NamedTypeSymbol? unionTypeOnEntry = unionType;
             NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             hasUnionMatching = false;
 
@@ -674,6 +675,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.
                     diagnostics.Add(ErrorCode.ERR_CannotMatchOnINumberBase, node.Location, inputType);
+                }
+
+                if (constantValueOpt == ConstantValue.Null && unionTypeOverride?.IsValueType == false)
+                {
+                    Debug.Assert(hasUnionMatching);
+
+                    // Special case of a null test for a class Union. Its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                    // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
+                    unionType = unionTypeOnEntry;
+                    return new BoundConstantPattern(
+                        node, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionTypeOverride, narrowedType: unionTypeOverride, hasErrors);
                 }
 
                 return new BoundConstantPattern(
