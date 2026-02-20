@@ -1346,7 +1346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression transformCollectionCreation(BoundCollectionExpression node, BoundExpression expression, out bool visitElements)
             {
-                if (expression is BoundObjectCreationExpression objectCreation)
+                if (!node.Elements.IsDefaultOrEmpty && expression is BoundObjectCreationExpression objectCreation)
                 {
                     Debug.Assert(objectCreation.InitializerExpressionOpt is null);
                     Debug.Assert(node.Placeholder is not null);
