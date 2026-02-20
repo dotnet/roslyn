@@ -66,7 +66,7 @@ internal sealed partial class NavigateToSearchIndex
         /// exact membership with zero false positives, negligible memory, and fast lookups optimized for
         /// read-heavy access.
         /// </summary>
-        private readonly FrozenSet<string>? _humpSet;
+        private readonly FrozenSet<string> _humpSet;
 
         /// <summary>
         /// Bloom filter storing lowercased prefixes of each character-part (hump). For example,
@@ -81,7 +81,7 @@ internal sealed partial class NavigateToSearchIndex
         /// pattern[i..j+1), pattern[i..j+2), etc., because no hump can have a longer prefix without
         /// also having the shorter one (and bloom filters have no false negatives).
         /// </summary>
-        private readonly BloomFilter? _humpPrefixFilter;
+        private readonly BloomFilter _humpPrefixFilter;
 
         /// <summary>
         /// Bloom filter storing lowercased trigrams (3-character sliding windows) of each word-part.
@@ -89,7 +89,7 @@ internal sealed partial class NavigateToSearchIndex
         /// <see cref="PatternMatching.PatternMatchKind.LowercaseSubstring"/> matches like "line"
         /// matching "Readline".
         /// </summary>
-        private readonly BloomFilter? _trigramFilter;
+        private readonly BloomFilter _trigramFilter;
 
         /// <summary>
         /// Exact set storing uppercased first characters of each character-part across all segments of
@@ -97,7 +97,7 @@ internal sealed partial class NavigateToSearchIndex
         /// 'S', 'G', 'B', 'Q'. A <see cref="FrozenSet{T}"/> of chars handles any Unicode character (not
         /// just A–Z) and provides exact membership with zero false positives and fast lookups.
         /// </summary>
-        private readonly FrozenSet<char>? _containerCharSet;
+        private readonly FrozenSet<char> _containerCharSet;
 
         /// <summary>
         /// A 64-bit bitset indicating which symbol name lengths exist in the document. Bit <c>i</c> is set
@@ -150,10 +150,10 @@ internal sealed partial class NavigateToSearchIndex
         private readonly ImmutableArray<ulong> _fuzzyBigramBitset;
 
         private NavigateToSearchInfo(
-            FrozenSet<string>? humpSet,
-            BloomFilter? humpPrefixFilter,
-            BloomFilter? trigramFilter,
-            FrozenSet<char>? containerCharSet,
+            FrozenSet<string> humpSet,
+            BloomFilter humpPrefixFilter,
+            BloomFilter trigramFilter,
+            FrozenSet<char> containerCharSet,
             ulong symbolNameLengthBitset,
             ImmutableArray<ulong> fuzzyBigramBitset)
         {
@@ -195,10 +195,10 @@ internal sealed partial class NavigateToSearchIndex
                 ArrayPool<char>.Shared.Return(rentedCharArray);
 
             return new NavigateToSearchInfo(
-                humpStrings.Count > 0 ? humpStrings.ToFrozenSet() : null,
-                humpPrefixStrings.Count > 0 ? new BloomFilter(FalsePositiveProbability, isCaseSensitive: true, humpPrefixStrings) : null,
-                trigramStrings.Count > 0 ? new BloomFilter(FalsePositiveProbability, isCaseSensitive: true, trigramStrings) : null,
-                containerChars.Count > 0 ? containerChars.ToFrozenSet() : null,
+                humpStrings.ToFrozenSet(),
+                new BloomFilter(FalsePositiveProbability, isCaseSensitive: true, humpPrefixStrings),
+                new BloomFilter(FalsePositiveProbability, isCaseSensitive: true, trigramStrings),
+                containerChars.ToFrozenSet(),
                 lengthBitset,
                 ImmutableCollectionsMarshal.AsImmutableArray(fuzzyBigramBitset));
 
@@ -723,48 +723,24 @@ internal sealed partial class NavigateToSearchIndex
             WriteBigramBitset(writer, _fuzzyBigramBitset);
         }
 
-        private static void WriteStringSet(ObjectWriter writer, FrozenSet<string>? set)
+        private static void WriteStringSet(ObjectWriter writer, FrozenSet<string> set)
         {
-            if (set != null)
-            {
-                writer.WriteInt32(set.Count);
-                foreach (var value in set)
-                    writer.WriteString(value);
-            }
-            else
-            {
-                writer.WriteInt32(0);
-            }
+            writer.WriteInt32(set.Count);
+            foreach (var value in set)
+                writer.WriteString(value);
         }
 
-        private static void WriteCharSet(ObjectWriter writer, FrozenSet<char>? set)
+        private static void WriteCharSet(ObjectWriter writer, FrozenSet<char> set)
         {
-            if (set != null)
-            {
-                using var _ = PooledStringBuilder.GetInstance(out var builder);
-                foreach (var c in set)
-                    builder.Append(c);
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            foreach (var c in set)
+                builder.Append(c);
 
-                writer.WriteString(builder.ToString());
-            }
-            else
-            {
-                writer.WriteString(null);
-            }
+            writer.WriteString(builder.ToString());
         }
 
-        private static void WriteBloomFilter(ObjectWriter writer, BloomFilter? filter)
-        {
-            if (filter != null)
-            {
-                writer.WriteBoolean(true);
-                filter.WriteTo(writer);
-            }
-            else
-            {
-                writer.WriteBoolean(false);
-            }
-        }
+        private static void WriteBloomFilter(ObjectWriter writer, BloomFilter filter)
+            => filter.WriteTo(writer);
 
         public static NavigateToSearchInfo? TryReadFrom(ObjectReader reader)
         {
@@ -785,35 +761,25 @@ internal sealed partial class NavigateToSearchIndex
             return null;
         }
 
-        private static FrozenSet<string>? ReadStringSet(ObjectReader reader)
+        private static FrozenSet<string> ReadStringSet(ObjectReader reader)
         {
-            var count = reader.ReadInt32();
-            if (count == 0)
-                return null;
-
             using var _ = PooledHashSet<string>.GetInstance(out var set);
+
+            var count = reader.ReadInt32();
             for (var i = 0; i < count; i++)
                 set.Add(reader.ReadString()!);
 
             return set.ToFrozenSet();
         }
 
-        private static FrozenSet<char>? ReadCharSet(ObjectReader reader)
+        private static FrozenSet<char> ReadCharSet(ObjectReader reader)
         {
-            var chars = reader.ReadString();
-            if (chars == null)
-                return null;
-
+            var chars = reader.ReadRequiredString();
             return chars.ToFrozenSet();
         }
 
-        private static BloomFilter? ReadBloomFilter(ObjectReader reader)
-        {
-            if (reader.ReadBoolean())
-                return BloomFilter.ReadFrom(reader);
-
-            return null;
-        }
+        private static BloomFilter ReadBloomFilter(ObjectReader reader)
+            => BloomFilter.ReadFrom(reader);
 
         private static void WriteBigramBitset(ObjectWriter writer, ImmutableArray<ulong> bitset)
             => writer.WriteArray(bitset, static (writer, value) => writer.WriteUInt64(value));
