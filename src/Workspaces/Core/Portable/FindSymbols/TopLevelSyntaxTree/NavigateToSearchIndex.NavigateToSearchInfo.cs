@@ -218,25 +218,14 @@ internal sealed partial class NavigateToSearchIndex
                 using var charParts = TemporaryArray<TextSpan>.Empty;
                 StringBreaker.AddCharacterParts(name, ref charParts.AsRef());
 
-                AddFuzzyBigramData();
                 AddHumpData();
                 AddHumpPrefixData(loweredName);
                 AddTrigramData(loweredName);
-
-                // Populate the fuzzy bigram bitset with lowercased bigrams (2-character sliding windows)
-                // of the full name. For "GooBar" this stores: "go", "oo", "ob", "ba", "ar".
-                void AddFuzzyBigramData()
-                {
-                    for (var i = 0; i < name.Length - 1; i++)
-                    {
-                        var idx = FuzzyBigramCharIndex(char.ToLowerInvariant(name[i])) * FuzzyBigramAlphabetSize
-                                + FuzzyBigramCharIndex(char.ToLowerInvariant(name[i + 1]));
-                        fuzzyBigramBitset[idx >> 6] |= 1UL << (idx & 63);
-                    }
-                }
+                AddFuzzyBigramData();
 
                 void AddHumpData()
                 {
+                    // Store individual hump-initial characters (uppercased).
                     foreach (var part in charParts)
                         AddToSet(humpStrings, [char.ToUpperInvariant(name[part.Start])]);
 
@@ -268,9 +257,9 @@ internal sealed partial class NavigateToSearchIndex
                     }
                 }
 
-                // Break the name into word-parts and store lowercased trigrams (3-character sliding windows).
                 void AddTrigramData(ReadOnlySpan<char> loweredName)
                 {
+                    // Break the name into word-parts and store lowercased trigrams (3-character sliding windows).
                     using var wordParts = TemporaryArray<TextSpan>.Empty;
                     StringBreaker.AddWordParts(name, ref wordParts.AsRef());
 
@@ -281,6 +270,18 @@ internal sealed partial class NavigateToSearchIndex
 
                         for (var i = 0; i + 3 <= part.Length; i++)
                             AddToSet(trigramStrings, loweredName.Slice(part.Start + i, 3));
+                    }
+                }
+
+                // Populate the fuzzy bigram bitset with lowercased bigrams (2-character sliding windows)
+                // of the full name. For "GooBar" this stores: "go", "oo", "ob", "ba", "ar".
+                void AddFuzzyBigramData()
+                {
+                    for (var i = 0; i < name.Length - 1; i++)
+                    {
+                        var idx = FuzzyBigramCharIndex(char.ToLowerInvariant(name[i])) * FuzzyBigramAlphabetSize
+                                + FuzzyBigramCharIndex(char.ToLowerInvariant(name[i + 1]));
+                        fuzzyBigramBitset[idx >> 6] |= 1UL << (idx & 63);
                     }
                 }
 
