@@ -1383,8 +1383,8 @@ internal sealed partial class ProjectSystemProject
 
         _documentFileChangeContext.Dispose();
 
-        IReadOnlyList<MetadataReference>? originalMetadataReferences = null;
-        IReadOnlyList<AnalyzerReference>? originalAnalyzerReferences = null;
+        IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
+        IReadOnlyList<AnalyzerReference>? remainingAnalyzerReferences = null;
 
         _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
         {
@@ -1392,12 +1392,16 @@ internal sealed partial class ProjectSystemProject
             // as another project being removed at the same time could result in project to project
             // references being converted to metadata references (or vice versa) and we might either
             // miss stopping a file watcher or might end up double-stopping a file watcher.
+            //
+            // It's also critical we remove ourselves from all our tracking first. There is an edge case where
+            // if we have a metadata reference to ourselves, then removing us might try to convert that reference
+            // to a project reference to some other project.
+            _projectSystemProjectFactory.RemoveProjectFromTrackingMaps_NoLock(Id);
+
             var project = w.CurrentSolution.GetRequiredProject(Id);
 
-            originalMetadataReferences = project.MetadataReferences;
-            originalAnalyzerReferences = project.AnalyzerReferences;
-
-            _projectSystemProjectFactory.RemoveProjectFromTrackingMaps_NoLock(Id);
+            remainingMetadataReferences = project.MetadataReferences;
+            remainingAnalyzerReferences = project.AnalyzerReferences;
 
             // If this is our last project, clear the entire solution.
             if (w.CurrentSolution.ProjectIds.Count == 1)
@@ -1410,13 +1414,13 @@ internal sealed partial class ProjectSystemProject
             }
         });
 
-        Contract.ThrowIfNull(originalMetadataReferences);
-        Contract.ThrowIfNull(originalAnalyzerReferences);
+        Contract.ThrowIfNull(remainingMetadataReferences);
+        Contract.ThrowIfNull(remainingAnalyzerReferences);
 
-        foreach (var reference in originalMetadataReferences.OfType<PortableExecutableReference>())
+        foreach (var reference in remainingMetadataReferences.OfType<PortableExecutableReference>())
             _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
 
-        foreach (var reference in originalAnalyzerReferences)
+        foreach (var reference in remainingAnalyzerReferences)
             _projectSystemProjectFactory.FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!, referenceToTrack: reference);
     }
 

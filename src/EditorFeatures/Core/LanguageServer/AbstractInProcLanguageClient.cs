@@ -9,6 +9,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -121,7 +122,21 @@ internal abstract partial class AbstractInProcLanguageClient(
     {
         if (_languageServer is not null)
         {
-            await _languageServer.WaitForExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await _languageServer.WaitForExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
+            }
+            catch (ServerNotShutDownException)
+            {
+                // The previous instance is running and has not been asked to shutdown.  This indicates an error
+                // in the caller where a new server instance is being created before the previous is shutdown.
+                throw;
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+            {
+                // The previous server instance encountered an unexpected error during its lifecycle.
+                // Since we're creating a new server instance to replace it, we report the error and proceed.
+            }
         }
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,7 +6,6 @@ using System;
 using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -815,8 +814,8 @@ internal sealed partial class NavigateToSearchIndex
 
         private static void WriteBigramBitset(ObjectWriter writer, ulong[] bitset)
         {
-            for (var i = 0; i < FuzzyBigramUlongCount; i++)
-                writer.WriteUInt64(bitset[i]);
+            foreach (var value in bitset)
+                writer.WriteUInt64(value);
         }
 
         private static ulong[] ReadBigramBitset(ObjectReader reader)

@@ -36,9 +36,10 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
             m["capabilities"] = JsonSerializer.Serialize(serverCapabilities, ProtocolConversions.LspJsonSerializerOptions);
         }));
 
-        return new InitializeResult
+        return new RoslynInitializeResult
         {
             Capabilities = serverCapabilities,
+            ProcessId = RoslynLanguageServer.ServerProcessId,
         };
     }
 }
