@@ -3297,10 +3297,10 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(14, 22));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
-        public void ColorColor_FieldInitializer()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_FieldInitializer([CombinatorialValues("", "static")] string modifier)
         {
-            var source = """
+            var source = $$"""
                 #pragma warning disable CS0169, CS0414, CS0649 // unused field
                 class C
                 {
@@ -3309,7 +3309,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 }
                 class D
                 {
-                    public void M() { }
+                    public {{modifier}} void M() { }
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
@@ -3317,10 +3317,10 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
-        public void ColorColor_Attribute()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_Attribute([CombinatorialValues("", "static")] string modifier)
         {
-            var source = """
+            var source = $$"""
                 #pragma warning disable CS0169 // unused field
                 [A(nameof(D.M))] class C
                 {
@@ -3328,7 +3328,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 }
                 class D
                 {
-                    public void M() { }
+                    public {{modifier}} void M() { }
                 }
                 class A : System.Attribute
                 {
