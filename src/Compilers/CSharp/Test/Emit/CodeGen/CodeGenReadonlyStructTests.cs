@@ -533,6 +533,7 @@ class Program
         public void NoDefensiveCopy_ReadonlyStructField_ConstrainedCall()
         {
             var text = @"
+#pragma warning disable CS0649 // Field is never assigned to
 struct X
 {
     private Y a;
@@ -543,13 +544,9 @@ readonly struct Y
 {
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (4,15): warning CS0649: Field 'X.a' is never assigned to, and will always have its default value
-                //     private Y a;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("X.a", "").WithLocation(4, 15));
-            var compVerifier = CompileAndVerify(comp, verify: Verification.Passes);
-            compVerifier.VerifyIL("X.W()", @"
+            var comp = CompileAndVerify(text, options: TestOptions.ReleaseDll, verify: Verification.Passes);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("X.W()", @"
 {
   // Code size       18 (0x12)
   .maxstack  1
