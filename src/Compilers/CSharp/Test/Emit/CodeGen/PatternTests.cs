@@ -6175,6 +6175,26 @@ class C
   IL_0012:  ret
 }
 ");
+            compVerifier.VerifyIL("C.M2", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ble.s      IL_0011
+  IL_0004:  ldarg.1
+  IL_0005:  ldc.i4.s   47
+  IL_0007:  beq.s      IL_000f
+  IL_0009:  ldarg.1
+  IL_000a:  ldc.i4.s   92
+  IL_000c:  ceq
+  IL_000e:  ret
+  IL_000f:  ldc.i4.1
+  IL_0010:  ret
+  IL_0011:  ldc.i4.0
+  IL_0012:  ret
+}
+");
         }
 
         [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]

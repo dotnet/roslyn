@@ -26,18 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
             {
                 // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
-                isPatternRewriter.Free();
+                result = LowerIsPatternAsLinearSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
             }
             else if (IsFailureNode(decisionDag.RootNode, node.WhenFalseLabel))
             {
                 // If the given pattern always fails due to a constant input (see comments on BoundDecisionDag.SimplifyDecisionDagIfConstantInput),
                 // we build a linear test sequence with the whenTrue and whenFalse labels swapped and then negate the result, to keep the result a constant.
                 negated = !negated;
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
-                isPatternRewriter.Free();
+                result = LowerIsPatternAsLinearSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
             }
             else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel, maxTests: LinearSequenceMaxTests)
                      && !dagContainsBindings(decisionDag))
@@ -52,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // follows the "failure" branches, skipping BoundWhenDecisionDagNodes that contain variable
                 // bindings, which would leave captured variables uninitialized.
                 negated = !negated;
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
-                isPatternRewriter.Free();
+                result = LowerIsPatternAsLinearSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
             }
             else
             {
@@ -74,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // linear tests with a single "golden" path to the true label and all other paths leading
             // to the false label?  This occurs with an is-pattern expression that uses no "or" or "not"
             // pattern forms.
-            // When maxTests is specified, the sequence is limited to at most that many test nodes.
+            // maxTests limits the number of BoundTestDecisionDagNode nodes in the sequence.
             static bool canProduceLinearSequence(
                 BoundDecisionDagNode node,
                 LabelSymbol whenTrueLabel,
@@ -108,6 +102,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private BoundExpression LowerIsPatternAsLinearSequence(
+            BoundIsPatternExpression node,
+            BoundDecisionDag decisionDag,
+            LabelSymbol whenTrueLabel,
+            LabelSymbol whenFalseLabel)
+        {
+            var rewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
+            var result = rewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel, whenFalseLabel);
+            rewriter.Free();
+            return result;
         }
 
         /// <summary>
@@ -175,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var node in decisionDag.TopologicallySortedNodes)
             {
-                if (node is BoundWhenDecisionDagNode { Bindings.Length: > 0 })
+                if (node is BoundWhenDecisionDagNode { Bindings.IsEmpty: false })
                     return true;
             }
 
