@@ -1371,7 +1371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 node.Elements.SelectAsArray(e => e is BoundCollectionExpressionSpreadElement spread ? spread.Expression : (BoundExpression)e),
                                 node.Type)
                             { WasCompilerGenerated = true },
-                        objectCreation.Type);
+                        objectCreation.Type)
+                        .MakeCompilerGenerated();
                 }
 
                 visitElements = true;
