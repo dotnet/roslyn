@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="AllAnalyzersConcurrentMessage">
+        <source>All analyzers have enabled concurrent execution.</source>
+        <target state="new">All analyzers have enabled concurrent execution.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含类型“{0}”的程序集引用了 .NET Framework，而此操作不受支持。</target>
@@ -181,6 +186,11 @@
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">模块具有无效属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonConcurrentAnalyzersHeader">
+        <source>Analyzers that have not enabled concurrent execution:</source>
+        <target state="new">Analyzers that have not enabled concurrent execution:</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">

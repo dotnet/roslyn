@@ -1460,6 +1460,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes => AnalyzerExecutor.AnalyzerExecutionTimes;
         internal TimeSpan ResetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer) => AnalyzerExecutor.ResetAnalyzerExecutionTime(analyzer);
 
+        /// <summary>
+        /// Returns the set of analyzers that did not call <see cref="AnalysisContext.EnableConcurrentExecution"/>.
+        /// </summary>
+        internal IReadOnlyCollection<DiagnosticAnalyzer> NonConcurrentAnalyzers => AnalyzerGateMap.Keys;
+
         private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>)> MakeSymbolActionsByKind(in AnalyzerActions analyzerActions)
         {
             var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>)>.GetInstance();
