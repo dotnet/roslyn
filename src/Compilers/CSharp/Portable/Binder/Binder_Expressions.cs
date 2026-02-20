@@ -7719,6 +7719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol leftType = null;
+            var leftTypeDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
 
             switch (leftSymbol.Kind)
             {
@@ -7728,7 +7729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     leftType = GetAdjustedTypeForEnumMemberReference(fieldSymbol, leftType) ?? leftType;
                     break;
                 case SymbolKind.Local:
-                    leftType = BindResultTypeForLocalVariableReference(left, (LocalSymbol)leftSymbol, BindingDiagnosticBag.Discarded, isNullableUnknown: out _, isError: out _);
+                    leftType = BindResultTypeForLocalVariableReference(left, (LocalSymbol)leftSymbol, leftTypeDiagnostics, isNullableUnknown: out _, isError: out _);
                     break;
                 case SymbolKind.Parameter:
                     leftType = ((ParameterSymbol)leftSymbol).Type;
@@ -7737,7 +7738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     leftType = ((PropertySymbol)leftSymbol).Type;
                     break;
                 case SymbolKind.RangeVariable:
-                    leftType = BindRangeVariable(left, (RangeVariableSymbol)leftSymbol, BindingDiagnosticBag.Discarded).Type;
+                    leftType = BindRangeVariable(left, (RangeVariableSymbol)leftSymbol, leftTypeDiagnostics).Type;
                     break;
 
                     // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
@@ -7745,6 +7746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (leftType is null)
             {
+                leftTypeDiagnostics.Free();
+
                 return bindAsValue(left, diagnostics);
             }
 
@@ -7757,9 +7760,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!leftType.IsDynamic());
                     Debug.Assert(IsPotentialColorColorReceiver(left, leftType));
 
+                    diagnostics.AddRangeAndFree(leftTypeDiagnostics);
+
                     return new BoundTypeOrValueExpression(left, this, leftSymbol, leftType);
                 }
             }
+
+            leftTypeDiagnostics.Free();
 
             Debug.Assert(!IsPotentialColorColorReceiver(left, leftType));
 
