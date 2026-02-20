@@ -1452,6 +1452,11 @@
         <target state="translated">"{0}" не содержит определение для "{1}", не найден доступный метод расширения "{1}", принимающий первый аргумент типа "{0}" (возможно, нужно было выполнить итерацию для синхронной коллекции с помощью "await foreach"?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_PrimaryConstructorParameterInStaticContext">
+        <source>Cannot use primary constructor parameter '{0}' in a static member.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in a static member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
         <target state="translated">Целевая среда выполнения не поддерживает расширенные типы структуры.</target>

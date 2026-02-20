@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             InNestedMethod = 1 << 8,
             AttributesNotAllowed = 1 << 9,
             NotInScope = 1 << 10,
+            BadStaticReference = 1 << 11,
         }
 
         private static string UnreadParameterWarning()
@@ -2799,9 +2800,9 @@ using System;
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (6,20): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
+                // (6,20): error CS9360: Cannot use primary constructor parameter 'X' in a static member.
                 //     static int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "X").WithArguments("X").WithLocation(6, 20)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2833,9 +2834,9 @@ using System;
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (6,19): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
+                // (6,19): error CS9360: Cannot use primary constructor parameter 'X' in a static member.
                 //     const int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "X").WithArguments("X").WithLocation(6, 19),
                 // (6,19): error CS0133: The expression being assigned to 'C.Z' must be constant
                 //     const int Z = X + 1;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "X + 1").WithArguments("C.Z").WithLocation(6, 19)
@@ -7269,18 +7270,18 @@ struct Example()
                     ("0001", Success | Shadows, "public int F = p1;"),
                     ("0002", Success | Shadows, "public int P {get;} = p1;"),
                     ("0003", Success | Shadows, "public event System.Action E = () => p1.ToString();"),
-                    ("0004", BadReference | NotUsedWarning | Shadows, "public static int F = p1;"),
-                    ("0005", BadReference | NotUsedWarning | Shadows | BadConstant, "public const int F = p1;"),
-                    ("0006", BadReference | NotUsedWarning | Shadows, "public static int P {get;} = p1;"),
-                    ("0007", BadReference | NotUsedWarning | Shadows, "public static event System.Action E = () => p1.ToString();"),
-                    ("0008", BadReference | NotUsedWarning, "static C1() { p1 = 0; }"),
-                    ("0009", BadReference | NotUsedWarning, "static void M() { p1 = 0; }"),
-                    ("0011", BadReference | NotUsedWarning, "static int P { get { return p1; } }"),
-                    ("0012", BadReference | NotUsedWarning, "static int P { set { p1 = 0; } }"),
-                    ("0013", BadReference | NotUsedWarning, "static int P { set {} get { return p1; } }"),
-                    ("0014", BadReference | NotUsedWarning, "static int P { get => 0; set { p1 = 0; } }"),
-                    ("0015", BadReference | NotUsedWarning, "static event System.Action E { add { p1 = 0; } remove {} }"),
-                    ("0016", BadReference | NotUsedWarning, "static event System.Action E { add {} remove { p1 = 0; } }"),
+                    ("0004", BadStaticReference | NotUsedWarning | Shadows, "public static int F = p1;"),
+                    ("0005", BadStaticReference | NotUsedWarning | Shadows | BadConstant, "public const int F = p1;"),
+                    ("0006", BadStaticReference | NotUsedWarning | Shadows, "public static int P {get;} = p1;"),
+                    ("0007", BadStaticReference | NotUsedWarning | Shadows, "public static event System.Action E = () => p1.ToString();"),
+                    ("0008", BadStaticReference | NotUsedWarning, "static C1() { p1 = 0; }"),
+                    ("0009", BadStaticReference | NotUsedWarning, "static void M() { p1 = 0; }"),
+                    ("0011", BadStaticReference | NotUsedWarning, "static int P { get { return p1; } }"),
+                    ("0012", BadStaticReference | NotUsedWarning, "static int P { set { p1 = 0; } }"),
+                    ("0013", BadStaticReference | NotUsedWarning, "static int P { set {} get { return p1; } }"),
+                    ("0014", BadStaticReference | NotUsedWarning, "static int P { get => 0; set { p1 = 0; } }"),
+                    ("0015", BadStaticReference | NotUsedWarning, "static event System.Action E { add { p1 = 0; } remove {} }"),
+                    ("0016", BadStaticReference | NotUsedWarning, "static event System.Action E { add {} remove { p1 = 0; } }"),
                     ("0017", Captured | Success, "void M() { p1 = 0; }"),
                     ("0018", Captured | Success, "int P { get { return p1; } }"),
                     ("0019", Captured | Success, "int P { set { p1 = 0; } }"),
@@ -7517,15 +7518,15 @@ struct Example()
 
                     // In expression body
                     ("1502", Captured | Success, "public int P => p1;"),
-                    ("1506", BadReference | NotUsedWarning, "public static int P => p1;"),
-                    ("1508", BadReference | NotUsedWarning, "static C1() => p1 = 0;"),
-                    ("1509", BadReference | NotUsedWarning, "static void M() => p1 = 0;"),
-                    ("1511", BadReference | NotUsedWarning, "static int P { get => p1; }"),
-                    ("1512", BadReference | NotUsedWarning, "static int P { set => p1 = 0; }"),
-                    ("1513", BadReference | NotUsedWarning, "static int P { set {} get => p1; }"),
-                    ("1514", BadReference | NotUsedWarning, "static int P { get => 0; set => p1 = 0; }"),
-                    ("1515", BadReference | NotUsedWarning, "static event System.Action E { add => p1 = 0; remove {} }"),
-                    ("1516", BadReference | NotUsedWarning, "static event System.Action E { add {} remove => p1 = 0; }"),
+                    ("1506", BadStaticReference | NotUsedWarning, "public static int P => p1;"),
+                    ("1508", BadStaticReference | NotUsedWarning, "static C1() => p1 = 0;"),
+                    ("1509", BadStaticReference | NotUsedWarning, "static void M() => p1 = 0;"),
+                    ("1511", BadStaticReference | NotUsedWarning, "static int P { get => p1; }"),
+                    ("1512", BadStaticReference | NotUsedWarning, "static int P { set => p1 = 0; }"),
+                    ("1513", BadStaticReference | NotUsedWarning, "static int P { set {} get => p1; }"),
+                    ("1514", BadStaticReference | NotUsedWarning, "static int P { get => 0; set => p1 = 0; }"),
+                    ("1515", BadStaticReference | NotUsedWarning, "static event System.Action E { add => p1 = 0; remove {} }"),
+                    ("1516", BadStaticReference | NotUsedWarning, "static event System.Action E { add {} remove => p1 = 0; }"),
                     ("1517", Captured | Success, "void M() => p1 = 0;"),
                     ("1518", Captured | Success, "int P { get => p1; }"),
                     ("1519", Captured | Success, "int P { set => p1 = 0; }"),
@@ -8002,7 +8003,15 @@ class Attr1 : System.Attribute
                         );
                 }
 
-                if ((flags & TestFlags.BadReference) != 0)
+                if ((flags & TestFlags.BadStaticReference) != 0)
+                {
+                    builder.Add(
+                        // (2000,1): error CS9360: Cannot use primary constructor parameter 'p1' in a static member.
+                        // p1
+                        Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "p1").WithArguments("p1").WithLocation(2000, 1)
+                        );
+                }
+                else if ((flags & TestFlags.BadReference) != 0)
                 {
                     builder.Add(
                         // (2000,1): error CS9105: Cannot use primary constructor parameter 'int p1' in this context.
@@ -8038,7 +8047,7 @@ class Attr1 : System.Attribute
                         );
                 }
 
-                if ((flags & (TestFlags.InNestedMethod)) != 0 && (flags & TestFlags.BadReference) == 0 && keyword == "struct")
+                if ((flags & (TestFlags.InNestedMethod)) != 0 && (flags & (TestFlags.BadReference | TestFlags.BadStaticReference)) == 0 && keyword == "struct")
                 {
                     builder.Add(
                         // (2000,1): error CS9111: Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter
@@ -8049,7 +8058,7 @@ class Attr1 : System.Attribute
             }
             else
             {
-                if ((flags & TestFlags.BadReference) != 0 &&
+                if ((flags & (TestFlags.BadReference | TestFlags.BadStaticReference)) != 0 &&
                     diagnosticsToCheck.Where(d => d.Code is (int)ErrorCode.ERR_ObjectRequired).Any())
                 {
                     builder.Add(
@@ -8081,7 +8090,7 @@ class Attr1 : System.Attribute
                         );
                 }
 
-                if ((flags & (TestFlags.BadReference | TestFlags.BadDefaultValue | TestFlags.BadAttributeValue)) != 0)
+                if ((flags & (TestFlags.BadReference | TestFlags.BadStaticReference | TestFlags.BadDefaultValue | TestFlags.BadAttributeValue)) != 0)
                 {
                     Assert.NotEmpty(builder);
                 }
@@ -11336,9 +11345,9 @@ class Color
                 // (2,17): warning CS9113: Parameter 'Color' is unread.
                 // struct S1(Color Color)
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17),
-                // (4,20): error CS9105: Cannot use primary constructor parameter 'Color Color' in this context.
+                // (4,20): error CS9360: Cannot use primary constructor parameter 'Color' in a static member.
                 //     static int F = Color.M1(new S1());
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "Color").WithArguments("Color").WithLocation(4, 20)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -11401,9 +11410,9 @@ class Color
                 // (2,17): warning CS9113: Parameter 'Color' is unread.
                 // struct S1(Color Color)
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17),
-                // (4,33): error CS9105: Cannot use primary constructor parameter 'Color Color' in this context.
+                // (4,33): error CS9360: Cannot use primary constructor parameter 'Color' in a static member.
                 //     public static int Test() => Color.M1(new S1());
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 33)
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "Color").WithArguments("Color").WithLocation(4, 33)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -16355,9 +16364,9 @@ class C1(int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             var expected = new[] {
-                // (4,20): error CS9105: Cannot use primary constructor parameter 'int p1' in this context.
+                // (4,20): error CS9360: Cannot use primary constructor parameter 'p1' in a static member.
                 //     static int F = p1;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p1").WithArguments("int p1").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "p1").WithArguments("p1").WithLocation(4, 20)
                 };
 
             comp.VerifyDiagnostics(expected);
@@ -21648,9 +21657,9 @@ class C2(string p2)
                 // (15,17): warning CS9113: Parameter 'p2' is unread.
                 // class C2(string p2)
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(15, 17),
-                // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
-                //         string a = p2; 
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
+                // (19,20): error CS9360: Cannot use primary constructor parameter 'p2' in a static member.
+                //         string a = p2;
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "p2").WithArguments("p2").WithLocation(19, 20)
                 };
 
             comp.VerifyDiagnostics(expected);
