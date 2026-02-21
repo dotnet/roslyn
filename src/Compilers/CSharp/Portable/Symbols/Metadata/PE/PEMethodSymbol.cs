@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     ? _packedFlags.IsExtensionMethod
                     : this.MethodKind == MethodKind.Ordinary
                         && IsValidExtensionMethodSignature()
-                        && _containingType.MightContainExtensionMethods;
+                        && _containingType.MightContainExtensions;
 
                 bool isReadOnlyAlreadySet = _packedFlags.IsReadOnlyPopulated;
                 bool checkForIsReadOnly = isReadOnlyAlreadySet

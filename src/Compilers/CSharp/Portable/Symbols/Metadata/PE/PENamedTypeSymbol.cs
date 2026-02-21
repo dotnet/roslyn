@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         Handle,
                         out _,
                         // Filter out [Extension]
-                        MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
+                        MightContainExtensions ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
                         out _,
                         // Filter out [Obsolete], unless it was user defined
                         (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
@@ -964,21 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         AttributeDescription.RequiredMemberAttribute);
                 }
 
-<<<<<<< HEAD
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
-||||||| parent of 7b9ce4ad370 (Extensions: Merge lookup of classic and new extensions   (#82165))
-                var filterExtensionAttribute = MightContainExtensionMethods;
-                var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
-                var filterIsReadOnlyAttribute = IsReadOnly;
-                var filterIsByRefLikeAttribute = IsRefLikeType;
-                var filterCompilerFeatureRequiredAttribute = filterIsByRefLikeAttribute && DeriveCompilerFeatureRequiredDiagnostic() is null;
-=======
-                var filterExtensionAttribute = MightContainExtensions;
-                var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
-                var filterIsReadOnlyAttribute = IsReadOnly;
-                var filterIsByRefLikeAttribute = IsRefLikeType;
-                var filterCompilerFeatureRequiredAttribute = filterIsByRefLikeAttribute && DeriveCompilerFeatureRequiredDiagnostic() is null;
->>>>>>> 7b9ce4ad370 (Extensions: Merge lookup of classic and new extensions   (#82165))
 
                 if (!uncommon.lazyHasRequiredMembers.HasValue())
                 {
