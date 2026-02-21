@@ -682,7 +682,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeListSyntax attributeList, BindingDiagnosticBag diagnostics)
         {
             AttributeLocation defaultAttributeLocation = attributeTarget.DefaultAttributeLocation;
-
             if (defaultAttributeLocation == AttributeLocation.Extension)
             {
                 diagnostics.Add(ErrorCode.ERR_AttributesNotAllowed, attributeList);
@@ -936,6 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((attributeTarget & attributeUsageInfo.ValidTargets) == 0)
             {
+                // generate error
                 diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.GetErrorDisplayName(), attributeUsageInfo.GetValidTargetsErrorArgument());
                 return false;
             }
