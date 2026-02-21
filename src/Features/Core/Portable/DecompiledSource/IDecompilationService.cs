@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
+using System;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.DecompiledSource;
@@ -14,5 +14,5 @@ internal interface IDecompilationService : ILanguageService
 {
     Document? PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference? metadataReference, string? assemblyLocation);
 
-    FileVersionInfo GetDecompilerVersion();
+    Version GetDecompilerVersion();
 }
