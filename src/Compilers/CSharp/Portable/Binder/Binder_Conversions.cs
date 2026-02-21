@@ -46,10 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionGroup? conversionGroupOpt,
             InConversionGroupFlags inConversionGroupFlags,
             TypeSymbol destination,
-            BindingDiagnosticBag diagnostics,
-            bool hasErrors = false)
+            BindingDiagnosticBag diagnostics)
         {
-            return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, inConversionGroupFlags, source.WasCompilerGenerated, destination, diagnostics, hasErrors);
+            return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, inConversionGroupFlags, source.WasCompilerGenerated, destination, diagnostics);
         }
 
         protected BoundExpression CreateConversion(

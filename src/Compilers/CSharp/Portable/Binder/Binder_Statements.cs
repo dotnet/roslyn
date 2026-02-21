@@ -3259,8 +3259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType,
                 hasImplicitConversionError
                     ? BindingDiagnosticBag.Discarded
-                    : diagnostics,
-                hasImplicitConversionError);
+                    : diagnostics);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, BindingDiagnosticBag diagnostics)
