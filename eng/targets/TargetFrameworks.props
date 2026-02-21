@@ -49,4 +49,19 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+
+  <!-- Throw an Error if NetVSShared doesn't contain both NetVS and NetVSCode -->
+  <Target Name="CheckNetVSShared" BeforeTargets="Build">
+    <Error Condition="!$(NetVSShared.Contains($(NetVS)))" Text="NetVSShared must contain NetVS" />
+    <Error Condition="!$(NetVSShared.Contains($(NetVSCode)))" Text="NetVSShared must contain NetVSCode" />
+  </Target>
+
+  <!-- Throw an Error if NetRoslynAll doesn't contain all required TFMs -->
+  <Target Name="CheckNetRoslynAll" BeforeTargets="Build">
+    <Error Condition="!$(NetRoslynAll.Contains($(NetRoslyn)))" Text="NetRoslynAll must contain NetRoslyn" />
+    <Error Condition="!$(NetRoslynAll.Contains($(NetVS)))" Text="NetRoslynAll must contain NetVS" />
+    <Error Condition="!$(NetRoslynAll.Contains($(NetVSCode)))" Text="NetRoslynAll must contain NetVSCode" />
+    <Error Condition="!$(NetRoslynAll.Contains($(NetRoslynBuildHostNetCoreVersion)))" Text="NetRoslynAll must contain NetRoslynBuildHostNetCoreVersion" />
+    <Error Condition="!$(NetRoslynAll.Contains($(NetRoslynNext)))" Text="NetRoslynAll must contain NetRoslynNext" />
+  </Target>
 </Project>
