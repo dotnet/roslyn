@@ -2761,7 +2761,7 @@ enum E { }
         Assert.False(symbol.IsExtension);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82444")]
     public void Attributes_01()
     {
         var src = """
@@ -2773,15 +2773,15 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
+            // (3,5): error CS7014: Attributes are not valid in this context.
             //     [System.Obsolete]
-            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "System.Obsolete").WithLocation(3, 6));
+            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[System.Obsolete]").WithLocation(3, 5));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        AssertEx.SetEqual(["System.ObsoleteAttribute"], symbol.GetAttributes().Select(a => a.ToString()));
+        Assert.Empty(symbol.GetAttributes());
     }
 
     [Fact]
@@ -2801,13 +2801,9 @@ public class MyAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
+            // (3,5): error CS7014: Attributes are not valid in this context.
             //     [My(nameof(o)), My(nameof(Extensions))]
-            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "My").WithLocation(3, 6),
-            // (3,21): error CS0579: Duplicate 'My' attribute
-            //     [My(nameof(o)), My(nameof(Extensions))]
-            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "My").WithArguments("My").WithLocation(3, 21)
-            );
+            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[My(nameof(o)), My(nameof(Extensions))]").WithLocation(3, 5));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
@@ -2822,15 +2818,15 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
+            // (3,5): error CS7014: Attributes are not valid in this context.
             //     [return: System.Obsolete]
-            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "return").WithLocation(3, 6));
+            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[return: System.Obsolete]").WithLocation(3, 5));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        AssertEx.SetEqual([], symbol.GetAttributes().Select(a => a.ToString()));
+        Assert.Empty(symbol.GetAttributes());
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
@@ -2855,15 +2851,15 @@ public class MyAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
-            //     [return: My]
-            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, target).WithLocation(3, 6));
+            // (3,5): error CS7014: Attributes are not valid in this context.
+            //     [assembly: My]
+            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, $"[{target}: My]").WithLocation(3, 5));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        AssertEx.SetEqual([], symbol.GetAttributes().Select(a => a.ToString()));
+        Assert.Empty(symbol.GetAttributes());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
@@ -2942,15 +2938,15 @@ public class MyAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): error CS9360: Attributes are not allowed on extension blocks.
+            // (3,5): error CS7014: Attributes are not valid in this context.
             //     [typevar: My]
-            Diagnostic(ErrorCode.ERR_AttributeNotAllowedOnExtensionBlock, "typevar").WithLocation(3, 6));
+            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[typevar: My]").WithLocation(3, 5));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        AssertEx.SetEqual([], symbol.TypeParameters[0].GetAttributes().Select(a => a.ToString()));
+        Assert.Empty(symbol.GetAttributes());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]
@@ -2988,15 +2984,15 @@ public class MyAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,6): warning CS0658: 'fake' is not a recognized attribute location. Valid attribute locations for this declaration are ''. All attributes in this block will be ignored.
+            // (3,5): error CS7014: Attributes are not valid in this context.
             //     [fake: My]
-            Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "fake").WithArguments("fake", "").WithLocation(3, 6));
+            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[fake: My]").WithLocation(3, 5));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        AssertEx.SetEqual([], symbol.GetAttributes().Select(a => a.ToString()));
+        Assert.Empty(symbol.GetAttributes());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82445")]

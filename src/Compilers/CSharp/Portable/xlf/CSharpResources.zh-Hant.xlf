@@ -142,11 +142,6 @@
         <target state="translated">無法手動套用 '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeNotAllowedOnExtensionBlock">
-        <source>Attributes are not allowed on extension blocks.</source>
-        <target state="new">Attributes are not allowed on extension blocks.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">屬性 '{0}' 在事件存取子上無效。其只有在 '{1}' 宣告上才有效。</target>

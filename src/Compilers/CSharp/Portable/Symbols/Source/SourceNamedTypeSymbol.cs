@@ -806,7 +806,7 @@ next:;
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
         {
-            get { return IsExtension ? AttributeLocation.None : AttributeLocation.Type; }
+            get { return IsExtension ? AttributeLocation.Extension : AttributeLocation.Type; }
         }
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
