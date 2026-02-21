@@ -109,7 +109,11 @@ namespace Microsoft.CodeAnalysis
 
                 outputCompilation = outputCompilation.WithOptions(
                     outputCompilation.Options.WithSyntaxTreeOptionsProvider(
-                        new CompilerSyntaxTreeOptionsProvider(outputCompilation.SyntaxTrees.ToArray(), analyzerConfigOptions, globalConfigOptions)));
+                        new CompilerSyntaxTreeOptionsProvider(
+                            outputCompilation.SyntaxTrees.ToArray(),
+                            analyzerConfigSet,
+                            analyzerConfigOptions,
+                            globalConfigOptions)));
             }
 
             return FromState(state);

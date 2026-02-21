@@ -65,11 +65,11 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Overloads Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
-        Return Me.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt, Nothing)
+        Return Me.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, Nothing, syntaxTreeDiagnosticOptionsOpt, Nothing)
     End Function
 
-    Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult), globalConfigOptions As AnalyzerConfigOptionsResult) As Compilation
-        Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt, globalConfigOptions)
+    Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, analyzerConfigSet As AnalyzerConfigSet, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult), globalConfigOptions As AnalyzerConfigOptionsResult) As Compilation
+        Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, analyzerConfigSet, syntaxTreeDiagnosticOptionsOpt, globalConfigOptions)
 
         If Not _additionalReferences.IsEmpty Then
             Compilation = Compilation.AddReferences(_additionalReferences)

@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 writer,
                 touchedFilesLogger: null,
                 errorLoggerOpt: null,
+                analyzerConfigSet: null,
                 analyzerConfigOptions: default,
                 globalConfigOptions: default);
             AssertEx.NotNull(compilation);

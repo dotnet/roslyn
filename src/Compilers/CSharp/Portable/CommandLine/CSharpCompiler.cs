@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextWriter consoleOutput,
             TouchedFileLogger? touchedFilesLogger,
             ErrorLogger? errorLogger,
+            AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
             AnalyzerConfigOptionsResult globalConfigOptions)
         {
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
-            var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalConfigOptions);
+            var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigSet, analyzerConfigOptions, globalConfigOptions);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,

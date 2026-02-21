@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis
             TextWriter consoleOutput,
             TouchedFileLogger? touchedFilesLogger,
             ErrorLogger? errorLoggerOpt,
+            AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
             AnalyzerConfigOptionsResult globalConfigOptions);
 
@@ -925,7 +926,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
+            Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, analyzerConfigSet, sourceFileAnalyzerConfigOptions, globalConfigOptions);
             if (compilation == null)
             {
                 return Failed;

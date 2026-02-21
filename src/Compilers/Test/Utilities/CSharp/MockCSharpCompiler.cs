@@ -72,16 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLogger)
-            => CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt: default, globalDiagnosticOptionsOpt: default);
+            => CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, analyzerConfigSet: null, syntaxDiagOptionsOpt: default, globalDiagnosticOptionsOpt: default);
 
         public override Compilation CreateCompilation(
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLogger,
+            AnalyzerConfigSet analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> syntaxDiagOptionsOpt,
             AnalyzerConfigOptionsResult globalDiagnosticOptionsOpt)
         {
-            Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
+            Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, analyzerConfigSet, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
 
             if (!_additionalReferences.IsEmpty)
             {

@@ -49,12 +49,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private readonly ImmutableDictionary<SyntaxTree, Options> _options;
-
+        private readonly AnalyzerConfigSet? _analyzerConfigSet;
+        private readonly string _projectBaseDirectory;
+        private readonly string _projectOutputDirectory;
+        private ImmutableDictionary<SyntaxTree, Options> _options;
         private readonly AnalyzerConfigOptionsResult _globalOptions;
 
         public CompilerSyntaxTreeOptionsProvider(
             SyntaxTree?[] trees,
+            AnalyzerConfigSet? analyzerConfigSet,
+            string projectBaseDirectory,
+            string projectOutputDirectory,
             ImmutableArray<AnalyzerConfigOptionsResult> results,
             AnalyzerConfigOptionsResult globalResults)
         {
@@ -71,15 +76,58 @@ namespace Microsoft.CodeAnalysis
                 }
             }
             _options = builder.ToImmutableDictionary();
+            _analyzerConfigSet = analyzerConfigSet;
+            _projectOutputDirectory = projectBaseDirectory;
+            _projectOutputDirectory = projectOutputDirectory;
             _globalOptions = globalResults;
         }
 
+        private Options? GetOptionsForTree(SyntaxTree tree)
+        {
+            if (_options.TryGetValue(tree, out var options))
+            {
+                return options;
+            }
+
+            if (_analyzerConfigSet is not null && tree.FilePath.StartsWith(_projectOutputDirectory))
+            {
+                // This is a source-generated file
+                var optionsResult = _analyzerConfigSet.GetOptionsForGeneratedPath(_projectBaseDirectory, _projectOutputDirectory, tree.FilePath);
+                options = new Options(optionsResult);
+
+                do
+                {
+                    var oldOptions = _options;
+                    if (oldOptions.ContainsKey(tree))
+                    {
+                        // Another thread has already added options for this tree, use those instead of trying to add again.
+                        Debug.Assert(oldOptions[tree].IsGenerated == options.IsGenerated);
+                        Debug.Assert(oldOptions[tree].DiagnosticOptions.SetEquals(options.DiagnosticOptions));
+                        options = oldOptions[tree];
+                        break;
+                    }
+
+                    var newOptions = oldOptions.Add(tree, options);
+                    if (Interlocked.CompareExchange(ref _options, newOptions, oldOptions) == oldOptions)
+                    {
+                        // Successfully added options for this tree.
+                        break;
+                    }
+                }
+                while (true);
+
+                return options;
+            }
+
+            return null;
+        }
+
         public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken _)
-            => _options.TryGetValue(tree, out var value) ? value.IsGenerated : GeneratedKind.Unknown;
+            => GetOptionsForTree(tree) is { } value ? value.IsGenerated : GeneratedKind.Unknown;
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {
-            if (_options.TryGetValue(tree, out var value))
+            if (GetOptionsForTree(tree) is { } value)
             {
                 return value.DiagnosticOptions.TryGetValue(diagnosticId, out severity);
             }
