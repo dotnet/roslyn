@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void PopulateWithExtensionMethods(
             BoundExpression receiverOpt,
-            ArrayBuilder<Symbol> members,
+            IEnumerable<Symbol> members,
             ImmutableArray<TypeWithAnnotations> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)

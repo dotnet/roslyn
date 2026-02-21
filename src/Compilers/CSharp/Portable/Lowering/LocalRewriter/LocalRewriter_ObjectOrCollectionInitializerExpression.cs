@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(getSubArrayCall.Arguments.Length == 2);
                             var rangeArgument = getSubArrayCall.Arguments[1];
-                            Debug.Assert(TypeSymbol.Equals(rangeArgument.Type, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything));
+                            Debug.Assert(Binder.IsWellKnownSystemRange(rangeArgument.Type, _compilation));
 
                             var rangeTemp = _factory.StoreToTemp(rangeArgument, out BoundAssignmentOperator rangeStore);
                             temps ??= ArrayBuilder<LocalSymbol>.GetInstance();

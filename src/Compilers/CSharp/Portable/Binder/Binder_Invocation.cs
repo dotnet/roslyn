@@ -716,7 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // HasCollectionExpressionApplicableAddMethod.bindMethodGroupInvocation
             //
 
-            BoundExpression result = null;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = this.ResolveMethodGroup(
                 methodGroup, expression, methodName, analyzedArguments,
@@ -727,6 +726,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 acceptOnlyMethods: acceptOnlyMethods);
             diagnostics.Add(expression, useSiteInfo);
 
+            return BindMethodGroupInvocationCore(syntax, expression, methodName, methodGroup, analyzedArguments, resolution, diagnostics, queryClause, out anyApplicableCandidates);
+        }
+
+        /// <summary>
+        /// Binds a method group invocation given a pre-computed <see cref="MethodGroupResolution"/>.
+        /// </summary>
+        private BoundExpression BindMethodGroupInvocationCore(
+            SyntaxNode syntax,
+            SyntaxNode expression,
+            string methodName,
+            BoundMethodGroup methodGroup,
+            AnalyzedArguments analyzedArguments,
+            MethodGroupResolution resolution,
+            BindingDiagnosticBag diagnostics,
+            CSharpSyntaxNode queryClause,
+            out bool anyApplicableCandidates)
+        {
             if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
             {
                 diagnostics.AddRange(resolution.Diagnostics);
@@ -740,6 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return extensionMemberInvocation;
             }
 
+            BoundExpression result = null;
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
 
             if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
