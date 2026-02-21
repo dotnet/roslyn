@@ -3234,14 +3234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var errorCount = diagnostics.DiagnosticBag?.AsEnumerable()
-                                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) ?? 0;
+                            var conversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                            GenerateImplicitConversionError(conversionDiagnostics, argument.Syntax, conversion, argument, returnType);
 
-                            GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
-
-                            var updatedErrorCount = diagnostics.DiagnosticBag?.AsEnumerable()
-                                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) ?? 0;
-                            hasImplicitConversionError = errorCount < updatedErrorCount;
+                            hasImplicitConversionError = conversionDiagnostics.AccumulatesDiagnostics && conversionDiagnostics.HasAnyResolvedErrors();
+                            diagnostics.AddRangeAndFree(conversionDiagnostics);
 
                             if (this.ContainingMemberOrLambda is LambdaSymbol)
                             {
@@ -3252,7 +3249,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, returnType, diagnostics, hasImplicitConversionError);
+            return CreateConversion(
+                argument.Syntax,
+                argument,
+                conversion,
+                isCast: false,
+                conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
+                returnType,
+                hasImplicitConversionError
+                    ? BindingDiagnosticBag.Discarded
+                    : diagnostics,
+                hasImplicitConversionError);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, BindingDiagnosticBag diagnostics)
