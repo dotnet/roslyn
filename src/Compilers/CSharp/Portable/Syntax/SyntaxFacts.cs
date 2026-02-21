@@ -571,42 +571,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/66970", Constraint = "Use Green nodes for walking to avoid heavy allocations.")]
         internal static bool HasYieldOperations(SyntaxNode? node)
         {
-            if (node is null)
-                return false;
-
-            var stack = ArrayBuilder<GreenNode>.GetInstance();
-            stack.Push(node.Green);
-
-            while (stack.Count > 0)
+            var original = node?.Green;
+            if (!shouldInspectThisNodeAndChildren(original))
             {
-                var current = stack.Pop();
-                Debug.Assert(node.Green == current || current is not Syntax.InternalSyntax.MemberDeclarationSyntax and not Syntax.InternalSyntax.TypeDeclarationSyntax);
+                return false;
+            }
 
-                if (current is null)
-                    continue;
+            if (isMatchingNode(original))
+            {
+                return true;
+            }
 
-                // Do not descend into functions and expressions
-                if (IsNestedFunction((SyntaxKind)current.RawKind) ||
-                    current is Syntax.InternalSyntax.ExpressionSyntax)
+            var stack = ArrayBuilder<CodeAnalysis.Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance();
+            stack.Add(original.ChildNodesAndTokens().GetEnumerator());
+
+            while (stack.TryPop(out var currentEnumerator))
+            {
+                while (currentEnumerator.MoveNext())
                 {
-                    continue;
-                }
+                    var current = currentEnumerator.Current;
+                    if (shouldInspectThisNodeAndChildren(current))
+                    {
+                        Debug.Assert(original == current || current is not Syntax.InternalSyntax.MemberDeclarationSyntax and not Syntax.InternalSyntax.TypeDeclarationSyntax);
 
-                if (current is Syntax.InternalSyntax.YieldStatementSyntax)
-                {
-                    stack.Free();
-                    return true;
-                }
+                        if (isMatchingNode(current))
+                        {
+                            stack.Free();
+                            return true;
+                        }
 
-                foreach (var child in current.ChildNodesAndTokens())
-                {
-                    if (!child.IsToken)
-                        stack.Push(child);
+                        // push this enumerator back onto the stack as it has may have more elements to inspect.
+                        stack.Push(currentEnumerator);
+
+                        // switch to walking the children enumerator
+                        currentEnumerator = current.ChildNodesAndTokens().GetEnumerator();
+                    }
                 }
             }
 
             stack.Free();
             return false;
+
+            static bool isMatchingNode(GreenNode node)
+                => node is Syntax.InternalSyntax.YieldStatementSyntax;
+
+            // Do not descend into functions and expressions
+            static bool shouldInspectThisNodeAndChildren([NotNullWhen(true)] GreenNode? node)
+                => node is not null && !node.IsToken && !IsNestedFunction((SyntaxKind)node.RawKind) && node is not Syntax.InternalSyntax.ExpressionSyntax;
         }
 
         internal static bool HasReturnWithExpression(SyntaxNode? node)
