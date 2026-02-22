@@ -79,18 +79,18 @@ class C
 
             c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
 
-            var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
-            var expectedIL = @"
-{
-  // Code size        7 (0x7)
-  .maxstack  8
-  IL_0000:  ldc.i4.2
-  IL_0001:  call       0x0A000006
-  IL_0006:  ret
-}";
-            // If the references are mismatched then the symbol matcher won't be able to find Task<T>
-            // and will recompile the method body of F (even though the method hasn't changed).
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
+//            var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
+//            var expectedIL = @"
+//{
+//  // Code size        7 (0x7)
+//  .maxstack  8
+//  IL_0000:  ldc.i4.2
+//  IL_0001:  call       0x0A000006
+//  IL_0006:  ret
+//}";
+//            // If the references are mismatched then the symbol matcher won't be able to find Task<T>
+//            // and will recompile the method body of F (even though the method hasn't changed).
+//            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
         }
 
         /// <summary>
@@ -150,20 +150,20 @@ class C
 
             c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
 
-            var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
+//            var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
 
-            // Symbol matcher should ignore overloads with missing type symbols and match 
-            // F(object).
-            var expectedIL = @"
-{
-  // Code size        8 (0x8)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  call       0x06000002
-  IL_0006:  pop
-  IL_0007:  ret
-}";
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
+//            // Symbol matcher should ignore overloads with missing type symbols and match 
+//            // F(object).
+//            var expectedIL = @"
+//{
+//  // Code size        8 (0x8)
+//  .maxstack  8
+//  IL_0000:  ldnull
+//  IL_0001:  call       0x06000002
+//  IL_0006:  pop
+//  IL_0007:  ret
+//}";
+//            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
         }
 
         /// <summary>

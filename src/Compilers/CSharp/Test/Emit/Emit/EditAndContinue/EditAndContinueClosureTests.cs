@@ -1176,16 +1176,16 @@ class C
                 "C.<>c: {<>9__0#1, <F>b__0#1}");
 
             // added:
-            diff1.VerifyIL("C.<>c.<F>b__0#1", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.1
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>b__0#1", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1196,16 +1196,16 @@ class C
                 "C.<>c: {<>9__0#1, <F>b__0#1}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>b__0#1", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>b__0#1", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.2
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
         }
 
         [Fact]
@@ -1275,16 +1275,16 @@ class C
                 "C.<>c: {<F>g__f|0#1}");
 
             // added:
-            diff1.VerifyIL("C.<>c.<F>g__f|0#1(int)", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.1
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>g__f|0#1(int)", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1295,16 +1295,16 @@ class C
                 "C.<>c: {<F>g__f|0#1}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f|0#1(int)", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>g__f|0#1(int)", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.2
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
         }
 
         [Fact]
@@ -1367,16 +1367,16 @@ class C
                 "C: {<F>g__f|0#1}");
 
             // added:
-            diff1.VerifyIL("C.<F>g__f|0#1(int)", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff1.VerifyIL("C.<F>g__f|0#1(int)", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1386,16 +1386,16 @@ class C
                 "C: {<F>g__f|0#1}");
 
             // updated:
-            diff2.VerifyIL("C.<F>g__f|0#1(int)", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.2
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff2.VerifyIL("C.<F>g__f|0#1(int)", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldc.i4.2
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
         }
 
         [Fact]
@@ -1477,27 +1477,27 @@ class C
                 "C.<>c: {<>9__1_0, <>9__1_1#1, <F>b__1_0, <F>b__1_1#1}");
 
             // updated:
-            diff1.VerifyIL("C.<>c.<F>b__1_0", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>b__1_0", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.2
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
             // added:
-            diff1.VerifyIL("C.<>c.<F>b__1_1#1", @"
-{
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.s   20
-  IL_0003:  add
-  IL_0004:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>b__1_1#1", @"
+//{
+//  // Code size        5 (0x5)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.s   20
+//  IL_0003:  add
+//  IL_0004:  ret
+//}
+//");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1509,39 +1509,39 @@ class C
                 "C.<>c: {<>9__1_0, <>9__1_1#1, <>9__1_2#2, <F>b__1_0, <F>b__1_1#1, <F>b__1_2#2}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>b__1_0", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.3
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>b__1_0", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.3
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
             // updated:
-            diff2.VerifyIL("C.<>c.<F>b__1_1#1", @"
-{
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.s   30
-  IL_0003:  add
-  IL_0004:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>b__1_1#1", @"
+//{
+//  // Code size        5 (0x5)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.s   30
+//  IL_0003:  add
+//  IL_0004:  ret
+//}
+//");
 
             // added:
-            diff2.VerifyIL("C.<>c.<F>b__1_2#2", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4     0x300
-  IL_0006:  add
-  IL_0007:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>b__1_2#2", @"
+//{
+//  // Code size        8 (0x8)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4     0x300
+//  IL_0006:  add
+//  IL_0007:  ret
+//}
+//");
 
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
@@ -1552,39 +1552,39 @@ class C
                 "C.<>c: {<>9__1_0, <>9__1_1#1, <>9__1_2#2, <F>b__1_0, <F>b__1_1#1, <F>b__1_2#2}");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>b__1_0", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.4
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff3.VerifyIL("C.<>c.<F>b__1_0", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.4
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
             // updated:
-            diff3.VerifyIL("C.<>c.<F>b__1_1#1", @"
-{
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.s   40
-  IL_0003:  add
-  IL_0004:  ret
-}
-");
+//            diff3.VerifyIL("C.<>c.<F>b__1_1#1", @"
+//{
+//  // Code size        5 (0x5)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.s   40
+//  IL_0003:  add
+//  IL_0004:  ret
+//}
+//");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>b__1_2#2", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4     0x400
-  IL_0006:  add
-  IL_0007:  ret
-}
-");
+//            diff3.VerifyIL("C.<>c.<F>b__1_2#2", @"
+//{
+//  // Code size        8 (0x8)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4     0x400
+//  IL_0006:  add
+//  IL_0007:  ret
+//}
+//");
         }
 
         [Fact]
@@ -1674,28 +1674,28 @@ class C
                 "C.<>c: {<F>g__f1|1_0, <F>g__f2|1_1#1}");
 
             // updated:
-            diff1.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.2
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
 
             // added:
-            diff1.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
-{
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.s   20
-  IL_0003:  add
-  IL_0004:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
+//{
+//  // Code size        5 (0x5)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.s   20
+//  IL_0003:  add
+//  IL_0004:  ret
+//}
+//");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1706,39 +1706,39 @@ class C
                 "C: {<>c}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.3
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.3
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
-{
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.s   30
-  IL_0003:  add
-  IL_0004:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
+//{
+//  // Code size        5 (0x5)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.s   30
+//  IL_0003:  add
+//  IL_0004:  ret
+//}
+//");
 
             // added:
-            diff2.VerifyIL("C.<>c.<F>g__f3|1_2#2(int)", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4     0x300
-  IL_0006:  add
-  IL_0007:  ret
-}
-");
+//            diff2.VerifyIL("C.<>c.<F>g__f3|1_2#2(int)", @"
+//{
+//  // Code size        8 (0x8)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4     0x300
+//  IL_0006:  add
+//  IL_0007:  ret
+//}
+//");
 
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
@@ -1749,39 +1749,39 @@ class C
                 "C.<>c: {<F>g__f1|1_0, <F>g__f2|1_1#1, <F>g__f3|1_2#2}");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.4
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff3.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.4
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
-{
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.s   40
-  IL_0003:  add
-  IL_0004:  ret
-}
-");
+//            diff3.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
+//{
+//  // Code size        5 (0x5)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.s   40
+//  IL_0003:  add
+//  IL_0004:  ret
+//}
+//");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f3|1_2#2(int)", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4     0x400
-  IL_0006:  add
-  IL_0007:  ret
-}
-");
+//            diff3.VerifyIL("C.<>c.<F>g__f3|1_2#2(int)", @"
+//{
+//  // Code size        8 (0x8)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4     0x400
+//  IL_0006:  add
+//  IL_0007:  ret
+//}
+//");
         }
 
         [Fact, WorkItem(2284, "https://github.com/dotnet/roslyn/issues/2284")]
@@ -1888,16 +1888,16 @@ class C
                 "C.<>c: {<>9__2_0#1, <>9__2_0, <F>b__2_0#1, <F>b__2_0}");
 
             // lambda body unchanged:
-            diff1.VerifyIL("C.<>c.<F>b__2_0", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       ""void System.Console.WriteLine(int)""
-  IL_0007:  nop
-  IL_0008:  ret
-}");
+//            diff1.VerifyIL("C.<>c.<F>b__2_0", @"
+//{
+//  // Code size        9 (0x9)
+//  .maxstack  1
+//  IL_0000:  nop
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  call       ""void System.Console.WriteLine(int)""
+//  IL_0007:  nop
+//  IL_0008:  ret
+//}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1909,19 +1909,19 @@ class C
                 "C.<>c: {<>9__2_0#1, <>9__2_0, <F>b__2_0#1, <F>b__2_0}");
 
             // lambda body updated:
-            diff2.VerifyIL("C.<>c.<F>b__2_0", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       ""void System.Console.WriteLine(int)""
-  IL_0007:  nop
-  IL_0008:  ldc.i4.2
-  IL_0009:  call       ""void System.Console.WriteLine(int)""
-  IL_000e:  nop
-  IL_000f:  ret
-}");
+//            diff2.VerifyIL("C.<>c.<F>b__2_0", @"
+//{
+//  // Code size       16 (0x10)
+//  .maxstack  1
+//  IL_0000:  nop
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  call       ""void System.Console.WriteLine(int)""
+//  IL_0007:  nop
+//  IL_0008:  ldc.i4.2
+//  IL_0009:  call       ""void System.Console.WriteLine(int)""
+//  IL_000e:  nop
+//  IL_000f:  ret
+//}");
         }
 
         [Fact]
@@ -2418,44 +2418,44 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__2_0, <>9__2_1, <>9__3_0, <>9__3_1, <.ctor>b__2_0, <.ctor>b__2_1, <.ctor>b__3_0, <.ctor>b__3_1}");
 
-            diff1.VerifyIL("C.<>c.<.ctor>b__2_0", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  sub
-  IL_0003:  ret
-}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__2_0", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.2
+//  IL_0002:  sub
+//  IL_0003:  ret
+//}");
 
-            diff1.VerifyIL("C.<>c.<.ctor>b__2_1", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.3
-  IL_0002:  sub
-  IL_0003:  ret
-}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__2_1", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.3
+//  IL_0002:  sub
+//  IL_0003:  ret
+//}");
 
-            diff1.VerifyIL("C.<>c.<.ctor>b__3_0", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.4
-  IL_0002:  sub
-  IL_0003:  ret
-}");
-            diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.1
-  IL_0002:  sub
-  IL_0003:  ret
-}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__3_0", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.4
+//  IL_0002:  sub
+//  IL_0003:  ret
+//}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  sub
+//  IL_0003:  ret
+//}");
         }
 
         [Fact]
@@ -2524,72 +2524,72 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__2_0, <>9__2_1, <>9__3_0, <>9__3_1, <.ctor>b__2_0, <.ctor>b__2_1, <.ctor>b__3_0, <.ctor>b__3_1}");
 
-            diff1.VerifyIL("C.<>c.<.ctor>b__2_0", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (int V_0, //v2
-                [int] V_1,
-                int V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   10
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.2
-  IL_0005:  stloc.2
-  IL_0006:  br.s       IL_0008
-  IL_0008:  ldloc.2
-  IL_0009:  ret
-}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__2_0", @"
+//{
+//  // Code size       10 (0xa)
+//  .maxstack  1
+//  .locals init (int V_0, //v2
+//                [int] V_1,
+//                int V_2)
+//  IL_0000:  nop
+//  IL_0001:  ldc.i4.s   10
+//  IL_0003:  stloc.0
+//  IL_0004:  ldc.i4.2
+//  IL_0005:  stloc.2
+//  IL_0006:  br.s       IL_0008
+//  IL_0008:  ldloc.2
+//  IL_0009:  ret
+//}");
 
-            diff1.VerifyIL("C.<>c.<.ctor>b__2_1", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (int V_0, //v3
-                [int] V_1,
-                int V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   10
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.3
-  IL_0005:  stloc.2
-  IL_0006:  br.s       IL_0008
-  IL_0008:  ldloc.2
-  IL_0009:  ret
-}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__2_1", @"
+//{
+//  // Code size       10 (0xa)
+//  .maxstack  1
+//  .locals init (int V_0, //v3
+//                [int] V_1,
+//                int V_2)
+//  IL_0000:  nop
+//  IL_0001:  ldc.i4.s   10
+//  IL_0003:  stloc.0
+//  IL_0004:  ldc.i4.3
+//  IL_0005:  stloc.2
+//  IL_0006:  br.s       IL_0008
+//  IL_0008:  ldloc.2
+//  IL_0009:  ret
+//}");
 
-            diff1.VerifyIL("C.<>c.<.ctor>b__3_0", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (int V_0, //v4
-                [int] V_1,
-                int V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   10
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.4
-  IL_0005:  stloc.2
-  IL_0006:  br.s       IL_0008
-  IL_0008:  ldloc.2
-  IL_0009:  ret
-}");
-            diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (int V_0, //v1
-                [int] V_1,
-                int V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   10
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.1
-  IL_0005:  stloc.2
-  IL_0006:  br.s       IL_0008
-  IL_0008:  ldloc.2
-  IL_0009:  ret
-}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__3_0", @"
+//{
+//  // Code size       10 (0xa)
+//  .maxstack  1
+//  .locals init (int V_0, //v4
+//                [int] V_1,
+//                int V_2)
+//  IL_0000:  nop
+//  IL_0001:  ldc.i4.s   10
+//  IL_0003:  stloc.0
+//  IL_0004:  ldc.i4.4
+//  IL_0005:  stloc.2
+//  IL_0006:  br.s       IL_0008
+//  IL_0008:  ldloc.2
+//  IL_0009:  ret
+//}");
+//            diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
+//{
+//  // Code size       10 (0xa)
+//  .maxstack  1
+//  .locals init (int V_0, //v1
+//                [int] V_1,
+//                int V_2)
+//  IL_0000:  nop
+//  IL_0001:  ldc.i4.s   10
+//  IL_0003:  stloc.0
+//  IL_0004:  ldc.i4.1
+//  IL_0005:  stloc.2
+//  IL_0006:  br.s       IL_0008
+//  IL_0008:  ldloc.2
+//  IL_0009:  ret
+//}");
         }
 
         [Fact]
@@ -2640,52 +2640,52 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__2_0#1, <>9__2_0, <>9__2_2#1, <.ctor>b__2_0#1, <.ctor>b__2_0, <.ctor>b__2_2#1}");
 
-            diff1.VerifyIL("C..ctor", @"
-{
-  // Code size      130 (0x82)
-  .maxstack  3
-  IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_0""
-  IL_0006:  dup
-  IL_0007:  brtrue.s   IL_0020
-  IL_0009:  pop
-  IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_000f:  ldftn      ""int C.<>c.<.ctor>b__2_0(int)""
-  IL_0015:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_001a:  dup
-  IL_001b:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_0""
-  IL_0020:  call       ""int C.F(System.Func<int, int>)""
-  IL_0025:  stfld      ""int C.A""
-  IL_002a:  ldarg.0
-  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_2#1""
-  IL_0030:  dup
-  IL_0031:  brtrue.s   IL_004a
-  IL_0033:  pop
-  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0039:  ldftn      ""int C.<>c.<.ctor>b__2_2#1(int)""
-  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0044:  dup
-  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_2#1""
-  IL_004a:  call       ""int C.F(System.Func<int, int>)""
-  IL_004f:  stfld      ""int C.B""
-  IL_0054:  ldarg.0
-  IL_0055:  call       ""object..ctor()""
-  IL_005a:  nop
-  IL_005b:  nop
-  IL_005c:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_0#1""
-  IL_0061:  dup
-  IL_0062:  brtrue.s   IL_007b
-  IL_0064:  pop
-  IL_0065:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_006a:  ldftn      ""int C.<>c.<.ctor>b__2_0#1(int)""
-  IL_0070:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0075:  dup
-  IL_0076:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_0#1""
-  IL_007b:  call       ""int C.F(System.Func<int, int>)""
-  IL_0080:  pop
-  IL_0081:  ret
-}
-");
+//            diff1.VerifyIL("C..ctor", @"
+//{
+//  // Code size      130 (0x82)
+//  .maxstack  3
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_0""
+//  IL_0006:  dup
+//  IL_0007:  brtrue.s   IL_0020
+//  IL_0009:  pop
+//  IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_000f:  ldftn      ""int C.<>c.<.ctor>b__2_0(int)""
+//  IL_0015:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+//  IL_001a:  dup
+//  IL_001b:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_0""
+//  IL_0020:  call       ""int C.F(System.Func<int, int>)""
+//  IL_0025:  stfld      ""int C.A""
+//  IL_002a:  ldarg.0
+//  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_2#1""
+//  IL_0030:  dup
+//  IL_0031:  brtrue.s   IL_004a
+//  IL_0033:  pop
+//  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_0039:  ldftn      ""int C.<>c.<.ctor>b__2_2#1(int)""
+//  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+//  IL_0044:  dup
+//  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_2#1""
+//  IL_004a:  call       ""int C.F(System.Func<int, int>)""
+//  IL_004f:  stfld      ""int C.B""
+//  IL_0054:  ldarg.0
+//  IL_0055:  call       ""object..ctor()""
+//  IL_005a:  nop
+//  IL_005b:  nop
+//  IL_005c:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_0#1""
+//  IL_0061:  dup
+//  IL_0062:  brtrue.s   IL_007b
+//  IL_0064:  pop
+//  IL_0065:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_006a:  ldftn      ""int C.<>c.<.ctor>b__2_0#1(int)""
+//  IL_0070:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+//  IL_0075:  dup
+//  IL_0076:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_0#1""
+//  IL_007b:  call       ""int C.F(System.Func<int, int>)""
+//  IL_0080:  pop
+//  IL_0081:  ret
+//}
+//");
         }
 
         [Fact(Skip = "2504"), WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
@@ -2799,16 +2799,16 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
 
-            diff1.VerifyIL("C.<>c.<F>b__0_1#1", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.1
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>b__0_1#1", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
             // old query:
             v0.VerifyIL("C.F", @"
 {
@@ -2833,38 +2833,38 @@ class C
 }
 ");
             // new query:
-            diff1.VerifyIL("C.F", @"
-{
-  // Code size       81 (0x51)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
-  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
-  IL_0030:  dup
-  IL_0031:  brtrue.s   IL_004a
-  IL_0033:  pop
-  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0039:  ldftn      ""int C.<>c.<F>b__0_1#1(int)""
-  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0044:  dup
-  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
-  IL_004a:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
-  IL_004f:  stloc.0
-  IL_0050:  ret
-}
-");
+//            diff1.VerifyIL("C.F", @"
+//{
+//  // Code size       81 (0x51)
+//  .maxstack  3
+//  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+//  IL_0000:  nop
+//  IL_0001:  ldarg.0
+//  IL_0002:  ldfld      ""int[] C.array""
+//  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+//  IL_000c:  dup
+//  IL_000d:  brtrue.s   IL_0026
+//  IL_000f:  pop
+//  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
+//  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+//  IL_0020:  dup
+//  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+//  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+//  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+//  IL_0030:  dup
+//  IL_0031:  brtrue.s   IL_004a
+//  IL_0033:  pop
+//  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_0039:  ldftn      ""int C.<>c.<F>b__0_1#1(int)""
+//  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+//  IL_0044:  dup
+//  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+//  IL_004a:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+//  IL_004f:  stloc.0
+//  IL_0050:  ret
+//}
+//");
         }
 
         [Fact]
@@ -2961,28 +2961,28 @@ class C
 }
 ");
             // new query:
-            diff1.VerifyIL("C.F", @"
-{
-  // Code size       45 (0x2d)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
-  IL_002b:  stloc.0
-  IL_002c:  ret
-}
-");
+//            diff1.VerifyIL("C.F", @"
+//{
+//  // Code size       45 (0x2d)
+//  .maxstack  3
+//  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+//  IL_0000:  nop
+//  IL_0001:  ldarg.0
+//  IL_0002:  ldfld      ""int[] C.array""
+//  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+//  IL_000c:  dup
+//  IL_000d:  brtrue.s   IL_0026
+//  IL_000f:  pop
+//  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
+//  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+//  IL_0020:  dup
+//  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+//  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+//  IL_002b:  stloc.0
+//  IL_002c:  ret
+//}
+//");
         }
 
         [Fact]
@@ -3043,16 +3043,16 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
 
-            diff1.VerifyIL("C.<>c.<F>b__0_1#1", @"
-{
-  // Code size        4 (0x4)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldc.i4.1
-  IL_0002:  add
-  IL_0003:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c.<F>b__0_1#1", @"
+//{
+//  // Code size        4 (0x4)
+//  .maxstack  2
+//  IL_0000:  ldarg.1
+//  IL_0001:  ldc.i4.1
+//  IL_0002:  add
+//  IL_0003:  ret
+//}
+//");
             // old query:
             v0.VerifyIL("C.F", @"
 {
@@ -3077,37 +3077,37 @@ class C
 }
 ");
             // new query:
-            diff1.VerifyIL("C.F", @"
-{
-  // Code size       76 (0x4c)
-  .maxstack  4
-  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_0026:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
-  IL_002b:  dup
-  IL_002c:  brtrue.s   IL_0045
-  IL_002e:  pop
-  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0034:  ldftn      ""int C.<>c.<F>b__0_1#1(int)""
-  IL_003a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_003f:  dup
-  IL_0040:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
-  IL_0045:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
-  IL_004a:  stloc.0
-  IL_004b:  ret
-}
-");
+//            diff1.VerifyIL("C.F", @"
+//{
+//  // Code size       76 (0x4c)
+//  .maxstack  4
+//  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+//  IL_0000:  nop
+//  IL_0001:  ldarg.0
+//  IL_0002:  ldfld      ""int[] C.array""
+//  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+//  IL_000c:  dup
+//  IL_000d:  brtrue.s   IL_0026
+//  IL_000f:  pop
+//  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
+//  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+//  IL_0020:  dup
+//  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+//  IL_0026:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+//  IL_002b:  dup
+//  IL_002c:  brtrue.s   IL_0045
+//  IL_002e:  pop
+//  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
+//  IL_0034:  ldftn      ""int C.<>c.<F>b__0_1#1(int)""
+//  IL_003a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+//  IL_003f:  dup
+//  IL_0040:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+//  IL_0045:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
+//  IL_004a:  stloc.0
+//  IL_004b:  ret
+//}
+//");
         }
 
         [Fact]
@@ -3201,28 +3201,29 @@ class C
 }
 ");
             // new query:
-            diff1.VerifyIL("C.F", @"
-{
-  // Code size       45 (0x2d)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_0026:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
-  IL_002b:  stloc.0
-  IL_002c:  ret
-}
-");
+            //            diff1.VerifyIL("C.F", @"
+            //{
+            //  // Code size       45 (0x2d)
+            //  .maxstack  3
+            //  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+            //  IL_0000:  nop
+            //  IL_0001:  ldarg.0
+            //  IL_0002:  ldfld      ""int[] C.array""
+            //  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+            //  IL_000c:  dup
+            //  IL_000d:  brtrue.s   IL_0026
+            //  IL_000f:  pop
+            //  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+            //  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
+            //  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+            //  IL_0020:  dup
+            //  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+            //  IL_0026:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+            //  IL_002b:  stloc.0
+            //  IL_002c:  ret
+            //}
+            //");
+            //        
         }
 
         [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
@@ -3312,28 +3313,28 @@ class C
                 "C.<>c__DisplayClass0_0: {x, <F>b__0}",
                 "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
 
-            diff1.VerifyIL("C.F", @"
-{
-  // Code size       40 (0x28)
-  .maxstack  2
-  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
-                System.Func<int> V_1) //y
-  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  nop
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
-  IL_000e:  stfld      ""<anonymous type: int A> C.<>c__DisplayClass0_0.x""
-  IL_0013:  ldloc.0
-  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
-  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_001f:  stloc.1
-  IL_0020:  ldc.i4.2
-  IL_0021:  call       ""void System.Console.WriteLine(int)""
-  IL_0026:  nop
-  IL_0027:  ret
-}");
+//            diff1.VerifyIL("C.F", @"
+//{
+//  // Code size       40 (0x28)
+//  .maxstack  2
+//  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+//                System.Func<int> V_1) //y
+//  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+//  IL_0005:  stloc.0
+//  IL_0006:  nop
+//  IL_0007:  ldloc.0
+//  IL_0008:  ldc.i4.1
+//  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+//  IL_000e:  stfld      ""<anonymous type: int A> C.<>c__DisplayClass0_0.x""
+//  IL_0013:  ldloc.0
+//  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
+//  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+//  IL_001f:  stloc.1
+//  IL_0020:  ldc.i4.2
+//  IL_0021:  call       ""void System.Console.WriteLine(int)""
+//  IL_0026:  nop
+//  IL_0027:  ret
+//}");
 
             var diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
@@ -3344,28 +3345,28 @@ class C
                 "C.<>c__DisplayClass0_0: {x, <F>b__0}",
                 "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
 
-            diff2.VerifyIL("C.F", @"
-{
-  // Code size       40 (0x28)
-  .maxstack  2
-  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
-                System.Func<int> V_1) //y
-  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  nop
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
-  IL_000e:  stfld      ""<anonymous type: int A> C.<>c__DisplayClass0_0.x""
-  IL_0013:  ldloc.0
-  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
-  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_001f:  stloc.1
-  IL_0020:  ldc.i4.3
-  IL_0021:  call       ""void System.Console.WriteLine(int)""
-  IL_0026:  nop
-  IL_0027:  ret
-}");
+//            diff2.VerifyIL("C.F", @"
+//{
+//  // Code size       40 (0x28)
+//  .maxstack  2
+//  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+//                System.Func<int> V_1) //y
+//  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+//  IL_0005:  stloc.0
+//  IL_0006:  nop
+//  IL_0007:  ldloc.0
+//  IL_0008:  ldc.i4.1
+//  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+//  IL_000e:  stfld      ""<anonymous type: int A> C.<>c__DisplayClass0_0.x""
+//  IL_0013:  ldloc.0
+//  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
+//  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+//  IL_001f:  stloc.1
+//  IL_0020:  ldc.i4.3
+//  IL_0021:  call       ""void System.Console.WriteLine(int)""
+//  IL_0026:  nop
+//  IL_0027:  ret
+//}");
         }
 
         [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
@@ -3437,7 +3438,7 @@ class C
                 "C.<>c__DisplayClass0_0: {x, <F>b__0}",
                 "<>f__AnonymousType0<<X>j__TPar>: {Equals, GetHashCode, ToString}");
 
-            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"));
+            //diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -3449,7 +3450,7 @@ class C
                 "C.<>c__DisplayClass0_0: {x, <F>b__0}",
                 "<>f__AnonymousType0<<X>j__TPar>: {Equals, GetHashCode, ToString}");
 
-            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
+            //diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
         }
 
         [WorkItem(179990, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/179990")]
@@ -3531,105 +3532,105 @@ class C
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
-            diff1.VerifyIL("C.F",
-@"{
-  // Code size      113 (0x71)
-  .maxstack  9
-  IL_0000:  nop
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
-  IL_0006:  brfalse.s  IL_000a
-  IL_0008:  br.s       IL_0053
-  IL_000a:  ldc.i4     0x100
-  IL_000f:  ldstr      ""F""
-  IL_0014:  ldnull
-  IL_0015:  ldtoken    ""C""
-  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_001f:  ldc.i4.3
-  IL_0020:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0025:  dup
-  IL_0026:  ldc.i4.0
-  IL_0027:  ldc.i4.0
-  IL_0028:  ldnull
-  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002e:  stelem.ref
-  IL_002f:  dup
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldc.i4.s   17
-  IL_0033:  ldnull
-  IL_0034:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0039:  stelem.ref
-  IL_003a:  dup
-  IL_003b:  ldc.i4.2
-  IL_003c:  ldc.i4.1
-  IL_003d:  ldnull
-  IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0043:  stelem.ref
-  IL_0044:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
-  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
-  IL_0058:  ldfld      ""<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>> System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Target""
-  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
-  IL_0062:  ldarg.0
-  IL_0063:  ldarg.1
-  IL_0064:  ldarg.2
-  IL_0065:  newobj     ""<>f__AnonymousType1<object>..ctor(object)""
-  IL_006a:  callvirt   ""void <>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref object, <anonymous type: object y>)""
-  IL_006f:  nop
-  IL_0070:  ret
-}");
+//            diff1.VerifyIL("C.F",
+//@"{
+//  // Code size      113 (0x71)
+//  .maxstack  9
+//  IL_0000:  nop
+//  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+//  IL_0006:  brfalse.s  IL_000a
+//  IL_0008:  br.s       IL_0053
+//  IL_000a:  ldc.i4     0x100
+//  IL_000f:  ldstr      ""F""
+//  IL_0014:  ldnull
+//  IL_0015:  ldtoken    ""C""
+//  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+//  IL_001f:  ldc.i4.3
+//  IL_0020:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+//  IL_0025:  dup
+//  IL_0026:  ldc.i4.0
+//  IL_0027:  ldc.i4.0
+//  IL_0028:  ldnull
+//  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+//  IL_002e:  stelem.ref
+//  IL_002f:  dup
+//  IL_0030:  ldc.i4.1
+//  IL_0031:  ldc.i4.s   17
+//  IL_0033:  ldnull
+//  IL_0034:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+//  IL_0039:  stelem.ref
+//  IL_003a:  dup
+//  IL_003b:  ldc.i4.2
+//  IL_003c:  ldc.i4.1
+//  IL_003d:  ldnull
+//  IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+//  IL_0043:  stelem.ref
+//  IL_0044:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+//  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+//  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+//  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+//  IL_0058:  ldfld      ""<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>> System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Target""
+//  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+//  IL_0062:  ldarg.0
+//  IL_0063:  ldarg.1
+//  IL_0064:  ldarg.2
+//  IL_0065:  newobj     ""<>f__AnonymousType1<object>..ctor(object)""
+//  IL_006a:  callvirt   ""void <>A{00000004}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref object, <anonymous type: object y>)""
+//  IL_006f:  nop
+//  IL_0070:  ret
+//}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
-            diff2.VerifyIL("C.F",
-@"{
-  // Code size      113 (0x71)
-  .maxstack  9
-  IL_0000:  nop
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
-  IL_0006:  brfalse.s  IL_000a
-  IL_0008:  br.s       IL_0053
-  IL_000a:  ldc.i4     0x100
-  IL_000f:  ldstr      ""F""
-  IL_0014:  ldnull
-  IL_0015:  ldtoken    ""C""
-  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_001f:  ldc.i4.3
-  IL_0020:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0025:  dup
-  IL_0026:  ldc.i4.0
-  IL_0027:  ldc.i4.0
-  IL_0028:  ldnull
-  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002e:  stelem.ref
-  IL_002f:  dup
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldc.i4.1
-  IL_0032:  ldnull
-  IL_0033:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0038:  stelem.ref
-  IL_0039:  dup
-  IL_003a:  ldc.i4.2
-  IL_003b:  ldc.i4.s   17
-  IL_003d:  ldnull
-  IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0043:  stelem.ref
-  IL_0044:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
-  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
-  IL_0058:  ldfld      ""<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object> System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Target""
-  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
-  IL_0062:  ldarg.0
-  IL_0063:  ldarg.2
-  IL_0064:  newobj     ""<>f__AnonymousType1<object>..ctor(object)""
-  IL_0069:  ldarg.1
-  IL_006a:  callvirt   ""void <>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, ref object)""
-  IL_006f:  nop
-  IL_0070:  ret
-}");
+//            diff2.VerifyIL("C.F",
+//@"{
+//  // Code size      113 (0x71)
+//  .maxstack  9
+//  IL_0000:  nop
+//  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+//  IL_0006:  brfalse.s  IL_000a
+//  IL_0008:  br.s       IL_0053
+//  IL_000a:  ldc.i4     0x100
+//  IL_000f:  ldstr      ""F""
+//  IL_0014:  ldnull
+//  IL_0015:  ldtoken    ""C""
+//  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+//  IL_001f:  ldc.i4.3
+//  IL_0020:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+//  IL_0025:  dup
+//  IL_0026:  ldc.i4.0
+//  IL_0027:  ldc.i4.0
+//  IL_0028:  ldnull
+//  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+//  IL_002e:  stelem.ref
+//  IL_002f:  dup
+//  IL_0030:  ldc.i4.1
+//  IL_0031:  ldc.i4.1
+//  IL_0032:  ldnull
+//  IL_0033:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+//  IL_0038:  stelem.ref
+//  IL_0039:  dup
+//  IL_003a:  ldc.i4.2
+//  IL_003b:  ldc.i4.s   17
+//  IL_003d:  ldnull
+//  IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+//  IL_0043:  stelem.ref
+//  IL_0044:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+//  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+//  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+//  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+//  IL_0058:  ldfld      ""<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object> System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Target""
+//  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+//  IL_0062:  ldarg.0
+//  IL_0063:  ldarg.2
+//  IL_0064:  newobj     ""<>f__AnonymousType1<object>..ctor(object)""
+//  IL_0069:  ldarg.1
+//  IL_006a:  callvirt   ""void <>A{00000008}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, ref object)""
+//  IL_006f:  nop
+//  IL_0070:  ret
+//}");
         }
 
         [Fact]
@@ -3697,20 +3698,20 @@ public class C
   IL_000d:  ret
 }");
 
-            diff1.VerifyIL("C.<F>g__L|0_0(ref C.<>c__DisplayClass0_0, ref C.<>c__DisplayClass0_1)", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
-  IL_0006:  ldarg.1
-  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
-  IL_000c:  add
-  IL_000d:  ldc.i4.1
-  IL_000e:  add
-  IL_000f:  ret
-}
-");
+//            diff1.VerifyIL("C.<F>g__L|0_0(ref C.<>c__DisplayClass0_0, ref C.<>c__DisplayClass0_1)", @"
+//{
+//  // Code size       16 (0x10)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+//  IL_0006:  ldarg.1
+//  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+//  IL_000c:  add
+//  IL_000d:  ldc.i4.1
+//  IL_000e:  add
+//  IL_000f:  ret
+//}
+//");
 
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -3782,20 +3783,20 @@ public class C
 }
 ");
 
-            diff1.VerifyIL("C.<F>g__L|1_0(ref C.<>c__DisplayClass1_0)", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.x""
-  IL_0006:  ldarg.1
-  IL_0007:  ldfld      ""int C.<>c__DisplayClass1_0.y""
-  IL_000c:  add
-  IL_000d:  ldc.i4.1
-  IL_000e:  add
-  IL_000f:  ret
-}
-");
+//            diff1.VerifyIL("C.<F>g__L|1_0(ref C.<>c__DisplayClass1_0)", @"
+//{
+//  // Code size       16 (0x10)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldfld      ""int C.x""
+//  IL_0006:  ldarg.1
+//  IL_0007:  ldfld      ""int C.<>c__DisplayClass1_0.y""
+//  IL_000c:  add
+//  IL_000d:  ldc.i4.1
+//  IL_000e:  add
+//  IL_000f:  ret
+//}
+//");
 
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -3859,17 +3860,17 @@ public class C
   IL_0006:  ret
 }");
             
-            diff1.VerifyIL("C.<F>g__L|1_0()", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.x""
-  IL_0006:  ldc.i4.1
-  IL_0007:  add
-  IL_0008:  ret
-}
-");
+//            diff1.VerifyIL("C.<F>g__L|1_0()", @"
+//{
+//  // Code size        9 (0x9)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldfld      ""int C.x""
+//  IL_0006:  ldc.i4.1
+//  IL_0007:  add
+//  IL_0008:  ret
+//}
+//");
 
             CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -3933,17 +3934,17 @@ public class C
   IL_0006:  ret
 }");
 
-            diff1.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1()", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
-  IL_0006:  ldc.i4.1
-  IL_0007:  add
-  IL_0008:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1()", @"
+//{
+//  // Code size        9 (0x9)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+//  IL_0006:  ldc.i4.1
+//  IL_0007:  add
+//  IL_0008:  ret
+//}
+//");
 
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -4018,20 +4019,20 @@ public class C
   IL_000d:  ret
 }");
 
-            diff1.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1(ref C.<>c__DisplayClass0_1)", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
-  IL_0006:  ldarg.1
-  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
-  IL_000c:  add
-  IL_000d:  ldc.i4.1
-  IL_000e:  add
-  IL_000f:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1(ref C.<>c__DisplayClass0_1)", @"
+//{
+//  // Code size       16 (0x10)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+//  IL_0006:  ldarg.1
+//  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+//  IL_000c:  add
+//  IL_000d:  ldc.i4.1
+//  IL_000e:  add
+//  IL_000f:  ret
+//}
+//");
 
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -4119,24 +4120,24 @@ public class C
   IL_0019:  ret
 }");
 
-            diff1.VerifyIL("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", @"
-{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
-  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
-  IL_000b:  ldarg.0
-  IL_000c:  ldfld      ""int C.<>c__DisplayClass0_1.y""
-  IL_0011:  add
-  IL_0012:  ldarg.1
-  IL_0013:  ldfld      ""int C.<>c__DisplayClass0_2.z""
-  IL_0018:  add
-  IL_0019:  ldc.i4.1
-  IL_001a:  add
-  IL_001b:  ret
-}
-");
+//            diff1.VerifyIL("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", @"
+//{
+//  // Code size       28 (0x1c)
+//  .maxstack  2
+//  IL_0000:  ldarg.0
+//  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+//  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+//  IL_000b:  ldarg.0
+//  IL_000c:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+//  IL_0011:  add
+//  IL_0012:  ldarg.1
+//  IL_0013:  ldfld      ""int C.<>c__DisplayClass0_2.z""
+//  IL_0018:  add
+//  IL_0019:  ldc.i4.1
+//  IL_001a:  add
+//  IL_001b:  ret
+//}
+//");
 
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),

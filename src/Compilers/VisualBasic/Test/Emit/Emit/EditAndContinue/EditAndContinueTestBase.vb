@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.Metadata.Tools
+'Imports Microsoft.Metadata.Tools
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -26,12 +26,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 
-        Friend Shared Function Visualize(baseline As ModuleMetadata, ParamArray deltas As PinnedMetadata()) As String
-            Dim result = New StringWriter()
-            Dim visualizer = New MetadataVisualizer({baseline.MetadataReader}.Concat(deltas.Select(Function(d) d.Reader)).ToArray(), result)
-            visualizer.VisualizeAllGenerations()
-            Return result.ToString()
-        End Function
+        'Friend Shared Function Visualize(baseline As ModuleMetadata, ParamArray deltas As PinnedMetadata()) As String
+        '    Dim result = New StringWriter()
+        '    Dim visualizer = New MetadataVisualizer({baseline.MetadataReader}.Concat(deltas.Select(Function(d) d.Reader)).ToArray(), result)
+        '    visualizer.VisualizeAllGenerations()
+        '    Return result.ToString()
+        'End Function
 
         Friend Shared Function MarkedSource(source As XElement, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
             Return New SourceWithMarkedNodes(source.Value, Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
@@ -45,16 +45,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return SourceWithMarkedNodes.GetSyntaxMap(source0, source1)
         End Function
 
-        Friend Function ToLocalInfo(local As Cci.ILocalDefinition) As ILVisualizer.LocalInfo
-            Dim signature = local.Signature
-            If signature Is Nothing Then
-                Return New ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference)
-            Else
-                ' Decode simple types only.
-                Dim typeName = If(signature.Length = 1, GetTypeName(CType(signature(0), SignatureTypeCode)), Nothing)
-                Return New ILVisualizer.LocalInfo(Nothing, If(typeName, "[unchanged]"), False, False)
-            End If
-        End Function
+        'Friend Function ToLocalInfo(local As Cci.ILocalDefinition) As ILVisualizer.LocalInfo
+        '    Dim signature = local.Signature
+        '    If signature Is Nothing Then
+        '        Return New ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference)
+        '    Else
+        '        ' Decode simple types only.
+        '        Dim typeName = If(signature.Length = 1, GetTypeName(CType(signature(0), SignatureTypeCode)), Nothing)
+        '        Return New ILVisualizer.LocalInfo(Nothing, If(typeName, "[unchanged]"), False, False)
+        '    End If
+        'End Function
 
         Private Function GetTypeName(typeCode As SignatureTypeCode) As String
             Select Case typeCode

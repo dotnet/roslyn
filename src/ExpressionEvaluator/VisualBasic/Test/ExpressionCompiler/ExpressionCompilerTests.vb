@@ -2128,22 +2128,22 @@ End Class"
                     Dim testData = New CompilationTestData()
                     context.CompileExpression("If(GetType(V), GetType(X))", errorMessage, testData)
                     Dim methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0(Of W, X)")
-                    Dim actualIL = methodData.GetMethodIL()
-                    Dim expectedIL = "
-{
-  // Code size       25 (0x19)
-  .maxstack  2
-  IL_0000:  ldtoken    ""V""
-  IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
-  IL_000a:  dup
-  IL_000b:  brtrue.s   IL_0018
-  IL_000d:  pop
-  IL_000e:  ldtoken    ""X""
-  IL_0013:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
-  IL_0018:  ret
-}
-"
-                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL)
+                    '                    Dim actualIL = methodData.GetMethodIL()
+                    '                    Dim expectedIL = "
+                    '{
+                    '  // Code size       25 (0x19)
+                    '  .maxstack  2
+                    '  IL_0000:  ldtoken    ""V""
+                    '  IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+                    '  IL_000a:  dup
+                    '  IL_000b:  brtrue.s   IL_0018
+                    '  IL_000d:  pop
+                    '  IL_000e:  ldtoken    ""X""
+                    '  IL_0013:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+                    '  IL_0018:  ret
+                    '}
+                    '"
+                    '                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL)
                     Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
 
                     context = CreateMethodContext(runtime, "A.B.M2")

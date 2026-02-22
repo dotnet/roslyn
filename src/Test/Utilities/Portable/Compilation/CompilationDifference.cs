@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader.Tools;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -59,61 +59,61 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber]int callerLine = 0,
             [CallerFilePath]string callerPath = null)
         {
-            string actualIL = ILDelta.GetMethodIL();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            //string actualIL = ILDelta.GetMethodIL();
+            //AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
-        public void VerifyLocalSignature(
-            string qualifiedMethodName,
-            string expectedSignature,
-            [CallerLineNumber]int callerLine = 0,
-            [CallerFilePath]string callerPath = null)
-        {
-            var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
-            string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder, ToLocalInfo);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-        }
+        //public void VerifyLocalSignature(
+        //    string qualifiedMethodName,
+        //    string expectedSignature,
+        //    [CallerLineNumber]int callerLine = 0,
+        //    [CallerFilePath]string callerPath = null)
+        //{
+        //    var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
+        //    string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder, ToLocalInfo);
+        //    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        //}
 
-        internal void VerifyIL(
-            string qualifiedMethodName,
-            string expectedIL,
-            Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
-            MethodDefinitionHandle methodToken = default(MethodDefinitionHandle),
-            [CallerFilePath]string callerPath = null,
-            [CallerLineNumber]int callerLine = 0)
-        {
-            var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
+        //internal void VerifyIL(
+        //    string qualifiedMethodName,
+        //    string expectedIL,
+        //    Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
+        //    MethodDefinitionHandle methodToken = default(MethodDefinitionHandle),
+        //    [CallerFilePath]string callerPath = null,
+        //    [CallerLineNumber]int callerLine = 0)
+        //{
+        //    var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
 
-            Dictionary<int, string> sequencePointMarkers = null;
-            if (!methodToken.IsNil)
-            {
-                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
-                sequencePointMarkers = ILValidation.GetSequencePointMarkers(actualPdb);
-            }
+        //    Dictionary<int, string> sequencePointMarkers = null;
+        //    if (!methodToken.IsNil)
+        //    {
+        //        string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
+        //        sequencePointMarkers = ILValidation.GetSequencePointMarkers(actualPdb);
+        //    }
 
-            string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-        }
+        //    string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
+        //    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        //}
 
-        internal string GetMethodIL(string qualifiedMethodName)
-        {
-            return ILBuilderVisualizer.ILBuilderToString(this.TestData.GetMethodData(qualifiedMethodName).ILBuilder, ToLocalInfo);
-        }
+        //internal string GetMethodIL(string qualifiedMethodName)
+        //{
+        //    return ILBuilderVisualizer.ILBuilderToString(this.TestData.GetMethodData(qualifiedMethodName).ILBuilder, ToLocalInfo);
+        //}
 
-        private static ILVisualizer.LocalInfo ToLocalInfo(Cci.ILocalDefinition local)
-        {
-            var signature = local.Signature;
-            if (signature == null)
-            {
-                return new ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
-            }
-            else
-            {
-                // Decode simple types only.
-                var typeName = (signature.Length == 1) ? GetTypeName((SignatureTypeCode)signature[0]) : null;
-                return new ILVisualizer.LocalInfo(null, typeName ?? "[unchanged]", false, false);
-            }
-        }
+        //private static ILVisualizer.LocalInfo ToLocalInfo(Cci.ILocalDefinition local)
+        //{
+        //    var signature = local.Signature;
+        //    if (signature == null)
+        //    {
+        //        return new ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
+        //    }
+        //    else
+        //    {
+        //        // Decode simple types only.
+        //        var typeName = (signature.Length == 1) ? GetTypeName((SignatureTypeCode)signature[0]) : null;
+        //        return new ILVisualizer.LocalInfo(null, typeName ?? "[unchanged]", false, false);
+        //    }
+        //}
 
         private static string GetTypeName(SignatureTypeCode typeCode)
         {

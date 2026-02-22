@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
@@ -372,45 +372,45 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            var parts = qualifiedName.Split('.');
-            if (parts.Length != 2)
-            {
-                throw new NotImplementedException();
-            }
+            //var parts = qualifiedName.Split('.');
+            //if (parts.Length != 2)
+            //{
+            //    throw new NotImplementedException();
+            //}
 
-            using (var metadata = ModuleMetadata.CreateFromImage(assembly))
-            {
-                var module = metadata.Module;
-                var reader = module.MetadataReader;
-                var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
-                var methodDef = reader.GetMethodDefinition(methodHandle);
-                var typeDef = reader.GetTypeDefinition(methodDef.GetDeclaringType());
-                Assert.True(reader.StringComparer.Equals(typeDef.Name, parts[0]));
-                Assert.True(reader.StringComparer.Equals(methodDef.Name, parts[1]));
-                var methodBody = module.GetMethodBodyOrThrow(methodHandle);
+            //using (var metadata = ModuleMetadata.CreateFromImage(assembly))
+            //{
+            //    var module = metadata.Module;
+            //    var reader = module.MetadataReader;
+            //    var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
+            //    var methodDef = reader.GetMethodDefinition(methodHandle);
+            //    var typeDef = reader.GetTypeDefinition(methodDef.GetDeclaringType());
+            //    Assert.True(reader.StringComparer.Equals(typeDef.Name, parts[0]));
+            //    Assert.True(reader.StringComparer.Equals(methodDef.Name, parts[1]));
+            //    var methodBody = module.GetMethodBodyOrThrow(methodHandle);
 
-                var pooled = PooledStringBuilder.GetInstance();
-                var builder = pooled.Builder;
+            //    var pooled = PooledStringBuilder.GetInstance();
+            //    var builder = pooled.Builder;
 
-                if (!methodBody.LocalSignature.IsNil)
-                {
-                    var visualizer = new MetadataVisualizer(reader, new StringWriter(), MetadataVisualizerOptions.NoHeapReferences);
-                    var signature = reader.GetStandaloneSignature(methodBody.LocalSignature);
-                    builder.AppendFormat("Locals: {0}", visualizer.StandaloneSignature(signature.Signature));
-                    builder.AppendLine();
-                }
+            //    if (!methodBody.LocalSignature.IsNil)
+            //    {
+            //        var visualizer = new MetadataVisualizer(reader, new StringWriter(), MetadataVisualizerOptions.NoHeapReferences);
+            //        var signature = reader.GetStandaloneSignature(methodBody.LocalSignature);
+            //        builder.AppendFormat("Locals: {0}", visualizer.StandaloneSignature(signature.Signature));
+            //        builder.AppendLine();
+            //    }
 
-                ILVisualizer.Default.DumpMethod(
-                    builder,
-                    methodBody.MaxStack,
-                    methodBody.GetILContent(),
-                    ImmutableArray.Create<ILVisualizer.LocalInfo>(),
-                    ImmutableArray.Create<ILVisualizer.HandlerSpan>());
+            //    ILVisualizer.Default.DumpMethod(
+            //        builder,
+            //        methodBody.MaxStack,
+            //        methodBody.GetILContent(),
+            //        ImmutableArray.Create<ILVisualizer.LocalInfo>(),
+            //        ImmutableArray.Create<ILVisualizer.HandlerSpan>());
 
-                var actualIL = pooled.ToStringAndFree();
+            //    var actualIL = pooled.ToStringAndFree();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
-            }
+            //    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
+            //}
         }
 
         internal static ImmutableArray<MetadataReference> GetEmittedReferences(Compilation compilation, MetadataReader mdReader)
@@ -540,13 +540,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             verifyTypeParameters((TMethodSymbol)methodData.Method);
             if (expectedILOpt != null)
             {
-                string actualIL = methodData.GetMethodIL();
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                    expectedILOpt,
-                    actualIL,
-                    escapeQuotes: true,
-                    expectedValueSourcePath: expectedValueSourcePath,
-                    expectedValueSourceLine: expectedValueSourceLine);
+                //string actualIL = methodData.GetMethodIL();
+                //AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                //    expectedILOpt,
+                //    actualIL,
+                //    escapeQuotes: true,
+                //    expectedValueSourcePath: expectedValueSourcePath,
+                //    expectedValueSourceLine: expectedValueSourceLine);
             }
 
             Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);

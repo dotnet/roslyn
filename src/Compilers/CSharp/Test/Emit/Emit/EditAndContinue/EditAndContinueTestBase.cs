@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
 
-        internal static string Visualize(ModuleMetadata baseline, params PinnedMetadata[] deltas)
-        {
-            var result = new StringWriter();
-            new MetadataVisualizer(new[] { baseline.MetadataReader }.Concat(deltas.Select(d => d.Reader)).ToArray(), result).VisualizeAllGenerations();
-            return result.ToString();
-        }
+        //internal static string Visualize(ModuleMetadata baseline, params PinnedMetadata[] deltas)
+        //{
+        //    var result = new StringWriter();
+        //    new MetadataVisualizer(new[] { baseline.MetadataReader }.Concat(deltas.Select(d => d.Reader)).ToArray(), result).VisualizeAllGenerations();
+        //    return result.ToString();
+        //}
 
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null)
         {

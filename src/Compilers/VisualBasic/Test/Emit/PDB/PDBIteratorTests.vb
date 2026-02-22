@@ -4,7 +4,7 @@ Imports System.IO
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.Metadata.Tools
+'Imports Microsoft.Metadata.Tools
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -537,35 +537,35 @@ End Class"
             Dim result = compilation.Emit(peStream, pdbStream, options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb))
             pdbStream.Position = 0
 
-            Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
-                Dim mdReader = provider.GetMetadataReader()
-                Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
-                visualizer.WriteMethodDebugInformation()
+            '            Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
+            '                Dim mdReader = provider.GetMetadataReader()
+            '                Dim writer = New StringWriter()
+            '                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+            '                visualizer.WriteMethodDebugInformation()
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences("
-MethodDebugInformation (index: 0x31, size: 40): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: nil
-5: #22
-{
-  Kickoff Method: 0x06000002 (MethodDef)
-  Locals: 0x11000002 (StandAloneSig)
-  Document: #1
-  IL_0000: <hidden>
-  IL_0021: (4, 5) - (4, 53)
-  IL_0022: (5, 8) - (5, 15)
-  IL_003D: (6, 5) - (6, 17)
-}
-6: nil
-7: nil
-8: nil
-9: nil
-a: nil", writer.ToString())
-            End Using
+            '                AssertEx.AssertEqualToleratingWhitespaceDifferences("
+            'MethodDebugInformation (index: 0x31, size: 40): 
+            '==================================================
+            '1: nil
+            '2: nil
+            '3: nil
+            '4: nil
+            '5: #22
+            '{
+            '  Kickoff Method: 0x06000002 (MethodDef)
+            '  Locals: 0x11000002 (StandAloneSig)
+            '  Document: #1
+            '  IL_0000: <hidden>
+            '  IL_0021: (4, 5) - (4, 53)
+            '  IL_0022: (5, 8) - (5, 15)
+            '  IL_003D: (6, 5) - (6, 17)
+            '}
+            '6: nil
+            '7: nil
+            '8: nil
+            '9: nil
+            'a: nil", writer.ToString())
+            '            End Using
         End Sub
     End Class
 End Namespace

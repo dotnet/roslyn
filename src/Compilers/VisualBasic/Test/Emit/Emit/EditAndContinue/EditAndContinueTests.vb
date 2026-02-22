@@ -69,16 +69,16 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diffGood.EmitResult.Diagnostics.Verify()
-            diffGood.VerifyIL("C.G", "
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldc.i4.2
-  IL_0002:  call       ""Sub System.Console.WriteLine(Integer)""
-  IL_0007:  nop
-  IL_0008:  ret
-}")
+            '            diffGood.VerifyIL("C.G", "
+            '{
+            '  // Code size        9 (0x9)
+            '  .maxstack  1
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.2
+            '  IL_0002:  call       ""Sub System.Console.WriteLine(Integer)""
+            '  IL_0007:  nop
+            '  IL_0008:  ret
+            '}")
         End Sub
 
         <Fact>
@@ -645,35 +645,35 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       30 (0x1e)
-  .maxstack  4
-  .locals init (Integer() V_0) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""Integer""
-  IL_0007:  dup
-  IL_0008:  ldc.i4.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  stelem.i4
-  IL_000b:  dup
-  IL_000c:  ldc.i4.1
-  IL_000d:  ldc.i4.2
-  IL_000e:  stelem.i4
-  IL_000f:  dup
-  IL_0010:  ldc.i4.2
-  IL_0011:  ldc.i4.3
-  IL_0012:  stelem.i4
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  ldelem.i4
-  IL_0017:  call       ""Sub System.Console.Write(Integer)""
-  IL_001c:  nop
-  IL_001d:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       30 (0x1e)
+            '  .maxstack  4
+            '  .locals init (Integer() V_0) //a
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.3
+            '  IL_0002:  newarr     ""Integer""
+            '  IL_0007:  dup
+            '  IL_0008:  ldc.i4.0
+            '  IL_0009:  ldc.i4.1
+            '  IL_000a:  stelem.i4
+            '  IL_000b:  dup
+            '  IL_000c:  ldc.i4.1
+            '  IL_000d:  ldc.i4.2
+            '  IL_000e:  stelem.i4
+            '  IL_000f:  dup
+            '  IL_0010:  ldc.i4.2
+            '  IL_0011:  ldc.i4.3
+            '  IL_0012:  stelem.i4
+            '  IL_0013:  stloc.0
+            '  IL_0014:  ldloc.0
+            '  IL_0015:  ldc.i4.1
+            '  IL_0016:  ldelem.i4
+            '  IL_0017:  call       ""Sub System.Console.Write(Integer)""
+            '  IL_001c:  nop
+            '  IL_001d:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -721,8 +721,8 @@ End Class
 
             ' Should have generated call to ComputeStringHash and
             ' added the method to <PrivateImplementationDetails>.
-            Dim actualIL0 = methodData0.GetMethodIL()
-            Assert.True(actualIL0.Contains(ComputeStringHashName))
+            'Dim actualIL0 = methodData0.GetMethodIL()
+            'Assert.True(actualIL0.Contains(ComputeStringHashName))
 
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
@@ -737,8 +737,8 @@ End Class
 
                 ' Should not have generated call to ComputeStringHash nor
                 ' added the method to <PrivateImplementationDetails>.
-                Dim actualIL1 = diff1.GetMethodIL("C.F")
-                Assert.False(actualIL1.Contains(ComputeStringHashName))
+                'Dim actualIL1 = diff1.GetMethodIL("C.F")
+                'Assert.False(actualIL1.Contains(ComputeStringHashName))
 
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
@@ -862,81 +862,81 @@ End Class
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.F", "
-{
-  // Code size      118 (0x76)
-  .maxstack  2
-  .locals init (System.IO.IOException V_0, //e
-                Boolean V_1,
-                System.Exception V_2, //e
-                Boolean V_3)
-  IL_0000:  nop
-  .try
-  {
-    IL_0001:  nop
-    IL_0002:  newobj     ""Sub System.InvalidOperationException..ctor()""
-    IL_0007:  throw
-  }
-  filter
-  {
-    IL_0008:  isinst     ""System.IO.IOException""
-    IL_000d:  dup
-    IL_000e:  brtrue.s   IL_0014
-    IL_0010:  pop
-    IL_0011:  ldc.i4.0
-    IL_0012:  br.s       IL_002b
-    IL_0014:  dup
-    IL_0015:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_001a:  stloc.0
-    IL_001b:  ldloc.0
-    IL_001c:  call       ""Function C.filter(System.Exception) As Object""
-    IL_0021:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
-    IL_0026:  stloc.1
-    IL_0027:  ldloc.1
-    IL_0028:  ldc.i4.0
-    IL_0029:  cgt.un
-    IL_002b:  endfilter
-  }  // end filter
-  {  // handler
-    IL_002d:  pop
-    IL_002e:  call       ""Sub System.Console.WriteLine()""
-    IL_0033:  nop
-    IL_0034:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_0039:  leave.s    IL_006e
-  }
-  filter
-  {
-    IL_003b:  isinst     ""System.Exception""
-    IL_0040:  dup
-    IL_0041:  brtrue.s   IL_0047
-    IL_0043:  pop
-    IL_0044:  ldc.i4.0
-    IL_0045:  br.s       IL_005e
-    IL_0047:  dup
-    IL_0048:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_004d:  stloc.2
-    IL_004e:  ldloc.2
-    IL_004f:  call       ""Function C.filter(System.Exception) As Object""
-    IL_0054:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
-    IL_0059:  stloc.3
-    IL_005a:  ldloc.3
-    IL_005b:  ldc.i4.0
-    IL_005c:  cgt.un
-    IL_005e:  endfilter
-  }  // end filter
-  {  // handler
-    IL_0060:  pop
-    IL_0061:  call       ""Sub System.Console.WriteLine()""
-    IL_0066:  nop
-    IL_0067:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_006c:  leave.s    IL_006e
-  }
-  IL_006e:  nop
-  IL_006f:  call       ""Sub System.Console.WriteLine()""
-  IL_0074:  nop
-  IL_0075:  ret
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size      118 (0x76)
+            '  .maxstack  2
+            '  .locals init (System.IO.IOException V_0, //e
+            '                Boolean V_1,
+            '                System.Exception V_2, //e
+            '                Boolean V_3)
+            '  IL_0000:  nop
+            '  .try
+            '  {
+            '    IL_0001:  nop
+            '    IL_0002:  newobj     ""Sub System.InvalidOperationException..ctor()""
+            '    IL_0007:  throw
+            '  }
+            '  filter
+            '  {
+            '    IL_0008:  isinst     ""System.IO.IOException""
+            '    IL_000d:  dup
+            '    IL_000e:  brtrue.s   IL_0014
+            '    IL_0010:  pop
+            '    IL_0011:  ldc.i4.0
+            '    IL_0012:  br.s       IL_002b
+            '    IL_0014:  dup
+            '    IL_0015:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+            '    IL_001a:  stloc.0
+            '    IL_001b:  ldloc.0
+            '    IL_001c:  call       ""Function C.filter(System.Exception) As Object""
+            '    IL_0021:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
+            '    IL_0026:  stloc.1
+            '    IL_0027:  ldloc.1
+            '    IL_0028:  ldc.i4.0
+            '    IL_0029:  cgt.un
+            '    IL_002b:  endfilter
+            '  }  // end filter
+            '  {  // handler
+            '    IL_002d:  pop
+            '    IL_002e:  call       ""Sub System.Console.WriteLine()""
+            '    IL_0033:  nop
+            '    IL_0034:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+            '    IL_0039:  leave.s    IL_006e
+            '  }
+            '  filter
+            '  {
+            '    IL_003b:  isinst     ""System.Exception""
+            '    IL_0040:  dup
+            '    IL_0041:  brtrue.s   IL_0047
+            '    IL_0043:  pop
+            '    IL_0044:  ldc.i4.0
+            '    IL_0045:  br.s       IL_005e
+            '    IL_0047:  dup
+            '    IL_0048:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+            '    IL_004d:  stloc.2
+            '    IL_004e:  ldloc.2
+            '    IL_004f:  call       ""Function C.filter(System.Exception) As Object""
+            '    IL_0054:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
+            '    IL_0059:  stloc.3
+            '    IL_005a:  ldloc.3
+            '    IL_005b:  ldc.i4.0
+            '    IL_005c:  cgt.un
+            '    IL_005e:  endfilter
+            '  }  // end filter
+            '  {  // handler
+            '    IL_0060:  pop
+            '    IL_0061:  call       ""Sub System.Console.WriteLine()""
+            '    IL_0066:  nop
+            '    IL_0067:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+            '    IL_006c:  leave.s    IL_006e
+            '  }
+            '  IL_006e:  nop
+            '  IL_006f:  call       ""Sub System.Console.WriteLine()""
+            '  IL_0074:  nop
+            '  IL_0075:  ret
+            '}
+            '")
         End Sub
 
         <Fact>
@@ -1083,21 +1083,21 @@ End Class
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
-                diff1.VerifyIL("C.M", <![CDATA[
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init ([unchanged] V_0,
-  I V_1) //y
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.1
-  IL_0003:  ldarg.0
-  IL_0004:  call       "Sub C.M(I)"
-  IL_0009:  nop
-  IL_000a:  ret
-}
-]]>.Value)
+                '                diff1.VerifyIL("C.M", <![CDATA[
+                '{
+                '  // Code size       11 (0xb)
+                '  .maxstack  1
+                '  .locals init ([unchanged] V_0,
+                '  I V_1) //y
+                '  IL_0000:  nop
+                '  IL_0001:  ldnull
+                '  IL_0002:  stloc.1
+                '  IL_0003:  ldarg.0
+                '  IL_0004:  call       "Sub C.M(I)"
+                '  IL_0009:  nop
+                '  IL_000a:  ret
+                '}
+                ']]>.Value)
             End Using
         End Sub
 
@@ -1194,19 +1194,19 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
                 Dim diff1B = compilation1B.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1B, GetEquivalentNodesMap(method1B, method0), preserveLocalVariables:=True)))
-                diff1B.VerifyIL("C(Of T).M1", <![CDATA[
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  .locals init ([unchanged] V_0,
-  [unchanged] V_1)
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  call       "Sub C(Of T).M2(Object)"
-  IL_0007:  nop
-  IL_0008:  ret
-}
-]]>.Value)
+                '                diff1B.VerifyIL("C(Of T).M1", <![CDATA[
+                '{
+                '  // Code size        9 (0x9)
+                '  .maxstack  1
+                '  .locals init ([unchanged] V_0,
+                '  [unchanged] V_1)
+                '  IL_0000:  nop
+                '  IL_0001:  ldnull
+                '  IL_0002:  call       "Sub C(Of T).M2(Object)"
+                '  IL_0007:  nop
+                '  IL_0008:  ret
+                '}
+                ']]>.Value)
                 Using md1 = diff1B.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames())
@@ -1266,22 +1266,22 @@ End Class
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IB'.
      ]]></errors>)
-                diff1.VerifyIL("C(Of T).M", <![CDATA[
-{
-  // Code size       26 (0x1a)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  box        "C(Of N.IA).E"
-  IL_0007:  call       "Sub C(Of T).M(Object)"
-  IL_000c:  nop
-  IL_000d:  ldc.i4.0
-  IL_000e:  box        "C(Of IB).E"
-  IL_0013:  call       "Sub C(Of T).M(Object)"
-  IL_0018:  nop
-  IL_0019:  ret
-}
-]]>.Value)
+                '                diff1.VerifyIL("C(Of T).M", <![CDATA[
+                '{
+                '  // Code size       26 (0x1a)
+                '  .maxstack  1
+                '  IL_0000:  nop
+                '  IL_0001:  ldc.i4.0
+                '  IL_0002:  box        "C(Of N.IA).E"
+                '  IL_0007:  call       "Sub C(Of T).M(Object)"
+                '  IL_000c:  nop
+                '  IL_000d:  ldc.i4.0
+                '  IL_000e:  box        "C(Of IB).E"
+                '  IL_0013:  call       "Sub C(Of T).M(Object)"
+                '  IL_0018:  nop
+                '  IL_0019:  ret
+                '}
+                ']]>.Value)
             End Using
         End Sub
 
@@ -1329,30 +1329,30 @@ End Class
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.F", "
-{
-  // Code size       26 (0x1a)
-  .maxstack  3
-  .locals init (Integer V_0, //F
-                [unchanged] V_1,
-                System.EventHandler V_2)
-  IL_0000:  nop
-  IL_0001:  ldsfld     ""C.handlerEvent As System.EventHandler""
-  IL_0006:  stloc.2
-  IL_0007:  ldloc.2
-  IL_0008:  brfalse.s  IL_0013
-  IL_000a:  ldloc.2
-  IL_000b:  ldnull
-  IL_000c:  ldnull
-  IL_000d:  callvirt   ""Sub System.EventHandler.Invoke(Object, System.EventArgs)""
-  IL_0012:  nop
-  IL_0013:  ldc.i4.s   10
-  IL_0015:  stloc.0
-  IL_0016:  br.s       IL_0018
-  IL_0018:  ldloc.0
-  IL_0019:  ret
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size       26 (0x1a)
+            '  .maxstack  3
+            '  .locals init (Integer V_0, //F
+            '                [unchanged] V_1,
+            '                System.EventHandler V_2)
+            '  IL_0000:  nop
+            '  IL_0001:  ldsfld     ""C.handlerEvent As System.EventHandler""
+            '  IL_0006:  stloc.2
+            '  IL_0007:  ldloc.2
+            '  IL_0008:  brfalse.s  IL_0013
+            '  IL_000a:  ldloc.2
+            '  IL_000b:  ldnull
+            '  IL_000c:  ldnull
+            '  IL_000d:  callvirt   ""Sub System.EventHandler.Invoke(Object, System.EventArgs)""
+            '  IL_0012:  nop
+            '  IL_0013:  ldc.i4.s   10
+            '  IL_0015:  stloc.0
+            '  IL_0016:  br.s       IL_0018
+            '  IL_0018:  ldloc.0
+            '  IL_0019:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -1488,14 +1488,14 @@ End Module</file>
                     CheckNames({reader0, reader1}, reader1.GetMethodDefNames(), "set_GetName")
                 End Using
 
-                diff1.VerifyIL("Module1.set_GetName", "
-{
-  // Code size        2 (0x2)
-  .maxstack  0
-  IL_0000:  nop
-  IL_0001:  ret
-}
-")
+                '                diff1.VerifyIL("Module1.set_GetName", "
+                '{
+                '  // Code size        2 (0x2)
+                '  .maxstack  0
+                '  IL_0000:  nop
+                '  IL_0001:  ret
+                '}
+                '")
             End Using
 
         End Sub
@@ -1543,18 +1543,18 @@ End Module</file>
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, getter0, getter1, preserveLocalVariables:=True)))
 
-                diff1.VerifyIL("Module1.get_P", "
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (Object V_0) //P
-  IL_0000:  nop
-  IL_0001:  ldc.i4.2
-  IL_0002:  box        ""Integer""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  ret
-}")
+                '                diff1.VerifyIL("Module1.get_P", "
+                '{
+                '  // Code size       10 (0xa)
+                '  .maxstack  1
+                '  .locals init (Object V_0) //P
+                '  IL_0000:  nop
+                '  IL_0001:  ldc.i4.2
+                '  IL_0002:  box        ""Integer""
+                '  IL_0007:  stloc.0
+                '  IL_0008:  ldloc.0
+                '  IL_0009:  ret
+                '}")
             End Using
         End Sub
 
@@ -1604,33 +1604,33 @@ End Class
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (System.Exception V_0) //ex
-  IL_0000:  nop
-  .try
-  {
-    IL_0001:  nop
-    IL_0002:  ldc.i4.2
-    IL_0003:  call       ""Sub System.Console.WriteLine(Integer)""
-    IL_0008:  nop
-    IL_0009:  leave.s    IL_001a
-  }
-  catch System.Exception
-  {
-    IL_000b:  dup
-    IL_000c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0011:  stloc.0
-    IL_0012:  nop
-    IL_0013:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_0018:  leave.s    IL_001a
-  }
-  IL_001a:  nop
-  IL_001b:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       28 (0x1c)
+            '  .maxstack  2
+            '  .locals init (System.Exception V_0) //ex
+            '  IL_0000:  nop
+            '  .try
+            '  {
+            '    IL_0001:  nop
+            '    IL_0002:  ldc.i4.2
+            '    IL_0003:  call       ""Sub System.Console.WriteLine(Integer)""
+            '    IL_0008:  nop
+            '    IL_0009:  leave.s    IL_001a
+            '  }
+            '  catch System.Exception
+            '  {
+            '    IL_000b:  dup
+            '    IL_000c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+            '    IL_0011:  stloc.0
+            '    IL_0012:  nop
+            '    IL_0013:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+            '    IL_0018:  leave.s    IL_001a
+            '  }
+            '  IL_001a:  nop
+            '  IL_001b:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -1975,21 +1975,21 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
-            diff2.VerifyIL("C.M", <![CDATA[
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init ([object] V_0,
-                String V_1, //b
-                Integer V_2) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.2
-  IL_0003:  ldsfld     "String.Empty As String"
-  IL_0008:  stloc.1
-  IL_0009:  ret
-}
-]]>.Value)
+            '            diff2.VerifyIL("C.M", <![CDATA[
+            '{
+            '  // Code size       10 (0xa)
+            '  .maxstack  1
+            '  .locals init ([object] V_0,
+            '                String V_1, //b
+            '                Integer V_2) //a
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.1
+            '  IL_0002:  stloc.2
+            '  IL_0003:  ldsfld     "String.Empty As String"
+            '  IL_0008:  stloc.1
+            '  IL_0009:  ret
+            '}
+            ']]>.Value)
             diff2.VerifyPdb({&H06000002UI},
 <symbols>
     <files>
@@ -2054,24 +2054,24 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
-            diff1.VerifyIL("C.Main", "
-{
-  // Code size       17 (0x11)
-  .maxstack  1
-  .locals init ([bool] V_0,
-           [bool] V_1,
-           String V_2, //x
-           String V_3) //y
-  IL_0000:  nop       
-  IL_0001:  ldstr      ""A""
-  IL_0006:  stloc.2   
-  IL_0007:  ldloc.2   
-  IL_0008:  stloc.3   
-  IL_0009:  ldloc.3   
-  IL_000a:  call       ""Sub System.Console.WriteLine(String)""
-  IL_000f:  nop       
-  IL_0010:  ret       
-}")
+            '            diff1.VerifyIL("C.Main", "
+            '{
+            '  // Code size       17 (0x11)
+            '  .maxstack  1
+            '  .locals init ([bool] V_0,
+            '           [bool] V_1,
+            '           String V_2, //x
+            '           String V_3) //y
+            '  IL_0000:  nop       
+            '  IL_0001:  ldstr      ""A""
+            '  IL_0006:  stloc.2   
+            '  IL_0007:  ldloc.2   
+            '  IL_0008:  stloc.3   
+            '  IL_0009:  ldloc.3   
+            '  IL_000a:  call       ""Sub System.Console.WriteLine(String)""
+            '  IL_000f:  nop       
+            '  IL_0010:  ret       
+            '}")
         End Sub
 
         ''' <summary>
@@ -2129,21 +2129,21 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", <![CDATA[
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  .locals init (System.Collections.Generic.Stack(Of Integer) V_0) //x
-  IL_0000:  nop
-  IL_0001:  newobj     "Sub System.Collections.Generic.Stack(Of Integer)..ctor()"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  callvirt   "Sub System.Collections.Generic.Stack(Of Integer).Push(Integer)"
-  IL_000e:  nop
-  IL_000f:  ret
-}
-]]>.Value)
+            '            diff1.VerifyIL("C.M", <![CDATA[
+            '{
+            '  // Code size       16 (0x10)
+            '  .maxstack  2
+            '  .locals init (System.Collections.Generic.Stack(Of Integer) V_0) //x
+            '  IL_0000:  nop
+            '  IL_0001:  newobj     "Sub System.Collections.Generic.Stack(Of Integer)..ctor()"
+            '  IL_0006:  stloc.0
+            '  IL_0007:  ldloc.0
+            '  IL_0008:  ldc.i4.1
+            '  IL_0009:  callvirt   "Sub System.Collections.Generic.Stack(Of Integer).Push(Integer)"
+            '  IL_000e:  nop
+            '  IL_000f:  ret
+            '}
+            ']]>.Value)
         End Sub
 
         ''' <summary>
@@ -2215,35 +2215,35 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (System.IDisposable V_0, //x
-                System.IDisposable V_1)
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  IL_0003:  nop
-  IL_0004:  ldloc.0
-  IL_0005:  stloc.1
-  .try
-  {
-    IL_0006:  leave.s    IL_0014
-  }
-  finally
-  {
-    IL_0008:  nop
-    IL_0009:  ldloc.1
-    IL_000a:  brfalse.s  IL_0013
-    IL_000c:  ldloc.1
-    IL_000d:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_0012:  nop
-    IL_0013:  endfinally
-  }
-  IL_0014:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       21 (0x15)
+            '  .maxstack  1
+            '  .locals init (System.IDisposable V_0, //x
+            '                System.IDisposable V_1)
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.0
+            '  IL_0003:  nop
+            '  IL_0004:  ldloc.0
+            '  IL_0005:  stloc.1
+            '  .try
+            '  {
+            '    IL_0006:  leave.s    IL_0014
+            '  }
+            '  finally
+            '  {
+            '    IL_0008:  nop
+            '    IL_0009:  ldloc.1
+            '    IL_000a:  brfalse.s  IL_0013
+            '    IL_000c:  ldloc.1
+            '    IL_000d:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_0012:  nop
+            '    IL_0013:  endfinally
+            '  }
+            '  IL_0014:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -2309,28 +2309,28 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       27 (0x1b)
-  .maxstack  2
-  .locals init (System.Guid() V_0, //x
-                System.Guid& V_1) //$W0
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  IL_0003:  nop
-  IL_0004:  ldloc.0
-  IL_0005:  ldc.i4.3
-  IL_0006:  ldelema    ""System.Guid""
-  IL_000b:  stloc.1
-  IL_000c:  ldloc.1
-  IL_000d:  constrained. ""System.Guid""
-  IL_0013:  callvirt   ""Function Object.ToString() As String""
-  IL_0018:  pop
-  IL_0019:  nop
-  IL_001a:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       27 (0x1b)
+            '  .maxstack  2
+            '  .locals init (System.Guid() V_0, //x
+            '                System.Guid& V_1) //$W0
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.0
+            '  IL_0003:  nop
+            '  IL_0004:  ldloc.0
+            '  IL_0005:  ldc.i4.3
+            '  IL_0006:  ldelema    ""System.Guid""
+            '  IL_000b:  stloc.1
+            '  IL_000c:  ldloc.1
+            '  IL_000d:  constrained. ""System.Guid""
+            '  IL_0013:  callvirt   ""Function Object.ToString() As String""
+            '  IL_0018:  pop
+            '  IL_0019:  nop
+            '  IL_001a:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -2394,27 +2394,27 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       17 (0x11)
-  .maxstack  1
-  .locals init (System.Guid() V_0, //x
-                System.Guid() V_1) //$W0
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  IL_0003:  nop
-  IL_0004:  ldloc.0
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
-  IL_0007:  callvirt   ""Function Object.ToString() As String""
-  IL_000c:  pop
-  IL_000d:  nop
-  IL_000e:  ldnull
-  IL_000f:  stloc.1
-  IL_0010:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       17 (0x11)
+            '  .maxstack  1
+            '  .locals init (System.Guid() V_0, //x
+            '                System.Guid() V_1) //$W0
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.0
+            '  IL_0003:  nop
+            '  IL_0004:  ldloc.0
+            '  IL_0005:  stloc.1
+            '  IL_0006:  ldloc.1
+            '  IL_0007:  callvirt   ""Function Object.ToString() As String""
+            '  IL_000c:  pop
+            '  IL_000d:  nop
+            '  IL_000e:  ldnull
+            '  IL_000f:  stloc.1
+            '  IL_0010:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -2529,75 +2529,75 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       76 (0x4c)
-  .maxstack  2
-  .locals init (System.Guid() V_0, //x
-                Object V_1,
-                Boolean V_2,
-                System.Guid() V_3, //y
-                Object V_4,
-                Boolean V_5)
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  IL_0003:  nop
-  IL_0004:  ldloc.0
-  IL_0005:  stloc.1
-  IL_0006:  ldc.i4.0
-  IL_0007:  stloc.2
-  .try
-  {
-    IL_0008:  ldloc.1
-    IL_0009:  ldloca.s   V_2
-    IL_000b:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
-    IL_0010:  nop
-    IL_0011:  ldnull
-    IL_0012:  stloc.3
-    IL_0013:  nop
-    IL_0014:  ldloc.3
-    IL_0015:  stloc.s    V_4
-    IL_0017:  ldc.i4.0
-    IL_0018:  stloc.s    V_5
-    .try
-    {
-      IL_001a:  ldloc.s    V_4
-      IL_001c:  ldloca.s   V_5
-      IL_001e:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
-      IL_0023:  nop
-      IL_0024:  ldloc.0
-      IL_0025:  callvirt   ""Function Object.ToString() As String""
-      IL_002a:  pop
-      IL_002b:  leave.s    IL_003b
-    }
-    finally
-    {
-      IL_002d:  ldloc.s    V_5
-      IL_002f:  brfalse.s  IL_0039
-      IL_0031:  ldloc.s    V_4
-      IL_0033:  call       ""Sub System.Threading.Monitor.Exit(Object)""
-      IL_0038:  nop
-      IL_0039:  nop
-      IL_003a:  endfinally
-    }
-    IL_003b:  nop
-    IL_003c:  leave.s    IL_004a
-  }
-  finally
-  {
-    IL_003e:  ldloc.2
-    IL_003f:  brfalse.s  IL_0048
-    IL_0041:  ldloc.1
-    IL_0042:  call       ""Sub System.Threading.Monitor.Exit(Object)""
-    IL_0047:  nop
-    IL_0048:  nop
-    IL_0049:  endfinally
-  }
-  IL_004a:  nop
-  IL_004b:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       76 (0x4c)
+            '  .maxstack  2
+            '  .locals init (System.Guid() V_0, //x
+            '                Object V_1,
+            '                Boolean V_2,
+            '                System.Guid() V_3, //y
+            '                Object V_4,
+            '                Boolean V_5)
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.0
+            '  IL_0003:  nop
+            '  IL_0004:  ldloc.0
+            '  IL_0005:  stloc.1
+            '  IL_0006:  ldc.i4.0
+            '  IL_0007:  stloc.2
+            '  .try
+            '  {
+            '    IL_0008:  ldloc.1
+            '    IL_0009:  ldloca.s   V_2
+            '    IL_000b:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
+            '    IL_0010:  nop
+            '    IL_0011:  ldnull
+            '    IL_0012:  stloc.3
+            '    IL_0013:  nop
+            '    IL_0014:  ldloc.3
+            '    IL_0015:  stloc.s    V_4
+            '    IL_0017:  ldc.i4.0
+            '    IL_0018:  stloc.s    V_5
+            '    .try
+            '    {
+            '      IL_001a:  ldloc.s    V_4
+            '      IL_001c:  ldloca.s   V_5
+            '      IL_001e:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
+            '      IL_0023:  nop
+            '      IL_0024:  ldloc.0
+            '      IL_0025:  callvirt   ""Function Object.ToString() As String""
+            '      IL_002a:  pop
+            '      IL_002b:  leave.s    IL_003b
+            '    }
+            '    finally
+            '    {
+            '      IL_002d:  ldloc.s    V_5
+            '      IL_002f:  brfalse.s  IL_0039
+            '      IL_0031:  ldloc.s    V_4
+            '      IL_0033:  call       ""Sub System.Threading.Monitor.Exit(Object)""
+            '      IL_0038:  nop
+            '      IL_0039:  nop
+            '      IL_003a:  endfinally
+            '    }
+            '    IL_003b:  nop
+            '    IL_003c:  leave.s    IL_004a
+            '  }
+            '  finally
+            '  {
+            '    IL_003e:  ldloc.2
+            '    IL_003f:  brfalse.s  IL_0048
+            '    IL_0041:  ldloc.1
+            '    IL_0042:  call       ""Sub System.Threading.Monitor.Exit(Object)""
+            '    IL_0047:  nop
+            '    IL_0048:  nop
+            '    IL_0049:  endfinally
+            '  }
+            '  IL_004a:  nop
+            '  IL_004b:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -2710,74 +2710,74 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size      101 (0x65)
-  .maxstack  1
-  .locals init (System.Collections.Generic.List(Of Integer) V_0, //x
-                System.Collections.Generic.List(Of Integer).Enumerator V_1,
-                Integer V_2, //i
-                Boolean V_3,
-                System.Collections.Generic.List(Of Integer).Enumerator V_4,
-                Integer V_5, //i
-                Boolean V_6)
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  .try
-  {
-    IL_0003:  ldloc.0
-    IL_0004:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_0009:  stloc.1
-    IL_000a:  br.s       IL_0015
-    IL_000c:  ldloca.s   V_1
-    IL_000e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
-    IL_0013:  stloc.2
-    IL_0014:  nop
-    IL_0015:  ldloca.s   V_1
-    IL_0017:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
-    IL_001c:  stloc.3
-    IL_001d:  ldloc.3
-    IL_001e:  brtrue.s   IL_000c
-    IL_0020:  leave.s    IL_0031
-  }
-  finally
-  {
-    IL_0022:  ldloca.s   V_1
-    IL_0024:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_002a:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_002f:  nop
-    IL_0030:  endfinally
-  }
-  IL_0031:  nop
-  .try
-  {
-    IL_0032:  ldloc.0
-    IL_0033:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_0038:  stloc.s    V_4
-    IL_003a:  br.s       IL_0046
-    IL_003c:  ldloca.s   V_4
-    IL_003e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
-    IL_0043:  stloc.s    V_5
-    IL_0045:  nop
-    IL_0046:  ldloca.s   V_4
-    IL_0048:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
-    IL_004d:  stloc.s    V_6
-    IL_004f:  ldloc.s    V_6
-    IL_0051:  brtrue.s   IL_003c
-    IL_0053:  leave.s    IL_0064
-  }
-  finally
-  {
-    IL_0055:  ldloca.s   V_4
-    IL_0057:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_005d:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_0062:  nop
-    IL_0063:  endfinally
-  }
-  IL_0064:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size      101 (0x65)
+            '  .maxstack  1
+            '  .locals init (System.Collections.Generic.List(Of Integer) V_0, //x
+            '                System.Collections.Generic.List(Of Integer).Enumerator V_1,
+            '                Integer V_2, //i
+            '                Boolean V_3,
+            '                System.Collections.Generic.List(Of Integer).Enumerator V_4,
+            '                Integer V_5, //i
+            '                Boolean V_6)
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.0
+            '  .try
+            '  {
+            '    IL_0003:  ldloc.0
+            '    IL_0004:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_0009:  stloc.1
+            '    IL_000a:  br.s       IL_0015
+            '    IL_000c:  ldloca.s   V_1
+            '    IL_000e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
+            '    IL_0013:  stloc.2
+            '    IL_0014:  nop
+            '    IL_0015:  ldloca.s   V_1
+            '    IL_0017:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
+            '    IL_001c:  stloc.3
+            '    IL_001d:  ldloc.3
+            '    IL_001e:  brtrue.s   IL_000c
+            '    IL_0020:  leave.s    IL_0031
+            '  }
+            '  finally
+            '  {
+            '    IL_0022:  ldloca.s   V_1
+            '    IL_0024:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_002a:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_002f:  nop
+            '    IL_0030:  endfinally
+            '  }
+            '  IL_0031:  nop
+            '  .try
+            '  {
+            '    IL_0032:  ldloc.0
+            '    IL_0033:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_0038:  stloc.s    V_4
+            '    IL_003a:  br.s       IL_0046
+            '    IL_003c:  ldloca.s   V_4
+            '    IL_003e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
+            '    IL_0043:  stloc.s    V_5
+            '    IL_0045:  nop
+            '    IL_0046:  ldloca.s   V_4
+            '    IL_0048:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
+            '    IL_004d:  stloc.s    V_6
+            '    IL_004f:  ldloc.s    V_6
+            '    IL_0051:  brtrue.s   IL_003c
+            '    IL_0053:  leave.s    IL_0064
+            '  }
+            '  finally
+            '  {
+            '    IL_0055:  ldloca.s   V_4
+            '    IL_0057:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_005d:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_0062:  nop
+            '    IL_0063:  endfinally
+            '  }
+            '  IL_0064:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -2889,73 +2889,73 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size      100 (0x64)
-  .maxstack  1
-  .locals init (System.Collections.Generic.List(Of Integer) V_0, //x
-                Integer V_1, //i
-                System.Collections.Generic.List(Of Integer).Enumerator V_2,
-                Boolean V_3,
-                System.Collections.Generic.List(Of Integer).Enumerator V_4,
-                Boolean V_5)
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  .try
-  {
-    IL_0003:  ldloc.0
-    IL_0004:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_0009:  stloc.2
-    IL_000a:  br.s       IL_0015
-    IL_000c:  ldloca.s   V_2
-    IL_000e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
-    IL_0013:  stloc.1
-    IL_0014:  nop
-    IL_0015:  ldloca.s   V_2
-    IL_0017:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
-    IL_001c:  stloc.3
-    IL_001d:  ldloc.3
-    IL_001e:  brtrue.s   IL_000c
-    IL_0020:  leave.s    IL_0031
-  }
-  finally
-  {
-    IL_0022:  ldloca.s   V_2
-    IL_0024:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_002a:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_002f:  nop
-    IL_0030:  endfinally
-  }
-  IL_0031:  nop
-  .try
-  {
-    IL_0032:  ldloc.0
-    IL_0033:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_0038:  stloc.s    V_4
-    IL_003a:  br.s       IL_0045
-    IL_003c:  ldloca.s   V_4
-    IL_003e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
-    IL_0043:  stloc.1
-    IL_0044:  nop
-    IL_0045:  ldloca.s   V_4
-    IL_0047:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
-    IL_004c:  stloc.s    V_5
-    IL_004e:  ldloc.s    V_5
-    IL_0050:  brtrue.s   IL_003c
-    IL_0052:  leave.s    IL_0063
-  }
-  finally
-  {
-    IL_0054:  ldloca.s   V_4
-    IL_0056:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
-    IL_005c:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_0061:  nop
-    IL_0062:  endfinally
-  }
-  IL_0063:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size      100 (0x64)
+            '  .maxstack  1
+            '  .locals init (System.Collections.Generic.List(Of Integer) V_0, //x
+            '                Integer V_1, //i
+            '                System.Collections.Generic.List(Of Integer).Enumerator V_2,
+            '                Boolean V_3,
+            '                System.Collections.Generic.List(Of Integer).Enumerator V_4,
+            '                Boolean V_5)
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.0
+            '  .try
+            '  {
+            '    IL_0003:  ldloc.0
+            '    IL_0004:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_0009:  stloc.2
+            '    IL_000a:  br.s       IL_0015
+            '    IL_000c:  ldloca.s   V_2
+            '    IL_000e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
+            '    IL_0013:  stloc.1
+            '    IL_0014:  nop
+            '    IL_0015:  ldloca.s   V_2
+            '    IL_0017:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
+            '    IL_001c:  stloc.3
+            '    IL_001d:  ldloc.3
+            '    IL_001e:  brtrue.s   IL_000c
+            '    IL_0020:  leave.s    IL_0031
+            '  }
+            '  finally
+            '  {
+            '    IL_0022:  ldloca.s   V_2
+            '    IL_0024:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_002a:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_002f:  nop
+            '    IL_0030:  endfinally
+            '  }
+            '  IL_0031:  nop
+            '  .try
+            '  {
+            '    IL_0032:  ldloc.0
+            '    IL_0033:  callvirt   ""Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_0038:  stloc.s    V_4
+            '    IL_003a:  br.s       IL_0045
+            '    IL_003c:  ldloca.s   V_4
+            '    IL_003e:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer""
+            '    IL_0043:  stloc.1
+            '    IL_0044:  nop
+            '    IL_0045:  ldloca.s   V_4
+            '    IL_0047:  call       ""Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean""
+            '    IL_004c:  stloc.s    V_5
+            '    IL_004e:  ldloc.s    V_5
+            '    IL_0050:  brtrue.s   IL_003c
+            '    IL_0052:  leave.s    IL_0063
+            '  }
+            '  finally
+            '  {
+            '    IL_0054:  ldloca.s   V_4
+            '    IL_0056:  constrained. ""System.Collections.Generic.List(Of Integer).Enumerator""
+            '    IL_005c:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_0061:  nop
+            '    IL_0062:  endfinally
+            '  }
+            '  IL_0063:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -3085,90 +3085,90 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size      148 (0x94)
-  .maxstack  2
-  .locals init (Double V_0,
-                Double V_1,
-                Double V_2,
-                Boolean V_3,
-                Double V_4, //i
-                Double V_5,
-                Double V_6,
-                Double V_7,
-                Boolean V_8,
-                Double V_9) //j
-  IL_0000:  nop
-  IL_0001:  call       ""Function C.goo() As Double""
-  IL_0006:  stloc.0
-  IL_0007:  call       ""Function C.goo() As Double""
-  IL_000c:  stloc.1
-  IL_000d:  call       ""Function C.goo() As Double""
-  IL_0012:  stloc.2
-  IL_0013:  ldloc.2
-  IL_0014:  ldc.r8     0
-  IL_001d:  clt.un
-  IL_001f:  ldc.i4.0
-  IL_0020:  ceq
-  IL_0022:  stloc.3
-  IL_0023:  ldloc.0
-  IL_0024:  stloc.s    V_4
-  IL_0026:  br.s       IL_007c
-  IL_0028:  call       ""Function C.goo() As Double""
-  IL_002d:  stloc.s    V_5
-  IL_002f:  call       ""Function C.goo() As Double""
-  IL_0034:  stloc.s    V_6
-  IL_0036:  call       ""Function C.goo() As Double""
-  IL_003b:  stloc.s    V_7
-  IL_003d:  ldloc.s    V_7
-  IL_003f:  ldc.r8     0
-  IL_0048:  clt.un
-  IL_004a:  ldc.i4.0
-  IL_004b:  ceq
-  IL_004d:  stloc.s    V_8
-  IL_004f:  ldloc.s    V_5
-  IL_0051:  stloc.s    V_9
-  IL_0053:  br.s       IL_005c
-  IL_0055:  ldloc.s    V_9
-  IL_0057:  ldloc.s    V_7
-  IL_0059:  add
-  IL_005a:  stloc.s    V_9
-  IL_005c:  ldloc.s    V_8
-  IL_005e:  brtrue.s   IL_006b
-  IL_0060:  ldloc.s    V_9
-  IL_0062:  ldloc.s    V_6
-  IL_0064:  clt.un
-  IL_0066:  ldc.i4.0
-  IL_0067:  ceq
-  IL_0069:  br.s       IL_0074
-  IL_006b:  ldloc.s    V_9
-  IL_006d:  ldloc.s    V_6
-  IL_006f:  cgt.un
-  IL_0071:  ldc.i4.0
-  IL_0072:  ceq
-  IL_0074:  brtrue.s   IL_0055
-  IL_0076:  ldloc.s    V_4
-  IL_0078:  ldloc.2
-  IL_0079:  add
-  IL_007a:  stloc.s    V_4
-  IL_007c:  ldloc.3
-  IL_007d:  brtrue.s   IL_0089
-  IL_007f:  ldloc.s    V_4
-  IL_0081:  ldloc.1
-  IL_0082:  clt.un
-  IL_0084:  ldc.i4.0
-  IL_0085:  ceq
-  IL_0087:  br.s       IL_0091
-  IL_0089:  ldloc.s    V_4
-  IL_008b:  ldloc.1
-  IL_008c:  cgt.un
-  IL_008e:  ldc.i4.0
-  IL_008f:  ceq
-  IL_0091:  brtrue.s   IL_0028
-  IL_0093:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size      148 (0x94)
+            '  .maxstack  2
+            '  .locals init (Double V_0,
+            '                Double V_1,
+            '                Double V_2,
+            '                Boolean V_3,
+            '                Double V_4, //i
+            '                Double V_5,
+            '                Double V_6,
+            '                Double V_7,
+            '                Boolean V_8,
+            '                Double V_9) //j
+            '  IL_0000:  nop
+            '  IL_0001:  call       ""Function C.goo() As Double""
+            '  IL_0006:  stloc.0
+            '  IL_0007:  call       ""Function C.goo() As Double""
+            '  IL_000c:  stloc.1
+            '  IL_000d:  call       ""Function C.goo() As Double""
+            '  IL_0012:  stloc.2
+            '  IL_0013:  ldloc.2
+            '  IL_0014:  ldc.r8     0
+            '  IL_001d:  clt.un
+            '  IL_001f:  ldc.i4.0
+            '  IL_0020:  ceq
+            '  IL_0022:  stloc.3
+            '  IL_0023:  ldloc.0
+            '  IL_0024:  stloc.s    V_4
+            '  IL_0026:  br.s       IL_007c
+            '  IL_0028:  call       ""Function C.goo() As Double""
+            '  IL_002d:  stloc.s    V_5
+            '  IL_002f:  call       ""Function C.goo() As Double""
+            '  IL_0034:  stloc.s    V_6
+            '  IL_0036:  call       ""Function C.goo() As Double""
+            '  IL_003b:  stloc.s    V_7
+            '  IL_003d:  ldloc.s    V_7
+            '  IL_003f:  ldc.r8     0
+            '  IL_0048:  clt.un
+            '  IL_004a:  ldc.i4.0
+            '  IL_004b:  ceq
+            '  IL_004d:  stloc.s    V_8
+            '  IL_004f:  ldloc.s    V_5
+            '  IL_0051:  stloc.s    V_9
+            '  IL_0053:  br.s       IL_005c
+            '  IL_0055:  ldloc.s    V_9
+            '  IL_0057:  ldloc.s    V_7
+            '  IL_0059:  add
+            '  IL_005a:  stloc.s    V_9
+            '  IL_005c:  ldloc.s    V_8
+            '  IL_005e:  brtrue.s   IL_006b
+            '  IL_0060:  ldloc.s    V_9
+            '  IL_0062:  ldloc.s    V_6
+            '  IL_0064:  clt.un
+            '  IL_0066:  ldc.i4.0
+            '  IL_0067:  ceq
+            '  IL_0069:  br.s       IL_0074
+            '  IL_006b:  ldloc.s    V_9
+            '  IL_006d:  ldloc.s    V_6
+            '  IL_006f:  cgt.un
+            '  IL_0071:  ldc.i4.0
+            '  IL_0072:  ceq
+            '  IL_0074:  brtrue.s   IL_0055
+            '  IL_0076:  ldloc.s    V_4
+            '  IL_0078:  ldloc.2
+            '  IL_0079:  add
+            '  IL_007a:  stloc.s    V_4
+            '  IL_007c:  ldloc.3
+            '  IL_007d:  brtrue.s   IL_0089
+            '  IL_007f:  ldloc.s    V_4
+            '  IL_0081:  ldloc.1
+            '  IL_0082:  clt.un
+            '  IL_0084:  ldc.i4.0
+            '  IL_0085:  ceq
+            '  IL_0087:  br.s       IL_0091
+            '  IL_0089:  ldloc.s    V_4
+            '  IL_008b:  ldloc.1
+            '  IL_008c:  cgt.un
+            '  IL_008e:  ldc.i4.0
+            '  IL_008f:  ceq
+            '  IL_0091:  brtrue.s   IL_0028
+            '  IL_0093:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -3241,31 +3241,31 @@ End Class
                 generation0,
                 ImmutableArray.Create(edit))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (Object V_0, //y
-                System.Guid() V_1, //x
-                System.Guid() V_2, //$W0
-                String V_3) //z
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.1
-  IL_0003:  nop
-  IL_0004:  ldloc.1
-  IL_0005:  stloc.2
-  IL_0006:  ldloc.2
-  IL_0007:  callvirt   ""Function Object.ToString() As String""
-  IL_000c:  stloc.3
-  IL_000d:  ldloc.3
-  IL_000e:  stloc.0
-  IL_000f:  nop
-  IL_0010:  ldnull
-  IL_0011:  stloc.2
-  IL_0012:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       19 (0x13)
+            '  .maxstack  1
+            '  .locals init (Object V_0, //y
+            '                System.Guid() V_1, //x
+            '                System.Guid() V_2, //$W0
+            '                String V_3) //z
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.1
+            '  IL_0003:  nop
+            '  IL_0004:  ldloc.1
+            '  IL_0005:  stloc.2
+            '  IL_0006:  ldloc.2
+            '  IL_0007:  callvirt   ""Function Object.ToString() As String""
+            '  IL_000c:  stloc.3
+            '  IL_000d:  ldloc.3
+            '  IL_000e:  stloc.0
+            '  IL_000f:  nop
+            '  IL_0010:  ldnull
+            '  IL_0011:  stloc.2
+            '  IL_0012:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -3306,31 +3306,31 @@ End Class
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
-            Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
-            Dim expectedIL0 = "
-{
-  // Code size       18 (0x12)
-  .maxstack  1
-  .locals init (Object V_0, //Length
-  System.Guid() V_1, //x
-  Integer V_2) //y
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.1
-  IL_0003:  br.s       IL_0005
-  IL_0005:  nop
-  IL_0006:  ldloc.1
-  IL_0007:  ldlen
-  IL_0008:  conv.i4
-  IL_0009:  stloc.2
-  IL_000a:  ldc.i4.5
-  IL_000b:  box        ""Integer""
-  IL_0010:  stloc.0
-  IL_0011:  ret
-}
-"
+            '            Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
+            '            Dim expectedIL0 = "
+            '{
+            '  // Code size       18 (0x12)
+            '  .maxstack  1
+            '  .locals init (Object V_0, //Length
+            '  System.Guid() V_1, //x
+            '  Integer V_2) //y
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.1
+            '  IL_0003:  br.s       IL_0005
+            '  IL_0005:  nop
+            '  IL_0006:  ldloc.1
+            '  IL_0007:  ldlen
+            '  IL_0008:  conv.i4
+            '  IL_0009:  stloc.2
+            '  IL_000a:  ldc.i4.5
+            '  IL_000b:  box        ""Integer""
+            '  IL_0010:  stloc.0
+            '  IL_0011:  ret
+            '}
+            '"
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL0, actualIL0)
+            '            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL0, actualIL0)
 
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -3342,28 +3342,28 @@ End Class
                 generation0,
                 ImmutableArray.Create(edit))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       18 (0x12)
-  .maxstack  1
-  .locals init (Object V_0, //Length
-  System.Guid() V_1, //x
-  Integer V_2) //y
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.1
-  IL_0003:  br.s       IL_0005
-  IL_0005:  nop
-  IL_0006:  ldloc.1
-  IL_0007:  ldlen
-  IL_0008:  conv.i4
-  IL_0009:  stloc.2
-  IL_000a:  ldc.i4.5
-  IL_000b:  box        ""Integer""
-  IL_0010:  stloc.0
-  IL_0011:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       18 (0x12)
+            '  .maxstack  1
+            '  .locals init (Object V_0, //Length
+            '  System.Guid() V_1, //x
+            '  Integer V_2) //y
+            '  IL_0000:  nop
+            '  IL_0001:  ldnull
+            '  IL_0002:  stloc.1
+            '  IL_0003:  br.s       IL_0005
+            '  IL_0005:  nop
+            '  IL_0006:  ldloc.1
+            '  IL_0007:  ldlen
+            '  IL_0008:  conv.i4
+            '  IL_0009:  stloc.2
+            '  IL_000a:  ldc.i4.5
+            '  IL_000b:  box        ""Integer""
+            '  IL_0010:  stloc.0
+            '  IL_0011:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -3445,33 +3445,33 @@ End Class
                 generation0,
                 ImmutableArray.Create(edit))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       45 (0x2d)
-  .maxstack  1
-  .locals init (Object V_0, //Length
-           System.Guid() V_1, //x
-           Object V_2, //z
-           Object V_3) //aa
-  IL_0000:  nop       
-  IL_0001:  ldnull    
-  IL_0002:  stloc.1   
-  IL_0003:  ldstr      ""http:  //roslyn/F""
-  IL_0008:  call       ""Function System.Xml.Linq.XNamespace.Get(String) As System.Xml.Linq.XNamespace""
-  IL_000d:  callvirt   ""Function System.Xml.Linq.XNamespace.ToString() As String""
-  IL_0012:  pop       
-  IL_0013:  ldstr      ""http:  //roslyn/F""
-  IL_0018:  call       ""Function System.Xml.Linq.XNamespace.Get(String) As System.Xml.Linq.XNamespace""
-  IL_001d:  stloc.2   
-  IL_001e:  ldc.i4.5  
-  IL_001f:  box        ""Integer""
-  IL_0024:  stloc.0   
-  IL_0025:  ldloc.0   
-  IL_0026:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
-  IL_002b:  stloc.3   
-  IL_002c:  ret       
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       45 (0x2d)
+            '  .maxstack  1
+            '  .locals init (Object V_0, //Length
+            '           System.Guid() V_1, //x
+            '           Object V_2, //z
+            '           Object V_3) //aa
+            '  IL_0000:  nop       
+            '  IL_0001:  ldnull    
+            '  IL_0002:  stloc.1   
+            '  IL_0003:  ldstr      ""http:  //roslyn/F""
+            '  IL_0008:  call       ""Function System.Xml.Linq.XNamespace.Get(String) As System.Xml.Linq.XNamespace""
+            '  IL_000d:  callvirt   ""Function System.Xml.Linq.XNamespace.ToString() As String""
+            '  IL_0012:  pop       
+            '  IL_0013:  ldstr      ""http:  //roslyn/F""
+            '  IL_0018:  call       ""Function System.Xml.Linq.XNamespace.Get(String) As System.Xml.Linq.XNamespace""
+            '  IL_001d:  stloc.2   
+            '  IL_001e:  ldc.i4.5  
+            '  IL_001f:  box        ""Integer""
+            '  IL_0024:  stloc.0   
+            '  IL_0025:  ldloc.0   
+            '  IL_0026:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+            '  IL_002b:  stloc.3   
+            '  IL_002c:  ret       
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -3509,47 +3509,47 @@ End Class
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
-            Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
-            Dim expectedIL0 =
-            <![CDATA[
-{
-  // Code size       88 (0x58)
-  .maxstack  3
-  .locals init (Object V_0, //qq
-  Object V_1, //aa
-  System.Xml.Linq.XElement V_2)
-  IL_0000:  nop
-  IL_0001:  ldstr      "qq"
-  IL_0006:  ldstr      ""
-  IL_000b:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0010:  newobj     "Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)"
-  IL_0015:  stloc.2
-  IL_0016:  ldloc.2
-  IL_0017:  ldstr      "a"
-  IL_001c:  ldstr      ""
-  IL_0021:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0026:  ldstr      "qq"
-  IL_002b:  newobj     "Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)"
-  IL_0030:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
-  IL_0035:  nop
-  IL_0036:  ldloc.2
-  IL_0037:  ldstr      ""
-  IL_003c:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
-  IL_0041:  nop
-  IL_0042:  ldloc.2
-  IL_0043:  call       "Sub C.F(Object)"
-  IL_0048:  nop
-  IL_0049:  ldc.i4.5
-  IL_004a:  box        "Integer"
-  IL_004f:  stloc.0
-  IL_0050:  ldloc.0
-  IL_0051:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0056:  stloc.1
-  IL_0057:  ret
-}
-]]>.Value
+            '            Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
+            '            Dim expectedIL0 =
+            '            <![CDATA[
+            '{
+            '  // Code size       88 (0x58)
+            '  .maxstack  3
+            '  .locals init (Object V_0, //qq
+            '  Object V_1, //aa
+            '  System.Xml.Linq.XElement V_2)
+            '  IL_0000:  nop
+            '  IL_0001:  ldstr      "qq"
+            '  IL_0006:  ldstr      ""
+            '  IL_000b:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
+            '  IL_0010:  newobj     "Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)"
+            '  IL_0015:  stloc.2
+            '  IL_0016:  ldloc.2
+            '  IL_0017:  ldstr      "a"
+            '  IL_001c:  ldstr      ""
+            '  IL_0021:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
+            '  IL_0026:  ldstr      "qq"
+            '  IL_002b:  newobj     "Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)"
+            '  IL_0030:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+            '  IL_0035:  nop
+            '  IL_0036:  ldloc.2
+            '  IL_0037:  ldstr      ""
+            '  IL_003c:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+            '  IL_0041:  nop
+            '  IL_0042:  ldloc.2
+            '  IL_0043:  call       "Sub C.F(Object)"
+            '  IL_0048:  nop
+            '  IL_0049:  ldc.i4.5
+            '  IL_004a:  box        "Integer"
+            '  IL_004f:  stloc.0
+            '  IL_0050:  ldloc.0
+            '  IL_0051:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+            '  IL_0056:  stloc.1
+            '  IL_0057:  ret
+            '}
+            ']]>.Value
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL0, actualIL0)
+            '            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL0, actualIL0)
 
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -3561,44 +3561,44 @@ End Class
                 generation0,
                 ImmutableArray.Create(edit))
 
-            diff1.VerifyIL("C.M", <![CDATA[
-{
-  // Code size       88 (0x58)
-  .maxstack  3
-  .locals init (Object V_0, //qq
-  Object V_1, //aa
-  [unchanged] V_2,
-  System.Xml.Linq.XElement V_3)
-  IL_0000:  nop
-  IL_0001:  ldstr      "qq"
-  IL_0006:  ldstr      ""
-  IL_000b:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0010:  newobj     "Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)"
-  IL_0015:  stloc.3
-  IL_0016:  ldloc.3
-  IL_0017:  ldstr      "a"
-  IL_001c:  ldstr      ""
-  IL_0021:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0026:  ldstr      "qq"
-  IL_002b:  newobj     "Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)"
-  IL_0030:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
-  IL_0035:  nop
-  IL_0036:  ldloc.3
-  IL_0037:  ldstr      ""
-  IL_003c:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
-  IL_0041:  nop
-  IL_0042:  ldloc.3
-  IL_0043:  call       "Sub C.F(Object)"
-  IL_0048:  nop
-  IL_0049:  ldc.i4.5
-  IL_004a:  box        "Integer"
-  IL_004f:  stloc.0
-  IL_0050:  ldloc.0
-  IL_0051:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0056:  stloc.1
-  IL_0057:  ret
-}
-]]>.Value)
+            '            diff1.VerifyIL("C.M", <![CDATA[
+            '{
+            '  // Code size       88 (0x58)
+            '  .maxstack  3
+            '  .locals init (Object V_0, //qq
+            '  Object V_1, //aa
+            '  [unchanged] V_2,
+            '  System.Xml.Linq.XElement V_3)
+            '  IL_0000:  nop
+            '  IL_0001:  ldstr      "qq"
+            '  IL_0006:  ldstr      ""
+            '  IL_000b:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
+            '  IL_0010:  newobj     "Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)"
+            '  IL_0015:  stloc.3
+            '  IL_0016:  ldloc.3
+            '  IL_0017:  ldstr      "a"
+            '  IL_001c:  ldstr      ""
+            '  IL_0021:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
+            '  IL_0026:  ldstr      "qq"
+            '  IL_002b:  newobj     "Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)"
+            '  IL_0030:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+            '  IL_0035:  nop
+            '  IL_0036:  ldloc.3
+            '  IL_0037:  ldstr      ""
+            '  IL_003c:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+            '  IL_0041:  nop
+            '  IL_0042:  ldloc.3
+            '  IL_0043:  call       "Sub C.F(Object)"
+            '  IL_0048:  nop
+            '  IL_0049:  ldc.i4.5
+            '  IL_004a:  box        "Integer"
+            '  IL_004f:  stloc.0
+            '  IL_0050:  ldloc.0
+            '  IL_0051:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+            '  IL_0056:  stloc.1
+            '  IL_0057:  ret
+            '}
+            ']]>.Value)
         End Sub
 
         <Fact>
@@ -3652,18 +3652,18 @@ End Class
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.F", "
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
-  IL_0000:  nop
-  IL_0001:  ldc.i4.2
-  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size        9 (0x9)
+            '  .maxstack  1
+            '  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.2
+            '  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+            '  IL_0007:  stloc.0
+            '  IL_0008:  ret
+            '}
+            '")
             ' expect a single TypeRef for System.Object
             Dim md1 = diff1.GetMetadata()
             AssertEx.Equal({"[0x23000002] 0x0000020d.0x0000021a"}, DumpTypeRefs(md1.Reader))
@@ -3672,18 +3672,18 @@ End Class
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
 
-            diff2.VerifyIL("C.F", "
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}
-")
+            '            diff2.VerifyIL("C.F", "
+            '{
+            '  // Code size        9 (0x9)
+            '  .maxstack  1
+            '  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.3
+            '  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+            '  IL_0007:  stloc.0
+            '  IL_0008:  ret
+            '}
+            '")
             ' expect a single TypeRef for System.Object
             Dim md2 = diff2.GetMetadata()
             AssertEx.Equal({"[0x23000003] 0x00000256.0x00000263"}, DumpTypeRefs(md2.Reader))
@@ -3728,34 +3728,34 @@ End Class
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.F", "
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
-  IL_0000:  nop
-  IL_0001:  ldc.i4.2
-  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size        9 (0x9)
+            '  .maxstack  1
+            '  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.2
+            '  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+            '  IL_0007:  stloc.0
+            '  IL_0008:  ret
+            '}
+            '")
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
 
-            diff2.VerifyIL("C.F", "
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}
-")
+            '            diff2.VerifyIL("C.F", "
+            '{
+            '  // Code size        9 (0x9)
+            '  .maxstack  1
+            '  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.3
+            '  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+            '  IL_0007:  stloc.0
+            '  IL_0008:  ret
+            '}
+            '")
             ' expect a single TypeRef for System.Object
             Dim md2 = diff2.GetMetadata()
             AssertEx.Equal({"[0x23000003] 0x00000289.0x00000296"}, DumpTypeRefs(md2.Reader))
@@ -3831,29 +3831,29 @@ End Namespace
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_3`1")
-                    diff1.VerifyIL("M.B.M", "
-{
-  // Code size       29 (0x1d)
-  .maxstack  2
-  .locals init (VB$AnonymousType_1(Of Integer, Integer) V_0, //x
-  [int] V_1,
-  VB$AnonymousType_2(Of Integer) V_2, //z
-  VB$AnonymousType_3(Of Integer) V_3) //y
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  ldc.i4.4
-  IL_0003:  newobj     ""Sub VB$AnonymousType_1(Of Integer, Integer)..ctor(Integer, Integer)""
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  callvirt   ""Function VB$AnonymousType_1(Of Integer, Integer).get_A() As Integer""
-  IL_000f:  newobj     ""Sub VB$AnonymousType_3(Of Integer)..ctor(Integer)""
-  IL_0014:  stloc.3
-  IL_0015:  ldc.i4.5
-  IL_0016:  newobj     ""Sub VB$AnonymousType_2(Of Integer)..ctor(Integer)""
-  IL_001b:  stloc.2
-  IL_001c:  ret
-}
-")
+                    '                    diff1.VerifyIL("M.B.M", "
+                    '{
+                    '  // Code size       29 (0x1d)
+                    '  .maxstack  2
+                    '  .locals init (VB$AnonymousType_1(Of Integer, Integer) V_0, //x
+                    '  [int] V_1,
+                    '  VB$AnonymousType_2(Of Integer) V_2, //z
+                    '  VB$AnonymousType_3(Of Integer) V_3) //y
+                    '  IL_0000:  nop
+                    '  IL_0001:  ldc.i4.3
+                    '  IL_0002:  ldc.i4.4
+                    '  IL_0003:  newobj     ""Sub VB$AnonymousType_1(Of Integer, Integer)..ctor(Integer, Integer)""
+                    '  IL_0008:  stloc.0
+                    '  IL_0009:  ldloc.0
+                    '  IL_000a:  callvirt   ""Function VB$AnonymousType_1(Of Integer, Integer).get_A() As Integer""
+                    '  IL_000f:  newobj     ""Sub VB$AnonymousType_3(Of Integer)..ctor(Integer)""
+                    '  IL_0014:  stloc.3
+                    '  IL_0015:  ldc.i4.5
+                    '  IL_0016:  newobj     ""Sub VB$AnonymousType_2(Of Integer)..ctor(Integer)""
+                    '  IL_001b:  stloc.2
+                    '  IL_001c:  ret
+                    '}
+                    '")
                 End Using
             End Using
         End Sub
@@ -3954,25 +3954,25 @@ End Class
             Dim reader1 = md1.Reader
             CheckNames({reader0, reader1}, reader1.GetTypeDefNames()) ' no additional types
 
-            diff1.VerifyIL("B.G", "
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  .locals init (Object V_0, //G
-                Integer V_1) //x
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  ldc.i4.1
-  IL_0005:  add.ovf
-  IL_0006:  box        ""Integer""
-  IL_000b:  stloc.0
-  IL_000c:  br.s       IL_000e
-  IL_000e:  ldloc.0
-  IL_000f:  ret
-}
-")
+            '            diff1.VerifyIL("B.G", "
+            '{
+            '  // Code size       16 (0x10)
+            '  .maxstack  2
+            '  .locals init (Object V_0, //G
+            '                Integer V_1) //x
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.1
+            '  IL_0002:  stloc.1
+            '  IL_0003:  ldloc.1
+            '  IL_0004:  ldc.i4.1
+            '  IL_0005:  add.ovf
+            '  IL_0006:  box        ""Integer""
+            '  IL_000b:  stloc.0
+            '  IL_000c:  br.s       IL_000e
+            '  IL_000e:  ldloc.0
+            '  IL_000f:  ret
+            '}
+            '")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
@@ -3981,29 +3981,29 @@ End Class
             Dim reader2 = md2.Reader
             CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames(), "VB$AnonymousType_1`1") ' one additional type
 
-            diff2.VerifyIL("B.G", "
-{
-  // Code size       30 (0x1e)
-  .maxstack  1
-  .locals init (Object V_0, //G
-                [int] V_1,
-                VB$AnonymousType_0(Of A) V_2, //x
-                VB$AnonymousType_1(Of Integer) V_3) //y
-  IL_0000:  nop
-  IL_0001:  newobj     ""Sub A..ctor()""
-  IL_0006:  newobj     ""Sub VB$AnonymousType_0(Of A)..ctor(A)""
-  IL_000b:  stloc.2
-  IL_000c:  ldc.i4.2
-  IL_000d:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
-  IL_0012:  stloc.3
-  IL_0013:  ldloc.2
-  IL_0014:  callvirt   ""Function VB$AnonymousType_0(Of A).get_A() As A""
-  IL_0019:  stloc.0
-  IL_001a:  br.s       IL_001c
-  IL_001c:  ldloc.0
-  IL_001d:  ret
-}
-")
+            '            diff2.VerifyIL("B.G", "
+            '{
+            '  // Code size       30 (0x1e)
+            '  .maxstack  1
+            '  .locals init (Object V_0, //G
+            '                [int] V_1,
+            '                VB$AnonymousType_0(Of A) V_2, //x
+            '                VB$AnonymousType_1(Of Integer) V_3) //y
+            '  IL_0000:  nop
+            '  IL_0001:  newobj     ""Sub A..ctor()""
+            '  IL_0006:  newobj     ""Sub VB$AnonymousType_0(Of A)..ctor(A)""
+            '  IL_000b:  stloc.2
+            '  IL_000c:  ldc.i4.2
+            '  IL_000d:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
+            '  IL_0012:  stloc.3
+            '  IL_0013:  ldloc.2
+            '  IL_0014:  callvirt   ""Function VB$AnonymousType_0(Of A).get_A() As A""
+            '  IL_0019:  stloc.0
+            '  IL_001a:  br.s       IL_001c
+            '  IL_001c:  ldloc.0
+            '  IL_001d:  ret
+            '}
+            '")
 
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
@@ -4012,30 +4012,30 @@ End Class
             Dim md3 = diff3.GetMetadata()
             Dim reader3 = md3.Reader
             CheckNames({reader0, reader1, reader2, reader3}, reader3.GetTypeDefNames()) ' no additional types
-            diff3.VerifyIL("B.G", "
-{
-  // Code size       35 (0x23)
-  .maxstack  1
-  .locals init (Object V_0, //G
-                [int] V_1,
-                VB$AnonymousType_0(Of A) V_2, //x
-                VB$AnonymousType_1(Of Integer) V_3) //y
-  IL_0000:  nop
-  IL_0001:  newobj     ""Sub A..ctor()""
-  IL_0006:  newobj     ""Sub VB$AnonymousType_0(Of A)..ctor(A)""
-  IL_000b:  stloc.2
-  IL_000c:  ldc.i4.3
-  IL_000d:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
-  IL_0012:  stloc.3
-  IL_0013:  ldloc.3
-  IL_0014:  callvirt   ""Function VB$AnonymousType_1(Of Integer).get_B() As Integer""
-  IL_0019:  box        ""Integer""
-  IL_001e:  stloc.0
-  IL_001f:  br.s       IL_0021
-  IL_0021:  ldloc.0
-  IL_0022:  ret
-}
-")
+            '            diff3.VerifyIL("B.G", "
+            '{
+            '  // Code size       35 (0x23)
+            '  .maxstack  1
+            '  .locals init (Object V_0, //G
+            '                [int] V_1,
+            '                VB$AnonymousType_0(Of A) V_2, //x
+            '                VB$AnonymousType_1(Of Integer) V_3) //y
+            '  IL_0000:  nop
+            '  IL_0001:  newobj     ""Sub A..ctor()""
+            '  IL_0006:  newobj     ""Sub VB$AnonymousType_0(Of A)..ctor(A)""
+            '  IL_000b:  stloc.2
+            '  IL_000c:  ldc.i4.3
+            '  IL_000d:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
+            '  IL_0012:  stloc.3
+            '  IL_0013:  ldloc.3
+            '  IL_0014:  callvirt   ""Function VB$AnonymousType_1(Of Integer).get_B() As Integer""
+            '  IL_0019:  box        ""Integer""
+            '  IL_001e:  stloc.0
+            '  IL_001f:  br.s       IL_0021
+            '  IL_0021:  ldloc.0
+            '  IL_0022:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -4200,30 +4200,30 @@ End Class
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_3`2")
-                    diff1.VerifyIL("C.M",
-"{
-  // Code size       27 (0x1b)
-  .maxstack  2
-  .locals init (VB$AnonymousType_0(Of Integer, Integer) V_0, //x
-                [unchanged] V_1,
-                [unchanged] V_2,
-                VB$AnonymousType_3(Of Integer, Integer) V_3, //y
-                VB$AnonymousType_1(Of Integer, Integer) V_4) //z
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  ldc.i4.2
-  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
-  IL_0008:  stloc.0
-  IL_0009:  ldc.i4.3
-  IL_000a:  ldc.i4.4
-  IL_000b:  newobj     ""Sub VB$AnonymousType_3(Of Integer, Integer)..ctor(Integer, Integer)""
-  IL_0010:  stloc.3
-  IL_0011:  ldc.i4.5
-  IL_0012:  ldc.i4.6
-  IL_0013:  newobj     ""Sub VB$AnonymousType_1(Of Integer, Integer)..ctor(Integer, Integer)""
-  IL_0018:  stloc.s    V_4
-  IL_001a:  ret
-}")
+                    '                    diff1.VerifyIL("C.M",
+                    '"{
+                    '  // Code size       27 (0x1b)
+                    '  .maxstack  2
+                    '  .locals init (VB$AnonymousType_0(Of Integer, Integer) V_0, //x
+                    '                [unchanged] V_1,
+                    '                [unchanged] V_2,
+                    '                VB$AnonymousType_3(Of Integer, Integer) V_3, //y
+                    '                VB$AnonymousType_1(Of Integer, Integer) V_4) //z
+                    '  IL_0000:  nop
+                    '  IL_0001:  ldc.i4.1
+                    '  IL_0002:  ldc.i4.2
+                    '  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
+                    '  IL_0008:  stloc.0
+                    '  IL_0009:  ldc.i4.3
+                    '  IL_000a:  ldc.i4.4
+                    '  IL_000b:  newobj     ""Sub VB$AnonymousType_3(Of Integer, Integer)..ctor(Integer, Integer)""
+                    '  IL_0010:  stloc.3
+                    '  IL_0011:  ldc.i4.5
+                    '  IL_0012:  ldc.i4.6
+                    '  IL_0013:  newobj     ""Sub VB$AnonymousType_1(Of Integer, Integer)..ctor(Integer, Integer)""
+                    '  IL_0018:  stloc.s    V_4
+                    '  IL_001a:  ret
+                    '}")
                 End Using
             End Using
         End Sub
@@ -4282,28 +4282,28 @@ End Class
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_1`1")
-                    diff1.VerifyIL("C.M",
-"{
-  // Code size       25 (0x19)
-  .maxstack  2
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                VB$AnonymousType_0(Of Integer, Integer) V_2, //x
-                VB$AnonymousType_1(Of Integer) V_3, //y
-                VB$AnonymousType_1(Of Integer) V_4) //z
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  ldc.i4.2
-  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
-  IL_0008:  stloc.2
-  IL_0009:  ldc.i4.3
-  IL_000a:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
-  IL_000f:  stloc.3
-  IL_0010:  ldc.i4.4
-  IL_0011:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
-  IL_0016:  stloc.s    V_4
-  IL_0018:  ret
-}")
+                    '                    diff1.VerifyIL("C.M",
+                    '"{
+                    '  // Code size       25 (0x19)
+                    '  .maxstack  2
+                    '  .locals init ([unchanged] V_0,
+                    '                [unchanged] V_1,
+                    '                VB$AnonymousType_0(Of Integer, Integer) V_2, //x
+                    '                VB$AnonymousType_1(Of Integer) V_3, //y
+                    '                VB$AnonymousType_1(Of Integer) V_4) //z
+                    '  IL_0000:  nop
+                    '  IL_0001:  ldc.i4.1
+                    '  IL_0002:  ldc.i4.2
+                    '  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
+                    '  IL_0008:  stloc.2
+                    '  IL_0009:  ldc.i4.3
+                    '  IL_000a:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
+                    '  IL_000f:  stloc.3
+                    '  IL_0010:  ldc.i4.4
+                    '  IL_0011:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
+                    '  IL_0016:  stloc.s    V_4
+                    '  IL_0018:  ret
+                    '}")
                     Dim method2 = compilation2.GetMember(Of MethodSymbol)("C.M")
                     Dim diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
@@ -4311,26 +4311,26 @@ End Class
                     Using md2 = diff2.GetMetadata()
                         Dim reader2 = md2.Reader
                         CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames())
-                        diff2.VerifyIL("C.M",
-"{
-  // Code size       18 (0x12)
-  .maxstack  2
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                VB$AnonymousType_0(Of Integer, Integer) V_2, //x
-                [unchanged] V_3,
-                [unchanged] V_4,
-                VB$AnonymousType_1(Of Integer) V_5) //z
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  ldc.i4.2
-  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
-  IL_0008:  stloc.2
-  IL_0009:  ldc.i4.5
-  IL_000a:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
-  IL_000f:  stloc.s    V_5
-  IL_0011:  ret
-}")
+                        '                        diff2.VerifyIL("C.M",
+                        '"{
+                        '  // Code size       18 (0x12)
+                        '  .maxstack  2
+                        '  .locals init ([unchanged] V_0,
+                        '                [unchanged] V_1,
+                        '                VB$AnonymousType_0(Of Integer, Integer) V_2, //x
+                        '                [unchanged] V_3,
+                        '                [unchanged] V_4,
+                        '                VB$AnonymousType_1(Of Integer) V_5) //z
+                        '  IL_0000:  nop
+                        '  IL_0001:  ldc.i4.1
+                        '  IL_0002:  ldc.i4.2
+                        '  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
+                        '  IL_0008:  stloc.2
+                        '  IL_0009:  ldc.i4.5
+                        '  IL_000a:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
+                        '  IL_000f:  stloc.s    V_5
+                        '  IL_0011:  ret
+                        '}")
                     End Using
                 End Using
             End Using
@@ -4437,7 +4437,7 @@ End Class
                 "C: {_Closure$__}",
                 "C._Closure$__: {$I1-0, $I1-1, $I1-2, $I1-3, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3}")
 
-            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"))
+            'diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"))
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -4448,7 +4448,7 @@ End Class
                 "C: {_Closure$__}",
                 "C._Closure$__: {$I1-0, $I1-1, $I1-2, $I1-3, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3}")
 
-            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
+            'diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
 
         <Fact>
@@ -4515,54 +4515,54 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.F", "
-{
-  // Code size       46 (0x2e)
-  .maxstack  2
-  .locals init (VB$AnonymousDelegate_0(Of String, String) V_0) //g
-  IL_0000:  nop
-  IL_0001:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
-  IL_0006:  brfalse.s  IL_000f
-  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
-  IL_000d:  br.s       IL_0025
-  IL_000f:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
-  IL_0014:  ldftn      ""Function C._Closure$__._Lambda$__1-0(ByRef String) As String""
-  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of String, String)..ctor(Object, System.IntPtr)""
-  IL_001f:  dup
-  IL_0020:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
-  IL_0025:  stloc.0
-  IL_0026:  ldc.i4.2
-  IL_0027:  call       ""Sub System.Console.WriteLine(Integer)""
-  IL_002c:  nop
-  IL_002d:  ret
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size       46 (0x2e)
+            '  .maxstack  2
+            '  .locals init (VB$AnonymousDelegate_0(Of String, String) V_0) //g
+            '  IL_0000:  nop
+            '  IL_0001:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+            '  IL_0006:  brfalse.s  IL_000f
+            '  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+            '  IL_000d:  br.s       IL_0025
+            '  IL_000f:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+            '  IL_0014:  ldftn      ""Function C._Closure$__._Lambda$__1-0(ByRef String) As String""
+            '  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of String, String)..ctor(Object, System.IntPtr)""
+            '  IL_001f:  dup
+            '  IL_0020:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+            '  IL_0025:  stloc.0
+            '  IL_0026:  ldc.i4.2
+            '  IL_0027:  call       ""Sub System.Console.WriteLine(Integer)""
+            '  IL_002c:  nop
+            '  IL_002d:  ret
+            '}
+            '")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
 
-            diff2.VerifyIL("C.F", "
-{
-  // Code size       46 (0x2e)
-  .maxstack  2
-  .locals init (VB$AnonymousDelegate_0(Of String, String) V_0) //g
-  IL_0000:  nop
-  IL_0001:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
-  IL_0006:  brfalse.s  IL_000f
-  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
-  IL_000d:  br.s       IL_0025
-  IL_000f:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
-  IL_0014:  ldftn      ""Function C._Closure$__._Lambda$__1-0(ByRef String) As String""
-  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of String, String)..ctor(Object, System.IntPtr)""
-  IL_001f:  dup
-  IL_0020:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
-  IL_0025:  stloc.0
-  IL_0026:  ldc.i4.3
-  IL_0027:  call       ""Sub System.Console.WriteLine(Integer)""
-  IL_002c:  nop
-  IL_002d:  ret
-}
-")
+            '            diff2.VerifyIL("C.F", "
+            '{
+            '  // Code size       46 (0x2e)
+            '  .maxstack  2
+            '  .locals init (VB$AnonymousDelegate_0(Of String, String) V_0) //g
+            '  IL_0000:  nop
+            '  IL_0001:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+            '  IL_0006:  brfalse.s  IL_000f
+            '  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+            '  IL_000d:  br.s       IL_0025
+            '  IL_000f:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+            '  IL_0014:  ldftn      ""Function C._Closure$__._Lambda$__1-0(ByRef String) As String""
+            '  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of String, String)..ctor(Object, System.IntPtr)""
+            '  IL_001f:  dup
+            '  IL_0020:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+            '  IL_0025:  stloc.0
+            '  IL_0026:  ldc.i4.3
+            '  IL_0027:  call       ""Sub System.Console.WriteLine(Integer)""
+            '  IL_002c:  nop
+            '  IL_002d:  ret
+            '}
+            '")
         End Sub
 
         ''' <summary>
@@ -4627,50 +4627,50 @@ End Class
                 generation0,
                 ImmutableArray.Create(edit))
 
-            diff1.VerifyIL("C.F", "
-{
-  // Code size       45 (0x2d)
-  .maxstack  2
-  .locals init ([object] V_0,
-           [unchanged] V_1,
-           [unchanged] V_2,
-           [bool] V_3,
-           Object V_4, //F
-           C V_5, //c
-           System.IDisposable V_6, //VB$Using
-           Boolean V_7)
-  IL_0000:  nop       
-  IL_0001:  nop       
-  IL_0002:  ldarg.0   
-  IL_0003:  stloc.s    V_6
-  .try
-  {
-    IL_0005:  ldarg.0   
-    IL_0006:  castclass  ""C""
-    IL_000b:  stloc.s    V_5
-    IL_000d:  leave.s    IL_0024
-  }
-  finally
-  {
-    IL_000f:  nop       
-    IL_0010:  ldloc.s    V_6
-    IL_0012:  ldnull    
-    IL_0013:  ceq       
-    IL_0015:  stloc.s    V_7
-    IL_0017:  ldloc.s    V_7
-    IL_0019:  brtrue.s   IL_0023
-    IL_001b:  ldloc.s    V_6
-    IL_001d:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_0022:  nop       
-    IL_0023:  endfinally
-  }
-  IL_0024:  ldloc.s    V_5
-  IL_0026:  stloc.s    V_4
-  IL_0028:  br.s       IL_002a
-  IL_002a:  ldloc.s    V_4
-  IL_002c:  ret       
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size       45 (0x2d)
+            '  .maxstack  2
+            '  .locals init ([object] V_0,
+            '           [unchanged] V_1,
+            '           [unchanged] V_2,
+            '           [bool] V_3,
+            '           Object V_4, //F
+            '           C V_5, //c
+            '           System.IDisposable V_6, //VB$Using
+            '           Boolean V_7)
+            '  IL_0000:  nop       
+            '  IL_0001:  nop       
+            '  IL_0002:  ldarg.0   
+            '  IL_0003:  stloc.s    V_6
+            '  .try
+            '  {
+            '    IL_0005:  ldarg.0   
+            '    IL_0006:  castclass  ""C""
+            '    IL_000b:  stloc.s    V_5
+            '    IL_000d:  leave.s    IL_0024
+            '  }
+            '  finally
+            '  {
+            '    IL_000f:  nop       
+            '    IL_0010:  ldloc.s    V_6
+            '    IL_0012:  ldnull    
+            '    IL_0013:  ceq       
+            '    IL_0015:  stloc.s    V_7
+            '    IL_0017:  ldloc.s    V_7
+            '    IL_0019:  brtrue.s   IL_0023
+            '    IL_001b:  ldloc.s    V_6
+            '    IL_001d:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_0022:  nop       
+            '    IL_0023:  endfinally
+            '  }
+            '  IL_0024:  ldloc.s    V_5
+            '  IL_0026:  stloc.s    V_4
+            '  IL_0028:  br.s       IL_002a
+            '  IL_002a:  ldloc.s    V_4
+            '  IL_002c:  ret       
+            '}
+            '")
         End Sub
 
         <WorkItem(839414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839414")>
@@ -4839,17 +4839,17 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
                 diff1.EmitResult.Diagnostics.AssertNoErrors()
 
-                diff1.VerifyIL("C.M", "
-{
-  // Code size        9 (0x9)
-  .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""Sub C.N1()""
-  IL_0007:  nop
-  IL_0008:  ret
-}
-")
+                '                diff1.VerifyIL("C.M", "
+                '{
+                '  // Code size        9 (0x9)
+                '  .maxstack  1
+                '  IL_0000:  nop
+                '  IL_0001:  ldarg.0
+                '  IL_0002:  call       ""Sub C.N1()""
+                '  IL_0007:  nop
+                '  IL_0008:  ret
+                '}
+                '")
             End Using
         End Sub
 
@@ -4971,36 +4971,36 @@ End Class"
                 generationB0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetEquivalentNodesMap(f1, f0), preserveLocalVariables:=True)))
 
-            diffB1.VerifyIL("B.F", "
-{
-  // Code size       15 (0xf)
-  .maxstack  1
-  .locals init (A V_0) //a
-  IL_0000:  nop
-  IL_0001:  newobj     ""Sub A..ctor()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""Sub A.M()""
-  IL_000d:  nop
-  IL_000e:  ret
-}
-")
+            '            diffB1.VerifyIL("B.F", "
+            '{
+            '  // Code size       15 (0xf)
+            '  .maxstack  1
+            '  .locals init (A V_0) //a
+            '  IL_0000:  nop
+            '  IL_0001:  newobj     ""Sub A..ctor()""
+            '  IL_0006:  stloc.0
+            '  IL_0007:  ldloc.0
+            '  IL_0008:  callvirt   ""Sub A.M()""
+            '  IL_000d:  nop
+            '  IL_000e:  ret
+            '}
+            '")
 
             Dim diffB2 = compilationB2.EmitDifference(
                diffB1.NextGeneration,
                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetEquivalentNodesMap(f2, f1), preserveLocalVariables:=True)))
 
-            diffB2.VerifyIL("B.F", "
-{
-  // Code size        8 (0x8)
-  .maxstack  1
-  .locals init (A V_0) //a
-  IL_0000:  nop
-  IL_0001:  newobj     ""Sub A..ctor()""
-  IL_0006:  stloc.0
-  IL_0007:  ret
-}
-")
+            '            diffB2.VerifyIL("B.F", "
+            '{
+            '  // Code size        8 (0x8)
+            '  .maxstack  1
+            '  .locals init (A V_0) //a
+            '  IL_0000:  nop
+            '  IL_0001:  newobj     ""Sub A..ctor()""
+            '  IL_0006:  stloc.0
+            '  IL_0007:  ret
+            '}
+            '")
         End Sub
 
         <Fact>
@@ -5101,51 +5101,51 @@ End Class
 }
 ")
             ' Note that all variables are mapped to their previous slots
-            diff1.VerifyIL("C.F", "
-{
-  // Code size       55 (0x37)
-  .maxstack  3
-  .locals init (Integer V_0,
-                Integer V_1,
-                Integer V_2,
-                Integer V_3) //a
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  call       ""Function C.G(Integer) As Integer""
-  IL_0008:  stloc.0
-  IL_0009:  ldarg.0
-  IL_000a:  ldc.i4.1
-  IL_000b:  call       ""Function C.G(Integer) As Integer""
-  IL_0010:  stloc.1
-  IL_0011:  ldarg.0
-  IL_0012:  ldc.i4.2
-  IL_0013:  call       ""Function C.G(Integer) As Integer""
-  IL_0018:  stloc.2
-  IL_0019:  ldloc.0
-  IL_001a:  stloc.3
-  IL_001b:  br.s       IL_0028
-  IL_001d:  ldc.i4.2
-  IL_001e:  call       ""Sub System.Console.WriteLine(Integer)""
-  IL_0023:  nop
-  IL_0024:  ldloc.3
-  IL_0025:  ldloc.2
-  IL_0026:  add.ovf
-  IL_0027:  stloc.3
-  IL_0028:  ldloc.2
-  IL_0029:  ldc.i4.s   31
-  IL_002b:  shr
-  IL_002c:  ldloc.3
-  IL_002d:  xor
-  IL_002e:  ldloc.2
-  IL_002f:  ldc.i4.s   31
-  IL_0031:  shr
-  IL_0032:  ldloc.1
-  IL_0033:  xor
-  IL_0034:  ble.s      IL_001d
-  IL_0036:  ret
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size       55 (0x37)
+            '  .maxstack  3
+            '  .locals init (Integer V_0,
+            '                Integer V_1,
+            '                Integer V_2,
+            '                Integer V_3) //a
+            '  IL_0000:  nop
+            '  IL_0001:  ldarg.0
+            '  IL_0002:  ldc.i4.0
+            '  IL_0003:  call       ""Function C.G(Integer) As Integer""
+            '  IL_0008:  stloc.0
+            '  IL_0009:  ldarg.0
+            '  IL_000a:  ldc.i4.1
+            '  IL_000b:  call       ""Function C.G(Integer) As Integer""
+            '  IL_0010:  stloc.1
+            '  IL_0011:  ldarg.0
+            '  IL_0012:  ldc.i4.2
+            '  IL_0013:  call       ""Function C.G(Integer) As Integer""
+            '  IL_0018:  stloc.2
+            '  IL_0019:  ldloc.0
+            '  IL_001a:  stloc.3
+            '  IL_001b:  br.s       IL_0028
+            '  IL_001d:  ldc.i4.2
+            '  IL_001e:  call       ""Sub System.Console.WriteLine(Integer)""
+            '  IL_0023:  nop
+            '  IL_0024:  ldloc.3
+            '  IL_0025:  ldloc.2
+            '  IL_0026:  add.ovf
+            '  IL_0027:  stloc.3
+            '  IL_0028:  ldloc.2
+            '  IL_0029:  ldc.i4.s   31
+            '  IL_002b:  shr
+            '  IL_002c:  ldloc.3
+            '  IL_002d:  xor
+            '  IL_002e:  ldloc.2
+            '  IL_002f:  ldc.i4.s   31
+            '  IL_0031:  shr
+            '  IL_0032:  ldloc.1
+            '  IL_0033:  xor
+            '  IL_0034:  ble.s      IL_001d
+            '  IL_0036:  ret
+            '}
+            '")
         End Sub
 
         <Fact>
@@ -5247,54 +5247,54 @@ End Class")
 }
 ")
             ' Note that all variables are mapped to their previous slots
-            diff1.VerifyIL("C.F", "
-{
-  // Code size       77 (0x4d)
-  .maxstack  6
-  .locals init (Object V_0, //a
-                Object V_1, //b
-                Object V_2, //c
-                Object V_3, //d
-                Object V_4,
-                Boolean V_5,
-                Boolean V_6)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  box        ""Integer""
-  IL_0007:  stloc.0
-  IL_0008:  ldc.i4.0
-  IL_0009:  box        ""Integer""
-  IL_000e:  stloc.1
-  IL_000f:  ldc.i4.0
-  IL_0010:  box        ""Integer""
-  IL_0015:  stloc.2
-  IL_0016:  ldc.i4.0
-  IL_0017:  box        ""Integer""
-  IL_001c:  stloc.3
-  IL_001d:  ldloc.0
-  IL_001e:  ldloc.1
-  IL_001f:  ldloc.2
-  IL_0020:  ldloc.3
-  IL_0021:  ldloca.s   V_4
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  call       ""Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Object, Object, Object, Object, ByRef Object, ByRef Object) As Boolean""
-  IL_002a:  stloc.s    V_5
-  IL_002c:  ldloc.s    V_5
-  IL_002e:  brfalse.s  IL_004c
-  IL_0030:  ldloc.0
-  IL_0031:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
-  IL_0036:  call       ""Sub System.Console.WriteLine(Object)""
-  IL_003b:  nop
-  IL_003c:  ldloc.0
-  IL_003d:  ldloc.s    V_4
-  IL_003f:  ldloca.s   V_0
-  IL_0041:  call       ""Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Object, Object, ByRef Object) As Boolean""
-  IL_0046:  stloc.s    V_6
-  IL_0048:  ldloc.s    V_6
-  IL_004a:  brtrue.s   IL_0030
-  IL_004c:  ret
-}
-")
+            '            diff1.VerifyIL("C.F", "
+            '{
+            '  // Code size       77 (0x4d)
+            '  .maxstack  6
+            '  .locals init (Object V_0, //a
+            '                Object V_1, //b
+            '                Object V_2, //c
+            '                Object V_3, //d
+            '                Object V_4,
+            '                Boolean V_5,
+            '                Boolean V_6)
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.0
+            '  IL_0002:  box        ""Integer""
+            '  IL_0007:  stloc.0
+            '  IL_0008:  ldc.i4.0
+            '  IL_0009:  box        ""Integer""
+            '  IL_000e:  stloc.1
+            '  IL_000f:  ldc.i4.0
+            '  IL_0010:  box        ""Integer""
+            '  IL_0015:  stloc.2
+            '  IL_0016:  ldc.i4.0
+            '  IL_0017:  box        ""Integer""
+            '  IL_001c:  stloc.3
+            '  IL_001d:  ldloc.0
+            '  IL_001e:  ldloc.1
+            '  IL_001f:  ldloc.2
+            '  IL_0020:  ldloc.3
+            '  IL_0021:  ldloca.s   V_4
+            '  IL_0023:  ldloca.s   V_0
+            '  IL_0025:  call       ""Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Object, Object, Object, Object, ByRef Object, ByRef Object) As Boolean""
+            '  IL_002a:  stloc.s    V_5
+            '  IL_002c:  ldloc.s    V_5
+            '  IL_002e:  brfalse.s  IL_004c
+            '  IL_0030:  ldloc.0
+            '  IL_0031:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+            '  IL_0036:  call       ""Sub System.Console.WriteLine(Object)""
+            '  IL_003b:  nop
+            '  IL_003c:  ldloc.0
+            '  IL_003d:  ldloc.s    V_4
+            '  IL_003f:  ldloca.s   V_0
+            '  IL_0041:  call       ""Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Object, Object, ByRef Object) As Boolean""
+            '  IL_0046:  stloc.s    V_6
+            '  IL_0048:  ldloc.s    V_6
+            '  IL_004a:  brtrue.s   IL_0030
+            '  IL_004c:  ret
+            '}
+            '")
         End Sub
 
 

@@ -15,7 +15,7 @@ using System.Threading;
 using System.Xml;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 
 namespace Roslyn.Test.Utilities
 {
@@ -256,49 +256,49 @@ namespace Roslyn.Test.Utilities
             });
         }
 
-        public static unsafe string GetMethodIL(this ImmutableArray<byte> ilArray)
-        {
-            var result = new StringBuilder();
-            fixed (byte* ilPtr = ilArray.ToArray())
-            {
-                int offset = 0;
-                while (true)
-                {
-                    // skip padding:
-                    while (offset < ilArray.Length && ilArray[offset] == 0)
-                    {
-                        offset++;
-                    }
+        //public static unsafe string GetMethodIL(this ImmutableArray<byte> ilArray)
+        //{
+        //    var result = new StringBuilder();
+        //    fixed (byte* ilPtr = ilArray.ToArray())
+        //    {
+        //        int offset = 0;
+        //        while (true)
+        //        {
+        //            // skip padding:
+        //            while (offset < ilArray.Length && ilArray[offset] == 0)
+        //            {
+        //                offset++;
+        //            }
 
-                    if (offset == ilArray.Length)
-                    {
-                        break;
-                    }
+        //            if (offset == ilArray.Length)
+        //            {
+        //                break;
+        //            }
 
-                    var reader = new BlobReader(ilPtr + offset, ilArray.Length - offset);
-                    var methodIL = MethodBodyBlock.Create(reader);
+        //            var reader = new BlobReader(ilPtr + offset, ilArray.Length - offset);
+        //            var methodIL = MethodBodyBlock.Create(reader);
 
-                    if (methodIL == null)
-                    {
-                        result.AppendFormat("<invalid byte 0x{0:X2} at offset {1}>", ilArray[offset], offset);
-                        offset++;
-                    }
-                    else
-                    {
-                        ILVisualizer.Default.DumpMethod(
-                            result,
-                            methodIL.MaxStack,
-                            methodIL.GetILContent(),
-                            ImmutableArray.Create<ILVisualizer.LocalInfo>(),
-                            ImmutableArray.Create<ILVisualizer.HandlerSpan>());
+        //            if (methodIL == null)
+        //            {
+        //                result.AppendFormat("<invalid byte 0x{0:X2} at offset {1}>", ilArray[offset], offset);
+        //                offset++;
+        //            }
+        //            else
+        //            {
+        //                ILVisualizer.Default.DumpMethod(
+        //                    result,
+        //                    methodIL.MaxStack,
+        //                    methodIL.GetILContent(),
+        //                    ImmutableArray.Create<ILVisualizer.LocalInfo>(),
+        //                    ImmutableArray.Create<ILVisualizer.HandlerSpan>());
 
-                        offset += methodIL.Size;
-                    }
-                }
-            }
+        //                offset += methodIL.Size;
+        //            }
+        //        }
+        //    }
 
-            return result.ToString();
-        }
+        //    return result.ToString();
+        //}
 
         public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)
         {

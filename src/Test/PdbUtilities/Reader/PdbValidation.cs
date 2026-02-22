@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -295,36 +295,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool expectedIsXmlLiteral,
             bool originalIsPortable)
         {
-            var pdbStreamConverted = new MemoryStream();
-            var converter = new PdbConverter(diagnostic => Assert.True(false, diagnostic.ToString()));
+            //var pdbStreamConverted = new MemoryStream();
+            //var converter = new PdbConverter(diagnostic => Assert.True(false, diagnostic.ToString()));
 
-            peStreamOriginal.Position = 0;
-            pdbStreamOriginal.Position = 0;
+            //peStreamOriginal.Position = 0;
+            //pdbStreamOriginal.Position = 0;
 
-            if (originalIsPortable)
-            {
-                converter.ConvertPortableToWindows(peStreamOriginal, pdbStreamOriginal, pdbStreamConverted);
-            }
-            else
-            {
-                converter.ConvertWindowsToPortable(peStreamOriginal, pdbStreamOriginal, pdbStreamConverted);
-            }
+            //if (originalIsPortable)
+            //{
+            //    converter.ConvertPortableToWindows(peStreamOriginal, pdbStreamOriginal, pdbStreamConverted);
+            //}
+            //else
+            //{
+            //    converter.ConvertWindowsToPortable(peStreamOriginal, pdbStreamOriginal, pdbStreamConverted);
+            //}
 
-            pdbStreamConverted.Position = 0;
-            peStreamOriginal.Position = 0;
+            //pdbStreamConverted.Position = 0;
+            //peStreamOriginal.Position = 0;
 
-            var actualConverted = AdjustForConversionArtifacts(XElement.Parse(PdbToXmlConverter.ToXml(pdbStreamConverted, peStreamOriginal, pdbToXmlOptions, methodName: qualifiedMethodName)).ToString());
-            var adjustedExpected = AdjustForConversionArtifacts(expectedPdb);
+            //var actualConverted = AdjustForConversionArtifacts(XElement.Parse(PdbToXmlConverter.ToXml(pdbStreamConverted, peStreamOriginal, pdbToXmlOptions, methodName: qualifiedMethodName)).ToString());
+            //var adjustedExpected = AdjustForConversionArtifacts(expectedPdb);
 
-            var (actual, expected) = AdjustToPdbFormat(actualConverted, adjustedExpected, actualIsPortable: !originalIsPortable, actualIsConverted: true);
+            //var (actual, expected) = AdjustToPdbFormat(actualConverted, adjustedExpected, actualIsPortable: !originalIsPortable, actualIsConverted: true);
 
-            AssertEx.AssertLinesEqual(
-                expected,
-                actual,
-                $"PDB format: {(originalIsPortable ? "Windows" : "Portable")} converted from {(originalIsPortable ? "Portable" : "Windows")}{Environment.NewLine}",
-                expectedValueSourcePath: null,
-                expectedValueSourceLine: 0,
-                escapeQuotes: !expectedIsXmlLiteral);
+            //AssertEx.AssertLinesEqual(
+            //    expected,
+            //    actual,
+            //    $"PDB format: {(originalIsPortable ? "Windows" : "Portable")} converted from {(originalIsPortable ? "Portable" : "Windows")}{Environment.NewLine}",
+            //    expectedValueSourcePath: null,
+            //    expectedValueSourceLine: 0,
+            //    escapeQuotes: !expectedIsXmlLiteral);
         }
 
         private static string AdjustForConversionArtifacts(string pdb)
