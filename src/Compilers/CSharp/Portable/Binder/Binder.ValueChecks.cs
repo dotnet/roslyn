@@ -4822,7 +4822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var scope = receiverScope;
                     foreach (var element in expr.Elements)
                     {
-                        if (tryGetValEscapeOfElement(expr, receiverScope, element, out var elementSafeContext))
+                        if (tryGetValEscapeOfElement(element, out var elementSafeContext))
                         {
                             scope = scope.Intersect(elementSafeContext);
                         }
@@ -4833,7 +4833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
 
-            bool tryGetValEscapeOfElement(BoundCollectionExpression expr, SafeContext receiverScope, BoundNode element, out SafeContext safeContext)
+            bool tryGetValEscapeOfElement(BoundNode element, out SafeContext safeContext)
             {
                 if (element is BoundCollectionElementInitializer colElement)
                 {
