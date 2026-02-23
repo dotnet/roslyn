@@ -18,7 +18,7 @@ A reference for common terms, acronyms, and components in the C# language server
 | Term | Definition |
 |------|------------|
 | **Roslyn Language Server (RLS)** | The standalone Roslyn-powered language server executable (`roslyn-language-server`). Built from `src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/`. Provides C# (and VB) language features over LSP. Used both by the C# extension and as a standalone tool. Also referred to as "Roslyn LS." |
-| **OmniSharp (O#)** | The legacy open-source C# language server that predated the Roslyn Language Server. Can be run as a standalone server process (not limited to VS Code) and supports both the standard LSP protocol and its own custom OmniSharp protocol. Previously powered the C# VS Code extension. Repo: [OmniSharp/omnisharp-roslyn](https://github.com/OmniSharp/omnisharp-roslyn). |
+| **OmniSharp (O#)** | The community run open-source C# language server that predated the Roslyn Language Server. Can be run as a standalone server process (not limited to VS Code) and supports both the standard LSP protocol and its own custom OmniSharp protocol. Previously powered the C# VS Code extension. Repo: [OmniSharp/omnisharp-roslyn](https://github.com/OmniSharp/omnisharp-roslyn). |
 
 ## Roslyn LSP Architecture
 
