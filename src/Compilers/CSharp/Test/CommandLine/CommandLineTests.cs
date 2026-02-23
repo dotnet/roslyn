@@ -14821,7 +14821,7 @@ class C
 """);
 
             var cmd = CreateCSharpCompiler(null, dir.Path,
-                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                new[] { "/t:library", "/preferreduilang:en", "/nologo", "/warnaserror+", src.Path },
                 generators: new[] { new FailsExecuteGenerator() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
@@ -14866,7 +14866,7 @@ class C
 """);
 
             var cmd = CreateCSharpCompiler(null, dir.Path,
-                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                new[] { "/t:library", "/preferreduilang:en", "/nologo", "/warnaserror+", src.Path },
                 generators: new[] { new FailsInitializeGenerator() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);

@@ -17162,7 +17162,7 @@ class C
                     expectedErrors:
                     [
                         // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
-                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Constructor, "System.Exception..ctor(string)").WithLocation(1, 1)
                     ])
                 .Verify();
         }
@@ -17213,7 +17213,7 @@ class C
                     expectedErrors:
                     [
                         // error CS7043: Cannot emit update; method 'void System.Action<T>.Invoke(T arg)' is missing.
-                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("method", "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Method, "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
                     ])
                 .Verify();
         }
