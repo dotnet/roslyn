@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodInfo = MethodInfo.Create(colElement.AddMethod),
                     Parameters = colElement.AddMethod.Parameters,
+                    ReceiverIsSubjectToCloning = ThreeState.False,
                     Receiver = colElement.ImplicitReceiverOpt,
                     ArgsOpt = colElement.Arguments,
                     ArgsToParamsOpt = colElement.ArgsToParamsOpt,
@@ -4407,6 +4408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.ValuePlaceholder:
                 case BoundKind.CollectionBuilderElementsPlaceholder:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
@@ -4726,7 +4728,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _localScopeDepth;
 
                 case BoundKind.ImplicitReceiver:
-                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return _localScopeDepth;
@@ -4815,22 +4816,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    var scope = expr.CollectionCreation is { } collectionCreation
+                    var receiverScope = expr.CollectionCreation is { } collectionCreation
                         ? GetValEscape(collectionCreation)
                         : _localScopeDepth;
+                    var scope = receiverScope;
                     foreach (var element in expr.Elements)
                     {
-                        var elementExpr = element is BoundCollectionExpressionSpreadElement spread
-                            ? spread.Expression
-                            : (BoundExpression)element;
-                        scope = scope.Intersect(elementExpr is BoundCollectionElementInitializer colElement
-                            ? GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement))
-                            : GetValEscape(elementExpr));
+                        if (tryGetValEscapeOfElement(expr, receiverScope, element, out var elementSafeContext))
+                        {
+                            scope = scope.Intersect(elementSafeContext);
+                        }
                     }
                     return scope;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
+            }
+
+            bool tryGetValEscapeOfElement(BoundCollectionExpression expr, SafeContext receiverScope, BoundNode element, out SafeContext safeContext)
+            {
+                if (element is BoundCollectionElementInitializer colElement)
+                {
+                    safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement));
+                    return true;
+                }
+
+                if (element is BoundCollectionExpressionSpreadElement { IteratorBody: BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer } } spreadElement)
+                {
+                    safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
+                    return true;
+                }
+
+                if (element is BoundExpression elementExpression)
+                {
+                    safeContext = GetValEscape(elementExpression);
+                    return true;
+                }
+
+                Debug.Assert(element.HasErrors);
+                safeContext = default;
+                return false;
             }
         }
 
@@ -5066,6 +5091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ValuePlaceholder:
                 case BoundKind.CollectionBuilderElementsPlaceholder:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);

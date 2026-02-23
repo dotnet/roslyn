@@ -1310,7 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
-            bool visitElements = true;
+            SafeContext receiverScope;
 
             if (node.CollectionCreation is { } collectionCreation)
             {
@@ -1329,61 +1329,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                     placeholders.Add((spanPlaceholder, SafeContextAndLocation.Create(safeContext)));
 
                     using var _ = new PlaceholderRegion(this, placeholders);
-                    Visit(transformCollectionCreation(node, collectionCreation, out visitElements));
+                    Visit(collectionCreation);
                 }
                 else
                 {
-                    Visit(transformCollectionCreation(node, collectionCreation, out visitElements));
+                    Visit(collectionCreation);
                 }
+
+                receiverScope = GetValEscape(collectionCreation);
+            }
+            else
+            {
+                receiverScope = _localScopeDepth;
             }
 
-            if (visitElements)
+            VisitList(node.Elements);
+
+            // Spread elements are effectively foreach - we need to make sure the iteration variable is not captured by an Add(ref) method into the receiver.
+            foreach (var element in node.Elements)
             {
-                VisitList(node.Elements);
+                if (element is BoundCollectionExpressionSpreadElement { HasErrors: false } spreadElement)
+                {
+                    var spreadPlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+
+                    if (node.Placeholder != null)
+                    {
+                        spreadPlaceholders.Add((node.Placeholder, SafeContextAndLocation.Create(receiverScope)));
+                    }
+
+                    if (spreadElement.ElementPlaceholder != null)
+                    {
+                        spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
+                    }
+
+                    using var _2 = new PlaceholderRegion(this, spreadPlaceholders);
+
+                    if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
+                    {
+                        var methodInvocationInfo = MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer);
+                        CheckInvocationArgMixing(
+                            element.Syntax,
+                            in methodInvocationInfo,
+                            spreadElementInitializer.AddMethod,
+                            _diagnostics);
+                    }
+                    else
+                    {
+                        Debug.Fail($"Unexpected spread iterator body {spreadElement.IteratorBody}");
+                    }
+                }
             }
 
             return null;
-
-            // Ensure a collection expression like `[with(args), elements]`
-            // is analyzed like the equivalent `new(args) { elements }`.
-            BoundExpression transformCollectionCreation(BoundCollectionExpression node, BoundExpression expression, out bool visitElements)
-            {
-                if (!node.Elements.IsDefaultOrEmpty &&
-                    node.Placeholder is not null &&
-                    expression is BoundObjectCreationExpression objectCreation)
-                {
-                    Debug.Assert(objectCreation.InitializerExpressionOpt is null);
-
-                    visitElements = false;
-
-#if DEBUG
-                    TrackVisit(objectCreation);
-#endif
-
-                    return objectCreation.Update(
-                        objectCreation.Constructor,
-                        objectCreation.Arguments,
-                        objectCreation.ArgumentNamesOpt,
-                        objectCreation.ArgumentRefKindsOpt,
-                        objectCreation.Expanded,
-                        objectCreation.ArgsToParamsOpt,
-                        objectCreation.DefaultArguments,
-                        objectCreation.ConstantValueOpt,
-                        initializerExpressionOpt:
-                            new BoundCollectionInitializerExpression(
-                                expression.Syntax,
-                                node.Placeholder,
-                                node.Elements.SelectAsArray(e => e is BoundCollectionExpressionSpreadElement spread ? spread.Expression : (BoundExpression)e),
-                                node.Type)
-                            { WasCompilerGenerated = true },
-                        objectCreation.Type)
-                        .MakeCompilerGenerated();
-                }
-
-                visitElements = true;
-
-                return expression;
-            }
         }
 
         private static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)

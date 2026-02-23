@@ -4722,6 +4722,68 @@ class X : List<int>
                 ]);
         }
 
+        [Theory]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("")]
+        public void CollectionExpression_AddMethod_Spread(string attr)
+        {
+            var source = $$"""
+                using System.Collections;
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        int[] arr = [2, 3];
+                        return [local, .. arr];
+                    }
+                    R M2()
+                    {
+                        int[] arr = [2, 3];
+                        return [.. arr];
+                    }
+                    void M3()
+                    {
+                        int[] arr = [2, 3];
+                        R r = [.. arr];
+                    }
+                }
+                ref struct R : IEnumerable
+                {
+                    public void Add({{attr}} in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                attr == "" ? [] :
+                [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local, .. arr]").WithArguments("R").WithLocation(8, 16),
+                    // (8,24): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 24),
+                    // (8,24): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(8, 24),
+                    // (13,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[.. arr]").WithArguments("R").WithLocation(13, 16),
+                    // (13,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(13, 17),
+                    // (13,17): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(13, 17),
+                    // (18,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         R r = [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(18, 16),
+                    // (18,16): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         R r = [.. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(18, 16),
+                ]);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Builder()
         {
@@ -6024,6 +6086,41 @@ class X : List<int>
                     // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
                     //         return new R(local);
                     Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local)").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With1_A_Spread(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        int[] arr = [2, 3];
+                        return [with(local), .. arr];
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), .. arr]").WithArguments("R").WithLocation(8, 16),
                 ]);
         }
 
