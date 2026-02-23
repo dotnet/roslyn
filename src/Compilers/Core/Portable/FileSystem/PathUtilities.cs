@@ -737,7 +737,7 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Uppercases the drive letter of a drive-rooted absolute path on Windows.
-        /// Non-drive-rooted paths (UNC paths, relative paths, glob patterns like <c>[*.cs]</c>) pass through unchanged.
+        /// Non-drive-rooted paths (UNC paths, relative paths, glob patterns like <c>*.cs</c>) pass through unchanged.
         /// On Unix, returns the path unchanged.
         /// </summary>
         /// <remarks>

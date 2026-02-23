@@ -272,9 +272,9 @@ namespace Microsoft.CodeAnalysis
             void addNewSection()
             {
                 // No-op for glob patterns like [*.cs] since they aren't drive-rooted absolute paths.
-                // Note: unlike NormalizedDirectory, section names are NOT run through the full
-                // normalization pipeline (CollapseWithForwardSlash / ExpandAbsolutePathWithRelativeParts)
-                // used for source paths. Only drive letter normalization is applied here on Windows.
+                // Note: unlike NormalizedDirectory (see constructor) or source paths (see
+                // AnalyzerConfigSet.GetOptionsForSourcePath), section names only get drive letter
+                // uppercasing.
                 var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
 
                 // Close out the previous section
