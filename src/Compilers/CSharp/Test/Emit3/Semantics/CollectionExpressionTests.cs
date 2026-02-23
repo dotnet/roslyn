@@ -46994,7 +46994,10 @@ class Program
             // The spec implies the safe-context of 'spans' should be 'caller-context'. (That would be bad.)
             // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
             var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
+                //         return spans;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
