@@ -1357,7 +1357,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in node.Elements)
             {
-                if (element is BoundExpression elementExpression)
+                if (element is BoundCollectionElementInitializer colElement)
+                {
+                    elementsScope = elementsScope.Intersect(GetInvocationEscapeToReceiver(
+                        MethodInvocationInfo.FromCollectionElementInitializer(colElement)));
+                }
+                else if (element is BoundExpression elementExpression)
                 {
                     elementsScope = elementsScope.Intersect(GetValEscape(elementExpression));
                 }
