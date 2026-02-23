@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 [ExportLanguageService(typeof(IDecompilationService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpDecompilationService : IDecompilationService
 {
+    // ICsharpCode.Decompiler disables generation of the AssemblyFileVersion, and sets the AssemblyVersion, meaning that
+    // typeof(CSharpDecompiler).Assembly.GetName().Version and FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location) return the same version.
     private static readonly Version s_decompilerVersion = typeof(CSharpDecompiler).Assembly.GetName().Version ?? throw new ArgumentNullException();
 
     [ImportingConstructor]
