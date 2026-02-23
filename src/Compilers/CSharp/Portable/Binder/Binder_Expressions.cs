@@ -11292,7 +11292,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsValidImplicitIndexIndexer(PropertySymbol property)
         {
             return !property.IsStatic &&
-                property.GetOwnOrInheritedGetMethod()?.OriginalDefinition is MethodSymbol &&
                 property.OriginalDefinition is { ParameterCount: 1 } original &&
                 original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None };
         }

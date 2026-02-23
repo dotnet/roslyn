@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 #nullable disable
@@ -2704,9 +2704,9 @@ class C { }
 
         CreateCompilation(src, targetFramework: TargetFramework.Net100)
             .VerifyEmitDiagnostics(
-                // (2,22): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+                // (2,22): error CS0154: The property or indexer 'E.extension(C).this[int]' cannot be used in this context because it lacks the get accessor
                 // System.Console.Write(c[^1]);
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 22));
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c[^1]").WithArguments("E.extension(C).this[int]").WithLocation(2, 22));
     }
 
     [Fact]
@@ -3797,6 +3797,80 @@ static class E
             // (9,41): error CS0518: Predefined type 'System.Int32' is not defined or imported
             //         public int this[int i] { get => 42; }
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "42").WithArguments("System.Int32").WithLocation(9, 41));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_49()
+    {
+        // write to instance set-only this[int] with Length
+        var src = """
+            var c = new C();
+            c[^1] = 42;
+
+            class C
+            {
+                public int Length => 3;
+                public int this[int i]
+                {
+                    set { System.Console.Write($"set({i}, {value})"); }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("set(2, 42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_50()
+    {
+        // read from instance set-only this[int] with Length
+        var src = """
+            var c = new C();
+            _ = c[^1];
+
+            class C
+            {
+                public int Length => 3;
+                public int this[int i]
+                {
+                    set { }
+                }
+            }
+            """;
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (2,5): error CS0154: The property or indexer 'C.this[int]' cannot be used in this context because it lacks a get accessor
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c[^1]").WithArguments("C.this[int]").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_51()
+    {
+        // read from extension ref-returning this[int] with extension Length
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+c[^2] = 42;
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 3;
+        public ref int this[int i] { get { System.Console.Write($" get({i}) "); return ref c.Data[i]; } }
+    }
+}
+
+class C
+{
+    public int[] Data = { 10, 20, 30 };
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 30 get(1)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -15473,5 +15547,4 @@ Block[B4] - Exit
     Statements (0)
 """, graph, symbol);
     }
-
 }
