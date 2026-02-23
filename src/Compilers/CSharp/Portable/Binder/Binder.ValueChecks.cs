@@ -4823,7 +4823,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var elementExpr = element is BoundCollectionExpressionSpreadElement spread
                             ? spread.Expression
                             : (BoundExpression)element;
-                        scope = scope.Intersect(GetValEscape(elementExpr));
+                        scope = scope.Intersect(elementExpr is BoundCollectionElementInitializer colElement
+                            ? GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement))
+                            : GetValEscape(expr));
                     }
                     return scope;
 

@@ -4690,10 +4690,15 @@ class X : List<int>
                 using System.Collections;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         var local = 1;
                         return [local];
+                    }
+                    R M2()
+                    {
+                        var local = 1;
+                        return new() { local };
                     }
                 }
                 ref struct R : IEnumerable
@@ -4702,7 +4707,19 @@ class X : List<int>
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                attr == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(7, 16),
+                    // (12,24): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new() { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 24),
+                    // (12,24): error CS8347: Cannot use a result of 'R.Add(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return new() { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "local").WithArguments("R.Add(in int)", "x").WithLocation(12, 24),
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
