@@ -984,49 +984,57 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.InitializerExpressionOpt is { })
             {
-                // Object initializers are different than a normal constructor in that the 
-                // scope of the receiver is determined by evaluating the inputs to the constructor
-                // *and* all of the initializers. Another way of thinking about this is that
-                // every argument in an initializer that can escape to the receiver is 
-                // effectively an argument to the constructor. That means we need to do
-                // a second mixing pass here where we consider the receiver escaping 
-                // back into the ref parameters of the constructor.
-                //
-                // At the moment this is only a hypothetical problem. Because the language 
-                // doesn't support ref field of ref struct mixing like this could not actually
-                // happen in practice. At the same time we want to error on this now so that 
-                // in a future when we do have ref field to ref struct this is not a breaking 
-                // change. Customers can respond to failures like this by putting scoped on
-                // such parameters in the constructor.
-                var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
                 var escapeFrom = GetValEscape(node.InitializerExpressionOpt);
-                GetEscapeValues(
-                    in methodInvocationInfo,
-                    ignoreArglistRefKinds: false,
-                    mixableArguments: null,
-                    escapeValues);
+                VisitObjectCreationWithInitializer(node, in methodInvocationInfo, escapeFrom);
+            }
+        }
 
-                foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+        private void VisitObjectCreationWithInitializer(BoundObjectCreationExpressionBase node, in MethodInvocationInfo methodInvocationInfo, SafeContext initializerEscape)
+        {
+            Debug.Assert(node.Constructor is not null);
+
+            // Object initializers are different than a normal constructor in that the 
+            // scope of the receiver is determined by evaluating the inputs to the constructor
+            // *and* all of the initializers. Another way of thinking about this is that
+            // every argument in an initializer that can escape to the receiver is 
+            // effectively an argument to the constructor. That means we need to do
+            // a second mixing pass here where we consider the receiver escaping 
+            // back into the ref parameters of the constructor.
+            //
+            // At the moment this is only a hypothetical problem. Because the language 
+            // doesn't support ref field of ref struct mixing like this could not actually
+            // happen in practice. At the same time we want to error on this now so that 
+            // in a future when we do have ref field to ref struct this is not a breaking 
+            // change. Customers can respond to failures like this by putting scoped on
+            // such parameters in the constructor.
+            var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
+            var escapeFrom = initializerEscape;
+            GetEscapeValues(
+                in methodInvocationInfo,
+                ignoreArglistRefKinds: false,
+                mixableArguments: null,
+                escapeValues);
+
+            foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+            {
+                if (!isRefEscape)
                 {
-                    if (!isRefEscape)
-                    {
-                        continue;
-                    }
-
-                    if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
-                        !parameter.RefKind.IsWritableReference())
-                    {
-                        continue;
-                    }
-
-                    if (!escapeFrom.IsConvertibleTo(GetValEscape(argument)))
-                    {
-                        Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, node.Constructor, parameter.Name);
-                    }
+                    continue;
                 }
 
-                escapeValues.Free();
+                if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
+                    !parameter.RefKind.IsWritableReference())
+                {
+                    continue;
+                }
+
+                if (!escapeFrom.IsConvertibleTo(GetValEscape(argument)))
+                {
+                    Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, node.Constructor, parameter.Name);
+                }
             }
+
+            escapeValues.Free();
         }
 
         public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
@@ -1345,39 +1353,60 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitList(node.Elements);
 
-            // Spread elements are effectively foreach - we need to make sure the iteration variable is not captured by an Add(ref) method into the receiver.
+            var elementsScope = SafeContext.CallingMethod;
+
             foreach (var element in node.Elements)
             {
-                if (element is BoundCollectionExpressionSpreadElement { HasErrors: false } spreadElement)
+                if (element is BoundExpression elementExpression)
                 {
-                    var spreadPlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+                    elementsScope = elementsScope.Intersect(GetValEscape(elementExpression));
+                }
+                else if (element is BoundCollectionExpressionSpreadElement spreadElement)
+                {
+                    elementsScope = elementsScope.Intersect(GetValEscape(spreadElement.Expression));
 
-                    if (node.Placeholder != null)
+                    // Spread elements are effectively foreach - we need to make sure the iteration variable is not captured by an Add(ref) method into the receiver.
+                    if (!spreadElement.HasErrors)
                     {
-                        spreadPlaceholders.Add((node.Placeholder, SafeContextAndLocation.Create(receiverScope)));
-                    }
+                        var spreadPlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
 
-                    if (spreadElement.ElementPlaceholder != null)
-                    {
-                        spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
-                    }
+                        if (node.Placeholder != null)
+                        {
+                            spreadPlaceholders.Add((node.Placeholder, SafeContextAndLocation.Create(receiverScope)));
+                        }
 
-                    using var _2 = new PlaceholderRegion(this, spreadPlaceholders);
+                        if (spreadElement.ElementPlaceholder != null)
+                        {
+                            spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
+                        }
 
-                    if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
-                    {
-                        var methodInvocationInfo = MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer);
-                        CheckInvocationArgMixing(
-                            element.Syntax,
-                            in methodInvocationInfo,
-                            spreadElementInitializer.AddMethod,
-                            _diagnostics);
-                    }
-                    else
-                    {
-                        Debug.Fail($"Unexpected spread iterator body {spreadElement.IteratorBody}");
+                        using var _2 = new PlaceholderRegion(this, spreadPlaceholders);
+
+                        if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
+                        {
+                            var methodInvocationInfo = MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer);
+                            CheckInvocationArgMixing(
+                                element.Syntax,
+                                in methodInvocationInfo,
+                                spreadElementInitializer.AddMethod,
+                                _diagnostics);
+                        }
+                        else
+                        {
+                            Debug.Fail($"Unexpected spread iterator body {spreadElement.IteratorBody}");
+                        }
                     }
                 }
+                else
+                {
+                    Debug.Fail($"Unexpected collection expression element {element}");
+                }
+            }
+
+            if (node.CollectionCreation is BoundObjectCreationExpression { Constructor: { } } objectCreation && !node.Elements.IsEmpty)
+            {
+                var methodInvocationInfo = MethodInvocationInfo.FromObjectCreation(objectCreation);
+                VisitObjectCreationWithInitializer(objectCreation, in methodInvocationInfo, elementsScope);
             }
 
             return null;
