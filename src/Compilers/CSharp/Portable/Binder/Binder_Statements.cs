@@ -3183,6 +3183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion;
             bool badAsyncReturnAlreadyReported = false;
+            bool hasImplicitConversionError = false;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (IsInAsyncMethod())
             {
@@ -3233,7 +3234,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
+                            var conversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                            GenerateImplicitConversionError(conversionDiagnostics, argument.Syntax, conversion, argument, returnType);
+
+                            hasImplicitConversionError = conversionDiagnostics.AccumulatesDiagnostics && conversionDiagnostics.HasAnyResolvedErrors();
+                            diagnostics.AddRangeAndFree(conversionDiagnostics);
+
                             if (this.ContainingMemberOrLambda is LambdaSymbol)
                             {
                                 ReportCantConvertLambdaReturn(argument.Syntax, diagnostics);
@@ -3243,7 +3249,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, returnType, diagnostics);
+            return CreateConversion(
+                argument.Syntax,
+                argument,
+                conversion,
+                isCast: false,
+                conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
+                returnType,
+                hasImplicitConversionError
+                    ? BindingDiagnosticBag.Discarded
+                    : diagnostics);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, BindingDiagnosticBag diagnostics)
