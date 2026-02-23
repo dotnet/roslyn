@@ -9446,6 +9446,7 @@ public class C { }
             Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
 
             Assert.DoesNotContain(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
+            Assert.Contains(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 1), output, StringComparison.Ordinal);
             var nonConcurrentSection = output[output.IndexOf(CodeAnalysisResources.NonConcurrentAnalyzersHeader)..];
             Assert.Contains(nameof(WarningDiagnosticAnalyzer), nonConcurrentSection, StringComparison.Ordinal);
             Assert.DoesNotContain(nameof(DiagnosticSuppressorForId), nonConcurrentSection, StringComparison.Ordinal);
@@ -9471,11 +9472,37 @@ public class C { }
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
-            Assert.DoesNotContain($"{nameof(WarningDiagnosticAnalyzer)} (Warning01)", output, StringComparison.Ordinal);
             Assert.Contains($"{nameof(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal);
             Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
 
+            Assert.Contains(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 1), output, StringComparison.Ordinal);
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput_AllConcurrentAnalyzers_NoSuppressors()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/reportanalyzer", "/t:library", srcFile.Path },
+                analyzers: [new ConcurrentAnalyzer(["C"])],
+                generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+
+            Assert.DoesNotContain(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 0), output, StringComparison.Ordinal);
             Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal);
             Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
             CleanupAllGeneratedFiles(srcFile.Path);

@@ -112,8 +112,15 @@ namespace Microsoft.CodeAnalysis
 
         private static void ReportNonConcurrentAnalyzers(TextWriter consoleOutput, AnalyzerDriver analyzerDriver)
         {
-            // DiagnosticSuppressors are never concurrent, so we exclude them from the report
-            var nonConcurrentAnalyzers = analyzerDriver.NonConcurrentAnalyzers.WhereAsArray(a => a is not DiagnosticSuppressor);
+            // DiagnosticSuppressors are never concurrent. To reduce noise in the report, only their count is reported.
+            var nonConcurrentAnalyzersAndSuppressors = analyzerDriver.NonConcurrentAnalyzers;
+            var nonConcurrentAnalyzers = nonConcurrentAnalyzersAndSuppressors.WhereAsArray(a => a is not DiagnosticSuppressor);
+            var suppressorCount = nonConcurrentAnalyzersAndSuppressors.Count - nonConcurrentAnalyzers.Length;
+            if (suppressorCount > 0)
+            {
+                consoleOutput.WriteLine(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, suppressorCount));
+            }
+
             if (nonConcurrentAnalyzers.Length == 0)
             {
                 consoleOutput.WriteLine(CodeAnalysisResources.AllAnalyzersConcurrentMessage);

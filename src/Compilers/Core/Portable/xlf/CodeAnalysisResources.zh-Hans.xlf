@@ -283,6 +283,11 @@
         <target state="translated">A SuppressionDescriptor 必须具有一个 ID，且该 ID 不为 null、不是空字符串且不是仅包含空格的字符串。</target>
         <note />
       </trans-unit>
+      <trans-unit id="SuppressorsNonConcurrentCountMessage">
+        <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
+        <target state="new">NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
         <target state="translated">无法发出方法 '{0}' 的本机 PDB，因为其调试元数据大小 {1} 超过 {2} 限制。</target>

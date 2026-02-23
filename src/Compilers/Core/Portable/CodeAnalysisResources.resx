@@ -501,6 +501,9 @@
   <data name="AllAnalyzersConcurrentMessage" xml:space="preserve">
     <value>All analyzers have enabled concurrent execution.</value>
   </data>
+  <data name="SuppressorsNonConcurrentCountMessage" xml:space="preserve">
+    <value>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</value>
+  </data>
   <data name="AnalyzerExecutionTimeColumnHeader" xml:space="preserve">
     <value>Time (s)</value>
   </data>

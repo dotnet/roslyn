@@ -283,6 +283,11 @@
         <target state="translated">L'ID di un elemento SuppressionDescriptor non deve essere Null, né una stringa vuota o una stringa composta solo da spazi vuoti.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SuppressorsNonConcurrentCountMessage">
+        <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
+        <target state="new">NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
         <target state="translated">Non è possibile creare il PDB nativo per il metodo '{0}' perché le dimensioni dei metadati di debug {1} superano il limite {2}.</target>
