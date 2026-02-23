@@ -4825,7 +4825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             : (BoundExpression)element;
                         scope = scope.Intersect(elementExpr is BoundCollectionElementInitializer colElement
                             ? GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement))
-                            : GetValEscape(expr));
+                            : GetValEscape(elementExpr));
                     }
                     return scope;
 
