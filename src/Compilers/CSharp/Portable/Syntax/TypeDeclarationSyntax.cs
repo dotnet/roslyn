@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ClassKeyword;
                 case DeclarationKind.Struct:
                     return SyntaxKind.StructKeyword;
+                case DeclarationKind.Union:
+                    return SyntaxKind.UnionKeyword;
                 case DeclarationKind.Interface:
                     return SyntaxKind.InterfaceKeyword;
                 default:
@@ -72,10 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ClassKeyword;
                 case SyntaxKind.StructDeclaration:
                     return SyntaxKind.StructKeyword;
+                case SyntaxKind.UnionDeclaration:
+                    return SyntaxKind.UnionKeyword;
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxKind.InterfaceKeyword;
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.RecordUnionDeclaration:
                     return SyntaxKind.RecordKeyword;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -123,13 +128,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                     return SyntaxFactory.ClassDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.StructDeclaration:
-                    return SyntaxFactory.StructDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                    return SyntaxFactory.StructDeclaration(SyntaxKind.StructDeclaration, attributes, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                case SyntaxKind.UnionDeclaration:
+                    return SyntaxFactory.StructDeclaration(SyntaxKind.UnionDeclaration, attributes, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxFactory.InterfaceDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordDeclaration:
                     return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordDeclaration, attributes, modifiers, keyword, classOrStructKeyword: default, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordStructDeclaration:
                     return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordStructDeclaration, attributes, modifiers, keyword, classOrStructKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                case SyntaxKind.RecordUnionDeclaration:
+                    return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordUnionDeclaration, attributes, modifiers, keyword, classOrStructKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

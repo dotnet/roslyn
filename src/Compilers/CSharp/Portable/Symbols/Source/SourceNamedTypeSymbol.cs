@@ -79,12 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (declaration.Kind)
             {
                 case DeclarationKind.Struct:
+                case DeclarationKind.Union:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Enum:
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
+                case DeclarationKind.RecordUnion:
                 case DeclarationKind.Extension:
                     break;
                 default:
@@ -121,8 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.RecordUnionDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
                 default:
                     return default(SyntaxToken);
@@ -162,9 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.UnionDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.RecordUnionDeclaration:
                     case SyntaxKind.ExtensionBlockDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
@@ -472,9 +478,11 @@ next:;
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.RecordUnionDeclaration:
                 case SyntaxKind.ExtensionBlockDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
@@ -1469,6 +1477,14 @@ next:;
         {
             get
             {
+                return this.declaration.Declarations[0].Kind is DeclarationKind.Union or DeclarationKind.RecordUnion || HasUnionAttribute;
+            }
+        }
+
+        private bool HasUnionAttribute
+        {
+            get
+            {
                 return GetEarlyDecodedWellKnownAttributeData()?.HasUnionAttribute == true;
             }
         }
@@ -1832,6 +1848,28 @@ next:;
                         ref attributes,
                         SynthesizedAttributeData.Create(DeclaringCompilation, parameterlessConstructor, arguments: [], namedArguments: []));
                 }
+            }
+
+            // Union type
+            if (ShouldApplyUnionAttribute())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor));
+            }
+        }
+
+        private bool ShouldApplyUnionAttribute()
+        {
+            return this.declaration.Declarations[0].Kind is DeclarationKind.Union or DeclarationKind.RecordUnion && !HasUnionAttribute;
+        }
+
+        protected override void AfterMembersChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.AfterMembersChecks(diagnostics);
+
+            // Union type
+            if (ShouldApplyUnionAttribute())
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor, diagnostics, GetFirstLocation());
             }
         }
 

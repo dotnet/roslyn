@@ -376,6 +376,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
 
+        System_Runtime_CompilerServices_UnionAttribute,
+
         NextAvailable,
         // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
     }
@@ -737,6 +739,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray14`1",
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
+
+            "System.Runtime.CompilerServices.UnionAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

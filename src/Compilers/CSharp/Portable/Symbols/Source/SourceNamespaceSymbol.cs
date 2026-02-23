@@ -407,12 +407,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return new SourceNamespaceSymbol(_module, this, (MergedNamespaceDeclaration)declaration, diagnostics);
 
                 case DeclarationKind.Struct:
+                case DeclarationKind.Union:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Enum:
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
+                case DeclarationKind.RecordUnion:
                 case DeclarationKind.Extension:
                     return new SourceNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 

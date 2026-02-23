@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
@@ -16,15 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class UnionsTests : CSharpTestBase
     {
-        public static string UnionAttributeSource => @"
-namespace System.Runtime.CompilerServices
-{
-    public class UnionAttribute : System.Attribute
-    {
-    }
-}
-";
-
         [Fact]
         public void UnionType_01()
         {
@@ -19601,6 +19593,1038 @@ class Program
                 //             _ = s switch { string => 1, bool => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(401, 19)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_01(bool isRecord)
+        {
+            var unionSrc = @"
+public" + (isRecord ? " record" : "") + @"
+#line 100
+union S1(bool, int)
+{
+}
+";
+            var consumer = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(10));
+        System.Console.Write(Test(11));
+        System.Console.Write(Test(true));
+        System.Console.Write(Test(false));
+        System.Console.Write(Test(default));
+    }
+
+    static int Test(S1 u)
+    {
+        return u switch
+        {
+            10 => 1,
+            true => 2,
+            int => 3,
+            bool => 4,
+            _ => 5
+        };
+    }   
+}
+";
+
+            var comp1 = CreateCompilation([unionSrc, UnionAttributeSource, consumer], options: TestOptions.DebugExe);
+            var s1 = comp1.GetTypeByMetadataName("S1");
+            Assert.True(s1.IsUnionType);
+            Assert.Equal(isRecord, s1.IsRecordStruct);
+            Assert.False(s1.IsRecord);
+
+            VerifyCaseTypes(comp1, "S1", ["System.Boolean", "System.Int32"]);
+
+            var members = s1.GetMembers();
+            Assert.Equal(isRecord ? 13 : 6, members.Length);
+
+            if (isRecord)
+            {
+                AssertEx.SequenceEqual(["System.Object? S1.Value.field", "System.Object? S1.Value { get; }", "readonly System.Object? S1.Value.get",
+                                        "readonly System.String S1.ToString()", "readonly System.Boolean S1.PrintMembers(System.Text.StringBuilder builder)",
+                                        "System.Boolean S1.operator !=(S1 left, S1 right)", "System.Boolean S1.operator ==(S1 left, S1 right)",
+                                        "readonly System.Int32 S1.GetHashCode()", "readonly System.Boolean S1.Equals(System.Object obj)",
+                                        "readonly System.Boolean S1.Equals(S1 other)",
+                                        "S1.S1(System.Boolean value)", "S1.S1(System.Int32 value)", "S1.S1()"],
+                                       members.Select(s => s.ToTestDisplayString(includeNonNullable: true)));
+            }
+            else
+            {
+                AssertEx.SequenceEqual(["System.Object? S1.Value.field", "System.Object? S1.Value { get; }", "readonly System.Object? S1.Value.get",
+                                        "S1.S1(System.Boolean value)", "S1.S1(System.Int32 value)", "S1.S1()"],
+                                       members.Select(s => s.ToTestDisplayString(includeNonNullable: true)));
+            }
+
+            Assert.False(members[0].IsStatic);
+            Assert.True(members[0].IsImplicitlyDeclared);
+            Assert.False(members[1].IsStatic);
+            Assert.True(members[1].IsImplicitlyDeclared);
+            Assert.False(members[2].IsStatic);
+            Assert.True(members[2].IsImplicitlyDeclared);
+            Assert.False(members[^3].IsStatic);
+            Assert.True(members[^3].IsImplicitlyDeclared);
+            Assert.False(members[^2].IsStatic);
+            Assert.True(members[^2].IsImplicitlyDeclared);
+
+            var tree = comp1.SyntaxTrees.First();
+            var model = comp1.GetSemanticModel(tree);
+            var s1Decl = tree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().Single();
+
+            Assert.Equal("S1", s1Decl.Identifier.ToString());
+
+            Assert.Empty(members[0].DeclaringSyntaxReferences);
+            Assert.Equal(s1Decl, members[1].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(s1Decl, members[2].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Empty(members[^3].DeclaringSyntaxReferences);
+            Assert.Empty(members[^2].DeclaringSyntaxReferences);
+
+            var location = members[0].Locations.Single();
+            Assert.Equal(members[1].Locations.Single(), location);
+            location = members[1].Locations.Single();
+            Assert.Equal(s1Decl, location.SourceTree.GetRoot().FindNode(location.SourceSpan));
+            location = members[2].Locations.Single();
+            Assert.Equal(s1Decl, location.SourceTree.GetRoot().FindNode(location.SourceSpan));
+            location = members[^3].Locations.Single();
+            Assert.Equal("bool", location.SourceTree.GetRoot().FindNode(location.SourceSpan).ToString());
+            location = members[^2].Locations.Single();
+            Assert.Equal("int", location.SourceTree.GetRoot().FindNode(location.SourceSpan).ToString());
+
+            Assert.Same(s1, model.GetDeclaredSymbol(s1Decl).GetSymbol());
+            Assert.Null(model.GetDeclaredSymbol(s1Decl.ParameterList));
+            Assert.Null(model.GetDeclaredSymbol(s1Decl.ParameterList.Parameters[0]));
+            Assert.Null(model.GetDeclaredSymbol(s1Decl.ParameterList.Parameters[0].Type));
+            Assert.Null(model.GetDeclaredSymbol(s1Decl.ParameterList.Parameters[1]));
+            Assert.Null(model.GetDeclaredSymbol(s1Decl.ParameterList.Parameters[1].Type));
+
+            var typeInfo = model.GetTypeInfo(s1Decl.ParameterList.Parameters[0].Type);
+            Assert.Equal("System.Boolean", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Boolean", typeInfo.ConvertedType.ToTestDisplayString());
+
+            typeInfo = model.GetTypeInfo(s1Decl.ParameterList.Parameters[1].Type);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var verifier = CompileAndVerify(comp1, expectedOutput: "13245").VerifyDiagnostics();
+
+            if (isRecord)
+            {
+                verifier.VerifyTypeIL("S1", @"
+.class public sequential ansi sealed beforefieldinit S1
+    extends [netstandard]System.ValueType
+    implements class [netstandard]System.IEquatable`1<valuetype S1>
+{
+    .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Fields
+    .field private initonly object '<Value>k__BackingField'
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 02 00 00
+    )
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [netstandard]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [netstandard]System.Diagnostics.DebuggerBrowsableState) = (
+        01 00 00 00 00 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname 
+        instance object get_Value () cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20a2
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld object S1::'<Value>k__BackingField'
+        IL_0006: ret
+    } // end of method S1::get_Value
+    .method public hidebysig virtual 
+        instance string ToString () cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20ac
+        // Code size 64 (0x40)
+        .maxstack 2
+        .locals init (
+            [0] class [netstandard]System.Text.StringBuilder
+        )
+        IL_0000: newobj instance void [netstandard]System.Text.StringBuilder::.ctor()
+        IL_0005: stloc.0
+        IL_0006: ldloc.0
+        IL_0007: ldstr ""S1""
+        IL_000c: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(string)
+        IL_0011: pop
+        IL_0012: ldloc.0
+        IL_0013: ldstr "" { ""
+        IL_0018: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(string)
+        IL_001d: pop
+        IL_001e: ldarg.0
+        IL_001f: ldloc.0
+        IL_0020: call instance bool S1::PrintMembers(class [netstandard]System.Text.StringBuilder)
+        IL_0025: brfalse.s IL_0030
+        IL_0027: ldloc.0
+        IL_0028: ldc.i4.s 32
+        IL_002a: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(char)
+        IL_002f: pop
+        IL_0030: ldloc.0
+        IL_0031: ldc.i4.s 125
+        IL_0033: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(char)
+        IL_0038: pop
+        IL_0039: ldloc.0
+        IL_003a: callvirt instance string [netstandard]System.Object::ToString()
+        IL_003f: ret
+    } // end of method S1::ToString
+    .method private hidebysig 
+        instance bool PrintMembers (
+            class [netstandard]System.Text.StringBuilder builder
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20f8
+        // Code size 27 (0x1b)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ldstr ""Value = ""
+        IL_0006: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(string)
+        IL_000b: pop
+        IL_000c: ldarg.1
+        IL_000d: ldarg.0
+        IL_000e: call instance object S1::get_Value()
+        IL_0013: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(object)
+        IL_0018: pop
+        IL_0019: ldc.i4.1
+        IL_001a: ret
+    } // end of method S1::PrintMembers
+    .method public hidebysig specialname static 
+        bool op_Inequality (
+            valuetype S1 left,
+            valuetype S1 right
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2114
+        // Code size 11 (0xb)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: call bool S1::op_Equality(valuetype S1, valuetype S1)
+        IL_0007: ldc.i4.0
+        IL_0008: ceq
+        IL_000a: ret
+    } // end of method S1::op_Inequality
+    .method public hidebysig specialname static 
+        bool op_Equality (
+            valuetype S1 left,
+            valuetype S1 right
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2120
+        // Code size 9 (0x9)
+        .maxstack 8
+        IL_0000: ldarga.s left
+        IL_0002: ldarg.1
+        IL_0003: call instance bool S1::Equals(valuetype S1)
+        IL_0008: ret
+    } // end of method S1::op_Equality
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x212a
+        // Code size 17 (0x11)
+        .maxstack 8
+        IL_0000: call class [netstandard]System.Collections.Generic.EqualityComparer`1<!0> class [netstandard]System.Collections.Generic.EqualityComparer`1<object>::get_Default()
+        IL_0005: ldarg.0
+        IL_0006: ldfld object S1::'<Value>k__BackingField'
+        IL_000b: callvirt instance int32 class [netstandard]System.Collections.Generic.EqualityComparer`1<object>::GetHashCode(!0)
+        IL_0010: ret
+    } // end of method S1::GetHashCode
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object obj
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x213c
+        // Code size 24 (0x18)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: isinst S1
+        IL_0006: brfalse.s IL_0016
+        IL_0008: ldarg.0
+        IL_0009: ldarg.1
+        IL_000a: unbox.any S1
+        IL_000f: call instance bool S1::Equals(valuetype S1)
+        IL_0014: br.s IL_0017
+        IL_0016: ldc.i4.0
+        IL_0017: ret
+    } // end of method S1::Equals
+    .method public final hidebysig newslot virtual 
+        instance bool Equals (
+            valuetype S1 other
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2155
+        // Code size 23 (0x17)
+        .maxstack 8
+        IL_0000: call class [netstandard]System.Collections.Generic.EqualityComparer`1<!0> class [netstandard]System.Collections.Generic.EqualityComparer`1<object>::get_Default()
+        IL_0005: ldarg.0
+        IL_0006: ldfld object S1::'<Value>k__BackingField'
+        IL_000b: ldarg.1
+        IL_000c: ldfld object S1::'<Value>k__BackingField'
+        IL_0011: callvirt instance bool class [netstandard]System.Collections.Generic.EqualityComparer`1<object>::Equals(!0, !0)
+        IL_0016: ret
+    } // end of method S1::Equals
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            bool 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x216d
+        // Code size 14 (0xe)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: box [netstandard]System.Boolean
+        IL_0007: stfld object S1::'<Value>k__BackingField'
+        IL_000c: nop
+        IL_000d: ret
+    } // end of method S1::.ctor
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x217c
+        // Code size 14 (0xe)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: box [netstandard]System.Int32
+        IL_0007: stfld object S1::'<Value>k__BackingField'
+        IL_000c: nop
+        IL_000d: ret
+    } // end of method S1::.ctor
+    // Properties
+    .property instance object Value()
+    {
+        .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
+        .get instance object S1::get_Value()
+    }
+} // end of class S1
+".Replace("[netstandard]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+            }
+            else
+            {
+                verifier.VerifyTypeIL("S1", @"
+.class public sequential ansi sealed beforefieldinit S1
+    extends [netstandard]System.ValueType
+{
+    .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 02 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Fields
+    .field private initonly object '<Value>k__BackingField'
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [netstandard]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [netstandard]System.Diagnostics.DebuggerBrowsableState) = (
+        01 00 00 00 00 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname 
+        instance object get_Value () cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20a2
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld object S1::'<Value>k__BackingField'
+        IL_0006: ret
+    } // end of method S1::get_Value
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            bool 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20aa
+        // Code size 14 (0xe)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: box [netstandard]System.Boolean
+        IL_0007: stfld object S1::'<Value>k__BackingField'
+        IL_000c: nop
+        IL_000d: ret
+    } // end of method S1::.ctor
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x20b9
+        // Code size 14 (0xe)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: box [netstandard]System.Int32
+        IL_0007: stfld object S1::'<Value>k__BackingField'
+        IL_000c: nop
+        IL_000d: ret
+    } // end of method S1::.ctor
+    // Properties
+    .property instance object Value()
+    {
+        .get instance object S1::get_Value()
+    }
+} // end of class S1
+".Replace("[netstandard]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+            }
+
+            var comp2 = CreateCompilation(consumer, references: [verifier.GetImageReference()], options: TestOptions.DebugExe);
+            var s12 = comp2.GetTypeByMetadataName("S1");
+            Assert.True(s12.IsUnionType);
+            VerifyCaseTypes(comp2, "S1", ["System.Boolean", "System.Int32"]);
+
+            members = s12.GetMembers();
+
+            if (isRecord)
+            {
+                AssertEx.SequenceEqual(["System.Object? S1.<Value>k__BackingField", "S1.S1()", "readonly System.Object? S1.Value.get",
+                                        "readonly System.String S1.ToString()", "System.Boolean S1.operator !=(S1 left, S1 right)",
+                                        "System.Boolean S1.operator ==(S1 left, S1 right)", "readonly System.Int32 S1.GetHashCode()",
+                                        "readonly System.Boolean S1.Equals(System.Object obj)", "readonly System.Boolean S1.Equals(S1 other)",
+                                        "S1.S1(System.Boolean value)", "S1.S1(System.Int32 value)", "readonly System.Object? S1.Value { get; }"],
+                                       members.Select(s => s.ToTestDisplayString(includeNonNullable: true)));
+            }
+            else
+            {
+                AssertEx.SequenceEqual(["System.Object? S1.<Value>k__BackingField", "S1.S1()", "readonly System.Object? S1.Value.get",
+                                        "S1.S1(System.Boolean value)", "S1.S1(System.Int32 value)", "readonly System.Object? S1.Value { get; }"],
+                                       members.Select(s => s.ToTestDisplayString(includeNonNullable: true)));
+            }
+
+            CompileAndVerify(comp2, expectedOutput: "13245").VerifyDiagnostics();
+
+            var unionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public class UnionAttribute : System.Attribute
+    {
+    }
+}
+";
+            var ref1 = CreateCompilation(unionAttributeSource).EmitToImageReference();
+            var ref2 = CreateCompilation(unionAttributeSource).EmitToImageReference();
+
+            var comp3 = CreateCompilation([unionSrc], references: [ref1, ref2]);
+            comp3.VerifyEmitDiagnostics(
+                // (100,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
+                // union S1(bool, int)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(100, 7)
+                );
+
+            var comp4 = CreateCompilation(["extern alias ref1; [ref1::System.Runtime.CompilerServices.Union]" + unionSrc], references: [ref1.WithAliases(["ref1"]), ref2.WithAliases(["ref2"])]);
+            verifier = CompileAndVerify(
+                comp4,
+                symbolValidator: (m) =>
+                {
+                    var s1 = m.GlobalNamespace.GetTypeMember("S1");
+                    Assert.Equal("S1", s1.Name);
+                    CSharpAttributeData attr = s1.GetAttributes().Where(a => a.AttributeClass.Name.StartsWith("Union")).Single();
+                    AssertEx.Equal("System.Runtime.CompilerServices.UnionAttribute", attr.ToString());
+                    Assert.NotEqual(s1.ContainingModule, attr.AttributeClass.ContainingModule);
+                }).VerifyDiagnostics();
+
+            var comp5 = CreateCompilation(consumer, references: [verifier.GetImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp5, expectedOutput: "13245").VerifyDiagnostics();
+
+            var comp6 = CreateCompilation(["[System.Runtime.CompilerServices.Union]" + unionSrc, UnionAttributeSource], references: [ref1.WithAliases(["ref1"]), ref2.WithAliases(["ref2"])]);
+            verifier = CompileAndVerify(
+                comp6,
+                symbolValidator: (m) =>
+                {
+                    var s1 = m.GlobalNamespace.GetTypeMember("S1");
+                    Assert.Equal("S1", s1.Name);
+                    CSharpAttributeData attr = s1.GetAttributes().Where(a => a.AttributeClass.Name.StartsWith("Union")).Single();
+                    AssertEx.Equal("System.Runtime.CompilerServices.UnionAttribute", attr.ToString());
+                    Assert.Same(s1.ContainingModule, attr.AttributeClass.ContainingModule);
+                }).VerifyDiagnostics();
+
+            var comp7 = CreateCompilation(consumer, references: [verifier.GetImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp7, expectedOutput: "13245").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_02(bool isRecord)
+        {
+            var src = @"
+partial" + (isRecord ? " record" : "") + @"
+#line 100
+union S1(int, bool)
+{
+}
+
+partial" + (isRecord ? " record" : "") + @"
+#line 200
+union S1(int, long)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (200,9): error CS8863: Only a single partial type declaration may have a parameter list
+                // union S1(int, long)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int, long)").WithLocation(200, 9)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_03(bool isRecord)
+        {
+            var src = @"
+partial" + (isRecord ? " record" : "") + @" union S1(int, bool)
+{
+}
+
+partial" + (isRecord ? " record" : "") + @" union S1
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_04(bool isRecord)
+        {
+            var src = @"
+partial" + (isRecord ? " record" : "") + @" union S1
+{
+}
+
+partial" + (isRecord ? " record" : "") + @" union S1(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
+        public void UnionDeclaration_05()
+        {
+            var src = @"
+partial struct S1
+{
+}
+
+partial union S1(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0261: Partial declarations of 'S1' must be all classes, all record classes, all structs, all unions, all record structs, all record unions, or all interfaces
+                // partial union S1(int, bool)
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S1").WithArguments("S1").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void UnionDeclaration_06()
+        {
+            var src = @"
+partial union S1
+{
+}
+
+partial record union S1(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS9401: A union declaration must specify at least one case type.
+                // partial union S1
+                Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "S1").WithLocation(2, 15),
+                // (6,22): error CS0261: Partial declarations of 'S1' must be all classes, all record classes, all structs, all unions, all record structs, all record unions, or all interfaces
+                // partial record union S1(int, bool)
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S1").WithArguments("S1").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void UnionDeclaration_07()
+        {
+            var src = @"
+partial record struct S1
+{
+}
+
+partial record union S1(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (6,22): error CS0261: Partial declarations of 'S1' must be all classes, all record classes, all structs, all unions, all record structs, all record unions, or all interfaces
+                // partial record union S1(int, bool)
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S1").WithArguments("S1").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void UnionDeclaration_08()
+        {
+            var src = @"
+static union S1(int, bool)
+{
+}
+
+static record union S2(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS0106: The modifier 'static' is not valid for this item
+                // static union S1(int, bool)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("static").WithLocation(2, 14),
+                // (6,21): error CS0106: The modifier 'static' is not valid for this item
+                // static record union S2(int, bool)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S2").WithArguments("static").WithLocation(6, 21)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_09(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+#line 100
+union S1(int, int)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (100,15): error CS0111: Type 'S1' already defines a member called 'S1' with the same parameter types
+                // union S1(int, int)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "int").WithArguments("S1", "S1").WithLocation(100, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_10(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+#line 100
+union S1(int, __arglist)
+{
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (100,15): error CS1669: __arglist is not valid in this context
+                // union S1(int, __arglist)
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(100, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_11(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+#line 100
+union S1;
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,7): error CS9401: A union declaration must specify at least one case type.
+                // union S1;
+                Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "S1").WithLocation(100, 7)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", []);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_12(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+#line 100
+union S1();
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,10): error CS1031: Type expected
+                // union S1();
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(100, 10)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["?"]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_13_MissingUnionAttribute(bool isRecord)
+        {
+            var unionSrc = @"
+" + (isRecord ? " record" : "") + @"
+#line 2
+union S1(int, bool)
+{
+}
+";
+
+            var comp = CreateCompilation(unionSrc);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
+                // union S1(int, bool)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(2, 7)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_14(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+union S1(
+#nullable enable
+            string?
+#nullable restore
+);
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.String"]);
+
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var s1 = m.GlobalNamespace.GetTypeMember("S1");
+                AssertEx.Equal("S1..ctor(System.String? value)", s1.InstanceConstructors.Where(c => c.ParameterCount == 1).Single().ToTestDisplayString());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_15(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+union S1<T>(T);
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            Assert.True(comp.GetTypeByMetadataName("S1`1").IsUnionType);
+            VerifyCaseTypes(comp, "S1`1", ["T"]);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_16(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+#line 100
+union S1(System.ArgIterator, int);
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.ArgIterator", "System.Int32"]);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,10): error CS9402: Cannot convert type 'ArgIterator' to 'object' via an implicit reference or boxing conversion
+                // union S1(System.ArgIterator, int);
+                Diagnostic(ErrorCode.ERR_NoImplicitConversionToObject, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(100, 10)
+                );
+        }
+
+        [Fact]
+        public void UnionDeclaration_17()
+        {
+            var src = @"
+#pragma warning disable CS1718 // Comparison made to same variable; did you mean to compare something else?
+
+union S1(C1);
+record union S2(C1);
+
+class C1
+{
+    public override int GetHashCode() => 1;
+    public override bool Equals(object obj) => obj is C1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1(new C1());
+        var s12 = new S1(new C1());
+        var s13 = new S1();
+        System.Console.WriteLine(s11.ToString());
+        System.Console.WriteLine(s13.ToString());
+        System.Console.WriteLine(s11.Equals(s11));
+        System.Console.WriteLine(s11.Equals(s12));
+        System.Console.WriteLine(s11.Equals(s13));
+        System.Console.WriteLine(s13.Equals(s13));
+
+        System.Console.WriteLine();
+        System.Console.WriteLine();
+
+        var s21 = new S2(new C1());
+        var s22 = new S2(new C1());
+        var s23 = new S2();
+        System.Console.WriteLine(s21.ToString());
+        System.Console.WriteLine(s23.ToString());
+        System.Console.WriteLine(s21.Equals(s21));
+        System.Console.WriteLine(s21 == s21);
+        System.Console.WriteLine(s21 != s21);
+        System.Console.WriteLine();
+        System.Console.WriteLine(s21.Equals(s22));
+        System.Console.WriteLine(s21 == s22);
+        System.Console.WriteLine(s21 != s22);
+        System.Console.WriteLine(s21.GetHashCode() == s22.GetHashCode());
+        System.Console.WriteLine();
+        System.Console.WriteLine(s21.Equals(s23));
+        System.Console.WriteLine(s21 == s23);
+        System.Console.WriteLine(s21 != s23);
+        System.Console.WriteLine();
+        System.Console.WriteLine(s23.Equals(s23));
+        System.Console.WriteLine(s23 == s23);
+        System.Console.WriteLine(s23 != s23);
+    }
+}
+";
+
+            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: @"
+S1
+S1
+True
+True
+False
+True
+
+
+S2 { Value = C1 }
+S2 { Value =  }
+True
+True
+False
+
+True
+True
+False
+True
+
+False
+False
+True
+
+True
+True
+False
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionDeclaration_18()
+        {
+            var src = @"
+union S1(C1)
+{
+    public void OtherMember()
+    {
+        System.Console.Write(1);
+    }   
+}
+
+record union S2(C1)
+{
+    public void OtherMember()
+    {
+        System.Console.Write(2);
+    }   
+}
+
+class C1
+{
+    public override int GetHashCode() => 1;
+    public override bool Equals(object obj) => obj is C1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        default(S1).OtherMember();
+        default(S2).OtherMember();
+    }
+}
+";
+
+            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "12").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_19(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+#line 100
+union S1(System.Nullable<string>);
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.String?"]);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,10): error CS9402: Cannot convert type 'string?' to 'object' via an implicit reference or boxing conversion
+                // union S1(System.Nullable<string>);
+                Diagnostic(ErrorCode.ERR_NoImplicitConversionToObject, "System.Nullable<string>").WithArguments("string?").WithLocation(100, 10),
+                // (100,10): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // union S1(System.Nullable<string>);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<string>").WithArguments("System.Nullable<T>", "T", "string").WithLocation(100, 10)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionDeclaration_20_MissingObject(bool isRecord)
+        {
+            var src = @"
+" + (isRecord ? " record" : "") + @"
+#line 100
+union S1(int);
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.MakeTypeMissing(SpecialType.System_Object);
+
+            if (isRecord)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (100,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                    // union S1(int);
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Object").WithLocation(100, 7),
+                    // (100,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                    // union S1(int);
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Object").WithLocation(100, 7)
+                    );
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (100,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                    // union S1(int);
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Object").WithLocation(100, 7)
+                    );
+            }
         }
     }
 }

@@ -423,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         AllowsKeyword = 8450,
         /// <summary>Represents <see langword="extension"/>.</summary>
         ExtensionKeyword = 8451,
+        /// <summary>Represents <see langword="union"/>.</summary>
+        UnionKeyword = 8452,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -934,5 +936,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IgnoredDirectiveTrivia = 9080,
 
         WithElement = 9081,
+
+        UnionDeclaration = 9082,
+        RecordUnionDeclaration = 9083,
     }
 }

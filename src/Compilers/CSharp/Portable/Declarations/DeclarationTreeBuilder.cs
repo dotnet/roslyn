@@ -109,12 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.Class or
                 DeclarationKind.Interface or
                 DeclarationKind.Struct or
+                DeclarationKind.Union or
                 DeclarationKind.Enum or
                 DeclarationKind.Script or
                 DeclarationKind.Submission or
                 DeclarationKind.ImplicitClass or
                 DeclarationKind.Record or
-                DeclarationKind.RecordStruct => true,
+                DeclarationKind.RecordStruct or
+                DeclarationKind.RecordUnion => true,
                 DeclarationKind.Extension => true,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind)
@@ -661,7 +663,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitStructDeclaration(StructDeclarationSyntax node)
         {
-            return VisitTypeDeclaration(node, DeclarationKind.Struct);
+            var declarationKind = node.Kind() switch
+            {
+                SyntaxKind.StructDeclaration => DeclarationKind.Struct,
+                SyntaxKind.UnionDeclaration => DeclarationKind.Union,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            };
+
+            return VisitTypeDeclaration(node, declarationKind);
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
@@ -675,6 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SyntaxKind.RecordDeclaration => DeclarationKind.Record,
                 SyntaxKind.RecordStructDeclaration => DeclarationKind.RecordStruct,
+                SyntaxKind.RecordUnionDeclaration => DeclarationKind.RecordUnion,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
             };
 
@@ -703,7 +713,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
-            var hasPrimaryCtor = node.ParameterList != null && node is RecordDeclarationSyntax or ClassDeclarationSyntax or StructDeclarationSyntax;
+            var hasPrimaryCtor =
+                node.ParameterList != null &&
+                node is RecordDeclarationSyntax { RawKind: not (int)SyntaxKind.RecordUnionDeclaration } or
+                        ClassDeclarationSyntax or
+                        StructDeclarationSyntax { RawKind: not (int)SyntaxKind.UnionDeclaration };
+
             if (hasPrimaryCtor)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
@@ -718,6 +733,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+            else if (node is RecordDeclarationSyntax { RawKind: (int)SyntaxKind.RecordUnionDeclaration } or
+                             StructDeclarationSyntax { RawKind: (int)SyntaxKind.UnionDeclaration })
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers; // PROTOTYPE: Add test coverage
+            }
 
             var memberNames = GetNonTypeMemberNames(
                 node, ((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
@@ -729,7 +749,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // previous versions).
             if (node is RecordDeclarationSyntax record)
             {
-                if (record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
+                if (record.Kind() == SyntaxKind.RecordUnionDeclaration)
+                {
+                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
+                }
+                else if (record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
                 {
                     MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
                 }
@@ -751,6 +775,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
                 }
+            }
+            else if (node.Kind() is SyntaxKind.UnionDeclaration)
+            {
+                MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation()); // PROTOTYPE: Add test coverage, manual tree creation is needed
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
@@ -1103,10 +1131,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration: // PROTOTYPE: Add test coverage
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.RecordUnionDeclaration: // PROTOTYPE: Add test coverage
                 case SyntaxKind.ExtensionBlockDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 

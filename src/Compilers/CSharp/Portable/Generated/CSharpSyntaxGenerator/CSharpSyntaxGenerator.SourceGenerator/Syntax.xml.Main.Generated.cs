@@ -5013,9 +5013,20 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
-    public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    public static StructDeclarationSyntax StructDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
-        if (keyword.Kind() != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(keyword));
+        switch (kind)
+        {
+            case SyntaxKind.StructDeclaration:
+            case SyntaxKind.UnionDeclaration: break;
+            default: throw new ArgumentException(nameof(kind));
+        }
+        switch (keyword.Kind())
+        {
+            case SyntaxKind.StructKeyword:
+            case SyntaxKind.UnionKeyword: break;
+            default: throw new ArgumentException(nameof(keyword));
+        }
         if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
         switch (openBraceToken.Kind())
         {
@@ -5035,8 +5046,16 @@ public static partial class SyntaxFactory
             case SyntaxKind.None: break;
             default: throw new ArgumentException(nameof(semicolonToken));
         }
-        return (StructDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.StructDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+        return (StructDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.StructDeclaration(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
     }
+
+    private static SyntaxKind GetStructDeclarationKeywordKind(SyntaxKind kind)
+        => kind switch
+        {
+            SyntaxKind.StructDeclaration => SyntaxKind.StructKeyword,
+            SyntaxKind.UnionDeclaration => SyntaxKind.UnionKeyword,
+            _ => throw new ArgumentOutOfRangeException(),
+        };
 
     /// <summary>Creates a new InterfaceDeclarationSyntax instance.</summary>
     public static InterfaceDeclarationSyntax InterfaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
@@ -5070,13 +5089,15 @@ public static partial class SyntaxFactory
         switch (kind)
         {
             case SyntaxKind.RecordDeclaration:
-            case SyntaxKind.RecordStructDeclaration: break;
+            case SyntaxKind.RecordStructDeclaration:
+            case SyntaxKind.RecordUnionDeclaration: break;
             default: throw new ArgumentException(nameof(kind));
         }
         switch (classOrStructKeyword.Kind())
         {
             case SyntaxKind.ClassKeyword:
             case SyntaxKind.StructKeyword:
+            case SyntaxKind.UnionKeyword:
             case SyntaxKind.None: break;
             default: throw new ArgumentException(nameof(classOrStructKeyword));
         }
@@ -5119,6 +5140,7 @@ public static partial class SyntaxFactory
         {
             SyntaxKind.RecordDeclaration => SyntaxKind.ClassKeyword,
             SyntaxKind.RecordStructDeclaration => SyntaxKind.StructKeyword,
+            SyntaxKind.RecordUnionDeclaration => SyntaxKind.UnionKeyword,
             _ => throw new ArgumentOutOfRangeException(),
         };
 

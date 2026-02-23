@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.RecordUnionDeclaration:
                     return false;
 
                 default:

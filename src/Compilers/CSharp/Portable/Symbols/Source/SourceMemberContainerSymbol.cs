@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.declaration.Declarations[0].Kind == DeclarationKind.RecordStruct;
+                return this.declaration.Declarations[0].Kind is DeclarationKind.RecordStruct or DeclarationKind.RecordUnion;
             }
         }
 
@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
+            if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion or DeclarationKind.Union)
             {
                 return GetMembers(name);
             }
@@ -1840,7 +1840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
+        protected virtual void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = GetFirstLocation();
@@ -1991,8 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckRecordMemberNames(BindingDiagnosticBag diagnostics)
         {
-            if (declaration.Kind != DeclarationKind.Record &&
-                declaration.Kind != DeclarationKind.RecordStruct)
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion))
             {
                 return;
             }
@@ -3260,7 +3259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AssertInitializers(instanceInitializers, compilation);
 
                 Debug.Assert(!nonTypeMembersWithPartialImplementations.Any(static s => s is TypeSymbol));
-                Debug.Assert(declarationWithParameters is object == primaryConstructor is object);
+                Debug.Assert(declarationWithParameters is object || primaryConstructor is null);
 
                 this.NonTypeMembersWithPartialImplementations = nonTypeMembersWithPartialImplementations;
                 this.StaticInitializers = staticInitializers;
@@ -3454,6 +3453,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
                 isNullableEnabled = isNullableEnabled || compilation.IsNullableAnalysisEnabledIn(syntax);
+            }
+
+            public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, bool value)
+            {
+                ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
+                isNullableEnabled = isNullableEnabled || value;
             }
 
             private ref bool GetIsNullableEnabledForConstructorsAndFields(bool useStatic)
@@ -3746,6 +3751,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<Symbol> GetMembersToMatchAgainstDeclarationSpan()
         {
+            Debug.Assert(HasPrimaryConstructor);
+
             var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
             if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
             {
@@ -3762,6 +3769,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<Symbol> GetCandidateMembersForLookup(string name)
         {
+            Debug.Assert(HasPrimaryConstructor);
+
             if (this is { IsRecord: true } or { IsRecordStruct: true } ||
                 this.state.HasComplete(CompletionPart.Members))
             {
@@ -3908,8 +3917,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.UnionDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.RecordUnionDeclaration:
                     case SyntaxKind.ExtensionBlockDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
@@ -3932,23 +3943,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!this.IsExtension)
                 {
+                    bool isUnion = syntax.Kind() is SyntaxKind.UnionDeclaration or SyntaxKind.RecordUnionDeclaration;
+
                     if (builder.DeclarationWithParameters is null)
                     {
                         builder.DeclarationWithParameters = syntax;
-                        var ctor = new SynthesizedPrimaryConstructor(this, syntax);
 
-                        if (this.IsStatic)
+                        if (isUnion)
                         {
-                            diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, syntax.Identifier.GetLocation());
+                            builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: false, DeclaringCompilation, parameterList);
                         }
-
-                        builder.PrimaryConstructor = ctor;
-
-                        var compilation = DeclaringCompilation;
-                        builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
-                        if (syntax is { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
+                        else
                         {
-                            builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
+                            var ctor = new SynthesizedPrimaryConstructor(this, syntax);
+
+                            if (this.IsStatic)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, syntax.Identifier.GetLocation());
+                            }
+
+                            builder.PrimaryConstructor = ctor;
+
+                            var compilation = DeclaringCompilation;
+                            builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
+                            if (syntax is { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
+                            {
+                                builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
+                            }
                         }
                     }
                     else
@@ -4716,7 +4737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (builder.DeclarationWithParameters is not null)
             {
                 Debug.Assert(builder.DeclarationWithParameters is TypeDeclarationSyntax { ParameterList: not null } type
-                    && type.Kind() is (SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration));
+                    && type.Kind() is (SyntaxKind.RecordStructDeclaration or SyntaxKind.RecordUnionDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.UnionDeclaration));
                 return;
             }
 
@@ -4748,7 +4769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedTypeMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
-            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct) && declaredMembersAndInitializers.PrimaryConstructor is null)
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion or DeclarationKind.Union) && declaredMembersAndInitializers.PrimaryConstructor is null)
             {
                 return;
             }
@@ -4756,7 +4777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var membersSoFar = builder.GetNonTypeMembers(this, declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
 
-            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct))
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion or DeclarationKind.Union))
             {
                 // primary ctor
                 var ctor = declaredMembersAndInitializers.PrimaryConstructor;
@@ -4772,7 +4793,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(declaredMembersAndInitializers.PrimaryConstructor?.GetBackingFields().Any() != true);
 
-            ParameterListSyntax? paramList = declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList;
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
             var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
             var memberNames = PooledHashSet<string>.GetInstance();
@@ -4800,70 +4820,148 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CSharpCompilation compilation = this.DeclaringCompilation;
-            bool isRecordClass = declaration.Kind == DeclarationKind.Record;
 
-            // Positional record
-            bool primaryAndCopyCtorAmbiguity = false;
-            if (!(paramList is null))
+            if (declaration.Kind is DeclarationKind.RecordUnion or DeclarationKind.Union)
             {
-                Debug.Assert(declaredMembersAndInitializers.DeclarationWithParameters is object);
+                // Synthesize Value property
+                var valuePropertySyntax = (TypeDeclarationSyntax)declaration.Declarations[0].SyntaxReference.GetSyntax();
+                var valueProperty = new SynthesizedUnionValuePropertySymbol(this, valuePropertySyntax, diagnostics);
+                members.Add(valueProperty);
+                Debug.Assert(valueProperty.GetMethod is object);
+                Debug.Assert(valueProperty.SetMethod is null);
+                members.Add(valueProperty.GetMethod);
+                var backingField = valueProperty.DeclaredBackingField;
+                Debug.Assert(backingField is object);
+                members.Add(backingField);
 
-                // primary ctor
-                var ctor = declaredMembersAndInitializers.PrimaryConstructor;
-                Debug.Assert(ctor is object);
-                members.Add(ctor);
+                builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: false, value: true);
 
-                if (!memberSignatures.ContainsKey(ctor))
+                bool report_ERR_UnionDeclarationNeedsCaseTypes = true;
+                if (declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList is { } parameterList)
                 {
-                    memberSignatures.Add(ctor, ctor);
+                    // Synthesize Union type constructors
+
+                    var binderFactory = compilation.GetBinderFactory(declaredMembersAndInitializers.DeclarationWithParameters.SyntaxTree);
+                    var signatureBinder = binderFactory.GetBinder(parameterList, declaredMembersAndInitializers.DeclarationWithParameters, this);
+
+                    // Constraints are checked in AfterAddingTypeMembersChecks.
+                    signatureBinder = signatureBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+                    var typesBuilder = ArrayBuilder<TypeSyntax>.GetInstance(parameterList.Parameters.Count);
+
+                    foreach (var parameterSyntax in parameterList.Parameters)
+                    {
+                        report_ERR_UnionDeclarationNeedsCaseTypes = false;
+
+                        if (parameterSyntax.IsArgList)
+                        {
+                            // CS1669: __arglist is not valid in this context
+                            diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, parameterSyntax.Identifier.GetLocation());
+                            continue;
+                        }
+
+                        // PROTOTYPE: Complain for anything but a type syntax in the parameter syntax
+
+                        Debug.Assert(parameterSyntax.Type != null);
+                        typesBuilder.Add(parameterSyntax.Type);
+                    }
+
+                    int memberOffset = members.Count + typesBuilder.Count; // In order to keep the same relative order between constructors during emit we assign offset in decreasing order
+                    foreach (var typeSyntax in typesBuilder)
+                    {
+                        var parameterType = signatureBinder.BindType(typeSyntax, diagnostics, suppressUseSiteDiagnostics: false);
+
+                        // Check that conversion to object is possible
+
+                        var useSiteInfo = signatureBinder.GetNewCompoundUseSiteInfo(diagnostics);
+                        Conversion c = compilation.Conversions.ClassifyImplicitConversionFromType(parameterType.Type, compilation.GetSpecialType(SpecialType.System_Object), ref useSiteInfo);
+                        diagnostics.Add(typeSyntax, useSiteInfo);
+
+                        if ((!c.Exists || !c.IsImplicit || (!c.IsReference && !c.IsBoxing)) && !parameterType.Type.IsErrorType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, typeSyntax, parameterType.Type);
+                        }
+
+                        var ctor = new SynthesizedUnionCtor(this, typeSyntax.Location, parameterType, memberOffset: --memberOffset);
+                        members.Add(ctor);
+                    }
+
+                    Debug.Assert(memberOffset == members.Count - typesBuilder.Count);
+
+                    typesBuilder.Free();
                 }
 
-                if (ctor.ParameterCount != 0)
+                if (report_ERR_UnionDeclarationNeedsCaseTypes)
                 {
-                    // properties and Deconstruct
-                    var existingOrAddedMembers = addProperties(ctor.Parameters);
-                    addDeconstruct(ctor, existingOrAddedMembers);
+                    diagnostics.Add(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, valuePropertySyntax.Identifier.GetLocation());
+                }
+            }
+
+            bool isRecordClass = declaration.Kind == DeclarationKind.Record;
+
+            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion)
+            {
+                // Positional record
+                bool primaryAndCopyCtorAmbiguity = false;
+                if (declaredMembersAndInitializers.PrimaryConstructor is not null)
+                {
+                    Debug.Assert(declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList is object);
+
+                    // primary ctor
+                    var ctor = declaredMembersAndInitializers.PrimaryConstructor;
+                    members.Add(ctor);
+
+                    if (!memberSignatures.ContainsKey(ctor))
+                    {
+                        memberSignatures.Add(ctor, ctor);
+                    }
+
+                    if (ctor.ParameterCount != 0)
+                    {
+                        // properties and Deconstruct
+                        var existingOrAddedMembers = addProperties(ctor.Parameters);
+                        addDeconstruct(ctor, existingOrAddedMembers);
+                    }
+
+                    if (isRecordClass)
+                    {
+                        primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
+                    }
                 }
 
                 if (isRecordClass)
                 {
-                    primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
+                    addCopyCtor(primaryAndCopyCtorAmbiguity, declaredMembersAndInitializers);
+                    addCloneMethod();
                 }
+
+                PropertySymbol? equalityContract = isRecordClass ? addEqualityContract() : null;
+
+                var thisEquals = addThisEquals(equalityContract);
+
+                if (isRecordClass)
+                {
+                    addBaseEquals();
+                }
+
+                addObjectEquals(thisEquals);
+                var getHashCode = addGetHashCode(equalityContract);
+                addEqualityOperators();
+
+                if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
+                {
+                    diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.GetFirstLocation(), declaration.Name);
+                }
+
+                var printMembers = addPrintMembersMethod(membersSoFar);
+                addToStringMethod(printMembers);
+
+                // Synthesizing non-readonly properties in struct would require changing readonly logic for PrintMembers method synthesis
+                Debug.Assert(isRecordClass || !members.Any(m => m is PropertySymbol { GetMethod.IsEffectivelyReadOnly: false }));
             }
-
-            if (isRecordClass)
-            {
-                addCopyCtor(primaryAndCopyCtorAmbiguity, declaredMembersAndInitializers);
-                addCloneMethod();
-            }
-
-            PropertySymbol? equalityContract = isRecordClass ? addEqualityContract() : null;
-
-            var thisEquals = addThisEquals(equalityContract);
-
-            if (isRecordClass)
-            {
-                addBaseEquals();
-            }
-
-            addObjectEquals(thisEquals);
-            var getHashCode = addGetHashCode(equalityContract);
-            addEqualityOperators();
-
-            if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
-            {
-                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.GetFirstLocation(), declaration.Name);
-            }
-
-            var printMembers = addPrintMembersMethod(membersSoFar);
-            addToStringMethod(printMembers);
 
             memberSignatures.Free();
             fieldsByName.Free();
             memberNames.Free();
-
-            // Synthesizing non-readonly properties in struct would require changing readonly logic for PrintMembers method synthesis
-            Debug.Assert(isRecordClass || !members.Any(m => m is PropertySymbol { GetMethod.IsEffectivelyReadOnly: false }));
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -5185,7 +5283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(backingField is object);
                         members.Add(backingField);
 
-                        builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
+                        builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, declaredMembersAndInitializers.DeclarationWithParameters.ParameterList.Parameters[param.Ordinal]));
                         addedCount++;
                     }
                 }
