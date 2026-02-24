@@ -543,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.EnsureSufficientExecutionStack(recursionDepth);
         }
 
+        [DebuggerStepThrough]
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
@@ -596,7 +597,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
-                case BoundKind.AwaitableValuePlaceholder:
                     return;
 
                 case BoundKind.ImplicitIndexerValuePlaceholder:
@@ -3599,14 +3599,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
         {
             DeclareLocals(node.Locals);
-            Visit(node.AwaitOpt);
+            VisitAwaitableInfoForUsing(node.AwaitOpt, node.PatternDisposeInfoOpt);
             return base.VisitUsingStatement(node);
         }
 
         public override BoundNode? VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
-            Visit(node.AwaitOpt);
+            VisitAwaitableInfoForUsing(node.AwaitOpt, node.PatternDisposeInfoOpt);
             return base.VisitUsingLocalDeclarations(node);
+        }
+
+        private void VisitAwaitableInfoForUsing(BoundAwaitableInfo? awaitInfo, MethodArgumentInfo? patternDisposeInfo)
+        {
+            // Placeholder can be null in error scenarios. In such cases, nothing is filled in and errors would
+            // have been reported already. We can just return.
+            if (awaitInfo is not { AwaitableInstancePlaceholder: { } placeholder })
+            {
+                return;
+            }
+
+            VisitResult placeholderResult;
+            if (patternDisposeInfo is not null)
+            {
+                placeholderResult = new VisitResult(GetReturnTypeWithState(patternDisposeInfo.Method), patternDisposeInfo.Method.ReturnTypeWithAnnotations);
+            }
+            else
+            {
+                // IAsyncDisposable.DisposeAsync returns ValueTask, which is a struct; we know it can never be `ValueTask?`, as that is a different
+                // type that would not match the descriptor. Any other scenario either has an error already, or will report an
+                // error during emit when we fail to find IAsyncDisposable.DisposeAsync.
+                placeholderResult = new VisitResult(placeholder.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull);
+            }
+
+            AddPlaceholderReplacement(placeholder, placeholder, placeholderResult);
+            Visit(awaitInfo);
+            RemovePlaceholderReplacement(placeholder);
         }
 
         public override BoundNode? VisitFixedStatement(BoundFixedStatement node)
@@ -12070,23 +12097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Analyze `await DisposeAsync()`
                 if (enumeratorInfoOpt is { NeedsDisposal: true, DisposeAwaitableInfo: BoundAwaitableInfo awaitDisposalInfo })
                 {
-                    var disposalPlaceholder = awaitDisposalInfo.AwaitableInstancePlaceholder;
-                    bool addedPlaceholder = false;
-                    if (enumeratorInfoOpt.PatternDisposeInfo is { Method: var originalDisposeMethod }) // no statically known Dispose method if doing a runtime check
-                    {
-                        Debug.Assert(disposalPlaceholder is not null);
-                        var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, originalDisposeMethod);
-                        var result = new VisitResult(GetReturnTypeWithState(disposeAsyncMethod), disposeAsyncMethod.ReturnTypeWithAnnotations);
-                        AddPlaceholderReplacement(disposalPlaceholder, disposalPlaceholder, result);
-                        addedPlaceholder = true;
-                    }
-
-                    Visit(awaitDisposalInfo);
-
-                    if (addedPlaceholder)
-                    {
-                        RemovePlaceholderReplacement(disposalPlaceholder!);
-                    }
+                    VisitAwaitableInfoForUsing(awaitDisposalInfo, enumeratorInfoOpt.PatternDisposeInfo);
                 }
             }
 
@@ -13213,8 +13224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
-            // These placeholders don't always follow proper placeholder discipline yet
-            AssertPlaceholderAllowedWithoutRegistration(node);
             VisitPlaceholderWithReplacement(node);
             return null;
         }
