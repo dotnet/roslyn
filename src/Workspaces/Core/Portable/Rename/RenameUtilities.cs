@@ -337,9 +337,24 @@ internal static class RenameUtilities
     public static async Task<ISymbol?> TryGetRenamableSymbolAsync(
         Document document, int position, CancellationToken cancellationToken)
     {
-        var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(
+            semanticModel, position, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
+
+        var symbol = semanticInfo.GetAnySymbol(includeType: false);
+
         if (symbol == null)
             return null;
+
+        // For conversion operators, GetSemanticInfo returns the conversion operator as DeclaredSymbol when the
+        // position is on the return type (since the operator's location is set to the return type location).
+        // But for rename, we want to rename the type, not the operator. Check if we have a conversion operator
+        // as the declared symbol AND we have a type in the referenced symbols - if so, prefer the type.
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion } &&
+            semanticInfo.ReferencedSymbols.FirstOrDefault() is INamedTypeSymbol referencedType)
+        {
+            symbol = referencedType;
+        }
 
         var definitionSymbol = await FindDefinitionSymbolAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(definitionSymbol);

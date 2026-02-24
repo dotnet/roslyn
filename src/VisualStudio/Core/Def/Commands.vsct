@@ -576,6 +576,17 @@
           <ToolTipText>Sort By Type</ToolTipText>
         </Strings>
       </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidShowInheritanceMargin" priority="0x0105" type="Button">
+        <Parent guid="guidEditorCommandSet" id="LeftMarginContextMenuMarginListGroup"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Show Inheritance</ButtonText>
+          <CanonicalName>Show Inheritance</CanonicalName>
+          <LocCanonicalName>Show Inheritance</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -807,6 +818,7 @@
       <IDSymbol name="cmdidRemoveUnusedReferences"    value="0x0202" />
       <IDSymbol name="cmdidshowValueTracking"         value="0x0203" />
       <IDSymbol name="cmdidSyncNamespaces"            value="0x0204" />
+      <IDSymbol name="cmdidShowInheritanceMargin"     value="0x0205" />
 
       <IDSymbol name="cmdidDocumentOutlineToolbar" value="0x300" />
       <IDSymbol name="cmdidDocumentOutlineExpandAll" value="0x311"/>
@@ -847,6 +859,11 @@
       <IDSymbol name="cmdIdClearStackTraceExplorer" value="0x0102" />
       <IDSymbol name="StackTraceExplorerContextMenuGrp" value="0x0200" />
       <IDSymbol name="StackTraceExplorerContextMenu" value="0x0300" />
+    </GuidSymbol>
+
+    <!-- From Microsoft.VisualStudio.Editor.EditorConstants -->
+    <GuidSymbol name="guidEditorCommandSet" value="{160961B3-909D-4B28-9353-A1BEF587B4A6}">
+      <IDSymbol name="LeftMarginContextMenuMarginListGroup" value="0x0068" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

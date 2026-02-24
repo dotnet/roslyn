@@ -20,13 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We do this to ensure that expression lambdas and expression-bodied
             // properties have sequence points.
             // We also add sequence points for the implicit "return" statement at the end of the method body
-            // (added by FlowAnalysisPass.AppendImplicitReturn). Implicitly added return for async method 
-            // does not need sequence points added here since it would be done later (presumably during Async rewrite).
+            // (added by FlowAnalysisPass.AppendImplicitReturn). Implicitly added return for async method
+            // does not need sequence points added here since it would be done later (presumably during Async rewrite),
+            // except in runtime async where the method body is emitted directly.
+            var currentFunction = _factory.CurrentFunction;
+            var isRuntimeAsync = currentFunction is not null && _compilation.IsRuntimeAsyncEnabledIn(currentFunction);
             if (this.Instrument &&
                 (!node.WasCompilerGenerated ||
                  (node.ExpressionOpt != null ?
                         IsLambdaOrExpressionBodiedMember :
-                        (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false))))
+                        (node.Syntax.Kind() == SyntaxKind.Block && (currentFunction?.IsAsync == false || isRuntimeAsync)))))
             {
                 rewritten = Instrumenter.InstrumentReturnStatement(node, rewritten);
             }

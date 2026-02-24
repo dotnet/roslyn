@@ -48,9 +48,6 @@
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
 
     <EnforceCodeStyleInBuild Condition="'$(EnforceCodeStyleInBuild)' == '' AND '$(RoslynCheckCodeStyle)' == 'true'">true</EnforceCodeStyleInBuild>
-
-    <!--https://github.com/dotnet/sdk/issues/37826 -->
-    <MSBuildWarningsAsMessages Condition="'$(OutputType)' == 'Library'">$(MSBuildWarningsAsMessages);NETSDK1206</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <!--
@@ -210,16 +207,6 @@
       <Content Include="@(_RoslynReferenceContent)" Link="dependency\%(_RoslynReferenceContent.Filename)%(_RoslynReferenceContent.Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
-
-  <!-- 
-    Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
-    https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
-    isn't fully supported yet in the new project system. Removal of this hack is tracked
-    by https://github.com/dotnet/roslyn/issues/19545. 
-  -->
-  <ItemGroup>
-    <AdditionalFiles Include="@(PublicAPI)" />
-  </ItemGroup>
 
   <ItemGroup>
     <!-- Include BannedSymbols covering all product projects -->

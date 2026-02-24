@@ -165,8 +165,8 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddRudeEdit(RudeEditKind.ChangingConstraints, nameof(FeaturesResources.Changing_constraints_of_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangeImplicitMainReturnType, nameof(FeaturesResources.An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.RenamingNotSupportedByRuntime, nameof(FeaturesResources.Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
-        AddRudeEdit(RudeEditKind.ChangingNonCustomAttribute, nameof(FeaturesResources.Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application));
-        AddRudeEdit(RudeEditKind.ChangingNamespace, nameof(FeaturesResources.Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application));
+        AddRudeEdit(RudeEditKind.ChangingNonCustomAttribute, nameof(FeaturesResources.Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application));
+        AddRudeEdit(RudeEditKind.ChangingNamespace, nameof(FeaturesResources.Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangingSignatureNotSupportedByRuntime, nameof(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
         AddRudeEdit(RudeEditKind.DeleteNotSupportedByRuntime, nameof(FeaturesResources.Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
         AddRudeEdit(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, nameof(FeaturesResources.Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
@@ -197,7 +197,8 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddGeneralDiagnostic(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee, nameof(FeaturesResources.DocumentIsOutOfSyncWithDebuggee), DiagnosticSeverity.Warning);
         AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb));
         AddGeneralDiagnostic(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired, nameof(FeaturesResources.ChangesRequiredSynthesizedType));
-        AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning, noEffect: true);
+        AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2), DiagnosticSeverity.Warning, noEffect: true);
+        AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingUnsupportedProject, nameof(FeaturesResources.Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2));
 
         // Project setting rude edits. Defines a distinct error code per setting to simplify telemetry tracking even though some errors share the same message.
 

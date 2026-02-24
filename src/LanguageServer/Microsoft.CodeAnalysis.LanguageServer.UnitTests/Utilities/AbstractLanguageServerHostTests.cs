@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Nerdbank.Streams;
+using System.IO.Pipelines;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 using Xunit.Abstractions;
@@ -41,6 +41,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     {
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
+        private readonly Pipe _clientToServerPipe;
+        private readonly Pipe _serverToClientPipe;
 
         internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILoggerFactory loggerFactory, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
         {
@@ -65,11 +67,18 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         {
             var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, loggerFactory, typeRefResolver);
+            _clientToServerPipe = new Pipe();
+            _serverToClientPipe = new Pipe();
+
+            var serverInputStream = _clientToServerPipe.Reader.AsStream();
+            var serverOutputStream = _serverToClientPipe.Writer.AsStream();
+            var clientOutputStream = _clientToServerPipe.Writer.AsStream();
+            var clientInputStream = _serverToClientPipe.Reader.AsStream();
+
+            LanguageServerHost = new LanguageServerHost(serverInputStream, serverOutputStream, exportProvider, loggerFactory, typeRefResolver);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter))
+            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientOutputStream, clientInputStream, messageFormatter))
             {
                 AllowModificationWhileListening = true,
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
@@ -84,6 +93,11 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             _languageServerHostCompletionTask = LanguageServerHost.WaitForExitAsync();
             ExportProvider = exportProvider;
         }
+
+        public Task ServerExitTask => _languageServerHostCompletionTask;
+
+        public Pipe ClientToServerPipe => _clientToServerPipe;
+        public Pipe ServerToClientPipe => _serverToClientPipe;
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {

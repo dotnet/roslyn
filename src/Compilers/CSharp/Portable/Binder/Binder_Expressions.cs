@@ -6136,7 +6136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (handlerPlaceholders.Any(static placeholder => placeholder.ArgumentIndex is BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
-                                    hasErrors = true;
                                 }
                             }
                         }
