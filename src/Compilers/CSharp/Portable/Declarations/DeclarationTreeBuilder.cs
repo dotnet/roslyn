@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.Submission or
                 DeclarationKind.ImplicitClass or
                 DeclarationKind.Record or
-                DeclarationKind.RecordStruct or
+                DeclarationKind.RecordStruct => true,
                 DeclarationKind.Extension => true,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind)
