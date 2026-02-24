@@ -10992,5 +10992,79 @@ public class MyTask
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 9)
             );
         }
+
+        [Theory]
+        [InlineData("Task")]
+        [InlineData("ValueTask")]
+        public void RuntimeAsyncAwaitNullableFlow_WithTaskReturningMethod(string taskType)
+        {
+            var source = $$"""
+                using System.Threading.Tasks;
+
+                #nullable enable
+
+                _ = (await GetNullableResultAsync()).ToString();
+                _ = (await GetNullableResultAsync().ConfigureAwait(true)).ToString();
+                var x = await GetNullableResultAsync();
+                _ = x.ToString(); // 1
+                x = await GetNullableResultAsync().ConfigureAwait(false);
+                _ = x.ToString(); // 2
+
+                {{taskType}}<string?> GetNullableResultAsync() => default!;
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,6): warning CS8602: Dereference of a possibly null reference.
+                // _ = (await GetNullableResultAsync()).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await GetNullableResultAsync()").WithLocation(5, 6),
+                // (6,6): warning CS8602: Dereference of a possibly null reference.
+                // _ = (await GetNullableResultAsync().ConfigureAwait(true)).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await GetNullableResultAsync().ConfigureAwait(true)").WithLocation(6, 6),
+                // (8,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 5),
+                // (10,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 5)
+            );
+        }
+
+        [Fact]
+        public void RuntimeAsyncAwaitNullableFlow_WithTaskLikeReturningMethod()
+        {
+            var source = """
+                #nullable enable
+
+                _ = (await GetNullableResultTaskLike()).ToString();
+                var x = await GetNullableResultTaskLike();
+                _ = x.ToString();
+
+                MyTask GetNullableResultTaskLike() => throw null!;
+
+                public class MyTask
+                {
+                    public MyAwaiter GetAwaiter() => throw null!;
+                }
+
+                public class MyAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted => false;
+                    public string? GetResult() => null;
+                    public void OnCompleted(System.Action continuation) { }
+                    public void UnsafeOnCompleted(System.Action continuation) { }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,6): warning CS8602: Dereference of a possibly null reference.
+                // _ = (await GetNullableResultTaskLike()).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await GetNullableResultTaskLike()").WithLocation(3, 6),
+                // (5,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 5)
+            );
+        }
     }
 }

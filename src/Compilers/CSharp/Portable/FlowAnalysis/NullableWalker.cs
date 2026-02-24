@@ -12583,7 +12583,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(awaitableInfo);
             RemovePlaceholderReplacement(placeholder);
 
-            if (node.Type.IsValueType || node.HasErrors || awaitableInfo.GetResult is null)
+            if (awaitableInfo is { GetResult: null, RuntimeAsyncAwaitCall: not null })
+            {
+                // This is AsyncHelpers.Await. We can directly use `_visitResult`
+                SetResult(node, _visitResult, updateAnalyzedNullability: true, isLvalue: false);
+            }
+            else if (node.Type.IsValueType || node.HasErrors || awaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
             }
