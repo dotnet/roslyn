@@ -462,7 +462,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
-        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
+        <target state="translated">La modification de l’attribut pseudo-personnalisé « {0} » de {1} requiert le redémarrage de l’application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2">
@@ -477,7 +477,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
-        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
+        <target state="translated">La modification de l’espace de noms conteneur de '{0}' de '{1}' en '{2}' nécessite le redémarrage de l’application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
