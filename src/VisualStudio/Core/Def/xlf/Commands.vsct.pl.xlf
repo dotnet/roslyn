@@ -589,12 +589,12 @@
       </trans-unit>
       <trans-unit id="cmdidShowInheritanceMargin|ButtonText">
         <source>Show Inheritance</source>
-        <target state="new">Show Inheritance</target>
+        <target state="translated">Pokaż dziedziczenie</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowInheritanceMargin|LocCanonicalName">
         <source>Show Inheritance</source>
-        <target state="new">Show Inheritance</target>
+        <target state="translated">Pokaż dziedziczenie</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">

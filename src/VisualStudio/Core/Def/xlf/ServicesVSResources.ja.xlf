@@ -574,7 +574,7 @@
       </trans-unit>
       <trans-unit id="Include_Roslyn_source_generated_files">
         <source>Include Roslyn source-generated files</source>
-        <target state="new">Include Roslyn source-generated files</target>
+        <target state="translated">Roslyn ソース生成ファイルを含める</target>
         <note>Used in the unified settings registration for real-time test discovery</note>
       </trans-unit>
       <trans-unit id="Include_global_imports">
@@ -1369,7 +1369,7 @@
       </trans-unit>
       <trans-unit id="Show_Inheritance">
         <source>Show Inheritance</source>
-        <target state="new">Show Inheritance</target>
+        <target state="translated">継承を表示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
