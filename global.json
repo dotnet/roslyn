@@ -1,11 +1,11 @@
 {
   "sdk": {
-    "version": "10.0.100",
+    "version": "10.0.102",
     "allowPrerelease": false,
     "rollForward": "patch"
   },
   "tools": {
-    "dotnet": "10.0.100",
+    "dotnet": "10.0.102",
     "vs": {
       "version": "17.14.0"
     },

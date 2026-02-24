@@ -355,48 +355,48 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         if (Set(ref _isReplacementTextValid, result.ReplacementTextValid, "IsReplacementTextValid"))
         {
             NotifyPropertyChanged(nameof(AllowFileRename));
-
-            if (!_isReplacementTextValid && !string.IsNullOrEmpty(IdentifierText))
-            {
-                StatusText = EditorFeaturesResources.The_new_name_is_not_a_valid_identifier;
-                StatusSeverity = Severity.Error;
-                return;
-            }
-
-            var resolvableConflicts = 0;
-            var unresolvedConflicts = 0;
-            foreach (var replacementKind in result.GetAllReplacementKinds())
-            {
-                switch (replacementKind)
-                {
-                    case InlineRenameReplacementKind.UnresolvedConflict:
-                        unresolvedConflicts++;
-                        break;
-
-                    case InlineRenameReplacementKind.ResolvedReferenceConflict:
-                    case InlineRenameReplacementKind.ResolvedNonReferenceConflict:
-                        resolvableConflicts++;
-                        break;
-                }
-            }
-
-            if (unresolvedConflicts > 0)
-            {
-                StatusText = string.Format(EditorFeaturesResources._0_unresolvable_conflict_s, unresolvedConflicts);
-                StatusSeverity = Severity.Error;
-                return;
-            }
-
-            if (resolvableConflicts > 0)
-            {
-                StatusText = string.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, resolvableConflicts);
-                StatusSeverity = Severity.Warning;
-                return;
-            }
-
-            StatusText = null;
-            StatusSeverity = Severity.None;
         }
+
+        if (!_isReplacementTextValid && !string.IsNullOrEmpty(IdentifierText))
+        {
+            StatusText = EditorFeaturesResources.The_new_name_is_not_a_valid_identifier;
+            StatusSeverity = Severity.Error;
+            return;
+        }
+
+        var resolvableConflicts = 0;
+        var unresolvedConflicts = 0;
+        foreach (var replacementKind in result.GetAllReplacementKinds())
+        {
+            switch (replacementKind)
+            {
+                case InlineRenameReplacementKind.UnresolvedConflict:
+                    unresolvedConflicts++;
+                    break;
+
+                case InlineRenameReplacementKind.ResolvedReferenceConflict:
+                case InlineRenameReplacementKind.ResolvedNonReferenceConflict:
+                    resolvableConflicts++;
+                    break;
+            }
+        }
+
+        if (unresolvedConflicts > 0)
+        {
+            StatusText = string.Format(EditorFeaturesResources._0_unresolvable_conflict_s, unresolvedConflicts);
+            StatusSeverity = Severity.Error;
+            return;
+        }
+
+        if (resolvableConflicts > 0)
+        {
+            StatusText = string.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, resolvableConflicts);
+            StatusSeverity = Severity.Warning;
+            return;
+        }
+
+        StatusText = null;
+        StatusSeverity = Severity.None;
     }
 
     private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)

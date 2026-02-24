@@ -145,7 +145,7 @@ internal sealed class DocCommentCodeBlockClassifier(SolutionServices solutionSer
             var ch = virtualCharsBuilder[i++];
 
             // Skip the immediately following space after the `///` to make the highlighted code look cleaner and stand
-            // out better from teh rest of the doc comment.
+            // out better from the rest of the doc comment.
             if (ch == ' ' && skipFirstSpace)
             {
                 skipFirstSpace = false;

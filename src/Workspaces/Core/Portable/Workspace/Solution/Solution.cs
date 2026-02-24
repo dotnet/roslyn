@@ -62,8 +62,7 @@ public partial class Solution
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
             new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
-            workspace.PartialSemanticsEnabled,
-            workspace.GeneratorDriverCreationCache))
+            workspace.PartialSemanticsEnabled))
     {
     }
 

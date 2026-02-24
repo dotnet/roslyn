@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' e.g. `WriteLine(SomeMethod)` is equivalent to `WriteLine(SomeMethod())`.  So infer the return
             ' type of 'SomeMethod' here, not a delegate type for it.
             '
-            ' Note: this does not apply if teh user wrote `WriteLine(AddressOf SomeMethod)` of course.
+            ' Note: this does not apply if the user wrote `WriteLine(AddressOf SomeMethod)` of course.
             If expression IsNot Nothing Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken)
                 Dim methodSymbol = TryCast(symbolInfo.GetAnySymbol(), IMethodSymbol)

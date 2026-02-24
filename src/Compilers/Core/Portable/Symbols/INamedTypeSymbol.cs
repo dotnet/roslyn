@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis
         ISymbol? AssociatedSymbol { get; }
 
         /// <summary>
-        /// Determines if the symbol might contain extension methods. 
-        /// If false, the symbol does not contain extension methods. 
+        /// Determines if the symbol might contain extension members or methods. 
+        /// If false, the symbol does not contain extension members or methods. 
         /// </summary>
         bool MightContainExtensionMethods { get; }
 

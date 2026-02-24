@@ -31,7 +31,9 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
 
     private static void CheckStorageKeyAndType(string storageKey, [NotNull] Type? storageType)
     {
-        Contract.ThrowIfFalse(storageKey.StartsWith("languages"), "Need to update SubscribeToChanges in constructor to listen to changes to this key");
+        // HACK: We don't need to listen to changes to test.includeSourceGeneratedFilesInRealTimeDiscovery because we require a restart anyways, so just ignore it rather than
+        // worrying that we're watching it.
+        Contract.ThrowIfFalse(storageKey.StartsWith("languages") || storageKey == "test.includeSourceGeneratedFilesInRealTimeDiscovery", "Need to update SubscribeToChanges in constructor to listen to changes to this key");
 
         // Currently, these are the only types we expect.  This can be augmented in the future if we need to serialize
         // more kinds to unified settings backend.

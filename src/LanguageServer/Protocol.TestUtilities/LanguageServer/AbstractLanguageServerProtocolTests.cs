@@ -674,7 +674,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         protected virtual RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
         {
-            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
             var factory = TestWorkspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
             var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
@@ -683,7 +682,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
-            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, capabilitiesProvider, serverKind, logger, TestWorkspace.Services.HostServices);
+            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, logger, TestWorkspace.Services.HostServices);
 
             jsonRpc.StartListening();
             return languageServer;
@@ -824,6 +823,15 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             var didCloseParams = CreateDidCloseTextDocumentParams(documentUri);
             return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName, didCloseParams, CancellationToken.None);
+        }
+
+        public async Task RefreshSourceGeneratorsAsync(bool forceRegeneration)
+        {
+            var refreshSourceGeneratorsParams = new RefreshSourceGeneratorsParams(forceRegeneration);
+
+            // The refresh command should trigger source generators to run in both automatic and balanced mode.
+            await this.ExecuteRequestAsync<RefreshSourceGeneratorsParams, object>(WorkspaceRefreshSourceGeneratorsHandler.MethodName, refreshSourceGeneratorsParams, CancellationToken.None);
+            await this.WaitForSourceGeneratorsAsync();
         }
 
         public async Task ShutdownTestServerAsync()
