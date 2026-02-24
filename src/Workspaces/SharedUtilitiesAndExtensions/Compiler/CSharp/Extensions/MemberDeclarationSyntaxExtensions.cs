@@ -80,6 +80,9 @@ internal static partial class MemberDeclarationSyntaxExtensions
                 case SyntaxKind.ClassDeclaration:
 #if !ROSLYN_4_12_OR_LOWER
                 case SyntaxKind.ExtensionBlockDeclaration:
+#endif
+#if !ROSLYN_5_5_OR_LOWER
+                // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
                 case SyntaxKind.UnionDeclaration:
 #endif
                 case SyntaxKind.InterfaceDeclaration:
@@ -108,6 +111,9 @@ internal static partial class MemberDeclarationSyntaxExtensions
                 case SyntaxKind.ClassDeclaration:
 #if !ROSLYN_4_12_OR_LOWER
                 case SyntaxKind.ExtensionBlockDeclaration:
+#endif
+#if !ROSLYN_5_5_OR_LOWER
+                // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
                 case SyntaxKind.UnionDeclaration:
 #endif
                 case SyntaxKind.InterfaceDeclaration:

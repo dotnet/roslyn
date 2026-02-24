@@ -2727,5 +2727,58 @@ union Pet([|$$Dog|], Cat) { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_NonDependentProject(kind As TestKind, host As TestHost) As Task
+            ' Union defined in one project, referenced by name in a non-dependent project.
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+public union {|Definition:$$Pet|}(Dog, Cat) { }
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class C
+{
+    private Pet p;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_InDependentProject(kind As TestKind, host As TestHost) As Task
+            ' Union defined in one project, used in a dependent project via ProjectReference.
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+public union {|Definition:$$Pet|}(Dog, Cat) { }
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true" LanguageVersion="preview">
+        <ProjectReference>CSharpAssembly1</ProjectReference>
+        <Document><![CDATA[
+class C
+{
+    private [|Pet|] p;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
     End Class
 End Namespace

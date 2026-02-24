@@ -215,6 +215,7 @@ internal abstract partial class AbstractNavigateToSearchService
             case DeclaredSymbolInfoKind.Property:
                 return NavigateToItemKind.Property;
             case DeclaredSymbolInfoKind.Struct:
+            case DeclaredSymbolInfoKind.Union:
                 return NavigateToItemKind.Structure;
             case DeclaredSymbolInfoKind.Operator:
                 return NavigateToItemKind.OtherSymbol;
@@ -307,6 +308,7 @@ internal abstract partial class AbstractNavigateToSearchService
                     case NavigateToItemKind.Structure:
                         lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
                         lookupTable[(int)DeclaredSymbolInfoKind.RecordStruct] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.Union] = true;
                         break;
 
                     default:

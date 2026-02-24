@@ -94,6 +94,28 @@ public sealed class NavigateToTests : AbstractNavigateToTests
     }
 
     [Theory, CombinatorialData]
+    public async Task FindUnion(TestHost testHost, Composition composition)
+    {
+        // Exercises the full NavigateTo pipeline for union declarations
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            union Goo(int)
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
+        });
+    }
+
+    [Theory, CombinatorialData]
     public async Task FindClassInFileScopedNamespace(TestHost testHost, Composition composition)
     {
         var content = XElement.Parse("""
