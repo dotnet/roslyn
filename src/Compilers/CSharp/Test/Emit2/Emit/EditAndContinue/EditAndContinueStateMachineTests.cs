@@ -2670,7 +2670,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void UpdateAsync_Await_Remove_TryBlock()
         {
             var source0 = MarkedSource(@"
