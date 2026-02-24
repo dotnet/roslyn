@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                if (this.MightContainExtensionMethods)
+                if (this.MightContainExtensions)
                 {
                     this.PrimaryModule.LoadCustomAttributesFilterExtensions(_assembly.Handle,
                         ref _lazyCustomAttributes);
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {

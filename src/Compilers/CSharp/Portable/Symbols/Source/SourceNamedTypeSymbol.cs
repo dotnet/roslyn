@@ -1712,7 +1712,7 @@ next:;
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            if (this.ContainsExtensionMethods)
+            if (this.ContainsExtensions)
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
