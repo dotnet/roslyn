@@ -9461,7 +9461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arity, lookupOptions, originalBinder: binder);
 
                 ArrayBuilder<PropertySymbol>? filteredCandidates = null;
-                filterIntIndexerCandidates(candidates, ref filteredCandidates, binder, syntax, diagnostics, arity, lookupOptions, ref useSiteInfo);
+                filterIntIndexerCandidates(candidates, ref filteredCandidates, binder, arity, lookupOptions, ref useSiteInfo);
                 candidates.Free();
 
                 if (filteredCandidates is null || filteredCandidates.Count() == 0)
@@ -9536,7 +9536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arity, lookupOptions, originalBinder: binder);
 
                 ArrayBuilder<MethodSymbol>? filteredCandidates = null;
-                filterSliceCandidates(candidates, ref filteredCandidates, binder, syntax, diagnostics, arity, lookupOptions, ref useSiteInfo);
+                filterSliceCandidates(candidates, ref filteredCandidates, binder, arity, lookupOptions, ref useSiteInfo);
                 candidates.Free();
 
                 if (filteredCandidates is null || filteredCandidates.Count() == 0)
@@ -9555,7 +9555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             static void filterIntIndexerCandidates(ArrayBuilder<Symbol> candidates, ref ArrayBuilder<PropertySymbol>? filteredCandidates,
-                Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics, int arity, LookupOptions lookupOptions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                Binder binder, int arity, LookupOptions lookupOptions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 foreach (var candidate in candidates)
                 {
@@ -9571,7 +9571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             static void filterSliceCandidates(ArrayBuilder<Symbol> candidates, ref ArrayBuilder<MethodSymbol>? filteredCandidates,
-                Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics, int arity, LookupOptions lookupOptions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                Binder binder, int arity, LookupOptions lookupOptions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 foreach (var candidate in candidates)
                 {
