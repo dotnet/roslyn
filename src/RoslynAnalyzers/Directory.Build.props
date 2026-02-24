@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
+    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER,ROSLYN_5_5_OR_LOWER</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -36,6 +36,7 @@ internal enum DeclaredSymbolInfoKind : byte
     Record,
     RecordStruct,
     Struct,
+    Union,
 }
 
 [DataContract]
