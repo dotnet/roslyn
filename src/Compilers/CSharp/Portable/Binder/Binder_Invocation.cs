@@ -1324,7 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                gotError = ReportUnsafeIfNotAllowed(node, diagnostics) || gotError;
+                gotError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) || gotError;
             }
 
             bool hasBaseReceiver = receiver != null && receiver.Kind == BoundKind.BaseReference;

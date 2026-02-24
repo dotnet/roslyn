@@ -771,7 +771,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementation.GetFirstLocation());
             }
 
-            // PROTOTYPE: Update and test this for unsafe evolution.
             if (IsDeclaredUnsafe != implementation.IsDeclaredUnsafe && this.CompilationAllowsUnsafe()) // Don't cascade.
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
