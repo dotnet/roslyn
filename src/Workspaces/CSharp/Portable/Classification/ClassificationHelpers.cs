@@ -296,6 +296,7 @@ internal static class ClassificationHelpers
             SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
             SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
             SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+            SyntaxKind.UnionDeclaration => ClassificationTypeNames.StructName,
             _ => null
         };
 
@@ -342,6 +343,7 @@ internal static class ClassificationHelpers
             SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
             SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
             SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+            SyntaxKind.UnionDeclaration => ClassificationTypeNames.StructName,
             SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
             SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
             SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
