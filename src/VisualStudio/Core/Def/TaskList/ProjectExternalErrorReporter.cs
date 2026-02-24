@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -211,7 +212,7 @@ internal sealed class ProjectExternalErrorReporter(
             return;
         }
 
-        Task.Run(() => ReportErrorAsync());
+        Task.Run(() => ReportErrorAsync()).Forget();
 
         async Task ReportErrorAsync()
         {
