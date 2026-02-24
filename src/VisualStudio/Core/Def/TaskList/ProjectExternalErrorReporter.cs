@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -210,58 +211,68 @@ internal sealed class ProjectExternalErrorReporter(
             return;
         }
 
-        if (!bstrErrorId.StartsWith(_errorCodePrefix))
-            return;
+        Task.Run(() => ReportErrorAsync());
 
-        if ((iEndLine >= 0 && iEndColumn >= 0) &&
-           ((iEndLine < iStartLine) ||
-            (iEndLine == iStartLine && iEndColumn < iStartColumn)))
+        async Task ReportErrorAsync()
         {
-            throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
+
+            if (!bstrErrorId.StartsWith(_errorCodePrefix) &&
+                !await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
+                    _projectId, bstrErrorId, CancellationToken.None).ConfigureAwait(false))
+            {
+                return;
+            }
+
+            if ((iEndLine >= 0 && iEndColumn >= 0) &&
+               ((iEndLine < iStartLine) ||
+                (iEndLine == iStartLine && iEndColumn < iStartColumn)))
+            {
+                throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
+            }
+
+            var severity = nPriority switch
+            {
+                VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
+                VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
+                VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
+                _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
+            };
+
+            DocumentId? documentId;
+            if (iStartLine < 0 || iStartColumn < 0)
+            {
+                documentId = null;
+                iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
+            }
+            else
+            {
+                documentId = TryGetDocumentId(bstrFileName);
+            }
+
+            if (iEndLine < 0)
+                iEndLine = iStartLine;
+            if (iEndColumn < 0)
+                iEndColumn = iStartColumn;
+
+            var solution = _workspace.CurrentSolution;
+            var project = solution.GetProject(_projectId);
+            if (project is null)
+                return;
+
+            var diagnostic = GetDiagnosticData(
+                project,
+                documentId,
+                bstrErrorId,
+                bstrErrorMessage,
+                severity,
+                _language,
+                new FileLinePositionSpan(
+                    bstrFileName,
+                    new LinePosition(iStartLine, iStartColumn),
+                    new LinePosition(iEndLine, iEndColumn)));
+
+            DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
         }
-
-        var severity = nPriority switch
-        {
-            VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
-            VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
-            VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
-            _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
-        };
-
-        DocumentId? documentId;
-        if (iStartLine < 0 || iStartColumn < 0)
-        {
-            documentId = null;
-            iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
-        }
-        else
-        {
-            documentId = TryGetDocumentId(bstrFileName);
-        }
-
-        if (iEndLine < 0)
-            iEndLine = iStartLine;
-        if (iEndColumn < 0)
-            iEndColumn = iStartColumn;
-
-        var solution = _workspace.CurrentSolution;
-        var project = solution.GetProject(_projectId);
-        if (project is null)
-            return;
-
-        var diagnostic = GetDiagnosticData(
-            project,
-            documentId,
-            bstrErrorId,
-            bstrErrorMessage,
-            severity,
-            _language,
-            new FileLinePositionSpan(
-                bstrFileName,
-                new LinePosition(iStartLine, iStartColumn),
-                new LinePosition(iEndLine, iEndColumn)));
-
-        DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
     }
 
     private static DiagnosticData GetDiagnosticData(
