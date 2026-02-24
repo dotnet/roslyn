@@ -8996,19 +8996,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private MethodGroupResolution ResolveExtensionMethods(
+        private MethodGroupResolution ResolveExtensionMethods<TSymbol>(
             SyntaxNode expression,
             BoundExpression left,
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             TypeSymbol? returnType,
             RefKind returnRefKind,
-            IEnumerable<Symbol> candidates,
+            ArrayBuilder<TSymbol> candidates,
             LookupResultKind resultKind,
             AnalyzedArguments? analyzedArguments,
             ref AnalyzedArguments? actualMethodArguments,
             OverloadResolution.Options options,
             in CallingConventionInfo callingConvention,
             BindingDiagnosticBag diagnostics)
+            where TSymbol : Symbol
         {
             var methodGroup = MethodGroup.GetInstance();
             methodGroup.PopulateWithExtensionMethods(left, candidates, typeArgumentsWithAnnotations, resultKind);
@@ -9112,11 +9113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private IndexOrRangeArgKind GetIndexOrRangeArgKind(AnalyzedArguments arguments)
         {
-            if (arguments.Arguments.Count != 1)
-            {
-                return IndexOrRangeArgKind.None;
-            }
-
             if (arguments.Arguments is not [{ Type: TypeSymbol argType }])
             {
                 return IndexOrRangeArgKind.None;
@@ -9321,7 +9317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
                     Debug.Assert(lengthOrCountProperty.ContainingType.ExtensionParameter is not null);
-                    var lengthOrCountAccess = binder.GetExtensionMemberAccess(syntax, receiver, lengthOrCountProperty, diagnostics).MakeCompilerGenerated(); ;
+                    var lengthOrCountAccess = binder.GetExtensionMemberAccess(syntax, receiver, lengthOrCountProperty, diagnostics).MakeCompilerGenerated();
                     lengthOrCountAccess = binder.CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
 
                     indexerAccess = binder.MakeImplicitIndexerAccess(syntax, receiver, arguments, receiverPlaceholder,
@@ -9464,7 +9460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 filterIntIndexerCandidates(candidates, ref filteredCandidates, binder, arity, lookupOptions, ref useSiteInfo);
                 candidates.Free();
 
-                if (filteredCandidates is null || filteredCandidates.Count() == 0)
+                if (filteredCandidates is null || filteredCandidates.Count == 0)
                 {
                     filteredCandidates?.Free();
                     indexerOrSliceAccess = null;
@@ -9536,7 +9532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 filterSliceCandidates(candidates, ref filteredCandidates, binder, arity, lookupOptions, ref useSiteInfo);
                 candidates.Free();
 
-                if (filteredCandidates is null || filteredCandidates.Count() == 0)
+                if (filteredCandidates is null || filteredCandidates.Count == 0)
                 {
                     filteredCandidates?.Free();
                     indexerOrSliceAccess = null;
@@ -9544,9 +9540,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                binder.BindSliceCall(syntax, receiver, filteredCandidates.ToImmutableAndFree(), isExtension: true, diagnostics,
+                binder.BindSliceCall(syntax, receiver, filteredCandidates, isExtension: true, diagnostics,
                     ref analyzedArguments, ref actualExtensionArguments, out indexerOrSliceAccess, out argumentPlaceholders);
 
+                filteredCandidates.Free();
                 diagnostics.Add(syntax, useSiteInfo);
                 return !indexerOrSliceAccess.HasErrors;
             }
@@ -10717,7 +10714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerGroup.Add((PropertySymbol)symbol);
                 }
 
-                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, considerExtensions: true, diagnostics);
+                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, considerFallbacks: true, diagnostics);
                 indexerGroup.Free();
             }
 
@@ -10783,7 +10780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // converting the ArrayBuilder to ImmutableArray. Avoid the extra copy.
             var properties = ArrayBuilder<PropertySymbol>.GetInstance();
             properties.AddRange(propertyGroup);
-            var result = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, considerExtensions: false, diagnostics);
+            var result = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, considerFallbacks: false, diagnostics);
             properties.Free();
             return result;
         }
@@ -10838,7 +10835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver,
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
-            bool considerExtensions,
+            bool considerFallbacks, // Whether implicit indexers or extension indexers should be considered
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver is not null);
@@ -10868,7 +10865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDynamicIndexer(syntax, receiver, analyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics);
             }
 
-            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, considerExtensions, diagnostics);
+            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, considerFallbacks, diagnostics);
         }
 
         private BoundExpression BindIndexerOrIndexedPropertyAccessContinued(
@@ -10877,7 +10874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult,
-            bool considerExtension,
+            bool considerFallbacks,
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression propertyAccess;
@@ -10885,7 +10882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             if (!overloadResolutionResult.Succeeded)
             {
-                if (considerExtension)
+                if (considerFallbacks)
                 {
                     if (TryBindNonExtensionImplicitIndexer(syntax, receiver, analyzedArguments, diagnostics, out var fallbackIndexerAccess)
                         || TryBindExtensionIndexer(syntax, receiver, analyzedArguments, diagnostics, out fallbackIndexerAccess))
@@ -11154,7 +11151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 analyzedArguments.Arguments.Add(intPlaceholder);
                                 var properties = ArrayBuilder<PropertySymbol>.GetInstance();
                                 properties.AddRange(property);
-                                indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, considerExtensions: false, diagnostics).MakeCompilerGenerated();
+                                indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, considerFallbacks: false, diagnostics).MakeCompilerGenerated();
                                 properties.Free();
                                 analyzedArguments.Free();
                                 lookupResult.Free();
@@ -11173,10 +11170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AnalyzedArguments? analyzedArguments = null;
                         AnalyzedArguments? actualExtensionArguments = null;
                         argumentPlaceholders = default;
+                        var methods = ArrayBuilder<MethodSymbol>.GetInstance(1);
+                        methods.Add(substring);
 
-                        BindSliceCall(syntax, receiver, [substring], isExtension: false, diagnostics,
+                        BindSliceCall(syntax, receiver, methods, isExtension: false, diagnostics,
                             ref analyzedArguments, ref actualExtensionArguments, out indexerOrSliceAccess, out argumentPlaceholders);
 
+                        methods.Free();
                         Debug.Assert(actualExtensionArguments is null);
                         analyzedArguments.Free();
                         lookupResult.Free();
@@ -11212,9 +11212,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AnalyzedArguments? analyzedArguments = null;
                                 AnalyzedArguments? actualExtensionArguments = null;
                                 argumentPlaceholders = default;
-                                BindSliceCall(syntax, receiver, [method], isExtension: false, diagnostics,
+                                var methods = ArrayBuilder<MethodSymbol>.GetInstance(1);
+                                methods.Add(method);
+
+                                BindSliceCall(syntax, receiver, methods, isExtension: false, diagnostics,
                                     ref analyzedArguments, ref actualExtensionArguments, out indexerOrSliceAccess, out argumentPlaceholders);
 
+                                methods.Free();
                                 Debug.Assert(actualExtensionArguments is null);
                                 analyzedArguments.Free();
                                 lookupResult.Free();
@@ -11239,7 +11243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BindSliceCall(
             SyntaxNode syntax,
             BoundExpression receiver,
-            ImmutableArray<MethodSymbol> methods,
+            ArrayBuilder<MethodSymbol> methods,
             bool isExtension,
             BindingDiagnosticBag diagnostics,
             [NotNull] ref AnalyzedArguments? analyzedArguments,
@@ -11258,8 +11262,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var boundMethodGroup = new BoundMethodGroup(
-                syntax, typeArgumentsOpt: default, methodName, methods,
-                lookupSymbolOpt: methods.Length == 1 ? methods[0] : null, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
+                syntax, typeArgumentsOpt: default, methodName, methods.ToImmutable(),
+                lookupSymbolOpt: methods.Count == 1 ? methods[0] : null, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
             { WasCompilerGenerated = true };
 
             if (isExtension)
@@ -11273,7 +11277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resolution, diagnostics, queryClause: null, out bool _)
                     .MakeCompilerGenerated();
 
-                actualExtensionArguments = null; // free'd as part of BindMethodGroupInvocationCore call
+                actualExtensionArguments = null; // free'd as part `resolution` in BindMethodGroupInvocationCore call
             }
             else
             {

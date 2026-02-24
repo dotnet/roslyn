@@ -38,12 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Methods.Add(method);
         }
 
-        internal void PopulateWithExtensionMethods(
+        internal void PopulateWithExtensionMethods<TSymbol>(
             BoundExpression receiverOpt,
-            IEnumerable<Symbol> members,
+            ArrayBuilder<TSymbol> members,
             ImmutableArray<TypeWithAnnotations> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
+            where TSymbol : Symbol
         {
             this.PopulateHelper(receiverOpt, resultKind, error);
             this.IsExtensionMethodGroup = true;
