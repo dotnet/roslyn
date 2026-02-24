@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.ImplicitClass or
                 DeclarationKind.Record or
                 DeclarationKind.RecordStruct or
-                DeclarationKind.RecordUnion => true,
                 DeclarationKind.Extension => true,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind)
@@ -684,7 +683,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SyntaxKind.RecordDeclaration => DeclarationKind.Record,
                 SyntaxKind.RecordStructDeclaration => DeclarationKind.RecordStruct,
-                SyntaxKind.RecordUnionDeclaration => DeclarationKind.RecordUnion,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
             };
 
@@ -715,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var hasPrimaryCtor =
                 node.ParameterList != null &&
-                node is RecordDeclarationSyntax { RawKind: not (int)SyntaxKind.RecordUnionDeclaration } or
+                node is RecordDeclarationSyntax or
                         ClassDeclarationSyntax or
                         StructDeclarationSyntax { RawKind: not (int)SyntaxKind.UnionDeclaration };
 
@@ -733,8 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (node is RecordDeclarationSyntax { RawKind: (int)SyntaxKind.RecordUnionDeclaration } or
-                             StructDeclarationSyntax { RawKind: (int)SyntaxKind.UnionDeclaration })
+            else if (node is StructDeclarationSyntax { RawKind: (int)SyntaxKind.UnionDeclaration })
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers; // PROTOTYPE: Add test coverage
             }
@@ -749,11 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // previous versions).
             if (node is RecordDeclarationSyntax record)
             {
-                if (record.Kind() == SyntaxKind.RecordUnionDeclaration)
-                {
-                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
-                }
-                else if (record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
+                if (record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
                 {
                     MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
                 }
@@ -1136,7 +1129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.RecordUnionDeclaration: // PROTOTYPE: Add test coverage
                 case SyntaxKind.ExtensionBlockDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 

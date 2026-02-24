@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.InterfaceKeyword;
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.RecordUnionDeclaration:
                     return SyntaxKind.RecordKeyword;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -137,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordDeclaration, attributes, modifiers, keyword, classOrStructKeyword: default, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordStructDeclaration:
                     return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordStructDeclaration, attributes, modifiers, keyword, classOrStructKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-                case SyntaxKind.RecordUnionDeclaration:
-                    return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordUnionDeclaration, attributes, modifiers, keyword, classOrStructKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

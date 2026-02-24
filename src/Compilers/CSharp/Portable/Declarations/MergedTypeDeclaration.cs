@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.RecordUnionDeclaration:
                     case SyntaxKind.ExtensionBlockDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;

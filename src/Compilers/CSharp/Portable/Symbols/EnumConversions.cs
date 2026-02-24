@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Struct:
                 case DeclarationKind.Union:
                 case DeclarationKind.RecordStruct:
-                case DeclarationKind.RecordUnion:
                     return TypeKind.Struct;
 
                 case DeclarationKind.Extension:

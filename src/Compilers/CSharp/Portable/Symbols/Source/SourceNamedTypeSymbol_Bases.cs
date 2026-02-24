@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion)
+            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
             {
                 var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
                 if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)

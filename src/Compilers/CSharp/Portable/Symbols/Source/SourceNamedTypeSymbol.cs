@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
-                case DeclarationKind.RecordUnion:
                 case DeclarationKind.Extension:
                     break;
                 default:
@@ -126,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.RecordUnionDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
                 default:
                     return default(SyntaxToken);
@@ -170,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.RecordUnionDeclaration:
                     case SyntaxKind.ExtensionBlockDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
@@ -482,7 +479,6 @@ next:;
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.RecordUnionDeclaration:
                 case SyntaxKind.ExtensionBlockDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
@@ -1477,7 +1473,7 @@ next:;
         {
             get
             {
-                return this.declaration.Declarations[0].Kind is DeclarationKind.Union or DeclarationKind.RecordUnion || HasUnionAttribute;
+                return this.declaration.Declarations[0].Kind is DeclarationKind.Union || HasUnionAttribute;
             }
         }
 
@@ -1859,7 +1855,7 @@ next:;
 
         private bool ShouldApplyUnionAttribute()
         {
-            return this.declaration.Declarations[0].Kind is DeclarationKind.Union or DeclarationKind.RecordUnion && !HasUnionAttribute;
+            return this.declaration.Declarations[0].Kind is DeclarationKind.Union && !HasUnionAttribute;
         }
 
         protected override void AfterMembersChecks(BindingDiagnosticBag diagnostics)

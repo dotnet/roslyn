@@ -6154,7 +6154,6 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ReadOnlyKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordDeclaration
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordStructDeclaration
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordUnionDeclaration
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecursivePattern
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RefExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RefKeyword

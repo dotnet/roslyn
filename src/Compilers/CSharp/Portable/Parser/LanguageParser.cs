@@ -804,7 +804,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.DelegateDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.RecordUnionDeclaration:
                         if (seen < NamespaceParts.TypesAndNamespaces)
                         {
                             seen = NamespaceParts.TypesAndNamespaces;
@@ -1764,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             bool isExtension = keyword.Kind == SyntaxKind.ExtensionKeyword;
-            bool isUnion = keyword.Kind == SyntaxKind.UnionKeyword || (keyword.Kind == SyntaxKind.RecordKeyword && recordModifier?.Kind is SyntaxKind.UnionKeyword);
+            bool isUnion = keyword.Kind == SyntaxKind.UnionKeyword;
             var outerSaveTerm = _termState;
             _termState |= TerminatorState.IsEndOfTypeSignature;
 
@@ -1897,34 +1896,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
                 {
                     keyword = ConvertToKeyword(this.EatToken());
-                    recordModifier = null;
-                    if (this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
-                    {
-                        recordModifier = EatToken();
-                    }
-                    else if (this.CurrentToken.ContextualKind == SyntaxKind.UnionKeyword)
-                    {
-                        recordModifier = ConvertToKeyword(this.EatToken());
-                    }
+                    recordModifier = this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword
+                        ? EatToken()
+                        : null;
 
                     return true;
                 }
 
-                if ((this.CurrentToken.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword || this.CurrentToken.ContextualKind == SyntaxKind.UnionKeyword) &&
+                if (this.CurrentToken.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
                     this.PeekToken(1).ContextualKind == SyntaxKind.RecordKeyword &&
                     this.PeekToken(2).Kind is SyntaxKind.IdentifierToken)
                 {
                     // Provide a specific diagnostic on `struct record S` or `class record C`
-                    SyntaxToken misplacedToken;
-
-                    if (this.CurrentToken.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword)
-                    {
-                        misplacedToken = this.EatToken();
-                    }
-                    else
-                    {
-                        misplacedToken = ConvertToKeyword(this.EatToken());
-                    }
+                    var misplacedToken = this.EatToken();
 
                     // Parse out 'record' but place 'struct/class' as leading skipped trivia on it.
                     keyword = AddLeadingSkippedSyntax(
@@ -2002,25 +1986,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case SyntaxKind.RecordKeyword:
                         // record struct ...
-                        // record union ...
                         // record ...
                         // record class ...
                         Debug.Assert(name is not null);
-                        SyntaxKind declarationKind;
-
-                        switch (recordModifier?.Kind)
-                        {
-                            case SyntaxKind.StructKeyword:
-                                declarationKind = SyntaxKind.RecordStructDeclaration;
-                                break;
-                            case SyntaxKind.UnionKeyword:
-                                declarationKind = SyntaxKind.RecordUnionDeclaration;
-                                break;
-                            default:
-                                declarationKind = SyntaxKind.RecordDeclaration;
-                                break;
-                        }
-
+                        SyntaxKind declarationKind = recordModifier?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
                         return syntaxFactory.RecordDeclaration(
                             declarationKind,
                             attributes,
@@ -2533,7 +2502,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.RecordUnionDeclaration:
                     return true;
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
@@ -5447,7 +5415,6 @@ parse_member_name:;
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.RecordUnionDeclaration:
                         return ((CSharp.Syntax.TypeDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.DelegateDeclaration:
                         return ((CSharp.Syntax.DelegateDeclarationSyntax)decl).Modifiers;

@@ -84,76 +84,63 @@ union U1(E1);
         EOF();
     }
 
-    [Theory, CombinatorialData]
-    public void Union_02(bool useCSharp15)
+    [Fact]
+    public void Union_02()
     {
         var src = """
 record union U1(E1);
 """;
 
-        UsingTree(src, TestOptions.Regular14);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        var comp = CreateCompilation([src, "struct E1;", UnionAttributeSource], parseOptions: TestOptions.Regular14);
-        comp.VerifyDiagnostics(
-            // (1,8): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+        UsingTree(src, TestOptions.RegularPreview,
+            // (1,14): error CS1514: { expected
             // record union U1(E1);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "union").WithArguments("unions").WithLocation(1, 8)
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "U1").WithLocation(1, 14),
+            // (1,14): error CS1513: } expected
+            // record union U1(E1);
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "U1").WithLocation(1, 14),
+            // (1,14): error CS8803: Top-level statements must precede namespace and type declarations.
+            // record union U1(E1);
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "U1(E1);").WithLocation(1, 14)
             );
 
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.RecordUnionDeclaration);
+            N(SyntaxKind.RecordDeclaration);
             {
                 N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
+                N(SyntaxKind.IdentifierToken, "union");
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
                 {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.InvocationExpression);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "E1");
+                            N(SyntaxKind.IdentifierToken, "U1");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "E1");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
-                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-
-        comp = CreateCompilation([src, "struct E1;", UnionAttributeSource], parseOptions: useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-        comp.VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -242,98 +229,6 @@ union M()
     public void Union_04(bool useCSharp15)
     {
         var src = """
-union record U1(E1);
-""";
-
-        UsingTree(src, TestOptions.Regular14,
-            // (1,14): error CS1003: Syntax error, '=' expected
-            // union record U1(E1);
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U1").WithArguments("=").WithLocation(1, 14)
-            );
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "union");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "record");
-                            N(SyntaxKind.EqualsValueClause);
-                            {
-                                M(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.InvocationExpression);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "U1");
-                                    }
-                                    N(SyntaxKind.ArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "E1");
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview,
-            // (1,7): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct', 'record union' or 'record class'?
-            // union record U1(E1);
-            Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 7)
-            );
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.RecordKeyword);
-                M(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Theory, CombinatorialData]
-    public void Union_05(bool useCSharp15)
-    {
-        var src = """
 partial union U1(E1);
 """;
         UsingTree(src, TestOptions.Regular14,
@@ -400,71 +295,7 @@ partial union U1(E1);
     }
 
     [Theory, CombinatorialData]
-    public void Union_06(bool useCSharp15)
-    {
-        var src = """
-partial record union U1(E1);
-""";
-
-        UsingTree(src, TestOptions.Regular14);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Theory, CombinatorialData]
-    public void Union_07(bool useCSharp15)
+    public void Union_05(bool useCSharp15)
     {
         var src = """
 ref union U1(E1);
@@ -539,71 +370,7 @@ ref union U1(E1);
     }
 
     [Theory, CombinatorialData]
-    public void Union_08(bool useCSharp15)
-    {
-        var src = """
-ref record union U1(E1);
-""";
-
-        UsingTree(src, TestOptions.Regular14);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Theory, CombinatorialData]
-    public void Union_09(bool useCSharp15)
+    public void Union_06(bool useCSharp15)
     {
         var src = """
 ref partial union U1(E1);
@@ -677,74 +444,8 @@ ref partial union U1(E1);
         EOF();
     }
 
-    [Theory, CombinatorialData]
-    public void Union_10(bool useCSharp15)
-    {
-        var src = """
-ref partial record union U1(E1);
-""";
-
-        UsingTree(src, TestOptions.Regular14);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
     [Fact]
-    public void Union_11()
+    public void Union_07()
     {
         var src = """
 union U1(E1, E2, E3);
@@ -793,7 +494,7 @@ union U1(E1, E2, E3);
     }
 
     [Fact]
-    public void Union_12()
+    public void Union_08()
     {
         var src = """
 union U1(E1) : I1(1);
@@ -856,71 +557,7 @@ union U1(E1) : I1(1);
     }
 
     [Fact]
-    public void Union_13()
-    {
-        var src = """
-record union U1(E1) : I1(1);
-""";
-        UsingTree(src, TestOptions.RegularPreview);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.BaseList);
-                {
-                    N(SyntaxKind.ColonToken);
-                    N(SyntaxKind.PrimaryConstructorBaseType);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "I1");
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "1");
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        var comp = CreateCompilation([src, "struct E1; interface I1;", UnionAttributeSource], parseOptions: TestOptions.RegularPreview);
-        comp.VerifyDiagnostics(
-            // (1,25): error CS8861: Unexpected argument list.
-            // record union U1(E1) : I1(1);
-            Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(1)").WithLocation(1, 25)
-            );
-    }
-
-    [Fact]
-    public void Union_14()
+    public void Union_09()
     {
         var src = """
 [Attr1]
@@ -1031,119 +668,7 @@ public union U1<T1>(E1) : I1, I2 where T1 : class
     }
 
     [Fact]
-    public void Union_15()
-    {
-        var src = """
-[Attr1]
-public record union U1<T1>(E1) : I1, I2 where T1 : class
-{
-    public void M1() { }
-}
-""";
-        UsingTree(src, TestOptions.RegularPreview);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.RecordUnionDeclaration);
-            {
-                N(SyntaxKind.AttributeList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Attribute);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Attr1");
-                        }
-                    }
-                    N(SyntaxKind.CloseBracketToken);
-                }
-                N(SyntaxKind.PublicKeyword);
-                N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.TypeParameterList);
-                {
-                    N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.TypeParameter);
-                    {
-                        N(SyntaxKind.IdentifierToken, "T1");
-                    }
-                    N(SyntaxKind.GreaterThanToken);
-                }
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "E1");
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.BaseList);
-                {
-                    N(SyntaxKind.ColonToken);
-                    N(SyntaxKind.SimpleBaseType);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "I1");
-                        }
-                    }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.SimpleBaseType);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "I2");
-                        }
-                    }
-                }
-                N(SyntaxKind.TypeParameterConstraintClause);
-                {
-                    N(SyntaxKind.WhereKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "T1");
-                    }
-                    N(SyntaxKind.ColonToken);
-                    N(SyntaxKind.ClassConstraint);
-                    {
-                        N(SyntaxKind.ClassKeyword);
-                    }
-                }
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M1");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void Union_16()
+    public void Union_10()
     {
         var src = """
 union U1;
@@ -1164,21 +689,42 @@ union U1;
     }
 
     [Fact]
-    public void Union_17()
+    public void Union_11()
     {
         var src = """
 record union U1;
 """;
-        UsingTree(src, TestOptions.RegularPreview);
+        UsingTree(src, TestOptions.RegularPreview,
+            // (1,14): error CS1514: { expected
+            // record union U1;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "U1").WithLocation(1, 14),
+            // (1,14): error CS1513: } expected
+            // record union U1;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "U1").WithLocation(1, 14),
+            // (1,14): error CS8803: Top-level statements must precede namespace and type declarations.
+            // record union U1;
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "U1;").WithLocation(1, 14)
+            );
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.RecordUnionDeclaration);
+            N(SyntaxKind.RecordDeclaration);
             {
                 N(SyntaxKind.RecordKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.IdentifierToken, "union");
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "U1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
             N(SyntaxKind.EndOfFileToken);
         }

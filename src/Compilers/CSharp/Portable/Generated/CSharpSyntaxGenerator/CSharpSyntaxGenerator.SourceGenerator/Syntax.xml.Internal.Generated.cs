@@ -31890,8 +31890,7 @@ internal partial class ContextAwareSyntax
         switch (kind)
         {
             case SyntaxKind.RecordDeclaration:
-            case SyntaxKind.RecordStructDeclaration:
-            case SyntaxKind.RecordUnionDeclaration: break;
+            case SyntaxKind.RecordStructDeclaration: break;
             default: throw new ArgumentException(nameof(kind));
         }
 #if DEBUG
@@ -31902,7 +31901,6 @@ internal partial class ContextAwareSyntax
             {
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.StructKeyword:
-                case SyntaxKind.UnionKeyword:
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(classOrStructKeyword));
             }
@@ -37291,8 +37289,7 @@ internal static partial class SyntaxFactory
         switch (kind)
         {
             case SyntaxKind.RecordDeclaration:
-            case SyntaxKind.RecordStructDeclaration:
-            case SyntaxKind.RecordUnionDeclaration: break;
+            case SyntaxKind.RecordStructDeclaration: break;
             default: throw new ArgumentException(nameof(kind));
         }
 #if DEBUG
@@ -37303,7 +37300,6 @@ internal static partial class SyntaxFactory
             {
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.StructKeyword:
-                case SyntaxKind.UnionKeyword:
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(classOrStructKeyword));
             }

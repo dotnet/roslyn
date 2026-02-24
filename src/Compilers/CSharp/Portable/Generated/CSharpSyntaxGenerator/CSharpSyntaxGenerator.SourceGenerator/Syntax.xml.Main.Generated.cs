@@ -5089,15 +5089,13 @@ public static partial class SyntaxFactory
         switch (kind)
         {
             case SyntaxKind.RecordDeclaration:
-            case SyntaxKind.RecordStructDeclaration:
-            case SyntaxKind.RecordUnionDeclaration: break;
+            case SyntaxKind.RecordStructDeclaration: break;
             default: throw new ArgumentException(nameof(kind));
         }
         switch (classOrStructKeyword.Kind())
         {
             case SyntaxKind.ClassKeyword:
             case SyntaxKind.StructKeyword:
-            case SyntaxKind.UnionKeyword:
             case SyntaxKind.None: break;
             default: throw new ArgumentException(nameof(classOrStructKeyword));
         }
@@ -5140,7 +5138,6 @@ public static partial class SyntaxFactory
         {
             SyntaxKind.RecordDeclaration => SyntaxKind.ClassKeyword,
             SyntaxKind.RecordStructDeclaration => SyntaxKind.StructKeyword,
-            SyntaxKind.RecordUnionDeclaration => SyntaxKind.UnionKeyword,
             _ => throw new ArgumentOutOfRangeException(),
         };
 

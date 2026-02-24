@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.declaration.Declarations[0].Kind is DeclarationKind.RecordStruct or DeclarationKind.RecordUnion;
+                return this.declaration.Declarations[0].Kind == DeclarationKind.RecordStruct;
             }
         }
 
@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion or DeclarationKind.Union)
+            if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.Union)
             {
                 return GetMembers(name);
             }
@@ -1991,7 +1991,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckRecordMemberNames(BindingDiagnosticBag diagnostics)
         {
-            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion))
+            if (declaration.Kind != DeclarationKind.Record &&
+                declaration.Kind != DeclarationKind.RecordStruct)
             {
                 return;
             }
@@ -3920,7 +3921,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.UnionDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.RecordUnionDeclaration:
                     case SyntaxKind.ExtensionBlockDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
@@ -3943,13 +3943,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!this.IsExtension)
                 {
-                    bool isUnion = syntax.Kind() is SyntaxKind.UnionDeclaration or SyntaxKind.RecordUnionDeclaration;
-
                     if (builder.DeclarationWithParameters is null)
                     {
                         builder.DeclarationWithParameters = syntax;
 
-                        if (isUnion)
+                        if (syntax.Kind() is SyntaxKind.UnionDeclaration)
                         {
                             builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: false, DeclaringCompilation, parameterList);
                         }
@@ -4737,7 +4735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (builder.DeclarationWithParameters is not null)
             {
                 Debug.Assert(builder.DeclarationWithParameters is TypeDeclarationSyntax { ParameterList: not null } type
-                    && type.Kind() is (SyntaxKind.RecordStructDeclaration or SyntaxKind.RecordUnionDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.UnionDeclaration));
+                    && type.Kind() is (SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.UnionDeclaration));
                 return;
             }
 
@@ -4769,7 +4767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedTypeMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
-            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion or DeclarationKind.Union) && declaredMembersAndInitializers.PrimaryConstructor is null)
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.Union) && declaredMembersAndInitializers.PrimaryConstructor is null)
             {
                 return;
             }
@@ -4777,7 +4775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var membersSoFar = builder.GetNonTypeMembers(this, declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
 
-            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion or DeclarationKind.Union))
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.Union))
             {
                 // primary ctor
                 var ctor = declaredMembersAndInitializers.PrimaryConstructor;
@@ -4792,36 +4790,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(declaredMembersAndInitializers.PrimaryConstructor?.GetBackingFields().Any() != true);
-
-            var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
-            var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
-            var memberNames = PooledHashSet<string>.GetInstance();
-            foreach (var member in membersSoFar)
-            {
-                memberNames.Add(member.Name);
-
-                switch (member)
-                {
-                    case EventSymbol:
-                    case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
-                        continue;
-                    case FieldSymbol { Name: var fieldName }:
-                        if (!fieldsByName.ContainsKey(fieldName))
-                        {
-                            fieldsByName.Add(fieldName, member);
-                        }
-                        continue;
-                }
-
-                if (!memberSignatures.ContainsKey(member))
-                {
-                    memberSignatures.Add(member, member);
-                }
-            }
-
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            if (declaration.Kind is DeclarationKind.RecordUnion or DeclarationKind.Union)
+            if (declaration.Kind is DeclarationKind.Union)
             {
                 // Synthesize Value property
                 var valuePropertySyntax = (TypeDeclarationSyntax)declaration.Declarations[0].SyntaxReference.GetSyntax();
@@ -4894,74 +4865,104 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, valuePropertySyntax.Identifier.GetLocation());
                 }
+
+                members.AddRange(membersSoFar);
+                builder.SetNonTypeMembers(members);
+
+                return;
+            }
+
+            ParameterListSyntax? paramList = declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList;
+            var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
+            var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
+            var memberNames = PooledHashSet<string>.GetInstance();
+            foreach (var member in membersSoFar)
+            {
+                memberNames.Add(member.Name);
+
+                switch (member)
+                {
+                    case EventSymbol:
+                    case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
+                        continue;
+                    case FieldSymbol { Name: var fieldName }:
+                        if (!fieldsByName.ContainsKey(fieldName))
+                        {
+                            fieldsByName.Add(fieldName, member);
+                        }
+                        continue;
+                }
+
+                if (!memberSignatures.ContainsKey(member))
+                {
+                    memberSignatures.Add(member, member);
+                }
             }
 
             bool isRecordClass = declaration.Kind == DeclarationKind.Record;
 
-            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.RecordUnion)
+            // Positional record
+            bool primaryAndCopyCtorAmbiguity = false;
+            if (!(paramList is null))
             {
-                // Positional record
-                bool primaryAndCopyCtorAmbiguity = false;
-                if (declaredMembersAndInitializers.PrimaryConstructor is not null)
+                Debug.Assert(declaredMembersAndInitializers.DeclarationWithParameters is object);
+
+                // primary ctor
+                var ctor = declaredMembersAndInitializers.PrimaryConstructor;
+                Debug.Assert(ctor is object);
+                members.Add(ctor);
+
+                if (!memberSignatures.ContainsKey(ctor))
                 {
-                    Debug.Assert(declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList is object);
+                    memberSignatures.Add(ctor, ctor);
+                }
 
-                    // primary ctor
-                    var ctor = declaredMembersAndInitializers.PrimaryConstructor;
-                    members.Add(ctor);
-
-                    if (!memberSignatures.ContainsKey(ctor))
-                    {
-                        memberSignatures.Add(ctor, ctor);
-                    }
-
-                    if (ctor.ParameterCount != 0)
-                    {
-                        // properties and Deconstruct
-                        var existingOrAddedMembers = addProperties(ctor.Parameters);
-                        addDeconstruct(ctor, existingOrAddedMembers);
-                    }
-
-                    if (isRecordClass)
-                    {
-                        primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
-                    }
+                if (ctor.ParameterCount != 0)
+                {
+                    // properties and Deconstruct
+                    var existingOrAddedMembers = addProperties(ctor.Parameters);
+                    addDeconstruct(ctor, existingOrAddedMembers);
                 }
 
                 if (isRecordClass)
                 {
-                    addCopyCtor(primaryAndCopyCtorAmbiguity, declaredMembersAndInitializers);
-                    addCloneMethod();
+                    primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
                 }
-
-                PropertySymbol? equalityContract = isRecordClass ? addEqualityContract() : null;
-
-                var thisEquals = addThisEquals(equalityContract);
-
-                if (isRecordClass)
-                {
-                    addBaseEquals();
-                }
-
-                addObjectEquals(thisEquals);
-                var getHashCode = addGetHashCode(equalityContract);
-                addEqualityOperators();
-
-                if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
-                {
-                    diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.GetFirstLocation(), declaration.Name);
-                }
-
-                var printMembers = addPrintMembersMethod(membersSoFar);
-                addToStringMethod(printMembers);
-
-                // Synthesizing non-readonly properties in struct would require changing readonly logic for PrintMembers method synthesis
-                Debug.Assert(isRecordClass || !members.Any(m => m is PropertySymbol { GetMethod.IsEffectivelyReadOnly: false }));
             }
+
+            if (isRecordClass)
+            {
+                addCopyCtor(primaryAndCopyCtorAmbiguity, declaredMembersAndInitializers);
+                addCloneMethod();
+            }
+
+            PropertySymbol? equalityContract = isRecordClass ? addEqualityContract() : null;
+
+            var thisEquals = addThisEquals(equalityContract);
+
+            if (isRecordClass)
+            {
+                addBaseEquals();
+            }
+
+            addObjectEquals(thisEquals);
+            var getHashCode = addGetHashCode(equalityContract);
+            addEqualityOperators();
+
+            if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.GetFirstLocation(), declaration.Name);
+            }
+
+            var printMembers = addPrintMembersMethod(membersSoFar);
+            addToStringMethod(printMembers);
 
             memberSignatures.Free();
             fieldsByName.Free();
             memberNames.Free();
+
+            // Synthesizing non-readonly properties in struct would require changing readonly logic for PrintMembers method synthesis
+            Debug.Assert(isRecordClass || !members.Any(m => m is PropertySymbol { GetMethod.IsEffectivelyReadOnly: false }));
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -5283,7 +5284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(backingField is object);
                         members.Add(backingField);
 
-                        builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, declaredMembersAndInitializers.DeclarationWithParameters.ParameterList.Parameters[param.Ordinal]));
+                        builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
                     }
                 }

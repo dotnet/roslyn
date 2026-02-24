@@ -414,7 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
-                case DeclarationKind.RecordUnion:
                 case DeclarationKind.Extension:
                     return new SourceNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 

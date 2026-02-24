@@ -10862,7 +10862,6 @@ public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
 /// <list type="bullet">
 /// <item><description><see cref="SyntaxKind.RecordDeclaration"/></description></item>
 /// <item><description><see cref="SyntaxKind.RecordStructDeclaration"/></description></item>
-/// <item><description><see cref="SyntaxKind.RecordUnionDeclaration"/></description></item>
 /// </list>
 /// </remarks>
 public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax

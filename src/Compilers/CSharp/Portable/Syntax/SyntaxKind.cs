@@ -938,6 +938,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         WithElement = 9081,
 
         UnionDeclaration = 9082,
-        RecordUnionDeclaration = 9083,
     }
 }

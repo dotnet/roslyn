@@ -902,10 +902,6 @@ union U1(int, string)
 {
 }
 
-record union RU2(int, bool)
-{
-}
-
 #line 6
 #line 2 "test.cs"
 #line default
