@@ -10894,7 +10894,7 @@ using System.Threading.Tasks;
 
 await M(null);
 
-async Task M(object o) { }
+async Task? M(object o) { }
 """;
 
             var comp = CreateRuntimeAsyncCompilation(source);
@@ -10906,6 +10906,9 @@ async Task M(object o) { }
                     """
             });
             verifier.VerifyDiagnostics(
+                // (5,7): warning CS8604: Possible null reference argument for parameter 'task' in 'void AsyncHelpers.Await(Task task)'.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "M(null)").WithArguments("task", "void AsyncHelpers.Await(Task task)").WithLocation(5, 7),
                 // (5,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // await M(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 9)

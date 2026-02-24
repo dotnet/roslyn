@@ -9678,9 +9678,9 @@ class C
 }";
             var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,33): warning CS8602: Dereference of a possibly null reference.
+                // (7,33): warning CS8604: Possible null reference argument for parameter 'task' in 'void AsyncHelpers.Await(Task task)'.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new C()").WithLocation(7, 33)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "new C()").WithArguments("task", "void AsyncHelpers.Await(Task task)").WithLocation(7, 33)
                 );
         }
 

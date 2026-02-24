@@ -13245,43 +13245,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAwaitableInfo(BoundAwaitableInfo node)
         {
-            Visit(node.AwaitableInstancePlaceholder);
-
-            if (node is { RuntimeAsyncAwaitCall: not null, GetAwaiter: null })
+            if (node is { GetAwaiter: null, GetResult: null, RuntimeAsyncAwaitCall: null, RuntimeAsyncAwaitCallPlaceholder: null })
             {
-                // This is the simple case of just `AsyncHelpers.Await(expr). We can just visit the runtime helpers and be done.
-                Debug.Assert(node.RuntimeAsyncAwaitCallPlaceholder is not null);
-                Debug.Assert(_resultForPlaceholdersOpt is not null);
-                Debug.Assert(node.AwaitableInstancePlaceholder is not null);
-                Debug.Assert(_resultForPlaceholdersOpt.ContainsKey(node.AwaitableInstancePlaceholder));
-                var (replacement, result) = _resultForPlaceholdersOpt[node.AwaitableInstancePlaceholder];
-                AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, replacement, result);
-                Visit(node.RuntimeAsyncAwaitCallPlaceholder);
-                Visit(node.RuntimeAsyncAwaitCall);
-                RemovePlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder);
-
-                Debug.Assert(node.GetAwaiter is null);
+                // Error scenario
                 return null;
             }
 
-            Visit(node.GetAwaiter);
+            Debug.Assert(node.AwaitableInstancePlaceholder is not null);
+
+            VisitPlaceholderWithReplacement(node.AwaitableInstancePlaceholder);
+
+            VisitResult? savedResult = null;
+            if (node.GetAwaiter is null)
+            {
+                // This is the simple case of just `AsyncHelpers.Await(expr)`.
+                Debug.Assert(node is { RuntimeAsyncAwaitCall: not null, RuntimeAsyncAwaitCallPlaceholder: not null, GetResult: null });
+                AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.AwaitableInstancePlaceholder, _visitResult);
+            }
+            else
+            {
+                // If this is a runtime async case, it's the more complicated case of AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter. We need to
+                // save _visitResult to restore after visiting AsyncHelpers.AwaitAwaiter, as the calling method will need the nullability result
+                // from GetAwaiter to be able to recalculate GetResult with nullability.
+                Visit(node.GetAwaiter);
+                savedResult = _visitResult;
+                if (node.RuntimeAsyncAwaitCallPlaceholder is not null)
+                {
+                    AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.GetAwaiter, _visitResult);
+                }
+            }
 
             if (node.RuntimeAsyncAwaitCall is not null)
             {
-                // This is the complicated case of AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter(instancePlaceholder.GetAwaiter). That is a generic
-                // call and we need to re-infer the type arguments based on the inferred type of the awaiter in order to get the correct nullability for the call.
                 Debug.Assert(node.RuntimeAsyncAwaitCallPlaceholder is not null);
-
-                // VisitAwaitExpression needs the GetAwaiter result to be able to recalculate GetResult with nullability. We'll restore this after visiting the runtime call info.
-                var getAwaiterVisitResult = _visitResult;
-
-                AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.GetAwaiter, getAwaiterVisitResult);
-                Visit(node.RuntimeAsyncAwaitCallPlaceholder);
                 Visit(node.RuntimeAsyncAwaitCall);
                 RemovePlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder);
-
-                _visitResult = getAwaiterVisitResult;
+                if (savedResult is { } savedVisitResult)
+                {
+                    // This should only be needed when the caller needs to re-infer GetResult.
+                    Debug.Assert(node.GetResult is not null);
+                    _visitResult = savedVisitResult;
+                }
             }
+
             return null;
         }
 
