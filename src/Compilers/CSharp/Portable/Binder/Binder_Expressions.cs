@@ -9315,7 +9315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (tryLookupExtensionLengthOrCount(syntax, receiverPlaceholder, binder, scope,
                         ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty, diagnostics)
-                    && tryBindExtensionUnderlyingIndexerOrSliceAccess(syntax, receiverPlaceholder, argKind, binder, scope,
+                    && tryBindExtensionUnderlyingIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope,
                         ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
                         out indexerOrSliceAccess, out argumentPlaceholders, diagnostics))
                 {
@@ -9408,7 +9408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The caller is responsible to free analyzedIntIndexerOrSliceArguments and actualExtensionIntIndexerOrSliceArguments
-            static bool tryBindExtensionUnderlyingIndexerOrSliceAccess(
+            static bool tryBindExtensionUnderlyingIndexerOrSliceAccessInScope(
                 SyntaxNode syntax,
                 BoundImplicitIndexerReceiverPlaceholder receiver,
                 IndexOrRangeArgKind argKind,
@@ -9425,18 +9425,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (argKind == IndexOrRangeArgKind.Index)
                 {
-                    return tryBindExtensionUnderlyingIndexerAccess(syntax, receiver, argKind, binder, scope,
+                    return tryBindExtensionUnderlyingIndexerAccessInScope(syntax, receiver, argKind, binder, scope,
                         ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
                         out indexerOrSliceAccess, out argumentPlaceholders, diagnostics);
                 }
 
-                return tryBindExtensionUnderlyingSliceAccess(syntax, receiver, argKind, binder, scope,
-                    ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
-                    out indexerOrSliceAccess, out argumentPlaceholders, diagnostics);
+                return tryBindExtensionUnderlyingSliceAccessInScope(syntax, receiver, binder, scope, ref analyzedIntIndexerOrSliceArguments,
+                    ref actualExtensionIntIndexerOrSliceArguments, out indexerOrSliceAccess,
+                    out argumentPlaceholders, diagnostics);
             }
 
             // The caller is responsible to free analyzedArguments and actualExtensionArguments
-            static bool tryBindExtensionUnderlyingIndexerAccess(
+            static bool tryBindExtensionUnderlyingIndexerAccessInScope(
                 SyntaxNode syntax,
                 BoundImplicitIndexerReceiverPlaceholder receiver,
                 IndexOrRangeArgKind argKind,
@@ -9511,10 +9511,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The caller is responsible to free analyzedArguments and actualExtensionArguments
-            static bool tryBindExtensionUnderlyingSliceAccess(
+            static bool tryBindExtensionUnderlyingSliceAccessInScope(
                 SyntaxNode syntax,
                 BoundImplicitIndexerReceiverPlaceholder receiver,
-                IndexOrRangeArgKind argKind,
                 Binder binder,
                 ExtensionScope scope,
                 ref AnalyzedArguments? analyzedArguments,
@@ -9523,14 +9522,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
                 BindingDiagnosticBag diagnostics)
             {
-                Debug.Assert(argKind is IndexOrRangeArgKind.Range);
                 Debug.Assert(receiver.Type is not null);
                 var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 var candidates = ArrayBuilder<Symbol>.GetInstance();
                 var lookupOptions = LookupOptions.MustBeInstance | LookupOptions.AllMethodsOnArityZero;
                 int arity = 0;
 
-                Debug.Assert(argKind == IndexOrRangeArgKind.Range);
                 scope.Binder.GetAllExtensionCandidatesInSingleBinder(
                     candidates, WellKnownMemberNames.SliceMethodName, alternativeName: null,
                     arity, lookupOptions, originalBinder: binder);
