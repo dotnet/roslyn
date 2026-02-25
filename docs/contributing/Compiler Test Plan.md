@@ -39,6 +39,7 @@ This document provides guidance for thinking about language interactions and tes
 - Check that `Obsolete` is honored for members used in binding/lowering
 - LangVersion
 - IL verification (file issue on `runtime` repo as needed and track [here](https://github.com/dotnet/roslyn/issues/22872))
+- New public APIs should be marked `[Experimental]` until considered "released"
 
 - Does the feature use cryptographic hashes in any way? (examples: metadata names of file-local types, extension types, assembly strong naming, PDB document table, etc.)
     - Consider using non-cryptographic hash such as `XxHash128` instead.
@@ -64,6 +65,7 @@ See also [types](#types) and [members](#members) lists below.
 - constructors (static, instance, primary)
 - destructors
 - fields (required and not)
+- fixed-sized buffers
 - properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
 - Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
