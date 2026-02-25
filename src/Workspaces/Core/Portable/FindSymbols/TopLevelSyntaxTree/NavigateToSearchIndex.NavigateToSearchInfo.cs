@@ -379,7 +379,7 @@ internal sealed partial class NavigateToSearchIndex
         /// (modulo intentionally unsupported match kinds like
         /// <see cref="PatternMatching.PatternMatchKind.NonLowercaseSubstring"/>).
         /// </summary>
-        public PatternMatcherKind ProbablyContainsMatch(string patternName, string? patternContainer)
+        public PatternMatcherKind CouldContainNavigateToMatch(string patternName, string? patternContainer)
         {
             var result = PatternMatcherKind.None;
 
@@ -395,7 +395,7 @@ internal sealed partial class NavigateToSearchIndex
             if (result == PatternMatcherKind.None)
                 return PatternMatcherKind.None;
 
-            if (patternContainer != null && !ContainerProbablyMatches(patternContainer))
+            if (patternContainer != null && !ContainerCheckPasses(patternContainer))
                 return PatternMatcherKind.None;
 
             return result;
@@ -473,7 +473,7 @@ internal sealed partial class NavigateToSearchIndex
         /// For an <b>all-lowercase</b> pattern like <c>"goo"</c>, we cannot determine hump boundaries,
         /// so we fall back to checking just the first character uppercased: 'G' ∈ set → <see langword="true"/>.
         /// </summary>
-        public bool ContainerProbablyMatches(ReadOnlySpan<char> patternContainer)
+        public bool ContainerCheckPasses(ReadOnlySpan<char> patternContainer)
         {
             if (_containerCharSet == null || patternContainer.Length == 0)
                 return false;
@@ -753,9 +753,12 @@ internal sealed partial class NavigateToSearchIndex
                         + FuzzyBigramCharIndex(char.ToLowerInvariant(pattern[i + 1]));
                 if ((_fuzzyBigramBitset[idx >> 6] & (1UL << (idx & 63))) != 0)
                     count++;
+
+                if (count >= minShared)
+                    return true;
             }
 
-            return count >= minShared;
+            return false;
         }
 
         private static bool ContainsChar(FrozenSet<string> set, char c)

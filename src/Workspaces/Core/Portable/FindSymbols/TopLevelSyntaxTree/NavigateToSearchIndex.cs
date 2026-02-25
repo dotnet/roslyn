@@ -34,7 +34,7 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
     /// document can be skipped entirely. Used by NavigateTo to skip documents early.
     /// </summary>
     internal PatternMatcherKind CouldContainNavigateToMatch(string patternName, string? patternContainer)
-        => _navigateToSearchInfo.ProbablyContainsMatch(patternName, patternContainer);
+        => _navigateToSearchInfo.CouldContainNavigateToMatch(patternName, patternContainer);
 
     public static ValueTask<NavigateToSearchIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
@@ -59,20 +59,20 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
 
     internal readonly struct TestAccessor(NavigateToSearchIndex index)
     {
-        public bool HumpCheckProbablyMatches(string patternName)
+        public bool HumpCheckPasses(string patternName)
             => index._navigateToSearchInfo.HumpCheckPasses(patternName);
 
-        public bool TrigramCheckProbablyMatches(string patternName)
+        public bool TrigramCheckPasses(string patternName)
             => index._navigateToSearchInfo.TrigramCheckPasses(patternName);
 
-        public bool LengthCheckProbablyMatches(string patternName)
+        public bool LengthCheckPasses(string patternName)
             => index._navigateToSearchInfo.LengthCheckPasses(patternName);
 
-        public bool BigramCountCheckProbablyMatches(string patternName)
+        public bool BigramCountCheckPasses(string patternName)
             => index._navigateToSearchInfo.BigramCountCheckPasses(patternName);
 
-        public bool ContainerCheckProbablyMatches(string patternContainer)
-            => index._navigateToSearchInfo.ContainerProbablyMatches(patternContainer);
+        public bool ContainerCheckPasses(string patternContainer)
+            => index._navigateToSearchInfo.ContainerCheckPasses(patternContainer);
 
         public static NavigateToSearchIndex CreateIndex(ImmutableArray<DeclaredSymbolInfo> infos)
         {

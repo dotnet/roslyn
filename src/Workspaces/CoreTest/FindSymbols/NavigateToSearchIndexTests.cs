@@ -156,7 +156,7 @@ public sealed class NavigateToSearchIndexTests
     public void HumpCheck_MixedCase(string symbolName, string pattern, bool expected)
     {
         var index = CreateIndex((symbolName, ""));
-        Assert.Equal(expected, index.GetTestAccessor().HumpCheckProbablyMatches(pattern));
+        Assert.Equal(expected, index.GetTestAccessor().HumpCheckPasses(pattern));
     }
 
     #endregion
@@ -177,14 +177,14 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("Goo", ""), ("Xyz", ""));
 
         // Individual chars: both 'G' and 'X' are in the set.
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("G"));
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("X"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("G"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("X"));
 
         // Bigram: "GX" is NOT stored because no single symbol has hump pair G→X.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("GX"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("GX"));
 
         // Also verify the reverse.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("XG"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("XG"));
     }
 
     #endregion
@@ -288,7 +288,7 @@ public sealed class NavigateToSearchIndexTests
     public void HumpCheck_AllLowercase(string symbolName, string pattern, bool expected)
     {
         var index = CreateIndex((symbolName, ""));
-        Assert.Equal(expected, index.GetTestAccessor().HumpCheckProbablyMatches(pattern));
+        Assert.Equal(expected, index.GetTestAccessor().HumpCheckPasses(pattern));
     }
 
     /// <summary>
@@ -302,17 +302,17 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("Goo", ""), ("Xab", ""));
 
         // Single-hump prefixes from each symbol work.
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("goo"));
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("xab"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("goo"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("xab"));
 
         // Cross-symbol: "gx" splits as "g"+"x" — "g" is a prefix of "Goo" and "x" is a
         // prefix of "Xab". These are from different symbols, but the hump prefix filter
         // stores all hump prefixes from the whole document, so the DP passes. This is
         // inherent to document-level filtering.
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("gx"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("gx"));
 
         // "gooxab" splits as "goo"+"xab" — both stored, so passes (cross-symbol).
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("gooxab"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("gooxab"));
     }
 
     /// <summary>
@@ -325,13 +325,13 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("GooBar", ""));
 
         // "bar" as a full second hump prefix
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("bar"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("bar"));
 
         // "ba" as a partial second hump prefix
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("ba"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("ba"));
 
         // "bax" — "ba" ok but "x" is not a hump prefix
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("bax"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("bax"));
     }
 
     /// <summary>
@@ -351,22 +351,22 @@ public sealed class NavigateToSearchIndexTests
         // Pattern "gobar": a greedy approach from position 0 would consume "go" then try
         // "gob" which fails → break. But "go" already marked position 2 as reachable, and
         // from position 2, "bar" succeeds. Split: "go"+"bar".
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("gobar"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("gobar"));
 
         // Pattern "gooba": from position 0, "g"→"go"→"goo" succeed, "goob" fails → break.
         // Position 3 is reachable (via "goo"). From position 3, "b"→"ba" succeed.
         // canReach[5] = true. Split: "goo"+"ba".
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("gooba"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("gooba"));
 
         // Pattern "goobarg": from position 0, "goo" marks 3. From 3, "bar" marks 6.
         // From 6, "g" marks 7. Split: "goo"+"bar"+"g".
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("goobarg"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("goobarg"));
 
         // Pattern "gobarg": from 0, "g" marks 1, "go" marks 2, "gob" fails → break.
         // From 1, "o" fails → break. From 2, "b" marks 3, "ba" marks 4, "bar" marks 5,
         // "barg" fails → break. From 3, "a" fails → break. From 4, "r" fails → break.
         // From 5, "g" marks 6. canReach[6] = true. Split: "go"+"bar"+"g".
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("gobarg"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("gobarg"));
     }
 
     [Fact]
@@ -380,16 +380,16 @@ public sealed class NavigateToSearchIndexTests
         // From 1, "x" fails → break. Positions 2-5 never become reachable.
         // Even though "bar" exists in the filter, position 2 is never reached, so "bar"
         // starting at position 2 is never tried. Result: false.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("gxbar"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("gxbar"));
 
         // Pattern "gooxbar": from 0, "goo" marks 3, "goox" fails → break.
         // From 1-2: "o"/"o" fail. From 3, "x" fails → break.
         // Positions 4-7 never reachable. Result: false.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("gooxbar"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("gooxbar"));
 
         // Pattern "gxb": from 0, "g" marks 1, "gx" fails → break.
         // From 1, "x" fails → break. Position 2 never reachable, "b" never tried. False.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("gxb"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("gxb"));
     }
 
     [Fact]
@@ -402,23 +402,23 @@ public sealed class NavigateToSearchIndexTests
 
         // Pattern "gbba": from 0, "g" marks 1. From 1, "b" marks 2, "bb" fails → break.
         // From 2, "b" marks 3, "ba" marks 4. canReach[4] = true. Split: "g"+"b"+"ba".
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("gbba"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("gbba"));
 
         // Pattern "gbbar": from 0, "g" marks 1. From 1, "b" marks 2, "bb" fails → break.
         // From 2, "b" marks 3, "ba" marks 4, "bar" marks 5. Split: "g"+"b"+"bar".
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("gbbar"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("gbbar"));
 
         // Pattern "goobarbaz": full name lowercased. Split: "goo"+"bar"+"baz".
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("goobarbaz"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("goobarbaz"));
 
         // Pattern "goobazbaz": "goo" marks 3, from 3 "baz" marks 6, from 6 "baz" marks 9.
         // Split: "goo"+"baz"+"baz" (DP allows reusing hump prefixes). 
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("goobazbaz"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("goobazbaz"));
 
         // Pattern "goobxbaz": "goo" marks 3, from 3 "b" marks 4, "bx" fails → break.
         // From 4, "x" fails → break. Position 4 reachable but "xbaz" can't split.
         // canReach[8] = false.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("goobxbaz"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("goobxbaz"));
     }
 
     #endregion
@@ -499,7 +499,7 @@ public sealed class NavigateToSearchIndexTests
     public void TrigramCheck(string symbolName, string pattern, bool expected)
     {
         var index = CreateIndex((symbolName, ""));
-        Assert.Equal(expected, index.GetTestAccessor().TrigramCheckProbablyMatches(pattern));
+        Assert.Equal(expected, index.GetTestAccessor().TrigramCheckPasses(pattern));
     }
 
     #endregion
@@ -562,7 +562,7 @@ public sealed class NavigateToSearchIndexTests
     public void LengthCheck(string symbolName, string pattern, bool expected)
     {
         var index = CreateIndex((symbolName, ""));
-        Assert.Equal(expected, index.GetTestAccessor().LengthCheckProbablyMatches(pattern));
+        Assert.Equal(expected, index.GetTestAccessor().LengthCheckPasses(pattern));
     }
 
     #endregion
@@ -631,7 +631,7 @@ public sealed class NavigateToSearchIndexTests
     public void BigramCountCheck(string symbolName, string pattern, bool expected)
     {
         var index = CreateIndex((symbolName, ""));
-        Assert.Equal(expected, index.GetTestAccessor().BigramCountCheckProbablyMatches(pattern));
+        Assert.Equal(expected, index.GetTestAccessor().BigramCountCheckPasses(pattern));
     }
 
     /// <summary>
@@ -644,13 +644,13 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("Alpha", ""), ("Beta", ""));
 
         // "alph" bigrams: "al","lp","ph". "Alpha" has "al","lp","ph","ha". All 3 match.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("alph"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("alph"));
 
         // "beta" bigrams: "be","et","ta". "Beta" has "be","et","ta". All 3 match.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("beta"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("beta"));
 
         // "albe" bigrams: "al","lb","be". "al" from Alpha, "be" from Beta. 2 match ≥ 1 → true.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("albe"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("albe"));
     }
 
     /// <summary>
@@ -664,9 +664,9 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("GooBar", ""), ("BazQuux", ""), ("Simple", ""));
 
         // "Xyzwvq" has length 6, same as "GooBar" and "Simple". Length check passes.
-        Assert.True(index.GetTestAccessor().LengthCheckProbablyMatches("Xyzwvq"));
+        Assert.True(index.GetTestAccessor().LengthCheckPasses("Xyzwvq"));
         // But bigram check fails: "xy","yz","zw","wv","vq" — none stored.
-        Assert.False(index.GetTestAccessor().BigramCountCheckProbablyMatches("Xyzwvq"));
+        Assert.False(index.GetTestAccessor().BigramCountCheckPasses("Xyzwvq"));
 
         // "Xyzwvq" is mixed case (X then lowercase), one hump 'X'. 'X' is not a hump initial of
         // any symbol. Not all-lowercase, so trigram check doesn't apply either. The bigram check
@@ -687,12 +687,12 @@ public sealed class NavigateToSearchIndexTests
 
         // "gooαβ" bigrams: "go","oα","αβ". In the bitset, "oα" maps to (o=14)*38+(other=37),
         // and "αβ" maps to (other=37)*38+(other=37). Both stored.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("gooαβ"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("gooαβ"));
 
         // "gooγδ" bigrams: "go","oγ","γδ". "oγ" maps to same index as "oα" (both "other"),
         // and "γδ" maps to same as "αβ" (both "other,other"). So this is a false positive
         // from the "other" bucket — the bitset can't distinguish them.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("gooγδ"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("gooγδ"));
     }
 
     /// <summary>
@@ -707,11 +707,11 @@ public sealed class NavigateToSearchIndexTests
 
         // "a_b_" has bigrams "a_","_b","b_","_c" — length 4, k=1, min_shared=1.
         // "a_" is stored → passes.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("a_b_"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("a_b_"));
 
         // "aαbα" has bigrams "aα","αb","bα" — none of these match "a_","_b","b_","_c"
         // because underscore (index 36) != other (index 37). min_shared=1, matches=0 → false.
-        Assert.False(index.GetTestAccessor().BigramCountCheckProbablyMatches("aαbα"));
+        Assert.False(index.GetTestAccessor().BigramCountCheckPasses("aαbα"));
     }
 
     #endregion
@@ -814,7 +814,7 @@ public sealed class NavigateToSearchIndexTests
     {
         // Use a dummy symbol name; we're testing the container set.
         var index = CreateIndex(("Dummy", symbolContainer));
-        Assert.Equal(expected, index.GetTestAccessor().ContainerCheckProbablyMatches(containerPattern));
+        Assert.Equal(expected, index.GetTestAccessor().ContainerCheckPasses(containerPattern));
     }
 
     #endregion
@@ -906,8 +906,8 @@ public sealed class NavigateToSearchIndexTests
         Assert.True(matchKinds.HasFlag(PatternMatcherKind.Standard));
 
         // Fuzzy is enabled only when BOTH length check AND bigram count check pass.
-        var expectedFuzzy = index.GetTestAccessor().LengthCheckProbablyMatches(patternName)
-                         && index.GetTestAccessor().BigramCountCheckProbablyMatches(patternName);
+        var expectedFuzzy = index.GetTestAccessor().LengthCheckPasses(patternName)
+                         && index.GetTestAccessor().BigramCountCheckPasses(patternName);
         Assert.Equal(expectedFuzzy, matchKinds.HasFlag(PatternMatcherKind.Fuzzy));
 
         var nameMatch = GetNameMatch(symbolName, patternName);
@@ -1021,17 +1021,17 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("Global", ""), ("Binary", ""));
 
         // Individual chars: both G and B present in the hump set.
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("G"));
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("B"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("G"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("B"));
 
         // Multi-hump "GB": bigram G→B is NOT stored because no single symbol has hump pair G→B.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("GB"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("GB"));
 
         // Characters that are not hump initials of any symbol in the document.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("A"));
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("C"));
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("X"));
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("Z"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("A"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("C"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("X"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("Z"));
     }
 
     /// <summary>
@@ -1043,10 +1043,10 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("Global", ""), ("Binary", ""), ("GooBar", ""));
 
         // "GooBar" contributes bigram G→B, so "GB" is stored.
-        Assert.True(index.GetTestAccessor().HumpCheckProbablyMatches("GB"));
+        Assert.True(index.GetTestAccessor().HumpCheckPasses("GB"));
 
         // Bigram B→G is not stored — no symbol has humps in that order.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("BG"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("BG"));
     }
 
     #endregion
@@ -1068,14 +1068,14 @@ public sealed class NavigateToSearchIndexTests
 
         // Hump check: "line" is all-lowercase, first char 'L'. 'L' is not a hump initial of "Readline" (only 'R').
         // So hump check fails.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("line"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("line"));
 
         // Trigram check: "line" has trigrams "lin", "ine". Both stored from "Readline". Passes.
-        Assert.True(index.GetTestAccessor().TrigramCheckProbablyMatches("line"));
+        Assert.True(index.GetTestAccessor().TrigramCheckPasses("line"));
 
         // Length check: "line" has length 4, threshold ±1, checks lengths 3..5.
         // "Readline" has length 8, not in range. Fails.
-        Assert.False(index.GetTestAccessor().LengthCheckProbablyMatches("line"));
+        Assert.False(index.GetTestAccessor().LengthCheckPasses("line"));
 
         // Overall: CouldContainNavigateToMatch returns Standard (trigram check saves it).
         // Fuzzy is disabled because the length check failed.
@@ -1101,14 +1101,14 @@ public sealed class NavigateToSearchIndexTests
         // So let's use a pattern where hump check fails:
 
         // "Xoobar" — mixed case? No, 'X' upper then all lower → one part, hump 'X'. 'X' not stored.
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("Xoobar"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("Xoobar"));
         // Trigram: "Xoobar" is not all-lowercase (capital X) → false.
-        Assert.False(index.GetTestAccessor().TrigramCheckProbablyMatches("Xoobar"));
+        Assert.False(index.GetTestAccessor().TrigramCheckPasses("Xoobar"));
         // Length: "Xoobar" length 6 matches "GooBar" length 6. Within ±2 (threshold for length 6). Passes.
-        Assert.True(index.GetTestAccessor().LengthCheckProbablyMatches("Xoobar"));
+        Assert.True(index.GetTestAccessor().LengthCheckPasses("Xoobar"));
         // Bigram: "xoobar" bigrams "xo","oo","ob","ba","ar". "GooBar" has "go","oo","ob","ba","ar".
         // k=2, min_shared = 6-1-4 = 1. Shared: "oo","ob","ba","ar" = 4 ≥ 1. Passes.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("Xoobar"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("Xoobar"));
     }
 
     #endregion
@@ -1197,12 +1197,12 @@ public sealed class NavigateToSearchIndexTests
     {
         var index = CreateIndex(("GooBar", ""));
 
-        Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("Xoobar"));
-        Assert.False(index.GetTestAccessor().TrigramCheckProbablyMatches("Xoobar"));
-        Assert.True(index.GetTestAccessor().LengthCheckProbablyMatches("Xoobar"));
+        Assert.False(index.GetTestAccessor().HumpCheckPasses("Xoobar"));
+        Assert.False(index.GetTestAccessor().TrigramCheckPasses("Xoobar"));
+        Assert.True(index.GetTestAccessor().LengthCheckPasses("Xoobar"));
         // "xoobar" bigrams: "xo","oo","ob","ba","ar". "GooBar" bigrams: "go","oo","ob","ba","ar".
         // k=2, min_shared=1, matches=4 → passes.
-        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("Xoobar"));
+        Assert.True(index.GetTestAccessor().BigramCountCheckPasses("Xoobar"));
 
         var matchKinds = index.CouldContainNavigateToMatch("Xoobar", null);
         Assert.False(matchKinds.HasFlag(PatternMatcherKind.Standard));
