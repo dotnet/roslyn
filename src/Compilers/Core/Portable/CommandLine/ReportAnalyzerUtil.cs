@@ -8,8 +8,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis
             if (analyzerDriver is { })
             {
                 ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, culture);
+                ReportNonConcurrentAnalyzers(consoleOutput, analyzerDriver);
             }
 
             if (driverTimingInfo is { } info)
@@ -108,6 +109,42 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSuppressor suppressor => suppressor.SupportedSuppressions.Select(s => s.Id),
                 _ => analyzer.SupportedDiagnostics.Select(d => d.Id),
             };
+
+        private static void ReportNonConcurrentAnalyzers(TextWriter consoleOutput, AnalyzerDriver analyzerDriver)
+        {
+            // DiagnosticSuppressors are never concurrent. To reduce noise in the report, only their count is reported.
+            var nonConcurrentAnalyzersAndSuppressors = analyzerDriver.NonConcurrentAnalyzers;
+            var nonConcurrentAnalyzers = nonConcurrentAnalyzersAndSuppressors.WhereAsArray(a => a is not DiagnosticSuppressor);
+            var suppressorCount = nonConcurrentAnalyzersAndSuppressors.Count - nonConcurrentAnalyzers.Length;
+            if (suppressorCount > 0)
+            {
+                consoleOutput.WriteLine(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, suppressorCount));
+            }
+
+            if (nonConcurrentAnalyzers.Length == 0)
+            {
+                consoleOutput.WriteLine(CodeAnalysisResources.AllAnalyzersConcurrentMessage);
+                consoleOutput.WriteLine();
+                return;
+            }
+
+            consoleOutput.WriteLine(CodeAnalysisResources.NonConcurrentAnalyzersHeader);
+
+            var byAssembly = nonConcurrentAnalyzers
+                .GroupBy(a => a.GetType().Assembly)
+                .OrderBy(g => g.Key.FullName, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var group in byAssembly)
+            {
+                consoleOutput.WriteLine($"   {group.Key.FullName}");
+                foreach (var analyzer in group.OrderBy(a => a.GetType().FullName, StringComparer.OrdinalIgnoreCase))
+                {
+                    consoleOutput.WriteLine($"      {analyzer.GetType().FullName}");
+                }
+            }
+
+            consoleOutput.WriteLine();
+        }
 
         private static void ReportGeneratorExecutionTime(TextWriter consoleOutput, GeneratorDriverTimingInfo driverTimingInfo, CultureInfo culture)
         {
