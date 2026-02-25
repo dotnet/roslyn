@@ -247,7 +247,7 @@ function BuildSolution {
   local toolset_build_proj=$_InitializeToolset
 
   local bl=""
-  if [[ "$binary_log" = true ]]; then
+  if [[ "$binary_log" == true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
     export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi
@@ -385,8 +385,6 @@ if [[ "$test_core_clr" == true ]]; then
 
   if [[ "$test_compiler_only" == true ]]; then
     runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
-  else
-    runtests_args="$runtests_args --include '\.UnitTests'"
   fi
 
   if [[ -n "$helix_queue_name" ]]; then
