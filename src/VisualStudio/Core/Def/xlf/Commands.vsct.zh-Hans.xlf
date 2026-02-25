@@ -589,12 +589,12 @@
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
         <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">解决方案资源管理器符号树</target>
+        <target state="new">Solution Explorer Symbol Tree</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
         <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">解决方案资源管理器符号树</target>
+        <target state="new">Solution Explorer Symbol Tree</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
