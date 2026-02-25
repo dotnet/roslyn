@@ -5,7 +5,7 @@ darcVersion=''
 versionEndpoint='https://maestro.dot.net/api/assets/darc-version?api-version=2020-02-20'
 verbosity='minimal'
 
-while [[ $# -gt 0 ]]; do
+while [[ $# > 0 ]]; do
   opt="$(echo "$1" | tr "[:upper:]" "[:lower:]")"
   case "$opt" in
     --darcversion)
