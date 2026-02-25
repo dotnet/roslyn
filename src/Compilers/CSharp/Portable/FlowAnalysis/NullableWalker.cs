@@ -2046,25 +2046,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     }
-                case PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property when
-                        variable.ContainingSlot is > 0 and var containingSlot &&
-                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypes: not [] } unionType &&
-                        Binder.IsUnionTypeValueProperty(unionType, property):
-                    {
-                        // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
-                        var result = NullableFlowState.NotNull;
-
-                        foreach (var ctor in unionType.InstanceConstructors)
-                        {
-                            if (NamedTypeSymbol.IsSuitableUnionConstructor(ctor))
-                            {
-                                var parameter = ctor.Parameters[0];
-                                result = result.Join(GetParameterState(parameter.TypeWithAnnotations, parameter.FlowAnalysisAnnotations).State);
-                            }
-                        }
-
-                        return result;
-                    }
 
                 case FieldSymbol:
                 case PropertySymbol:
