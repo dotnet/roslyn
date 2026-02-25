@@ -17,11 +17,18 @@ internal abstract class ProjectCommandLineProvider
     public abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
     public abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
-    public static ProjectCommandLineProvider Create(string languageName)
-        => languageName switch
+    public static ProjectCommandLineProvider? TryCreate(string languageName, ImmutableArray<string> knownCommandLineParserLanguages)
+    {
+        if (!knownCommandLineParserLanguages.Contains(languageName))
+        {
+            return null;
+        }
+
+        return languageName switch
         {
             LanguageNames.CSharp => CSharpProjectCommandLineProvider.Instance,
             LanguageNames.VisualBasic => VisualBasicProjectCommandLineProvider.Instance,
-            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
+            _ => null,
         };
+    }
 }

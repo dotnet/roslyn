@@ -587,14 +587,14 @@
         <target state="translated">実装に移動</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">ソリューション エクスプローラーのシンボル ツリー</target>
+      <trans-unit id="cmdidShowInheritanceMargin|ButtonText">
+        <source>Show Inheritance</source>
+        <target state="translated">継承を表示</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">ソリューション エクスプローラーのシンボル ツリー</target>
+      <trans-unit id="cmdidShowInheritanceMargin|LocCanonicalName">
+        <source>Show Inheritance</source>
+        <target state="translated">継承を表示</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">

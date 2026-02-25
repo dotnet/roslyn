@@ -181,6 +181,7 @@ internal static class IDEDiagnosticIds
     public const string UseProgramMainId = "IDE0211";
 
     public const string ForEachCastDiagnosticId = "IDE0220";
+    public const string HiddenExplicitCastDiagnosticId = "IDE0221";
 
     public const string UseUtf8StringLiteralDiagnosticId = "IDE0230";
 

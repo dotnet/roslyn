@@ -519,7 +519,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
 
             try
             {
-                // Switch to teh background so we don't block the calling thread (the UI thread) while we're doing this work.
+                // Switch to the background so we don't block the calling thread (the UI thread) while we're doing this work.
                 await TaskScheduler.Default;
                 await FindReferencesAsync(symbolListItem, project, context, classificationOptions, cancellationToken).ConfigureAwait(false);
             }

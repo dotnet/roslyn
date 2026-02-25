@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
     ''' - Symbols from referenced assemblies that must be retargeted are substituted with result of retargeting.
     ''' </summary>
     Friend NotInheritable Class RetargetingAssemblySymbol
-        Inherits NonMissingAssemblySymbol
+        Inherits MetadataOrSourceOrRetargetingAssemblySymbol
 
         ''' <summary>
         ''' The underlying AssemblySymbol, it leaks symbols that should be retargeted.
@@ -239,7 +239,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Function
 
         Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
-            Return _underlyingAssembly.AreInternalsVisibleToThisAssembly(potentialGiverOfAccess)
+            Dim conclusion As IVTConclusion = IVTConclusion.NoRelationshipClaimed
+            If Not AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, conclusion) Then
+                conclusion = _underlyingAssembly.MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver:=False)
+
+                If IsDirectlyOrIndirectlyReferenced(potentialGiverOfAccess) Then
+                    AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, conclusion)
+                Else
+                    Debug.Fail("We are performing a check for an unrelated assembly which likely indicates a bug.")
+                End If
+            End If
+
+            Return conclusion = IVTConclusion.Match
+            ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function
 
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean

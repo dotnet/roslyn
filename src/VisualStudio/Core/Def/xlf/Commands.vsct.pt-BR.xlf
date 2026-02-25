@@ -587,14 +587,14 @@
         <target state="translated">Ir para Implementação</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Árvore de Símbolos do Gerenciador de Soluções</target>
+      <trans-unit id="cmdidShowInheritanceMargin|ButtonText">
+        <source>Show Inheritance</source>
+        <target state="translated">Mostrar Herança</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Árvore de Símbolos do Gerenciador de Soluções</target>
+      <trans-unit id="cmdidShowInheritanceMargin|LocCanonicalName">
+        <source>Show Inheritance</source>
+        <target state="translated">Mostrar Herança</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">

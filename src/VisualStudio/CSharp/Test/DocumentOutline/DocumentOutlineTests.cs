@@ -198,7 +198,7 @@ public sealed class DocumentOutlineTests : DocumentOutlineTestsBase
                     item =>
                     {
                         Assert.Equal(Glyph.PropertyPublic, item.Data.Glyph);
-                        Assert.Equal("PropertyName", item.Data.Name);
+                        Assert.Equal("PropertyName : string", item.Data.Name);
                     });
             });
     }

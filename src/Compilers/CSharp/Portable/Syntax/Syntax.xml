@@ -1839,6 +1839,13 @@
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
+  <Node Name="WithElementSyntax" Base="CollectionElementSyntax">
+    <Kind Name="WithElement"/>
+    <Field Name="WithKeyword" Type="SyntaxToken">
+      <Kind Name="WithKeyword"/>
+    </Field>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax" />
+  </Node>
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <AbstractNode Name="SelectOrGroupClauseSyntax" Base="CSharpSyntaxNode">

@@ -98,6 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ArrayCreationExpression As Integer = SyntaxKind.ArrayCreationExpression Implements ISyntaxKinds.ArrayCreationExpression
         Public ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression Implements ISyntaxKinds.AwaitExpression
         Public ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression Implements ISyntaxKinds.BaseExpression
+        Public ReadOnly Property CollectionExpression As Integer? Implements ISyntaxKinds.CollectionExpression
         Public ReadOnly Property CollectionInitializerExpression As Integer = SyntaxKind.CollectionInitializer Implements ISyntaxKinds.CollectionInitializerExpression
         Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKinds.ConditionalAccessExpression
         Public ReadOnly Property ConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.ConditionalExpression

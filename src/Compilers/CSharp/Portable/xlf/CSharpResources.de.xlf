@@ -232,6 +232,11 @@
         <target state="translated">Ein Switch-Ausdrucksarm beginnt nicht mit einem 'case'-Schlüsselwort.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCollectionArgumentsArgCount">
+        <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
+        <target state="translated">Keine Überladung der Methode „{0}“ akzeptiert {1} Argumente des with(...)-Elements.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">Der überladene zusammengesetzte Zuweisungsoperator „{0}“ nimmt einen Parameter an.</target>
@@ -507,6 +512,26 @@
         <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. "{1}" kann von "{2}" nicht implementiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>'with(...)' element arguments cannot be dynamic</source>
+        <target state="translated">Die Argumente des with(...)-Elements dürfen nicht dynamisch sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
+        <source>'with(...)' element for a read-only interface must be empty if present</source>
+        <target state="translated">Das with(...)-Element für eine schreibgeschützte Schnittstelle muss leer sein, falls es vorhanden ist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>'with(...)' element must be the first element</source>
+        <target state="translated">Das with(...)-Element muss das erste Element sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>'with(...)' elements are not supported for type '{0}'</source>
+        <target state="translated">with(...)-Elemente werden für den Typ „{0}“ nicht unterstützt.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">Der Name der CollectionBuilderAttribute-Methode ist ungültig.</target>
@@ -518,8 +543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Es wurde keine zugängliche Methode vom Typ "{0}" mit der erwarteten Signatur gefunden: eine statische Methode mit einem einzelnen Parameter vom Typ "ReadOnlySpan&lt;{1}&gt;" und Rückgabetyp "{2}".</target>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="translated">Es wurde keine zugängliche Methode vom Typ „{0}“ mit der erwarteten Signatur gefunden: eine statische Methode, deren letzter Parameter vom Typ „ReadOnlySpan&lt;{1}&gt;“ und Rückgabetyp „{2}“ ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -565,6 +590,11 @@
       <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
         <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
         <target state="translated">Der Sammlungsinitialisierer führt zu einer unendlichen Kette von Instanziierungen von Sammlungs- "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionRefLikeElementType">
+        <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="translated">Der Elementtyp dieser Sammlung darf keine Referenzstruktur oder ein Typparameter sein, der Referenzstrukturen zulässt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -1416,6 +1446,11 @@
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">Das diagnosticId-Argument für das Experimental-Attribut muss ein gültiger Bezeichner sein.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
+        <target state="translated">„{0}“ enthält keine Definition für „{1}“, und es konnte keine zugängliche Erweiterungsmethode „{1}“ gefunden werden, die ein erstes Argument vom Typ „{0}“ akzeptiert (wollten Sie die asynchrone Sammlung mit „await foreach“ durchlaufen?)</target>
+        <note>'await foreach' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2785,6 +2820,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">Überprüfte benutzerdefinierte Operatoren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="translated">Argumente des Sammlungsausdrucks</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">

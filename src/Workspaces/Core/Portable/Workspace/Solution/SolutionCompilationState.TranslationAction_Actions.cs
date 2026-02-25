@@ -344,38 +344,5 @@ internal sealed partial class SolutionCompilationState
                 return generatorDriver.RemoveAdditionalTexts(additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
             }
         }
-
-        internal sealed class ReplaceGeneratorDriverAction(
-            ProjectState oldProjectState,
-            ProjectState newProjectState,
-            GeneratorDriver oldGeneratorDriver)
-            : TranslationAction(oldProjectState, newProjectState)
-        {
-            public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
-
-            // Replacing the generator doesn't change the non-generator compilation.  So we can just return the old
-            // compilation as is.
-            public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                => oldCompilation;
-
-            public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver _)
-            {
-                // The GeneratorDriver that we have here is from a prior version of the Project, it may be missing state changes due
-                // to changes to the project. We'll update everything here.
-                var generatorDriver = UpdateGeneratorDriverToMatchState(oldGeneratorDriver, NewProjectState);
-
-                return generatorDriver;
-            }
-
-            public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
-            {
-                // If the prior action is also a ReplaceGeneratorDriverAction, we'd entirely overwrite it's changes,
-                // so we can drop the prior one's generator driver entirely.  Note: we still want to use it's
-                // `OldProjectState` as that still represents the prior state we're translating from.
-                return priorAction is ReplaceGeneratorDriverAction
-                    ? new ReplaceGeneratorDriverAction(priorAction.OldProjectState, this.NewProjectState, oldGeneratorDriver)
-                    : null;
-            }
-        }
     }
 }

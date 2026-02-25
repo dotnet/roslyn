@@ -12,14 +12,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
                                                      Optional includeFormatCommandHandler As Boolean = False,
                                                      Optional languageVersion As LanguageVersion = LanguageVersion.Default,
-                                                     Optional showCompletionInArgumentLists As Boolean = True) As TestState
+                                                     Optional showCompletionInArgumentLists As Boolean = True,
+                                                     Optional commonReferencesAttribute As String = "CommonReferences") As TestState
+
+            Dim projectElement = <Project Language="C#" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
+                                     <Document>
+                                         <%= documentElement.Value %>
+                                     </Document>
+                                 </Project>
+
+            projectElement.SetAttributeValue(commonReferencesAttribute, "true")
 
             Dim testState = New TestState(<Workspace>
-                                              <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
-                                                  <Document>
-                                                      <%= documentElement.Value %>
-                                                  </Document>
-                                              </Project>
+                                              <%= projectElement %>
                                           </Workspace>,
                                  excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)

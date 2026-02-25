@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="AllAnalyzersConcurrentMessage">
+        <source>All analyzers have enabled concurrent execution.</source>
+        <target state="new">All analyzers have enabled concurrent execution.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado que contiene el tipo "{0}" hace referencia a .NET Framework, lo cual no se admite.</target>
@@ -183,6 +188,11 @@
         <target state="translated">El módulo tiene atributos no válidos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="NonConcurrentAnalyzersHeader">
+        <source>Analyzers that have not enabled concurrent execution:</source>
+        <target state="new">Analyzers that have not enabled concurrent execution:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
         <target state="translated">No se puede suprimir el diagnóstico no notificado con el id. "{0}".</target>
@@ -271,6 +281,11 @@
       <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
         <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
         <target state="translated">Un elemento SuppressionDescriptor debe tener un id. que no sea NULL, una cadena vacía ni una cadena que solo contenga un espacio en blanco.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressorsNonConcurrentCountMessage">
+        <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
+        <target state="new">NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">

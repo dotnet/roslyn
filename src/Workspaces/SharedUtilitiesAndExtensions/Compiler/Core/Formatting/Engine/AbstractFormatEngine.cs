@@ -47,7 +47,7 @@ internal abstract partial class AbstractFormatEngine
     internal readonly TreeData TreeData;
 
     /// <summary>
-    /// It is very common to be formatting lots of documents at teh same time, with the same set of formatting rules and
+    /// It is very common to be formatting lots of documents at the same time, with the same set of formatting rules and
     /// options. To help with that, cache the last set of ChainedFormattingRules that was produced, as it is not a cheap
     /// type to create.
     /// </summary>
@@ -75,7 +75,7 @@ internal abstract partial class AbstractFormatEngine
     private static ChainedFormattingRules GetChainedFormattingRules(ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
     {
         var lastRulesAndOptions = s_lastRulesAndOptions;
-        if (formattingRules != lastRulesAndOptions?.Item1 || options != s_lastRulesAndOptions?.Item2)
+        if (formattingRules != lastRulesAndOptions?.Item1 || options != lastRulesAndOptions?.Item2)
         {
             lastRulesAndOptions = Tuple.Create(formattingRules, options, new ChainedFormattingRules(formattingRules, options));
             s_lastRulesAndOptions = lastRulesAndOptions;

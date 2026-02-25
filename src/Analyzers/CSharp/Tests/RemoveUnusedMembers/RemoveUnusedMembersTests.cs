@@ -3640,7 +3640,7 @@ public sealed class RemoveUnusedMembersTests
                 {
                     extension(int i)
                     {
-                        private void [|M|]() { }
+                        private void {|IDE0051:M|}() { }
                     }
                 }
                 """,
@@ -3817,6 +3817,50 @@ public sealed class RemoveUnusedMembersTests
             LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80645")]
+    public Task PrivateExtensionBlockMethod_11()
+        => new VerifyCS.Test
+        {
+            // method used as extension within extension block
+            TestCode = """
+                public static class C
+                {
+                    extension(int i)
+                    {
+                        public static void Test()
+                        {
+                            42.M();
+                        }
+
+                        private void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact]
+    public Task PrivateExtensionBlockMethod_12()
+        => new VerifyCS.Test
+        {
+            // method used via disambiguation syntax within extension block
+            TestCode = """
+                public static class C
+                {
+                    extension(int i)
+                    {
+                        public static void Test()
+                        {
+                            C.M(42);
+                        }
+
+                        private void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
     [Fact]
     public Task PrivateExtensionBlockProperty_01()
         => new VerifyCS.Test
@@ -3849,7 +3893,7 @@ public sealed class RemoveUnusedMembersTests
                 {
                     extension(int i)
                     {
-                        private int [|Property|] => 0;
+                        private int {|IDE0051:Property|} => 0;
                     }
                 }
                 """,
@@ -3992,6 +4036,47 @@ public sealed class RemoveUnusedMembersTests
                     }
 
                     private static string M2() => null;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81986")]
+    public Task PrivateMemberUsedFromExtensionBlock_01()
+        => new VerifyCS.Test
+        {
+            // private method used from extension block method
+            TestCode = """
+                public static class C
+                {
+                    private static void M() { }
+
+                    extension(int)
+                    {
+                        public static void M2()
+                        {
+                            M();
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81986")]
+    public Task PrivateMemberUsedFromExtensionBlock_02()
+        => new VerifyCS.Test
+        {
+            // private field used from extension block property
+            TestCode = """
+                public static class C
+                {
+                    private static int _field;
+
+                    extension(int)
+                    {
+                        public static int Property { get => _field; set { _field = value; } }
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp14,

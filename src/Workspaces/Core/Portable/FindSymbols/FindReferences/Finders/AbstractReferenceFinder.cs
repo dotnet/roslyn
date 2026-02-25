@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -365,6 +364,9 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     protected static Task FindDocumentsWithUsingStatementsAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
         => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsUsingStatement, processResult, processResultData, cancellationToken);
 
+    protected static Task FindDocumentsWithCollectionExpressionsAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsCollectionExpression, processResult, processResultData, cancellationToken);
+
     /// <summary>
     /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
     /// </summary>
@@ -466,6 +468,42 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                     processResult(result, processResultData);
                 }
             }
+        }
+    }
+
+    protected void FindReferencesInCollectionExpressions<TData>(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        FindReferencesInDocument(state, static index => index.ContainsCollectionExpression, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+
+        void CollectMatchingReferences(
+            SyntaxNode node,
+            FindReferencesDocumentState state,
+            Action<FinderLocation, TData> processResult,
+            TData processResultData)
+        {
+            if (!state.SyntaxFacts.IsCollectionExpression(node))
+                return;
+
+            if (state.SemanticModel.GetOperation(node, cancellationToken) is not ICollectionExpressionOperation collectionExpression)
+                return;
+
+            if (!Equals(symbol, collectionExpression.ConstructMethod?.OriginalDefinition))
+                return;
+
+            var result = new FinderLocation(node, new ReferenceLocation(
+                state.Document,
+                alias: null,
+                location: node.GetLocation(),
+                isImplicit: true,
+                GetSymbolUsageInfo(node, state, cancellationToken),
+                GetAdditionalFindUsagesProperties(node, state),
+                candidateReason: CandidateReason.None));
+            processResult(result, processResultData);
         }
     }
 

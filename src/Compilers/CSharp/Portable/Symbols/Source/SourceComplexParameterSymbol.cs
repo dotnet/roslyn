@@ -1637,7 +1637,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(
+                                    withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
                             {
                                 return;
                             }
@@ -1695,11 +1696,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, (NamedTypeSymbol)Type, diagnostics, elementType: out _);
-                            if (collectionBuilderMethod is null)
+                            var collectionBuilderMethods = binder.GetCollectionBuilderMethods(
+                                syntax, (NamedTypeSymbol)Type, diagnostics, forParams: true);
+                            Debug.Assert(collectionBuilderMethods.Length <= 1);
+
+                            if (collectionBuilderMethods is not [var collectionBuilderMethod])
                             {
+                                Debug.Assert(diagnostics.HasAnyErrors(), $"{nameof(binder.GetCollectionBuilderMethods)} should have reported an error in this case");
                                 return;
                             }
+
+                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
 
                             if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
                             {

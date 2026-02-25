@@ -20,4 +20,5 @@ internal interface IStackFrameNodeVisitor
     void Visit(StackFrameGeneratedMethodNameNode stackFrameGeneratedNameNode);
     void Visit(StackFrameLocalMethodNameNode stackFrameLocalMethodNameNode);
     void Visit(StackFrameConstructorNode constructorNode);
+    void Visit(StackFrameStateMachineMethodNameNode stackFrameStateMachineMethodNameNode);
 }

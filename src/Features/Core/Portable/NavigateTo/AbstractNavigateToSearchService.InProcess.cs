@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -35,6 +35,10 @@ internal abstract partial class AbstractNavigateToSearchService
             (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
             (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
             (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy),
+
+            // LowercaseSubstring is the weakest non-fuzzy PatternMatchKind (an all-lowercase pattern found
+            // inside a candidate at a non-word-boundary, e.g. "line" in "Readline"). NavigateToMatchKind has
+            // no dedicated bucket for it, so we map it to Fuzzy as the closest available quality tier.
             (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy),
         ];
 
@@ -49,8 +53,13 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        // Get the index for the file we're searching, as well as for its linked siblings.  We'll use the latter to add
-        // the information to a symbol about all the project TFMs is can be found in.
+        // First, load the lightweight filter index to check if this document could possibly match.
+        // This avoids loading the much larger TopLevelSyntaxTreeIndex for non-matching documents.
+        var filterIndex = await NavigateToSearchIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        if (!filterIndex.CouldContainNavigateToMatch(patternName, patternContainer, out var allowFuzzyMatching))
+            return;
+
+        // The filter passed — now load the full index with all declared symbols.
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
         using var _ = ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>.GetInstance(out var linkedIndices);
 
@@ -63,7 +72,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         ProcessIndex(
             DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
-            index, linkedIndices, onItemFound, cancellationToken);
+            allowFuzzyMatching, index, linkedIndices, onItemFound, cancellationToken);
     }
 
     private static void ProcessIndex(
@@ -72,6 +81,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
+        bool allowFuzzyMatching,
         TopLevelSyntaxTreeIndex index,
         ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices,
         Action<RoslynNavigateToItem> onItemFound,
@@ -80,12 +90,8 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        var containerMatcher = patternContainer != null
-            ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true)
-            : null;
-
-        using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
-        using var _1 = containerMatcher;
+        using var containerMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);
+        using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching);
 
         foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {

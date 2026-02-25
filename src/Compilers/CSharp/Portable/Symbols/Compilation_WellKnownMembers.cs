@@ -397,9 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default,
             bool isOptionalUse = false)
         {
-            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, useSiteInfo: out _, isOptional: true);
+            var ctorSymbol = (MethodSymbol?)Binder.GetWellKnownTypeMember(this, constructor, useSiteInfo: out _, isOptional: true);
 
-            if ((object)ctorSymbol == null)
+            if (ctorSymbol is null)
             {
                 // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
                 Debug.Assert(isOptionalUse || WellKnownMembers.IsSynthesizedAttributeOptional(constructor));

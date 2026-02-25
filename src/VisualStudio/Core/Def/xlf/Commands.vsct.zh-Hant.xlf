@@ -587,14 +587,14 @@
         <target state="translated">前往實作</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">方案總管符號樹狀結構</target>
+      <trans-unit id="cmdidShowInheritanceMargin|ButtonText">
+        <source>Show Inheritance</source>
+        <target state="translated">顯示繼承</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">方案總管符號樹狀結構</target>
+      <trans-unit id="cmdidShowInheritanceMargin|LocCanonicalName">
+        <source>Show Inheritance</source>
+        <target state="translated">顯示繼承</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">

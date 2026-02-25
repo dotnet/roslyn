@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private readonly NamespaceSymbol _underlyingNamespace;
 
+        /// <summary>
+        /// Cache of the type members.
+        /// </summary>
+        private ImmutableArray<NamedTypeSymbol> _lazyTypeMembers;
+
         public RetargetingNamespaceSymbol(RetargetingModuleSymbol retargetingModule, NamespaceSymbol underlyingNamespace)
         {
             Debug.Assert((object)retargetingModule != null);
@@ -105,12 +110,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
-            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembersUnordered());
+            return GetTypeMembers().ConditionallyDeOrder();
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
-            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers());
+            if (_lazyTypeMembers.IsDefault)
+            {
+                var typeMembers = RetargetTypeMembers(_underlyingNamespace.GetTypeMembers());
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeMembers, typeMembers);
+            }
+
+            return _lazyTypeMembers;
         }
 
         private ImmutableArray<NamedTypeSymbol> RetargetTypeMembers(ImmutableArray<NamedTypeSymbol> underlyingMembers)
@@ -229,20 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
-#nullable disable
-
-        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
-        {
-            var underlyingMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            _underlyingNamespace.GetExtensionMethods(underlyingMethods, nameOpt, arity, options);
-            foreach (var underlyingMethod in underlyingMethods)
-            {
-                methods.Add(this.RetargetingTranslator.Retarget(underlyingMethod));
-            }
-            underlyingMethods.Free();
-        }
-
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

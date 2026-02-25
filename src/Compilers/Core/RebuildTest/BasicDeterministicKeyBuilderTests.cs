@@ -414,8 +414,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""pdbChecksumAlgorithm"": ""SHA256"",
     ""runtimeMetadataVersion"": null,
     ""defaultSourceFileEncoding"": null,
-    ""fallbackSourceFileEncoding"": null
-  }}
+    ""fallbackSourceFileEncoding"": null,
+    ""sourceLink"": null
+  }},
+  ""resources"": []
 }}
 ";
             AssertJson(expected, json, "toolsVersions", "references", "extensions");

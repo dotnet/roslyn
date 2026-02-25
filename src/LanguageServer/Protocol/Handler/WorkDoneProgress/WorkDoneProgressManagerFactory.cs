@@ -16,6 +16,7 @@ internal sealed class WorkDoneProgressManagerFactory() : ILspServiceFactory
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-        return new WorkDoneProgressManager(clientLanguageServerManager);
+        var initializeManager = lspServices.GetRequiredService<IInitializeManager>();
+        return new WorkDoneProgressManager(clientLanguageServerManager, initializeManager);
     }
 }

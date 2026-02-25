@@ -1979,6 +1979,7 @@ endRegion:
                 case OperationKind.InlineArrayAccess:
                 case OperationKind.CollectionExpression:
                 case OperationKind.Spread:
+                case OperationKind.CollectionExpressionElementsPlaceholder:
                     return true;
             }
 

@@ -8634,7 +8634,7 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             CleanupAllGeneratedFiles(source);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79351"), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
+        [Fact, WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_01()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -8653,7 +8653,8 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             }).Run(outWriter);
 
             Assert.Equal(1, exitCode);
-            Assert.Equal("error CS1583: Error reading Win32 resources -- Image is too small.", outWriter.ToString().Trim());
+            // https://github.com/dotnet/roslyn/issues/79351: This used to write "Image is too small." instead of "Unknown file format."
+            Assert.Equal("error CS1583: Error reading Win32 resources -- Unknown file format.", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(badres);
@@ -9433,7 +9434,7 @@ public class C { }
                 responseFile: null,
                 srcDirectory,
                 new[] { "/reportanalyzer", "/t:library", srcFile.Path },
-                analyzers: [new WarningDiagnosticAnalyzer(), new DiagnosticSuppressorForId("Warning01", "Suppressor01")],
+                analyzers: [new WarningDiagnosticAnalyzer(), new ConcurrentAnalyzer(["C"]), new DiagnosticSuppressorForId("Warning01", "Suppressor01")],
                 generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -9443,6 +9444,67 @@ public class C { }
             Assert.Contains($"{nameof(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal);
             Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+
+            Assert.DoesNotContain(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
+            Assert.Contains(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 1), output, StringComparison.Ordinal);
+            var nonConcurrentSection = output[output.IndexOf(CodeAnalysisResources.NonConcurrentAnalyzersHeader)..];
+            Assert.Contains(nameof(WarningDiagnosticAnalyzer), nonConcurrentSection, StringComparison.Ordinal);
+            Assert.DoesNotContain(nameof(DiagnosticSuppressorForId), nonConcurrentSection, StringComparison.Ordinal);
+            Assert.DoesNotContain(typeof(ConcurrentAnalyzer).Assembly.FullName, nonConcurrentSection, StringComparison.Ordinal);
+            Assert.DoesNotContain(nameof(ConcurrentAnalyzer), nonConcurrentSection, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput_AllConcurrentAnalyzers()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/reportanalyzer", "/t:library", srcFile.Path },
+                analyzers: [new ConcurrentAnalyzer(["C"]), new DiagnosticSuppressorForId("Warning01", "Suppressor01")],
+                generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains($"{nameof(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+
+            Assert.Contains(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 1), output, StringComparison.Ordinal);
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput_AllConcurrentAnalyzers_NoSuppressors()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/reportanalyzer", "/t:library", srcFile.Path },
+                analyzers: [new ConcurrentAnalyzer(["C"])],
+                generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+
+            Assert.DoesNotContain(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 0), output, StringComparison.Ordinal);
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
@@ -12020,7 +12082,7 @@ class C
             // Missing Microsoft.CodeAnalysis.CSharp.dll.
             var result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{typeof(CSharpCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
 
@@ -12028,8 +12090,8 @@ class C
             dir.CopyFile(typeof(CSharpCompilation).Assembly.Location);
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 

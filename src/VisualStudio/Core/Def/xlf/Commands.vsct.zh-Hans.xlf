@@ -587,14 +587,14 @@
         <target state="translated">转到实现</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">解决方案资源管理器符号树</target>
+      <trans-unit id="cmdidShowInheritanceMargin|ButtonText">
+        <source>Show Inheritance</source>
+        <target state="translated">显示继承</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">解决方案资源管理器符号树</target>
+      <trans-unit id="cmdidShowInheritanceMargin|LocCanonicalName">
+        <source>Show Inheritance</source>
+        <target state="translated">显示继承</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">

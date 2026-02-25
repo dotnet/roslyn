@@ -9,10 +9,4 @@ internal static class StringConstants
     public const string XamlLanguageName = "Xaml";
 
     public const string XamlFileExtension = ".xaml";
-
-    public const string CreateEventHandlerCommand = "Xaml.CreateEventHandler";
-
-    public const string RetriggerCompletionCommand = "editor.action.triggerSuggest";
-
-    public const string XamlLspLanguagesContract = "XamlLspLanguages";
 }

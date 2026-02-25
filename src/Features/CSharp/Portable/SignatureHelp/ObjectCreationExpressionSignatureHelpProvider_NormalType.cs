@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,14 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
 {
-    private static SignatureHelpItem ConvertNormalTypeConstructor(
+    public static SignatureHelpItem ConvertNormalTypeConstructor(
         IMethodSymbol constructor,
-        BaseObjectCreationExpressionSyntax objectCreationExpression,
+        int position,
         SemanticModel semanticModel,
         IStructuralTypeDisplayService structuralTypeDisplayService,
         IDocumentationCommentFormattingService documentationCommentFormattingService)
     {
-        var position = objectCreationExpression.SpanStart;
         var item = CreateItem(
             constructor, semanticModel, position,
             structuralTypeDisplayService,

@@ -863,6 +863,7 @@ collection_expression
 collection_element
   : expression_element
   | spread_element
+  | with_element
   ;
 
 expression_element
@@ -871,6 +872,10 @@ expression_element
 
 spread_element
   : '..' expression
+  ;
+
+with_element
+  : 'with' argument_list
   ;
 
 conditional_access_expression

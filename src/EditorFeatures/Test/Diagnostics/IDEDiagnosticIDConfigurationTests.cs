@@ -444,6 +444,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             # IDE0220
             dotnet_diagnostic.IDE0220.severity = %value%
+            
+            # IDE0221
+            dotnet_diagnostic.IDE0221.severity = %value%
 
             # IDE0230
             dotnet_diagnostic.IDE0230.severity = %value%
@@ -913,6 +916,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0210", "csharp_style_prefer_top_level_statements", "true"),
             ("IDE0211", "csharp_style_prefer_top_level_statements", "true"),
             ("IDE0220", "dotnet_style_prefer_foreach_explicit_cast_in_source", "when_strongly_typed"),
+            ("IDE0221", "dotnet_style_prefer_non_hidden_explicit_cast_in_source", "true"),
             ("IDE0230", "csharp_style_prefer_utf8_string_literals", "true"),
             ("IDE0240", null, null),
             ("IDE0241", null, null),

@@ -3253,5 +3253,73 @@ internal class C {}
             comp = CreateCompilation(source1, new[] { lib.EmitToImageReference() }, assemblyName: "Issue57742_05");
             comp.VerifyDiagnostics(expected);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81820")]
+        public void Issue81820_01()
+        {
+            string source1 = @"
+public class C0<T>
+{
+    public virtual void M(){}
+}
+
+public class C1<T> : C0<T>
+{
+    public override void M(){}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            string source2 = @"
+internal class C2 {}
+
+internal class C3: C1<C2>
+{
+    public override void M() { }
+}
+";
+
+            var comp1Ref = comp1.EmitToImageReference();
+            var comp2 = CreateCompilation(source2, references: [comp1Ref]);
+            comp2.VerifyDiagnostics();
+
+            var comp1Assembly = (MetadataOrSourceAssemblySymbol)comp2.GetAssemblyOrModuleSymbol(comp1Ref);
+            Assert.False(comp1Assembly.AssembliesToWhichInternalAccessHasBeenDetermined.ContainsKey(comp2.Assembly));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81820")]
+        public void Issue81820_02()
+        {
+            string source1 = @"
+public class C0<T>
+{
+    public virtual void M(){}
+}
+
+public class C1<T> : C0<T>
+{
+    public override void M(){}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            string source2 = @"
+internal class C2 {}
+
+internal class C3: C1<C2>
+{
+    public override void M() { }
+}
+";
+
+            var comp1Ref = comp1.ToMetadataReference();
+            var comp2 = CreateCompilation(source2, references: [comp1Ref]);
+            comp2.VerifyDiagnostics();
+
+            var comp1Assembly = (MetadataOrSourceAssemblySymbol)comp2.GetAssemblyOrModuleSymbol(comp1Ref);
+            Assert.False(comp1Assembly.AssembliesToWhichInternalAccessHasBeenDetermined.ContainsKey(comp2.Assembly));
+        }
     }
 }

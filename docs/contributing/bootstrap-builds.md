@@ -101,14 +101,14 @@ Locally reproducing and attaching a debugger to a bootstrap build failure is fai
 
 ```powershell
 .\build.ps1 -bl
-dotnet run --framework net9.0 src\Tools\Replay\ artifacts\log\Debug\Build.binlog -w
+dotnet run --framework net10.0 --project src\Tools\Replay\ artifacts\log\Debug\Build.binlog -w
 ```
 
 **Linux**
 
 ```sh
 ./build.sh -bl
-dotnet run --framework net9.0 src/Tools/Replay/ artifacts/log/Debug/Build.binlog -w
+dotnet run --framework net10.0 --project src/Tools/Replay/ artifacts/log/Debug/Build.binlog -w
 ```
 
 The `-w` flag will cause replay to print the process ID of the compiler and wait until you hit a key, so that you can attach a debugger to the process and set breakpoints for exceptions you are interested in.

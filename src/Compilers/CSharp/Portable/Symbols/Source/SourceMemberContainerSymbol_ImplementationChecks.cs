@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
                     // but to the least-overridden member.
-                    var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
+                    var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(this);
 
                     overridingMember.ForceCompleteObsoleteAttribute();
                     leastOverriddenMember.ForceCompleteObsoleteAttribute();

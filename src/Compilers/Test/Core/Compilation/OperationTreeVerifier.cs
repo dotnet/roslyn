@@ -1143,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(PlaceholderKind.AggregationGroup, operation.PlaceholderKind);
         }
 
+        public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
+        {
+            LogString(nameof(ICollectionExpressionElementsPlaceholderOperation));
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         public override void VisitUnaryOperator(IUnaryOperation operation)
         {
             LogString(nameof(IUnaryOperation));
@@ -1614,6 +1620,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogSymbol(operation.ConstructMethod, $", {nameof(operation.ConstructMethod)}");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+
+            if (operation.ConstructArguments.Length > 0)
+                VisitArray(operation.ConstructArguments, nameof(operation.ConstructArguments), logElementCount: true);
 
             VisitArray(operation.Elements, nameof(operation.Elements), logElementCount: true);
         }

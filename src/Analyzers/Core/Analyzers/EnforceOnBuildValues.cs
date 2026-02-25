@@ -119,6 +119,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild UseTopLevelStatements = /*IDE0210*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild UseProgramMain = /*IDE0211*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild ForEachCast = /*IDE0220*/ EnforceOnBuild.WhenExplicitlyEnabled;
+    public const EnforceOnBuild HiddenExplicitCast = /*IDE0221*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild UseUtf8StringLiteral = /*IDE0230*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild MultipleBlankLines = /*IDE2000*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild EmbeddedStatementPlacement = /*IDE2001*/ EnforceOnBuild.WhenExplicitlyEnabled;

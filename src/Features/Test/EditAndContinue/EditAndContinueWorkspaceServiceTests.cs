@@ -176,9 +176,16 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
+
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            document1.FilePath,
+            "proj",
+            FeaturesResources.the_project_has_not_been_built);
+
         AssertEx.Equal(
         [
-            $"proj: {document1.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, document1.FilePath)}"
+            $"proj: {document1.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}"
         ], InspectDiagnostics(results.Diagnostics));
 
         EndDebuggingSession(debuggingSession);
@@ -225,8 +232,25 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ProjectThatDoesNotSupportEnC_Language(bool breakMode)
     {
         using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
-        var project = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
-        var document = project.AddDocument("test", "dummy1");
+
+        var projectId = ProjectId.CreateNewId("dummy_proj");
+
+        var sourceFilePath = Path.Combine(TempRoot.Root, "test");
+        var source = CreateText("class C;");
+
+        // Use C# to compile the F# library. The metadata doesn't matter for this test, only the document debug info.
+        LoadLibraryToDebuggee(EmitLibrary(projectId, [(source, sourceFilePath)], assemblyName: "dummy_proj"));
+
+        var project = solution.AddProject(ProjectInfo.Create(
+            projectId,
+            VersionStamp.Create(),
+            name: "dummy_proj",
+            assemblyName: "dummy_proj",
+            language: NoCompilationConstants.LanguageName,
+            filePath: Path.Combine(TempRoot.Root, "dummy.proj"))
+            .WithCompilationOutputInfo(new CompilationOutputInfo())).GetRequiredProject(projectId);
+
+        var document = project.AddDocument(name: "test", source, filePath: sourceFilePath);
         solution = document.Project.Solution;
 
         var debuggingSession = StartDebuggingSession(service, solution);
@@ -245,9 +269,19 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // validate solution update status and emit:
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
-        Assert.Empty(results.Diagnostics);
+
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2,
+            ["test", "dummy_proj", string.Format(FeaturesResources._0_does_not_support_Hot_Reload, NoCompilationConstants.LanguageName)]);
+
+        AssertEx.Equal(
+        [
+            $"dummy_proj: {document.FilePath}: (0,0)-(0,0): Error ENC1009: {message}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        AssertEx.SequenceEqual([projectId], results.ProjectsToRestart.Keys);
 
         var document2 = solution.GetDocument(document1.Id);
         diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
@@ -1493,36 +1527,40 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         ], _telemetryLog);
     }
 
-    public static TheoryData<bool, Encoding> EncodingsTestCases()
+    public enum EncodingTestCase
     {
-        var data = new TheoryData<bool, Encoding>();
-        foreach (var encoding in new[]
-        {
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-            Encoding.Unicode,
-            Encoding.BigEndianUnicode,
-
-            // TODO: https://github.com/dotnet/roslyn/issues/81930
-            // We do not currently account for CodePage property value and thus an encoding such as Shift-JIS that can't be detected
-            // from the file content does not work.
-            // Encoding.GetEncoding("SJIS");
-        })
-        {
-            data.Add(true, encoding);
-            data.Add(false, encoding);
-        }
-
-        return data;
+        Utf8,
+        Utf8WithBom,
+        Unicode,
+        BigEndianUnicode,
+        ShiftJis,
     }
 
     [Theory]
-    [MemberData(nameof(EncodingsTestCases))]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/81930")]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2067885")]
-    public async Task Encodings(bool matchingContent, Encoding compilerEncoding)
+    public async Task Encodings(bool matchingContent, EncodingTestCase encodingTestCase)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        var compilerEncoding = encodingTestCase switch
+        {
+            EncodingTestCase.Utf8 => new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+            EncodingTestCase.Utf8WithBom => new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
+            EncodingTestCase.Unicode => Encoding.Unicode,
+            EncodingTestCase.BigEndianUnicode => Encoding.BigEndianUnicode,
+            EncodingTestCase.ShiftJis => Encoding.GetEncoding("SJIS"),
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        var defaultEncoding = encodingTestCase switch
+        {
+            EncodingTestCase.ShiftJis => compilerEncoding,
+
+            // detect encoding from the file content:
+            _ => null
+        };
 
         var editorSource = "class C1 { public void こんにちは() {} }";
         var fileSource = matchingContent ? editorSource : "class C1 { public virtual void こんにちは() {} }";
@@ -1545,8 +1583,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1).
             AddDocument(documentId = DocumentId.CreateNewId(projectId), "test.cs", SourceText.From(editorSource, editorEncoding, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
 
-        // use different checksum alg to trigger PdbMatchingSourceTextProvider call:
-        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, fileSource, sourceFilePath: sourceFile.Path, encoding: compilerEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+        // Use different checksum alg to trigger PdbMatchingSourceTextProvider call.
+        // Set defaultEncoding, which is written to the PDB.
+        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, fileSource, sourceFilePath: sourceFile.Path, encoding: compilerEncoding, defaultEncoding: defaultEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
 
         var sourceTextProviderCalled = false;
         var sourceTextProvider = new MockPdbMatchingSourceTextProvider()
@@ -2265,10 +2304,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var projectE = solution.AddTestProject("E", language: NoCompilationConstants.LanguageName);
         solution = projectE.Solution;
 
-        Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
         // remove a project that doesn't support EnC:
-        Assert.False(await EditSession.HasChangesAsync(solution, oldSolution, CancellationToken.None));
+        Assert.True(await EditSession.HasChangesAsync(solution, oldSolution, CancellationToken.None));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -3187,9 +3226,16 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         sourceFile.WriteAllText(source1, Encoding.UTF8);
 
         results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            document3.FilePath,
+            "test",
+            FeaturesResources.the_content_of_the_document_is_stale);
+
         AssertEx.Equal(
         [
-            $"test: {document3.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFile.Path)}"
+            $"test: {document3.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}"
         ], InspectDiagnostics(results.Diagnostics));
 
         // the content actually hasn't changed:
@@ -4516,13 +4562,19 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var text2 = CreateText(source2);
         solution = solution.WithDocumentText(documentA.Id, text2).WithDocumentText(documentB.Id, text2);
 
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            sourcePath,
+            "A",
+            FeaturesResources.the_content_of_the_document_is_stale);
+
         // no updates
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         AssertEx.Equal(
         [
-            $"A: {documentA.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}",
-            $"B: {documentB.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}"
+            $"A: {documentA.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}",
+            $"B: {documentB.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}"
         ], InspectDiagnostics(results.Diagnostics));
 
         EndDebuggingSession(debuggingSession);

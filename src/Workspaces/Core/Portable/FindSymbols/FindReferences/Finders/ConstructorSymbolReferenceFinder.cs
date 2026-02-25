@@ -85,7 +85,17 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         {
             await FindDocumentsWithImplicitObjectCreationExpressionAsync(
                 project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+
+            if (IsCollectionConstructor(symbol))
+                await FindDocumentsWithCollectionExpressionsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private bool IsCollectionConstructor(IMethodSymbol symbol)
+    {
+        // Simple heuristic: see if the type implements IEnumerable<T> and has an non-static `Add(X)` method.
+        return symbol.ContainingType.AllInterfaces.Any(a => a.OriginalDefinition.IsIEnumerableOfT()) &&
+            symbol.ContainingType.GetBaseTypesAndThis().Any(t => t.GetMembers(nameof(IList<>.Add)).Any(m => m is IMethodSymbol { IsStatic: false, Parameters.Length: 1 }));
     }
 
     private static Task FindDocumentsWithImplicitObjectCreationExpressionAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
@@ -143,6 +153,9 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             methodSymbol, state, processResult, processResultData, cancellationToken);
+
+        if (IsCollectionConstructor(methodSymbol))
+            FindReferencesInCollectionExpressions(methodSymbol, state, processResult, processResultData, cancellationToken);
     }
 
     private static void FindReferenceToAlias<TData>(

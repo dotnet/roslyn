@@ -8947,7 +8947,7 @@ End Class
                 Nothing,
                 _baseDirectory,
                 {"/reportanalyzer", "/t:library", source},
-                analyzers:={New WarningDiagnosticAnalyzer()},
+                analyzers:={New WarningDiagnosticAnalyzer(), New ConcurrentAnalyzer({"C"}), New DiagnosticSuppressorForId("Warning01", "Suppressor01")},
                 generators:={New DoNothingGenerator().AsSourceGenerator()})
             Dim outWriter = New StringWriter()
             Dim exitCode = vbc.Run(outWriter, Nothing)
@@ -8955,8 +8955,44 @@ End Class
             Dim output = outWriter.ToString()
             Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains($"{NameOf(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal)
             Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal)
             Assert.Contains(GetType(DoNothingGenerator).FullName, output, StringComparison.Ordinal)
+
+            Assert.DoesNotContain(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal)
+            Dim nonConcurrentSection = output.Substring(output.IndexOf(CodeAnalysisResources.NonConcurrentAnalyzersHeader))
+            Assert.Contains(NameOf(WarningDiagnosticAnalyzer), nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(NameOf(DiagnosticSuppressorForId), nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(GetType(ConcurrentAnalyzer).Assembly.FullName, nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(NameOf(ConcurrentAnalyzer), nonConcurrentSection, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        Public Sub ReportAnalyzerOutput_AllConcurrentAnalyzers()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(
+                Nothing,
+                _baseDirectory,
+                {"/reportanalyzer", "/t:library", source},
+                analyzers:={New ConcurrentAnalyzer({"C"}), New DiagnosticSuppressorForId("Warning01", "Suppressor01")},
+                generators:={New DoNothingGenerator().AsSourceGenerator()})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            Assert.DoesNotContain(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Assert.Contains($"{NameOf(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains(GetType(DoNothingGenerator).FullName, output, StringComparison.Ordinal)
+
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(source)
         End Sub
 
@@ -9675,7 +9711,7 @@ End Module
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
 
@@ -9683,8 +9719,8 @@ End Module
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
-                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
 
