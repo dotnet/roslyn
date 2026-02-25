@@ -59,7 +59,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
             // SyntaxKind.PredefinedType is for built-in types, e.g. "string.Equals(...)"
             var includeInstance = throughExpression.Kind() is not (SyntaxKind.IdentifierName or SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.PredefinedType) ||
                 semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(static s => s is not INamedTypeSymbol) ||
-                (throughSymbol is not INamespaceOrTypeSymbol && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(static s => s is not INamedTypeSymbol));
+                throughSymbol is not INamespaceOrTypeSymbol;
 
             var includeStatic = throughSymbol is INamedTypeSymbol ||
                 (throughExpression.IsKind(SyntaxKind.IdentifierName) &&
