@@ -3874,6 +3874,760 @@ class C
     }
 
     [Fact]
+    public void ImplicitIndexIndexer_52()
+    {
+        // extension Length not applicable + extension this[int]
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i] { get { System.Console.Write($"get({i})"); return i; } }
+    }
+    extension(D d)
+    {
+        public int Length => 3;
+    }
+}
+
+class C { }
+class D { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_53()
+    {
+        // ambiguous Length extensions + Count extension
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E1
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+    }
+}
+
+static class E2
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int Count { get { System.Console.Write("Count "); return 3; } }
+        public int this[int i] { get { System.Console.Write($"get({i}) "); return 42; } }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,22): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 22));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_54()
+    {
+        // ambiguous inner Length extensions + inner Count extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void M()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int Count { get => throw null; }
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+        }
+    }
+}
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_55()
+    {
+        // ambiguous inner Length extensions + ambiguous inner this[int] extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void M()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_56()
+    {
+        // ambiguous inner Length extensions + one inner this[int] extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void M()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_57()
+    {
+        // ambiguous inner Length extensions + no inner this[int] extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_58()
+    {
+        // ambiguous inner Length extensions + ambiguous inner this[int] extension, outer Length extension + outer this[int] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_59()
+    {
+        // ambiguous inner Length extensions + one inner this[int] extension, outer Length extension + outer this[int] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_60()
+    {
+        // ambiguous inner Length extensions + no inner this[int] extension, outer Length extension + outer this[int] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_61()
+    {
+        // ambiguous inner Length extensions + inapplicable inner this[int] extension, outer Length extension + outer this[int] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+
+    static class E3
+    {
+        extension(D d)
+        {
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E4
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+class D { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_62()
+    {
+        // inner Length extension + ambiguous inner this[int] extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe).VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_63()
+    {
+        // inner Length extension + inner this[int] extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get { System.Console.Write($"inner "); return 42; } }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("inner 42"), verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using Outer;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_64()
+    {
+        // inner Length extension + no inner this[int] extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_65()
+    {
+        // inner Length extension + inapplicable inner this[int] extension, outer this[Index] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(D d)
+        {
+            public int this[int i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+class D { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_66()
+    {
+        // instance Length + inapplicable instance this[int], this[Index] extension
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Index i] { get { System.Console.Write($"outer "); return 42; } }
+    }
+}
+
+class C 
+{ 
+    public int Length => 3;
+    public int this[int i, object o = null] { get => throw null; }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ImplicitRangeIndexer_01()
     {
         // instance implicit indexer (instance scope) takes precedence over extension this[Range] (extension scope)
@@ -4572,7 +5326,7 @@ class D { }
     [Fact]
     public void ImplicitRangeIndexer_26()
     {
-        // two applicable extension Slice methods in the same scope
+        // ambiguous extension Slice
         var src = """
 var c = new C();
 _ = c[1..^1];
@@ -4601,10 +5355,7 @@ class C { }
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(C).Slice(int, int)' and 'E2.extension(C).Slice(int, int)'
             // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_AmbigCall, "c[1..^1]").WithArguments("E1.extension(C).Slice(int, int)", "E2.extension(C).Slice(int, int)").WithLocation(2, 5),
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "c[1..^1]").WithArguments("E1.extension(C).Slice(int, int)", "E2.extension(C).Slice(int, int)").WithLocation(2, 5));
     }
 
     [Fact]
@@ -4675,9 +5426,6 @@ static class E
             // (2,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
             // _ = new object()[r];
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new object()[r]").WithArguments("System.Int32").WithLocation(2, 5),
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
-            // _ = new object()[r];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new object()[r]").WithArguments("object").WithLocation(2, 5),
             // (8,16): error CS0518: Predefined type 'System.Int32' is not defined or imported
             //         public int Length => 5;
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(8, 16),
@@ -4690,6 +5438,91 @@ static class E
             // (9,40): error CS0518: Predefined type 'System.Int32' is not defined or imported
             //         public object Slice(int start, int length) => null;
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(9, 40));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_29()
+    {
+        // ambiguous inner extension Slice, extension outer Slice
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void Main()
+        {
+            var c = new C();
+            _ = c[1..^1];
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 5;
+            public C Slice(int start, int length) => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public C Slice(int start, int length) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public C Slice(int start, int length) => throw null;
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (10,17): error CS0121: The call is ambiguous between the following methods or properties: 'Inner.E1.extension(C).Slice(int, int)' and 'Inner.E2.extension(C).Slice(int, int)'
+            //             _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_AmbigCall, "c[1..^1]").WithArguments("Inner.E1.extension(C).Slice(int, int)", "Inner.E2.extension(C).Slice(int, int)").WithLocation(10, 17));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_30()
+    {
+        // inapplicable instance Slice + instance Length, outer this[Range] extension
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E1
+{
+    extension(C c)
+    {
+        public C this[System.Range r] { get { System.Console.Write("ran"); return null; } }
+    }
+}
+
+class C
+{
+    public int Length => throw null;
+    public C Slice(int i, int j, int k = 0) => throw null;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
