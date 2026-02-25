@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -506,37 +506,209 @@ public sealed class NavigateToSearchIndexTests
     #region LengthCheck
 
     [Theory]
-    // "GooBar" has length 6. Length check passes for patterns within ±2 of 6.
+    // Thresholds mirror WordSimilarityChecker.GetThreshold:
+    //   pattern.Length < 3  → false (fuzzy disabled, per WordSimilarityChecker.MinFuzzyLength)
+    //   pattern.Length 3–4  → threshold ±1
+    //   pattern.Length >= 5 → threshold ±2
     //
-    // True: within ±2 range.
-    [InlineData("GooBar", "abcd", true)]       // length 4, delta = -2 (boundary)
-    [InlineData("GooBar", "abcde", true)]      // length 5, delta = -1
-    [InlineData("GooBar", "abcdef", true)]     // length 6, delta = 0 (exact)
-    [InlineData("GooBar", "abcdefg", true)]    // length 7, delta = +1
-    [InlineData("GooBar", "abcdefgh", true)]   // length 8, delta = +2 (boundary)
+    // ═══ "GooBar" has length 6 ═══
     //
-    // False: outside ±2 range.
-    [InlineData("GooBar", "abc", false)]       // length 3, delta = -3 (just outside)
-    [InlineData("GooBar", "abcdefghi", false)] // length 9, delta = +3 (just outside)
-    [InlineData("GooBar", "ab", false)]        // length 2, delta = -4
-    [InlineData("GooBar", "a", false)]         // length 1, delta = -5
-    [InlineData("GooBar", "abcdefghijklmnop", false)] // length 16, far outside
+    // Pattern length 3 (threshold ±1): symbol length 6, delta = -3 → false.
+    [InlineData("GooBar", "abc", false)]
+    // Pattern length 4 (threshold ±1): symbol length 6, delta = -2 → false (exceeds ±1).
+    [InlineData("GooBar", "abcd", false)]
+    // Pattern length 5 (threshold ±2): symbol length 6, delta = -1 → true.
+    [InlineData("GooBar", "abcde", true)]
+    // Pattern length 6 (threshold ±2): delta = 0 → true.
+    [InlineData("GooBar", "abcdef", true)]
+    // Pattern length 7 (threshold ±2): delta = +1 → true.
+    [InlineData("GooBar", "abcdefg", true)]
+    // Pattern length 8 (threshold ±2): delta = +2 → true (boundary).
+    [InlineData("GooBar", "abcdefgh", true)]
+    // Pattern length 9 (threshold ±2): delta = +3 → false.
+    [InlineData("GooBar", "abcdefghi", false)]
+    // Pattern length 2: below MinFuzzyLength → false.
+    [InlineData("GooBar", "ab", false)]
+    // Pattern length 1: below MinFuzzyLength → false.
+    [InlineData("GooBar", "a", false)]
+    // Pattern length 16: far outside → false.
+    [InlineData("GooBar", "abcdefghijklmnop", false)]
     //
-    // Short symbol: "Xy" has length 2.
-    [InlineData("Xy", "a", true)]              // length 1, delta = -1
-    [InlineData("Xy", "ab", true)]             // length 2, delta = 0
-    [InlineData("Xy", "abcd", true)]           // length 4, delta = +2
-    [InlineData("Xy", "abcde", false)]         // length 5, delta = +3
+    // ═══ Short symbol: "Xy" has length 2 ═══
     //
-    // Long symbol: "CodeFixProviderService" has length 22.
-    [InlineData("CodeFixProviderService", "abcdefghijklmnopqrst", true)]   // length 20, delta = -2
-    [InlineData("CodeFixProviderService", "abcdefghijklmnopqrstuvwx", true)] // length 24, delta = +2
-    [InlineData("CodeFixProviderService", "abcdefghijklmnopqrs", false)]   // length 19, delta = -3
+    // All patterns with length < 3 are rejected. For length 3 (threshold ±1): symbol length 2,
+    // delta = -1 → true.
+    [InlineData("Xy", "a", false)]        // length 1 < MinFuzzyLength
+    [InlineData("Xy", "ab", false)]       // length 2 < MinFuzzyLength
+    [InlineData("Xy", "abc", true)]       // length 3, threshold ±1, delta = -1
+    [InlineData("Xy", "abcd", false)]     // length 4, threshold ±1, delta = -2 → exceeds ±1
+    [InlineData("Xy", "abcde", false)]    // length 5, threshold ±2, delta = -3 → exceeds ±2
+    //
+    // ═══ Short symbol: "Abc" has length 3 ═══
+    //
+    [InlineData("Abc", "abc", true)]      // length 3, threshold ±1, delta = 0
+    [InlineData("Abc", "abcd", true)]     // length 4, threshold ±1, delta = +1
+    [InlineData("Abc", "ab", false)]      // length 2 < MinFuzzyLength
+    [InlineData("Abc", "abcde", true)]    // length 5, threshold ±2, checks 3..7. Symbol 3 in range.
+    [InlineData("Abc", "abcdef", false)]  // length 6, threshold ±2, checks 4..8. Symbol 3 not in range.
+    //
+    // ═══ Long symbol: "CodeFixProviderService" has length 22 ═══
+    //
+    [InlineData("CodeFixProviderService", "abcdefghijklmnopqrst", true)]      // length 20, delta = -2
+    [InlineData("CodeFixProviderService", "abcdefghijklmnopqrstuvwx", true)]  // length 24, delta = +2
+    [InlineData("CodeFixProviderService", "abcdefghijklmnopqrs", false)]      // length 19, delta = -3
     [InlineData("CodeFixProviderService", "abcdefghijklmnopqrstuvwxy", false)] // length 25, delta = +3
     public void LengthCheck(string symbolName, string pattern, bool expected)
     {
         var index = CreateIndex((symbolName, ""));
         Assert.Equal(expected, index.GetTestAccessor().LengthCheckProbablyMatches(pattern));
+    }
+
+    #endregion
+
+    #region BigramCountCheck
+
+    // The fuzzy bigram bitset is an exact bitset (37x37 = 1369 bits, zero false positives for
+    // a-z and 0-9 characters). The q-gram count lemma (Ukkonen, 1992) states: if
+    // edit_distance(s, t) <= k, then at least |s|-1-2k of s's bigrams must appear in t.
+    //
+    // See: Ukkonen, E. (1992). "Approximate string-matching with q-grams and maximal matches."
+    // Theoretical Computer Science, 92(1), 191-211. https://doi.org/10.1016/0304-3975(92)90143-4
+
+    [Theory]
+    // ═══ Length 3 (k=1, min_shared = 3-1-2 = 0): no filtering possible, always true ═══
+    [InlineData("GooBar", "abc", true)]      // all 2 bigrams miss, but min_shared=0 → true
+    [InlineData("GooBar", "xyz", true)]      // completely disjoint, but min_shared=0 → true
+    //
+    // ═══ Length 4 (k=1, min_shared = 4-1-2 = 1): need ≥ 1 of 3 bigrams ═══
+    [InlineData("GooBar", "goob", true)]     // bigrams "go","oo","ob" — all 3 match → true
+    [InlineData("GooBar", "xoob", true)]     // bigrams "xo","oo","ob" — 2 match ("oo","ob") ≥ 1 → true
+    [InlineData("GooBar", "xyzw", false)]    // bigrams "xy","yz","zw" — 0 match < 1 → false
+    [InlineData("GooBar", "goxx", true)]     // bigrams "go","ox","xx" — 1 match ("go") ≥ 1 → true
+    //
+    // ═══ Length 5 (k=2, min_shared = 5-1-4 = 0): no filtering possible, always true ═══
+    [InlineData("GooBar", "xyzwv", true)]    // 0 of 4 match, but min_shared=0 → true
+    //
+    // ═══ Length 6 (k=2, min_shared = 6-1-4 = 1): need ≥ 1 of 5 bigrams ═══
+    [InlineData("GooBar", "goobar", true)]   // all 5 match → true
+    [InlineData("GooBar", "xyzwvq", false)]  // 0 of 5 match < 1 → false
+    [InlineData("GooBar", "xooxxx", true)]   // "xo","oo","ox","xx","xx" — 1 match ("oo") ≥ 1 → true
+    //
+    // ═══ Length 7 (k=2, min_shared = 7-1-4 = 2): need ≥ 2 of 6 bigrams ═══
+    [InlineData("GooBar", "goobxyz", true)]  // "go","oo","ob","bx","xy","yz" — 3 match ≥ 2 → true
+    [InlineData("GooBar", "xyzwvqu", false)] // 0 of 6 match < 2 → false
+    [InlineData("GooBar", "xooxyzq", false)] // "xo","oo","ox","xy","yz","zq" — 1 match ("oo") < 2 → false
+    //
+    // ═══ Length 8 (k=2, min_shared = 8-1-4 = 3): need ≥ 3 of 7 bigrams ═══
+    [InlineData("GooBar", "goobarzz", true)]  // "go","oo","ob","ba","ar","rz","zz" — 5 match ≥ 3 → true
+    [InlineData("GooBar", "xyzwvqup", false)] // 0 of 7 match < 3 → false
+    [InlineData("GooBar", "gooxxxxx", false)] // "go","oo","ox","xx","xx","xx","xx" — 2 match ("go","oo") < 3 → false
+    //
+    // ═══ Length 10 (k=2, min_shared = 10-1-4 = 5): need ≥ 5 of 9 bigrams ═══
+    // This demonstrates strong filtering for longer patterns.
+    [InlineData("GooBar", "goobarxyzw", true)]   // "go","oo","ob","ba","ar","rx","xy","yz","zw" — 5 match ≥ 5 → true
+    [InlineData("GooBar", "xyzwvquprt", false)]  // 0 of 9 < 5 → false
+    //
+    // ═══ Interesting case: single edit distance ═══
+    // "GooBar" vs "XooBar" (1 edit). Bigrams of "xoobar": "xo","oo","ob","ba","ar".
+    // Of the 5 bigrams, "oo","ob","ba","ar" match (4), only "xo" doesn't. For k=2,
+    // min_shared=1, so 4 ≥ 1 → passes correctly.
+    [InlineData("GooBar", "XooBar", true)]
+    // "GooBar" vs "GooXar" (1 edit). Bigrams of "gooxar": "go","oo","ox","xa","ar".
+    // Matches: "go","oo","ar" = 3 ≥ 1 → passes correctly.
+    [InlineData("GooBar", "GooXar", true)]
+    //
+    // ═══ Underscore / digits / Unicode ═══
+    // Underscore gets its own index (36); characters outside a-z, 0-9, _ map to "other" (37).
+    [InlineData("Goo_Bar", "go_b", true)]    // "_" has index 36; bigrams "o_" and "_b" stored → matches
+    [InlineData("Goo_Bar", "o_ba", true)]    // bigrams "o_","_b","ba" all stored
+    [InlineData("Test123", "st12", true)]     // digits get unique indices; "st","t1","12" all stored
+    [InlineData("Test123", "st99", true)]     // "st" matches (≥1), "t9","99" don't, but 1 ≥ 1 → true
+    public void BigramCountCheck(string symbolName, string pattern, bool expected)
+    {
+        var index = CreateIndex((symbolName, ""));
+        Assert.Equal(expected, index.GetTestAccessor().BigramCountCheckProbablyMatches(pattern));
+    }
+
+    /// <summary>
+    /// Verifies that bigrams are accumulated across multiple symbols in the same document.
+    /// A bigram present in any symbol passes the check.
+    /// </summary>
+    [Fact]
+    public void BigramCountCheck_MultipleSymbols()
+    {
+        var index = CreateIndex(("Alpha", ""), ("Beta", ""));
+
+        // "alph" bigrams: "al","lp","ph". "Alpha" has "al","lp","ph","ha". All 3 match.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("alph"));
+
+        // "beta" bigrams: "be","et","ta". "Beta" has "be","et","ta". All 3 match.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("beta"));
+
+        // "albe" bigrams: "al","lb","be". "al" from Alpha, "be" from Beta. 2 match ≥ 1 → true.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("albe"));
+    }
+
+    /// <summary>
+    /// Demonstrates the key scenario motivating the bigram check: same-length patterns that pass
+    /// the length check but have completely different character content. Without the bigram check,
+    /// we'd wastefully attempt fuzzy matching against all symbols of the same length.
+    /// </summary>
+    [Fact]
+    public void BigramCountCheck_RejectsSameLengthDifferentContent()
+    {
+        var index = CreateIndex(("GooBar", ""), ("BazQuux", ""), ("Simple", ""));
+
+        // "Xyzwvq" has length 6, same as "GooBar" and "Simple". Length check passes.
+        Assert.True(index.GetTestAccessor().LengthCheckProbablyMatches("Xyzwvq"));
+        // But bigram check fails: "xy","yz","zw","wv","vq" — none stored.
+        Assert.False(index.GetTestAccessor().BigramCountCheckProbablyMatches("Xyzwvq"));
+
+        // "Xyzwvq" is mixed case (X then lowercase), one hump 'X'. 'X' is not a hump initial of
+        // any symbol. Not all-lowercase, so trigram check doesn't apply either. The bigram check
+        // also fails. With all three checks failing, the document is skipped entirely.
+        Assert.False(index.CouldContainNavigateToMatch("Xyzwvq", null, out var allowFuzzyMatching));
+        Assert.False(allowFuzzyMatching);
+    }
+
+    /// <summary>
+    /// Verifies that the bigram bitset correctly handles the "other" bucket for Unicode characters.
+    /// Two distinct Unicode characters both map to index 37 ("other"), so their bigrams are
+    /// indistinguishable. Underscore, by contrast, has its own index (36) and is exact.
+    /// </summary>
+    [Fact]
+    public void BigramCountCheck_UnicodeFallsBackToOtherBucket()
+    {
+        // "α" and "β" are both non-a-z, non-0-9, non-underscore, so they map to "other" (index 37).
+        var index = CreateIndex(("Gooαβ", ""));
+
+        // "gooαβ" bigrams: "go","oα","αβ". In the bitset, "oα" maps to (o=14)*38+(other=37),
+        // and "αβ" maps to (other=37)*38+(other=37). Both stored.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("gooαβ"));
+
+        // "gooγδ" bigrams: "go","oγ","γδ". "oγ" maps to same index as "oα" (both "other"),
+        // and "γδ" maps to same as "αβ" (both "other,other"). So this is a false positive
+        // from the "other" bucket — the bitset can't distinguish them.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("gooγδ"));
+    }
+
+    /// <summary>
+    /// Verifies that underscore has its own dedicated index (36) and is NOT in the "other" bucket.
+    /// This means underscore bigrams are exact — "o_" and "oα" map to different bitset positions.
+    /// </summary>
+    [Fact]
+    public void BigramCountCheck_UnderscoreHasOwnIndex()
+    {
+        // Index with a symbol that contains underscore bigrams: "a_b" → bigrams "a_", "_b".
+        var index = CreateIndex(("a_b_c", ""));
+
+        // "a_b_" has bigrams "a_","_b","b_","_c" — length 4, k=1, min_shared=1.
+        // "a_" is stored → passes.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("a_b_"));
+
+        // "aαbα" has bigrams "aα","αb","bα" — none of these match "a_","_b","b_","_c"
+        // because underscore (index 36) != other (index 37). min_shared=1, matches=0 → false.
+        Assert.False(index.GetTestAccessor().BigramCountCheckProbablyMatches("aαbα"));
     }
 
     #endregion
@@ -727,9 +899,9 @@ public sealed class NavigateToSearchIndexTests
         Assert.True(index.CouldContainNavigateToMatch(patternName, patternContainer, out var allowFuzzyMatching));
 
         // All these test cases have simple patterns, so non-fuzzy checks pass.
-        // If the length check also passes, the result is All (fuzzy fallback enabled);
-        // otherwise it's NonFuzzy.
-        var expectedFuzzy = index.GetTestAccessor().LengthCheckProbablyMatches(patternName);
+        // Fuzzy is enabled only when BOTH length check AND bigram count check pass.
+        var expectedFuzzy = index.GetTestAccessor().LengthCheckProbablyMatches(patternName)
+                         && index.GetTestAccessor().BigramCountCheckProbablyMatches(patternName);
         Assert.Equal(expectedFuzzy, allowFuzzyMatching);
 
         var nameMatch = GetNameMatch(symbolName, patternName);
@@ -895,11 +1067,12 @@ public sealed class NavigateToSearchIndexTests
         // Trigram check: "line" has trigrams "lin", "ine". Both stored from "Readline". Passes.
         Assert.True(index.GetTestAccessor().TrigramCheckProbablyMatches("line"));
 
-        // Length check: "line" has length 4, "Readline" has length 8. Delta = 4, outside ±2. Fails.
+        // Length check: "line" has length 4, threshold ±1, checks lengths 3..5.
+        // "Readline" has length 8, not in range. Fails.
         Assert.False(index.GetTestAccessor().LengthCheckProbablyMatches("line"));
 
         // Overall: CouldContainNavigateToMatch returns true (trigram check saves it).
-        // NonFuzzy because the length check failed — no symbol has length within ±2 of "line".
+        // Fuzzy is disabled because the length check failed.
         Assert.True(index.CouldContainNavigateToMatch("line", null, out var allowFuzzyMatching));
         Assert.False(allowFuzzyMatching);
     }
@@ -924,8 +1097,11 @@ public sealed class NavigateToSearchIndexTests
         Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("Xoobar"));
         // Trigram: "Xoobar" is not all-lowercase (capital X) → false.
         Assert.False(index.GetTestAccessor().TrigramCheckProbablyMatches("Xoobar"));
-        // Length: "Xoobar" length 6 matches "GooBar" length 6. Within ±2. Passes.
+        // Length: "Xoobar" length 6 matches "GooBar" length 6. Within ±2 (threshold for length 6). Passes.
         Assert.True(index.GetTestAccessor().LengthCheckProbablyMatches("Xoobar"));
+        // Bigram: "xoobar" bigrams "xo","oo","ob","ba","ar". "GooBar" has "go","oo","ob","ba","ar".
+        // k=2, min_shared = 6-1-4 = 1. Shared: "oo","ob","ba","ar" = 4 ≥ 1. Passes.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("Xoobar"));
     }
 
     #endregion
@@ -944,7 +1120,7 @@ public sealed class NavigateToSearchIndexTests
 
         Assert.True(index.CouldContainNavigateToMatch("@static", null, out var allowFuzzyMatching));
 
-        // All because stripping '@' → "static" passes hump check AND length delta = 1 is within ±2.
+        // Fuzzy enabled because stripping '@' → "static" passes hump check AND length/bigram checks.
         Assert.True(allowFuzzyMatching);
 
         // Verify the PatternMatcher finds the Exact match with the pre-filter's matchKinds.
@@ -1002,24 +1178,26 @@ public sealed class NavigateToSearchIndexTests
     }
 
     /// <summary>
-    /// When hump/trigram fail even after preprocessing, only Fuzzy is set (from the length check).
-    /// "Xoobar" shares no hump structure or trigrams with "GooBar", but same length → fuzzy match.
+    /// When hump/trigram fail even after preprocessing, fuzzy is enabled by the length + bigram checks.
+    /// "Xoobar" shares no hump structure or trigrams with "GooBar", but same length and enough shared
+    /// bigrams → fuzzy match.
     /// </summary>
     [Fact]
-    public void EndToEnd_OnlyLengthCheckPasses_FuzzyOnlyMatchUsed()
+    public void EndToEnd_OnlyFuzzyChecksPasses_FuzzyMatchUsed()
     {
         var index = CreateIndex(("GooBar", ""));
 
         Assert.False(index.GetTestAccessor().HumpCheckProbablyMatches("Xoobar"));
         Assert.False(index.GetTestAccessor().TrigramCheckProbablyMatches("Xoobar"));
         Assert.True(index.GetTestAccessor().LengthCheckProbablyMatches("Xoobar"));
+        // "xoobar" bigrams: "xo","oo","ob","ba","ar". "GooBar" bigrams: "go","oo","ob","ba","ar".
+        // k=2, min_shared=1, matches=4 → passes.
+        Assert.True(index.GetTestAccessor().BigramCountCheckProbablyMatches("Xoobar"));
 
         Assert.True(index.CouldContainNavigateToMatch("Xoobar", null, out var allowFuzzyMatching));
-
-        // All — only length check passes, which enables fuzzy fallback.
         Assert.True(allowFuzzyMatching);
 
-        // PatternMatcher with Fuzzy only: non-fuzzy is skipped, fuzzy finds edit-distance match.
+        // PatternMatcher with fuzzy: non-fuzzy is skipped, fuzzy finds edit-distance match.
         using var matcher = PatternMatcher.CreatePatternMatcher("Xoobar", includeMatchedSpans: false, allowFuzzyMatching);
         var match = matcher.GetFirstMatch("GooBar");
         Assert.NotNull(match);

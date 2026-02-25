@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -76,15 +76,30 @@ internal struct WordSimilarityChecker : IDisposable
         return result;
     }
 
+    /// <summary>
+    /// Maximum allowed edit distance for a fuzzy match given the source length. Shorter strings
+    /// get a tighter threshold (1) to avoid excessive spurious hits; longer strings get a looser
+    /// threshold (2) to tolerate more typos.
+    /// </summary>
     internal static int GetThreshold(string value)
-        => value.Length <= 4 ? 1 : 2;
+        => GetThreshold(value.Length);
+
+    /// <inheritdoc cref="GetThreshold(string)"/>
+    internal static int GetThreshold(int length)
+        => length <= 4 ? 1 : 2;
+
+    /// <summary>
+    /// Minimum source length for fuzzy matching to be attempted. Patterns shorter than this
+    /// produce too many spurious hits. See <see cref="AreSimilar(string, out double)"/>.
+    /// </summary>
+    internal const int MinFuzzyLength = 3;
 
     public bool AreSimilar(string candidateText)
         => AreSimilar(candidateText, out _);
 
     public bool AreSimilar(string candidateText, out double similarityWeight)
     {
-        if (_source.Length < 3)
+        if (_source.Length < MinFuzzyLength)
         {
             // If we're comparing strings that are too short, we'll find 
             // far too many spurious hits.  Don't even bother in this case.

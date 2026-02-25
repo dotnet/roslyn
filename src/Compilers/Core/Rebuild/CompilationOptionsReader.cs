@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Rebuild
         // GUIDs specified in https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#document-table-0x30
         public static readonly Guid HashAlgorithmSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
         public static readonly Guid HashAlgorithmSha256 = unchecked(new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16));
+        public static readonly Guid HashAlgorithmSha384 = unchecked(new Guid((int)0xd99cfeb1, (short)0x8c43, 0x444a, 0x8a, 0x6c, 0xb6, 0x12, 0x69, 0xd2, 0xa0, 0xbf));
+        public static readonly Guid HashAlgorithmSha512 = unchecked(new Guid((int)0xef2d1afc, 0x6550, 0x46d6, 0xb1, 0x4b, 0xd7, 0x0a, 0xfe, 0x9a, 0x55, 0x66));
 
         // https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#compilation-metadata-references-c-and-vb-compilers
         public static readonly Guid MetadataReferenceInfoGuid = new Guid("7E4D4708-096E-4C5C-AEDA-CB10BA6A740D");
@@ -187,6 +189,8 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 var hashAlgorithm =
                     hashAlgorithmGuid == HashAlgorithmSha1 ? SourceHashAlgorithm.Sha1
                     : hashAlgorithmGuid == HashAlgorithmSha256 ? SourceHashAlgorithm.Sha256
+                    : hashAlgorithmGuid == HashAlgorithmSha384 ? SourceHashAlgorithm.Sha384
+                    : hashAlgorithmGuid == HashAlgorithmSha512 ? SourceHashAlgorithm.Sha512
                     : SourceHashAlgorithm.None;
 
                 var hash = PdbReader.GetBlobBytes(document.Hash);
