@@ -10885,7 +10885,7 @@ async () =>
         }
 
         [Fact]
-        public void NestedLocalFunctionInsideLambdaWithNullable_WithTaskReturningMethod()
+        public void RuntimeAsyncNullable_WithTaskReturningMethod()
         {
             var source = """
 using System.Threading.Tasks;
@@ -10916,7 +10916,7 @@ async Task? M(object o) { }
         }
 
         [Fact]
-        public void NestedLocalFunctionInsideLambdaWithNullable_WithTaskLikeReturningMethod()
+        public void RuntimeAsyncNullable_WithTaskLikeReturningMethod()
         {
             var corlib = """
                 namespace System

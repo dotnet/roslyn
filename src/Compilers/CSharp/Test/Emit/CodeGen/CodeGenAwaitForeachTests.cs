@@ -9685,7 +9685,7 @@ class C
         }
 
         [Fact]
-        public void RuntimeAsync_UserDefinedIAsyncDisposable_ReturnsNullableTask_Warns()
+        public void RuntimeAsync_UserDefinedIAsyncDisposable_ReturnsNullableValueTask_Errors()
         {
             string source = @"#nullable enable
 using System.Threading.Tasks;
