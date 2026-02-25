@@ -3599,17 +3599,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
         {
             DeclareLocals(node.Locals);
-            VisitAwaitableInfoForUsing(node.AwaitOpt, node.PatternDisposeInfoOpt);
+            VisitAwaitableInfoForUsing(node.AwaitOpt, node.PatternDisposeInfoOpt?.Method);
             return base.VisitUsingStatement(node);
         }
 
         public override BoundNode? VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
-            VisitAwaitableInfoForUsing(node.AwaitOpt, node.PatternDisposeInfoOpt);
+            VisitAwaitableInfoForUsing(node.AwaitOpt, node.PatternDisposeInfoOpt?.Method);
             return base.VisitUsingLocalDeclarations(node);
         }
 
-        private void VisitAwaitableInfoForUsing(BoundAwaitableInfo? awaitInfo, MethodArgumentInfo? patternDisposeInfo)
+        private void VisitAwaitableInfoForUsing(BoundAwaitableInfo? awaitInfo, MethodSymbol? patternDisposeMethod)
         {
             // Placeholder can be null in error scenarios. In such cases, nothing is filled in and errors would
             // have been reported already. We can just return.
@@ -3619,9 +3619,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitResult placeholderResult;
-            if (patternDisposeInfo is not null)
+            if (patternDisposeMethod is not null)
             {
-                placeholderResult = new VisitResult(GetReturnTypeWithState(patternDisposeInfo.Method), patternDisposeInfo.Method.ReturnTypeWithAnnotations);
+                placeholderResult = new VisitResult(GetReturnTypeWithState(patternDisposeMethod), patternDisposeMethod.ReturnTypeWithAnnotations);
             }
             else
             {
@@ -12097,7 +12097,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Analyze `await DisposeAsync()`
                 if (enumeratorInfoOpt is { NeedsDisposal: true, DisposeAwaitableInfo: BoundAwaitableInfo awaitDisposalInfo })
                 {
-                    VisitAwaitableInfoForUsing(awaitDisposalInfo, enumeratorInfoOpt.PatternDisposeInfo);
+                    var patternDisposeMethod = enumeratorInfoOpt.PatternDisposeInfo?.Method;
+                    if (patternDisposeMethod is not null)
+                    {
+                        patternDisposeMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, patternDisposeMethod);
+                    }
+
+                    VisitAwaitableInfoForUsing(awaitDisposalInfo, patternDisposeMethod);
                 }
             }
 
@@ -13252,45 +13258,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is { GetAwaiter: null, GetResult: null, RuntimeAsyncAwaitCall: null, RuntimeAsyncAwaitCallPlaceholder: null })
             {
+                if (node.AwaitableInstancePlaceholder is not null)
+                {
+                    // Ensure that the placeholder has an analyzed nullability for the rewriter
+                    SetNotNullResult(node.AwaitableInstancePlaceholder);
+                }
+
+                SetInvalidResult();
+
                 // Error scenario
                 return null;
             }
 
             Debug.Assert(node.AwaitableInstancePlaceholder is not null);
 
-            VisitPlaceholderWithReplacement(node.AwaitableInstancePlaceholder);
-
-            VisitResult? savedResult = null;
-            if (node.GetAwaiter is null)
-            {
-                // This is the simple case of just `AsyncHelpers.Await(expr)`.
-                Debug.Assert(node is { RuntimeAsyncAwaitCall: not null, RuntimeAsyncAwaitCallPlaceholder: not null, GetResult: null });
-                AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.AwaitableInstancePlaceholder, _visitResult);
-            }
-            else
-            {
-                // If this is a runtime async case, it's the more complicated case of AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter. We need to
-                // save _visitResult to restore after visiting AsyncHelpers.AwaitAwaiter, as the calling method will need the nullability result
-                // from GetAwaiter to be able to recalculate GetResult with nullability.
-                Visit(node.GetAwaiter);
-                savedResult = _visitResult;
-                if (node.RuntimeAsyncAwaitCallPlaceholder is not null)
-                {
-                    AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.GetAwaiter, _visitResult);
-                }
-            }
-
             if (node.RuntimeAsyncAwaitCall is not null)
             {
                 Debug.Assert(node.RuntimeAsyncAwaitCallPlaceholder is not null);
-                Visit(node.RuntimeAsyncAwaitCall);
-                RemovePlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder);
-                if (savedResult is { } savedVisitResult)
+
+                if (node.GetAwaiter is null)
                 {
-                    // This should only be needed when the caller needs to re-infer GetResult.
-                    Debug.Assert(node.GetResult is not null);
-                    _visitResult = savedVisitResult;
+                    // This is the simple case of just `AsyncHelpers.Await(expr)`. AwaitableInstancePlaceholder and RuntimeAsyncAwaitCallPlaceholder
+                    // refer to the same value.
+                    Debug.Assert(node.GetResult is null);
+                    VisitPlaceholderWithReplacement(node.AwaitableInstancePlaceholder);
+                    AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.AwaitableInstancePlaceholder, _visitResult);
+                    Visit(node.RuntimeAsyncAwaitCall);
+                    RemovePlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder);
                 }
+                else
+                {
+                    // More complicated case of `AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter`. We need to visit GetAwaiter first to get the nullability
+                    // result for the awaiter, which we then save. It is used both here, as the state of the RuntimeAsyncAwaitCallPlaceholder replacement,
+                    // and also for the caller to be able to re-infer GetResult with nullability.
+                    Visit(node.GetAwaiter);
+                    var getAwaiterResult = _visitResult;
+                    AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.GetAwaiter, getAwaiterResult);
+                    Visit(node.RuntimeAsyncAwaitCall);
+                    RemovePlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder);
+                    _visitResult = getAwaiterResult;
+                }
+            }
+            else
+            {
+                // Not runtime async
+                Visit(node.GetAwaiter);
             }
 
             return null;
