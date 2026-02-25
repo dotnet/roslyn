@@ -385,6 +385,8 @@ if [[ "$test_core_clr" == true ]]; then
 
   if [[ -n "$test_compiler_only" ]]; then
     runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
+  else
+    runtests_args="$runtests_args --include '\.UnitTests'"
   fi
 
   if [[ -n "$helix_queue_name" ]]; then
