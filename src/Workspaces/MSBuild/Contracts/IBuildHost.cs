@@ -33,7 +33,8 @@ internal interface IBuildHost
     /// Called once on a new process to configure some global state. This is used for these rather than passing through command line strings, since these contain data that might
     /// contain paths (which can have escaping issues) or could be quite large (which could run into length limits).
     /// </summary>
-    void ConfigureGlobalState(ImmutableDictionary<string, string> globalProperties, string? binlogPath);
+    /// <param name="knownCommandLineParserLanguages">Languages whose command line parser we understand (ICommandLineParserService).</param>
+    void ConfigureGlobalState(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath);
 
     Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
 

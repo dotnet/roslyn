@@ -223,7 +223,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
             return (null, DocumentState.DesignTimeOnly);
         }
 
-        if (!document.DocumentState.SupportsEditAndContinue())
+        if (document.DocumentState.IgnoreForEditAndContinue())
         {
             return (null, DocumentState.DesignTimeOnly);
         }
