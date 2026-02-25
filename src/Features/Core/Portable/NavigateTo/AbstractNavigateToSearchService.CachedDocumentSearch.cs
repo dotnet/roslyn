@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -155,8 +155,8 @@ internal abstract partial class AbstractNavigateToSearchService
                 {
                     // First, load the lightweight filter index to check if this document could possibly match.
                     var filterIndex = await GetFilterIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
-                    var matchKinds = filterIndex?.CouldContainNavigateToMatch(patternName, patternContainer) ?? PatternMatcherKind.None;
-                    if (matchKinds == PatternMatcherKind.None)
+                    var nameMatchKinds = filterIndex?.CouldContainNavigateToMatch(patternName, patternContainer) ?? PatternMatcherKind.None;
+                    if (nameMatchKinds == PatternMatcherKind.None)
                         return;
 
                     // The filter passed — now load the full index with all declared symbols.
@@ -166,7 +166,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
                     ProcessIndex(
                         documentKey, document: null, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                        matchKinds, index, linkedIndices: null, onItemFound, cancellationToken);
+                        nameMatchKinds, index, linkedIndices: null, onItemFound, cancellationToken);
                 }).ConfigureAwait(false);
 
             // done with project.  Let the host know.
