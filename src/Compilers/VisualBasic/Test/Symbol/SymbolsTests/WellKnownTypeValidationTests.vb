@@ -602,6 +602,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_UnionAttribute,
                          WellKnownType.System_Runtime_CompilerServices_ITuple,
                          WellKnownType.System_Runtime_CompilerServices_HotReloadException,
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute
@@ -702,6 +703,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_UnionAttribute,
                          WellKnownType.System_Runtime_CompilerServices_ITuple,
                          WellKnownType.System_Runtime_CompilerServices_HotReloadException,
                         WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute
@@ -839,6 +841,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor,
                          WellKnownMember.System_Index__ctor,
                          WellKnownMember.System_Index__GetOffset,
                          WellKnownMember.System_Range__ctor,
@@ -1061,6 +1064,7 @@ End Namespace
                          WellKnownMember.System_Range__get_End,
                          WellKnownMember.System_Range__get_Start,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,

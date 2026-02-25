@@ -16614,7 +16614,7 @@ internal abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSynta
     {
     }
 
-    /// <summary>Gets the type keyword token ("class", "struct", "interface", "record", "extension").</summary>
+    /// <summary>Gets the type keyword token ("class", "struct", "interface", "record", "extension", "union").</summary>
     public abstract SyntaxToken Keyword { get; }
 
     public abstract TypeParameterListSyntax? TypeParameterList { get; }
@@ -17085,7 +17085,7 @@ internal sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
 
     public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
-    /// <summary>Gets the struct keyword token.</summary>
+    /// <summary>Gets the struct or union keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
     public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
@@ -17124,7 +17124,7 @@ internal sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var newNode = SyntaxFactory.StructDeclaration(this.Kind, attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -31796,11 +31796,22 @@ internal partial class ContextAwareSyntax
         return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
     }
 
-    public StructDeclarationSyntax StructDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    public StructDeclarationSyntax StructDeclaration(SyntaxKind kind, CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
     {
+        switch (kind)
+        {
+            case SyntaxKind.StructDeclaration:
+            case SyntaxKind.UnionDeclaration: break;
+            default: throw new ArgumentException(nameof(kind));
+        }
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
-        if (keyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(keyword));
+        switch (keyword.Kind)
+        {
+            case SyntaxKind.StructKeyword:
+            case SyntaxKind.UnionKeyword: break;
+            default: throw new ArgumentException(nameof(keyword));
+        }
         if (identifier == null) throw new ArgumentNullException(nameof(identifier));
         if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
         if (openBraceToken != null)
@@ -31832,7 +31843,7 @@ internal partial class ContextAwareSyntax
         }
 #endif
 
-        return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+        return new StructDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
     }
 
     public InterfaceDeclarationSyntax InterfaceDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
@@ -37184,11 +37195,22 @@ internal static partial class SyntaxFactory
         return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
     }
 
-    public static StructDeclarationSyntax StructDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    public static StructDeclarationSyntax StructDeclaration(SyntaxKind kind, CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
     {
+        switch (kind)
+        {
+            case SyntaxKind.StructDeclaration:
+            case SyntaxKind.UnionDeclaration: break;
+            default: throw new ArgumentException(nameof(kind));
+        }
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
-        if (keyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(keyword));
+        switch (keyword.Kind)
+        {
+            case SyntaxKind.StructKeyword:
+            case SyntaxKind.UnionKeyword: break;
+            default: throw new ArgumentException(nameof(keyword));
+        }
         if (identifier == null) throw new ArgumentNullException(nameof(identifier));
         if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
         if (openBraceToken != null)
@@ -37220,7 +37242,7 @@ internal static partial class SyntaxFactory
         }
 #endif
 
-        return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+        return new StructDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
     }
 
     public static InterfaceDeclarationSyntax InterfaceDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)

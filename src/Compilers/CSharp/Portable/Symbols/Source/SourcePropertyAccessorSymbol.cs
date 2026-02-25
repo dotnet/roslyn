@@ -126,6 +126,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 diagnostics);
         }
+
+        public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
+            NamedTypeSymbol containingType,
+            SynthesizedUnionValuePropertySymbol property,
+            DeclarationModifiers propertyModifiers,
+            Location location,
+            CSharpSyntaxNode syntax,
+            BindingDiagnosticBag diagnostics)
+        {
+            return new SourcePropertyAccessorSymbol(
+                containingType,
+                property,
+                propertyModifiers,
+                location,
+                syntax,
+                hasBlockBody: false,
+                hasExpressionBody: false,
+                isIterator: false,
+                modifiers: default,
+                MethodKind.PropertyGet,
+                usesInit: false,
+                isAutoPropertyAccessor: true,
+                isNullableAnalysisEnabled: false,
+                diagnostics);
+        }
 #nullable disable
 
         internal sealed override ImmutableArray<string> NotNullMembers
@@ -254,6 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
+            if (_property is SynthesizedUnionValuePropertySymbol or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPropertySymbol)
+            {
+                return null;
+            }
+
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 

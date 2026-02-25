@@ -1153,7 +1153,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -8240,5 +8240,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeContainsUnionConversion" xml:space="preserve">
     <value>An expression tree may not contain a union conversion.</value>
+  </data>
+  <data name="IDS_FeatureUnions" xml:space="preserve">
+    <value>unions</value>
+  </data>
+  <data name="ERR_UnionDeclarationNeedsCaseTypes" xml:space="preserve">
+    <value>A union declaration must specify at least one case type.</value>
+  </data>
+  <data name="ERR_NoImplicitConversionToObject" xml:space="preserve">
+    <value>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</value>
   </data>
 </root>

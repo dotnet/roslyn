@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (declaration.Kind)
             {
                 case DeclarationKind.Struct:
+                case DeclarationKind.Union:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Enum:
                 case DeclarationKind.Delegate:
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
@@ -162,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.UnionDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
@@ -472,6 +475,7 @@ next:;
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
@@ -1469,6 +1473,14 @@ next:;
         {
             get
             {
+                return this.declaration.Declarations[0].Kind is DeclarationKind.Union || HasUnionAttribute;
+            }
+        }
+
+        private bool HasUnionAttribute
+        {
+            get
+            {
                 return GetEarlyDecodedWellKnownAttributeData()?.HasUnionAttribute == true;
             }
         }
@@ -1832,6 +1844,28 @@ next:;
                         ref attributes,
                         SynthesizedAttributeData.Create(DeclaringCompilation, parameterlessConstructor, arguments: [], namedArguments: []));
                 }
+            }
+
+            // Union type
+            if (ShouldApplyUnionAttribute())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor));
+            }
+        }
+
+        private bool ShouldApplyUnionAttribute()
+        {
+            return this.declaration.Declarations[0].Kind is DeclarationKind.Union && !HasUnionAttribute;
+        }
+
+        protected override void AfterMembersChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.AfterMembersChecks(diagnostics);
+
+            // Union type
+            if (ShouldApplyUnionAttribute())
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor, diagnostics, GetFirstLocation());
             }
         }
 

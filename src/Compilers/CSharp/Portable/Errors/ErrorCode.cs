@@ -2465,6 +2465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE: Pack numbers
         ERR_ExpressionTreeContainsUnionConversion = 9400,
+        ERR_UnionDeclarationNeedsCaseTypes = 9401,
+        ERR_NoImplicitConversionToObject = 9402,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

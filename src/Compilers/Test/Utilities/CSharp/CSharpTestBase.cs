@@ -38,6 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14]);
 
+        protected static readonly string UnionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public class UnionAttribute : System.Attribute
+    {
+    }
+}
+";
+
         protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {

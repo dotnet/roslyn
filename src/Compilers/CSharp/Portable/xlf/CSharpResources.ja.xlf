@@ -1457,6 +1457,11 @@
         <target state="translated">'{0}' に '{1}' の定義が含まれていません。また、型 '{0}' の最初の引数を受け入れるアクセス可能な拡張メソッド '{1}' が見つかりませんでした (代わりに 'await foreach' を使用して非同期コレクションを反復処理するつもりでしたか?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
         <target state="translated">ターゲット ランタイムは、拡張レイアウトの種類をサポートしていません。</target>
@@ -1644,7 +1649,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="translated">予期しないキーワード 'record' です。'record struct' または 'record class' のつもりでしたか?</target>
+        <target state="needs-review-translation">予期しないキーワード 'record' です。'record struct' または 'record class' のつもりでしたか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -2662,6 +2667,11 @@
         <target state="translated">予期しないパラメーター リストです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="new">A union declaration must specify at least one case type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' は 'UnmanagedCallersOnly' 属性が設定されているため、直接呼び出すことはできません。このメソッドへの関数ポインターを取得してください。</target>
@@ -3055,6 +3065,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nameof 演算子でバインドされていないジェネリック型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="new">unions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -7111,8 +7126,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">'{0}' の partial 宣言は、すべてのクラス、すべてのレコード クラス、すべての構造体、すべてのレコード構造体、すべてのインターフェイスのいずれかにする必要があります</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">'{0}' の partial 宣言は、すべてのクラス、すべてのレコード クラス、すべての構造体、すべてのレコード構造体、すべてのインターフェイスのいずれかにする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

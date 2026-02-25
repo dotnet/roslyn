@@ -1457,6 +1457,11 @@
         <target state="translated">“{0}”不包含“{1}”的定义，且找不到任何可访问的扩展方法“{1}”，其中该方法接受类型为“{0}”的第一个参数(是否想用 "await foreach" 来循环访问异步集合?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
         <target state="translated">目标运行时不支持扩展布局类型。</target>
@@ -1644,7 +1649,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="translated">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>
+        <target state="needs-review-translation">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -2662,6 +2667,11 @@
         <target state="translated">意外的参数列表。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="new">A union declaration must specify at least one case type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">“{0}”使用 "UnmanagedCallersOnly" 进行特性化，无法直接调用。请获取指向此方法的函数指针。</target>
@@ -3055,6 +3065,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nameof 运算符中的未绑定泛型类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="new">unions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -7111,8 +7126,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">'{0}' 的部分声明必须为所有类、所有记录、所有结构、所有记录结构或所有接口</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">'{0}' 的部分声明必须为所有类、所有记录、所有结构、所有记录结构或所有接口</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
