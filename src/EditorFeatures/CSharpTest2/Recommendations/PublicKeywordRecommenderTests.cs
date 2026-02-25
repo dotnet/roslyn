@@ -211,6 +211,14 @@ public sealed class PublicKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
+    public Task TestInsideUnion()
+        => VerifyKeywordAsync(
+            """
+            union U(int) {
+               $$
+            """, CSharpNextParseOptions, CSharpNextScriptParseOptions);
+
+    [Fact]
     public Task TestInsideInterface()
         => VerifyKeywordAsync(
             """

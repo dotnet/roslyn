@@ -73,6 +73,10 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !ROSLYN_5_5_OR_LOWER
+        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+        SyntaxKind.UnionDeclaration,
+#endif
         SyntaxKind.EnumDeclaration,
     };
 
@@ -83,6 +87,10 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !ROSLYN_5_5_OR_LOWER
+        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> NonEnumTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -95,6 +103,10 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.RecordStructDeclaration,
         SyntaxKind.StructDeclaration,
+#if !ROSLYN_5_5_OR_LOWER
+        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -116,12 +128,20 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !ROSLYN_5_5_OR_LOWER
+        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !ROSLYN_5_5_OR_LOWER
+        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> InterfaceOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
