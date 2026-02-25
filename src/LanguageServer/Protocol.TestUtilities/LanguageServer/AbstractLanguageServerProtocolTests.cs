@@ -825,6 +825,15 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName, didCloseParams, CancellationToken.None);
         }
 
+        public async Task RefreshSourceGeneratorsAsync(bool forceRegeneration)
+        {
+            var refreshSourceGeneratorsParams = new RefreshSourceGeneratorsParams(forceRegeneration);
+
+            // The refresh command should trigger source generators to run in both automatic and balanced mode.
+            await this.ExecuteRequestAsync<RefreshSourceGeneratorsParams, object>(WorkspaceRefreshSourceGeneratorsHandler.MethodName, refreshSourceGeneratorsParams, CancellationToken.None);
+            await this.WaitForSourceGeneratorsAsync();
+        }
+
         public async Task ShutdownTestServerAsync()
         {
             await _clientRpc.InvokeAsync(LSP.Methods.ShutdownName).ConfigureAwait(false);

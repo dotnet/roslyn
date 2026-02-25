@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -284,7 +283,7 @@ internal sealed class EditSession
 
         foreach (var newProject in newSolution.Projects)
         {
-            if (!newProject.SupportsEditAndContinue())
+            if (newProject.IgnoreForEditAndContinue())
             {
                 continue;
             }
@@ -299,7 +298,7 @@ internal sealed class EditSession
 
         foreach (var oldProject in oldSolution.Projects)
         {
-            if (!oldProject.SupportsEditAndContinue())
+            if (oldProject.IgnoreForEditAndContinue())
             {
                 continue;
             }
@@ -333,10 +332,8 @@ internal sealed class EditSession
 
     internal static async ValueTask<bool> HasDifferencesAsync(Project oldProject, Project newProject, ProjectDifferences? differences, CancellationToken cancellationToken)
     {
-        if (!newProject.SupportsEditAndContinue())
-        {
-            return false;
-        }
+        Debug.Assert(!oldProject.IgnoreForEditAndContinue());
+        Debug.Assert(!newProject.IgnoreForEditAndContinue());
 
         if (oldProject.State == newProject.State)
         {
@@ -351,7 +348,7 @@ internal sealed class EditSession
         foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
         {
             var document = newProject.GetRequiredDocument(documentId);
-            if (!document.State.SupportsEditAndContinue())
+            if (document.State.IgnoreForEditAndContinue())
             {
                 continue;
             }
@@ -372,7 +369,7 @@ internal sealed class EditSession
         foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
         {
             var document = newProject.GetRequiredDocument(documentId);
-            if (!document.State.SupportsEditAndContinue())
+            if (document.State.IgnoreForEditAndContinue())
             {
                 continue;
             }
@@ -388,7 +385,7 @@ internal sealed class EditSession
         foreach (var documentId in newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates))
         {
             var document = oldProject.GetRequiredDocument(documentId);
-            if (!document.State.SupportsEditAndContinue())
+            if (document.State.IgnoreForEditAndContinue())
             {
                 continue;
             }
@@ -447,8 +444,15 @@ internal sealed class EditSession
     /// </summary>
     internal static bool HasProjectLevelDifferences(Project oldProject, Project newProject, ProjectDifferences? differences)
     {
-        Debug.Assert(oldProject.CompilationOptions != null);
-        Debug.Assert(newProject.CompilationOptions != null);
+        if (oldProject.CompilationOptions == null || oldProject.ParseOptions == null)
+        {
+            Contract.ThrowIfFalse(newProject.CompilationOptions == null);
+            Contract.ThrowIfFalse(newProject.ParseOptions == null);
+            return false;
+        }
+
+        Contract.ThrowIfNull(newProject.CompilationOptions);
+        Contract.ThrowIfNull(newProject.ParseOptions);
 
         if (oldProject.ParseOptions != newProject.ParseOptions ||
             HasDifferences(oldProject.CompilationOptions, newProject.CompilationOptions) ||
@@ -611,6 +615,7 @@ internal sealed class EditSession
         ProjectDifferences differences,
         ActiveStatementSpanProvider newDocumentActiveStatementSpanProvider,
         ArrayBuilder<Diagnostic> diagnostics,
+        bool projectSupportsEditAndContinue,
         CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<(Document? oldDocument, Document? newDocument)>.GetInstance(out var documents);
@@ -653,11 +658,38 @@ internal sealed class EditSession
             documents.Add((oldDocument, newDocument: null));
         }
 
-        // No need to report rude edits if project has any documents that are out of sync. No deltas will be emitted for such project.
-        var analyses = staleDocument != null
-            ? []
-            : await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, newSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        if (staleDocument != null)
+        {
+            return ([], staleDocument);
+        }
 
+        if (!projectSupportsEditAndContinue)
+        {
+            // Bail early for projects that do not support EnC.
+            // If the document source is stale the detected changes might not be accurate.
+            // If this becomes an issue we'll need to ensure we have compilation outputs settings for the project, so that we can read the PDB.
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.UpdatingUnsupportedProject);
+            string? reason = null;
+
+            foreach (var (oldDocument, newDocument) in documents)
+            {
+                var document = newDocument ?? oldDocument;
+                Contract.ThrowIfNull(document);
+                Contract.ThrowIfNull(document.FilePath);
+
+                reason ??= string.Format(FeaturesResources._0_does_not_support_Hot_Reload, document.Project.Language);
+
+                diagnostics.Add(Diagnostic.Create(
+                    descriptor,
+                    Location.Create(document.FilePath, textSpan: default, lineSpan: default),
+                    [document.Name, document.Project.Name, reason]));
+            }
+
+            return ([], staleDocument: null);
+        }
+
+        // No need to report rude edits if project has any documents that are out of sync. No deltas will be emitted for such project.
+        var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, newSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
         return (analyses, staleDocument);
     }
 
@@ -1107,13 +1139,22 @@ internal sealed class EditSession
             {
                 try
                 {
-                    if (!newProject.SupportsEditAndContinue(Log))
+                    if (newProject.IgnoreForEditAndContinue(Log))
                     {
                         continue;
                     }
 
                     var oldProject = oldSolution.GetProject(newProject.Id);
-                    Debug.Assert(oldProject == null || oldProject.SupportsEditAndContinue());
+                    if (oldProject?.IgnoreForEditAndContinue(Log) == true)
+                    {
+                        continue;
+                    }
+
+                    var projectSupportsEditAndContinue = newProject.SupportsEditAndContinue(Log);
+                    if (oldProject != null && projectSupportsEditAndContinue != oldProject.SupportsEditAndContinue())
+                    {
+                        continue;
+                    }
 
                     await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, cancellationToken).ConfigureAwait(false);
                     projectDifferences.Log(Log, newProject);
@@ -1189,7 +1230,7 @@ internal sealed class EditSession
                     // instead of the true C.M(string).
 
                     var (changedDocumentAnalyses, staleDocument) =
-                        await AnalyzeProjectDifferencesAsync(solution, projectDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, cancellationToken).ConfigureAwait(false);
+                        await AnalyzeProjectDifferencesAsync(solution, projectDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, projectSupportsEditAndContinue, cancellationToken).ConfigureAwait(false);
 
                     if (staleDocument != null)
                     {
@@ -1225,6 +1266,11 @@ internal sealed class EditSession
                         }
 
                         Telemetry.LogAnalysisTime(changedDocumentAnalysis.ElapsedTime);
+                    }
+
+                    if (!projectSupportsEditAndContinue)
+                    {
+                        continue;
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);

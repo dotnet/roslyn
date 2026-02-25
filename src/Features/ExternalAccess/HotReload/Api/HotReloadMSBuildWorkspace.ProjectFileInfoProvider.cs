@@ -31,10 +31,10 @@ internal sealed partial class HotReloadMSBuildWorkspace
 
             return Task.FromResult(instances.SelectAsArray(instance =>
             {
-                var reader = new ProjectInstanceReader(
-                    ProjectCommandLineProvider.Create(languageName),
-                    instance,
-                    project);
+                // dotnet-watch only supports C# projects for Hot Reload and ensures that C# language services are available:
+                var commandLineReader = ProjectCommandLineProvider.TryCreate(languageName, knownCommandLineParserLanguages: [LanguageNames.CSharp]);
+
+                var reader = new ProjectInstanceReader(languageName, commandLineReader, instance, project);
 
                 return reader.CreateProjectFileInfo();
             }));

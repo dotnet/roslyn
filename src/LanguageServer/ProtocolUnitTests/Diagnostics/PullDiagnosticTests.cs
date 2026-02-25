@@ -731,8 +731,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             Assert.Null(results.Single().Diagnostics);
             Assert.Equal(firstResultId, secondResultId);
 
-            testLspServer.TestWorkspace.EnqueueUpdateSourceGeneratorVersion(document.Project.Id, forceRegeneration: false);
-            await testLspServer.WaitForSourceGeneratorsAsync();
+            await testLspServer.RefreshSourceGeneratorsAsync(forceRegeneration: false);
 
             results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: secondResultId);
             var thirdResultId = results.Single().ResultId;

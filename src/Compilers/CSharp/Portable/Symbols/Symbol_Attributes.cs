@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var attributeDeclarationSyntax in attributeDeclarationSyntaxList)
                     {
                         // We bind the attribute only if it has a matching target for the given ownerSymbol and attributeLocation.
-                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax.Target, diagnostics) &&
+                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax, diagnostics) &&
                             ShouldBindAttributes(attributeDeclarationSyntax, diagnostics))
                         {
                             if (syntaxBuilder == null)
@@ -680,14 +680,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, BindingDiagnosticBag diagnostics)
+        private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeListSyntax attributeList, BindingDiagnosticBag diagnostics)
         {
+            AttributeLocation defaultAttributeLocation = attributeTarget.DefaultAttributeLocation;
+            if (defaultAttributeLocation == AttributeLocation.Extension)
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                return false;
+            }
+
             IAttributeTargetSymbol attributesOwner = attributeTarget.AttributesOwner;
 
             // Determine if the target symbol owns the attribute declaration.
             // We need to report diagnostics only once, so do it when visiting attributes for the owner.
             bool isOwner = symbolPart == AttributeLocation.None && ReferenceEquals(attributesOwner, attributeTarget);
 
+            AttributeTargetSpecifierSyntax targetOpt = attributeList.Target;
             if (targetOpt == null)
             {
                 // only attributes with an explicit target match if the symbol doesn't own the attributes:
@@ -704,7 +712,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
-
             AttributeLocation explicitTarget = targetOpt.GetAttributeLocation();
             if (explicitTarget == AttributeLocation.None)
             {
@@ -726,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (allowedTargets == AttributeLocation.None)
                     {
-                        switch (attributeTarget.DefaultAttributeLocation)
+                        switch (defaultAttributeLocation)
                         {
                             case AttributeLocation.Assembly:
                             case AttributeLocation.Module:
@@ -900,6 +907,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol attributeType = attribute.AttributeClass;
             AttributeUsageInfo attributeUsageInfo = attributeType.GetAttributeUsageInfo();
+
+            if (this is NamedTypeSymbol { IsExtension: true })
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesNotAllowed, node.Name.Location);
+                return false;
+            }
 
             // Given attribute can't be specified more than once if AllowMultiple is false.
             if (!uniqueAttributeTypes.Add(attributeType.OriginalDefinition) && !attributeUsageInfo.AllowMultiple)

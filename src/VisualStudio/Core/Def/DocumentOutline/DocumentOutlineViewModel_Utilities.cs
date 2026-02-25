@@ -140,7 +140,7 @@ internal sealed partial class DocumentOutlineViewModel
         cancellationToken.ThrowIfCancellationRequested();
 
         using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var filteredDocumentSymbols);
-        var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
+        using var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
 
         foreach (var documentSymbol in documentSymbolData)
         {

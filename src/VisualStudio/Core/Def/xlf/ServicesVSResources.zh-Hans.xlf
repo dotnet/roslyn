@@ -572,6 +572,11 @@
         <target state="translated">在其他运算符中</target>
         <note />
       </trans-unit>
+      <trans-unit id="Include_Roslyn_source_generated_files">
+        <source>Include Roslyn source-generated files</source>
+        <target state="translated">包含 Roslyn 源生成的文件</target>
+        <note>Used in the unified settings registration for real-time test discovery</note>
+      </trans-unit>
       <trans-unit id="Include_global_imports">
         <source>Include global imports</source>
         <target state="translated">包括全局导入</target>
@@ -1360,6 +1365,11 @@
       <trans-unit id="Semantic_search_results">
         <source>Semantic Search Results</source>
         <target state="translated">语义搜索结果</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_Inheritance">
+        <source>Show Inheritance</source>
+        <target state="translated">显示继承</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
