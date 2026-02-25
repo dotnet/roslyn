@@ -210,11 +210,8 @@ internal sealed partial class NavigateToSearchIndex
                 // Record symbol name length in the bitset for fuzzy-match pre-filtering.
                 lengthBitset |= 1UL << Math.Min(name.Length, MaxSymbolNameLengthBitIndex);
 
-                // Lowercase the name into the provided buffer for hump-prefix and trigram storage.
                 name.ToLowerInvariant(loweredName);
 
-                // Break the name into character-parts and store hump-initial data.
-                // For "GooBar" -> parts ["Goo", "Bar"] -> hump initials G, B.
                 using var charParts = TemporaryArray<TextSpan>.Empty;
                 StringBreaker.AddCharacterParts(name, ref charParts.AsRef());
 
@@ -294,6 +291,70 @@ internal sealed partial class NavigateToSearchIndex
 #endif
                 }
             }
+        }
+
+        /// <summary>
+        /// Stores individual hump-initial characters (uppercased) and all ordered pairs of
+        /// hump-initial characters. For "GooBarQuux" (humps G, B, Q): stores "G", "B", "Q",
+        /// "GB", "GQ", "BQ". Storing all pairs (not just adjacent) enables non-contiguous
+        /// CamelCase matching like "GQ" matching "GooBarQuux" by skipping "Bar".
+        /// </summary>
+        private static void AddHumpData(string name, in TemporaryArray<TextSpan> charParts, HashSet<string> humpStrings)
+        {
+            foreach (var part in charParts)
+                AddToSet(humpStrings, [char.ToUpperInvariant(name[part.Start])]);
+
+            for (var i = 0; i < charParts.Count; i++)
+            {
+                var ci = char.ToUpperInvariant(name[charParts[i].Start]);
+                for (var j = i + 1; j < charParts.Count; j++)
+                {
+                    var cj = char.ToUpperInvariant(name[charParts[j].Start]);
+                    AddToSet(humpStrings, [ci, cj]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stores lowercased prefixes of each character-part (hump). For "GooBar" with parts
+        /// "Goo", "Bar": stores "g", "go", "goo", "b", "ba", "bar". Used by the all-lowercase
+        /// DP to check whether a pattern can be split into segments that each match a hump prefix.
+        /// </summary>
+        private static void AddHumpPrefixData(in TemporaryArray<TextSpan> charParts, ReadOnlySpan<char> loweredName, HashSet<string> humpPrefixStrings)
+        {
+            foreach (var part in charParts)
+            {
+                for (var prefixLen = 1; prefixLen <= part.Length; prefixLen++)
+                    AddToSet(humpPrefixStrings, loweredName.Slice(part.Start, prefixLen));
+            }
+        }
+
+        /// <summary>
+        /// Stores lowercased trigrams (3-character sliding windows) of each word-part.
+        /// For "Readline": stores "rea", "ead", "adl", "dli", "lin", "ine".
+        /// </summary>
+        private static void AddTrigramData(string name, ReadOnlySpan<char> loweredName, HashSet<string> trigramStrings)
+        {
+            using var wordParts = TemporaryArray<TextSpan>.Empty;
+            StringBreaker.AddWordParts(name, ref wordParts.AsRef());
+
+            foreach (var part in wordParts)
+            {
+                if (part.Length < 3)
+                    continue;
+
+                for (var i = 0; i + 3 <= part.Length; i++)
+                    AddToSet(trigramStrings, loweredName.Slice(part.Start + i, 3));
+            }
+        }
+
+        private static void AddToSet(HashSet<string> set, ReadOnlySpan<char> value)
+        {
+#if NET9_0_OR_GREATER
+            set.GetAlternateLookup<ReadOnlySpan<char>>().Add(value);
+#else
+            set.Add(value.ToString());
+#endif
         }
 
         private static void AddContainerData(string fullyQualifiedContainerName, HashSet<char> containerChars)
@@ -616,8 +677,8 @@ internal sealed partial class NavigateToSearchIndex
         /// <summary>
         /// Checks if any symbol name length in the document is close enough to the pattern length
         /// for a fuzzy match to be possible. The allowed delta is determined by
-        /// <see cref="WordSimilarityChecker.GetThreshold(int)"/>: ±1 for patterns of length 3–4,
-        /// ±2 for length 5+. Patterns shorter than <see cref="WordSimilarityChecker.MinFuzzyLength"/>
+        /// <see cref="WordSimilarityChecker.GetThreshold(int)"/>: ±1 for patterns of length 3–5,
+        /// ±2 for length 6+. Patterns shorter than <see cref="WordSimilarityChecker.MinFuzzyLength"/>
         /// are rejected outright because <see cref="WordSimilarityChecker.AreSimilar(string, out double)"/>
         /// disables fuzzy matching for them.
         /// </summary>
@@ -668,7 +729,7 @@ internal sealed partial class NavigateToSearchIndex
         /// <list type="bullet">
         /// <item>Length 3: k=1, min_shared = 3−1−2 = 0 → cannot filter (always returns true)</item>
         /// <item>Length 4: k=1, min_shared = 4−1−2 = 1 → need ≥ 1 of 3 bigrams</item>
-        /// <item>Length 5: k=2, min_shared = 5−1−4 = 0 → cannot filter (always returns true)</item>
+        /// <item>Length 5: k=1, min_shared = 5−1−2 = 2 → need ≥ 2 of 4 bigrams</item>
         /// <item>Length 6: k=2, min_shared = 6−1−4 = 1 → need ≥ 1 of 5 bigrams</item>
         /// <item>Length 7: k=2, min_shared = 7−1−4 = 2 → need ≥ 2 of 6 bigrams</item>
         /// <item>Length 8+: increasingly strong filtering</item>
