@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 internal static class LanguageVersionExtensions
 {
     public static bool IsCSharp15OrAbove(this LanguageVersion languageVersion)
-        => languageVersion >= LanguageVersion.Preview;
+        => languageVersion >= CSharpNext;
 
 #if ROSLYN_4_12_OR_LOWER
     public static bool IsCSharp14OrAbove(this LanguageVersion languageVersion)
