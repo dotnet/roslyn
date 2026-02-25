@@ -5831,6 +5831,16 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm);
             Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
+            parsedArgs = DefaultParse(["/checksumAlgorithm:sHa384", "a.cs"], WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha384, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
+
+            parsedArgs = DefaultParse(["/checksumAlgorithm:sha512", "a.cs"], WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha512, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
+
             parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
 
