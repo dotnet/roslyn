@@ -11,6 +11,7 @@ using System.Composition;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -45,6 +46,8 @@ internal sealed partial class CodeStyleHostLanguageServices : HostLanguageServic
             }
             catch (ReflectionTypeLoadException ex)
             {
+                FatalError.ReportNonFatalError(ex);
+
                 // Return only the types that were successfully loaded
                 return ex.Types.Where(t => t is not null);
             }
