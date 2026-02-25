@@ -48,15 +48,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             Conversion c = F.Compilation.Conversions.ClassifyImplicitConversionFromType(parameter.Type, valueProperty.Type, ref useSiteInfo);
 
-            if (c.Exists && c.IsImplicit && (c.IsReference || c.IsBoxing))
+            if (IsValidParameterTypeConversion(c))
             {
                 statements.Add(F.Assignment(F.Field(F.This(), valueProperty.DeclaredBackingField), F.Convert(valueProperty.Type, parameter, c, explicitCastInCode: false)));
+            }
+            else
+            {
+                statements.Add(new BoundNoOpStatement(F.Syntax, NoOpStatementFlavor.Default, hasErrors: true));
             }
 
             // Add a sequence point at the end of the constructor, so that a breakpoint placed on the case type 
             // can be hit whenever a new instance of the union for that case type is created.
             Debug.Assert(F.Syntax is TypeDeclarationSyntax);
             statements.Add(new BoundSequencePointWithSpan(F.Syntax, statementOpt: null, Locations[0].SourceSpan)); // PROTOTYPE: Add test coverage and verify debugging experience.
+        }
+
+        public static bool IsValidParameterTypeConversion(Conversion c)
+        {
+            return c.Exists && c.IsImplicit && (c.IsIdentity || c.IsReference || c.IsBoxing);
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)

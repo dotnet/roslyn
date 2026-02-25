@@ -4847,7 +4847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Conversion c = compilation.Conversions.ClassifyImplicitConversionFromType(parameterType.Type, compilation.GetSpecialType(SpecialType.System_Object), ref useSiteInfo);
                         diagnostics.Add(typeSyntax, useSiteInfo);
 
-                        if ((!c.Exists || !c.IsImplicit || (!c.IsReference && !c.IsBoxing)) && !parameterType.Type.IsErrorType())
+                        if (!SynthesizedUnionCtor.IsValidParameterTypeConversion(c) && !parameterType.Type.IsErrorType())
                         {
                             diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, typeSyntax, parameterType.Type);
                         }

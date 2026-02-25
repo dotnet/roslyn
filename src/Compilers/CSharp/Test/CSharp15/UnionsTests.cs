@@ -19972,6 +19972,8 @@ union S1(int, int)
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            // PROTOTYPE: Consider reporting a more informative error.
             comp.VerifyEmitDiagnostics(
                 // (100,15): error CS0111: Type 'S1' already defines a member called 'S1' with the same parameter types
                 // union S1(int, int)
@@ -20024,6 +20026,7 @@ union S1();
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
 
+            // PROTOTYPE: Consider reorting a more informative error. Perhaps something like: "A union declaration must specify at least one case type." 
             comp.VerifyEmitDiagnostics(
                 // (100,10): error CS1031: Type expected
                 // union S1();
@@ -20216,6 +20219,52 @@ union S1(int);
                 // union S1(int);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Object").WithLocation(100, 7)
                 );
+        }
+
+        [Fact]
+        public void UnionDeclaration_20()
+        {
+            var src = @"
+#pragma warning disable CS1718 // Comparison made to same variable; did you mean to compare something else?
+
+union S1(object);
+
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1(123);
+        System.Console.WriteLine(s11.Value);
+    }
+}
+";
+
+            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: @"123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionDeclaration_21()
+        {
+            var src = @"
+#pragma warning disable CS1718 // Comparison made to same variable; did you mean to compare something else?
+
+union S1(int?);
+
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1(123);
+        System.Console.WriteLine(s11.Value);
+    }
+}
+";
+
+            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: @"123").VerifyDiagnostics();
         }
     }
 }
