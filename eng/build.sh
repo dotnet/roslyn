@@ -383,7 +383,7 @@ fi
 if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
 
-  if [[ -n "$test_compiler_only" ]]; then
+  if [[ "$test_compiler_only" == true ]]; then
     runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
   else
     runtests_args="$runtests_args --include '\.UnitTests'"
