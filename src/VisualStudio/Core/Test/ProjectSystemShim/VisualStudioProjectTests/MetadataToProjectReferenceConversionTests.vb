@@ -6,8 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
+Imports Microsoft.VisualStudio.Threading
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
@@ -369,5 +372,151 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Single(environment.Workspace.CurrentSolution.Projects.Single().MetadataReferences)
             End Using
         End Function
+
+        <WpfFact, WorkItem(39904, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279845")>
+        Public Async Function RemovingProjectReferencingItselfDoesNotBreakIfASecondProjectExists() As Task
+            Using environment = New TestEnvironment()
+                Const ReferencePath = "C:\project.dll"
+
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)
+                project1.OutputFilePath = ReferencePath
+                project1.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project2", LanguageNames.CSharp, CancellationToken.None)
+                project2.OutputFilePath = ReferencePath
+
+                ' The removal of project one might accidentally try to convert the metadata reference to a project reference to project 2
+                project1.RemoveFromWorkspace()
+            End Using
+        End Function
+
+        ''' <summary>
+        ''' Stress test that creates multiple threads which randomly create projects, add/remove
+        ''' metadata references (including shared references and project output references),
+        ''' and remove projects. This is used to test out bugs that might not be thought of in the regular
+        ''' set of tests.
+        ''' </summary>
+        <WpfFact>
+        Public Async Function StressConcurrentProjectAndReferenceOperations() As Task
+            Using environment = New TestEnvironment()
+                Const ThreadCount = 8
+                Const OperationsPerThread = 2000
+                Const MaxProjectsPerThread = 5
+
+                ' Some normal reference paths that multiple projects may reference
+                Dim regularReferencePaths = Enumerable.Range(0, 5).Select(Function(i) $"Z:\Regular\Regular{i}.dll").ToArray()
+
+                ' Output paths assigned to projects so that metadata references to these
+                ' paths are converted to project references. Paths will be chosen at random
+                ' from this set, so some projects may have duplicate output paths.
+                Dim outputPaths = Enumerable.Range(0, 20).Select(Function(i) $"Z:\Outputs\Project{i}.dll").ToArray()
+
+                Dim barrier = New Barrier(ThreadCount)
+
+                Dim tasks = Enumerable.Range(0, ThreadCount).Select(
+                    Function(threadIndex)
+                        Return Task.Run(
+                            Sub()
+                                ' We'll create a random generator per thread, using a stable index, so the behavior if a single
+                                ' thread would be deterministic
+                                Dim random = New Random(threadIndex)
+                                Dim projects = New List(Of ProjectAndMetadataReferences)()
+
+                                ' Wait for all threads to start
+                                barrier.SignalAndWait()
+
+                                For op = 1 To OperationsPerThread
+                                    Dim roll = random.Next(100)
+
+                                    If roll < 25 OrElse projects.Count = 0 Then
+                                        ' Create a new project; first see if we already have enough
+                                        If projects.Count >= MaxProjectsPerThread Then
+                                            ' Remove the oldest
+                                            projects(0).Project.RemoveFromWorkspace()
+                                            projects.RemoveAt(0)
+                                        End If
+
+                                        Dim name = $"project_t{threadIndex}_{op}"
+                                        Dim project = environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                                            name, LanguageNames.CSharp, CancellationToken.None).Result
+
+                                        ' Optionally assign an output path from the pool so other
+                                        ' threads' metadata references to this path convert to
+                                        ' project references.
+                                        If random.Next(100) < 50 Then
+                                            project.OutputFilePath = outputPaths(random.Next(outputPaths.Length))
+                                        End If
+
+                                        projects.Add(New ProjectAndMetadataReferences(project))
+
+                                    ElseIf roll < 55 Then
+                                        ' Add a metadata reference to a regular reference
+                                        Dim target = projects(random.Next(projects.Count))
+                                        Dim refPath = regularReferencePaths(random.Next(regularReferencePaths.Length))
+                                        If Not target.MetadataReferences.Contains(refPath) Then
+                                            target.Project.AddMetadataReference(refPath, MetadataReferenceProperties.Assembly)
+                                            target.MetadataReferences.Add(refPath)
+                                        End If
+
+                                    ElseIf roll < 70 Then
+                                        ' Add a metadata reference to some project's output path
+                                        Dim target = projects(random.Next(projects.Count))
+                                        Dim refPath = outputPaths(random.Next(outputPaths.Length))
+                                        If Not target.MetadataReferences.Contains(refPath) Then
+                                            target.Project.AddMetadataReference(refPath, MetadataReferenceProperties.Assembly)
+                                            target.MetadataReferences.Add(refPath)
+                                        End If
+
+                                    ElseIf roll < 85 Then
+                                        ' Remove a metadata reference
+                                        Dim target = projects(random.Next(projects.Count))
+                                        If target.MetadataReferences.Count > 0 Then
+                                            Dim index = random.Next(target.MetadataReferences.Count)
+                                            Dim refPath = target.MetadataReferences(index)
+                                            target.Project.RemoveMetadataReference(refPath, MetadataReferenceProperties.Assembly)
+                                            target.MetadataReferences.RemoveAt(index)
+                                        End If
+
+                                    ElseIf roll < 93 Then
+                                        ' Change a project's output path
+                                        Dim target = projects(random.Next(projects.Count))
+                                        If random.Next(100) < 70 Then
+                                            Dim newPath = outputPaths(random.Next(outputPaths.Length))
+                                            target.Project.OutputFilePath = newPath
+                                        Else
+                                            target.Project.OutputFilePath = Nothing
+                                        End If
+
+                                    Else
+                                        ' Remove a project
+                                        If projects.Count > 1 Then
+                                            Dim index = random.Next(projects.Count)
+                                            projects(index).Project.RemoveFromWorkspace()
+                                            projects.RemoveAt(index)
+                                        End If
+                                    End If
+                                Next
+
+                                ' Clean up remaining projects on this thread.
+                                For Each p In projects
+                                    p.Project.RemoveFromWorkspace()
+                                Next
+                            End Sub)
+                    End Function).ToArray()
+
+                ' Awaiting the WhenAll might ignore the other exceptions; assert all of them to make it easier to see all the failures
+                Await Task.WhenAll(tasks).NoThrowAwaitable()
+                Assert.Empty(tasks.Select(Function(t) t.Exception?.InnerException).WhereNotNull())
+            End Using
+        End Function
+
+        Private NotInheritable Class ProjectAndMetadataReferences
+            Public ReadOnly Project As ProjectSystemProject
+            Public ReadOnly MetadataReferences As New List(Of String)()
+
+            Public Sub New(project As ProjectSystemProject)
+                Me.Project = project
+            End Sub
+        End Class
     End Class
 End Namespace

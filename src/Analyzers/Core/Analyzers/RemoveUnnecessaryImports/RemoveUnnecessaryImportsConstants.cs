@@ -8,4 +8,6 @@ internal static class RemoveUnnecessaryImportsConstants
 {
     // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
     public const string DiagnosticFixableId = "RemoveUnnecessaryImportsFixable";
+
+    public const string IDE0005_gen = "IDE0005_gen";
 }

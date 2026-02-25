@@ -980,7 +980,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         //
         // The only cases where we feel confident enough to elide the cast are:
         //
-        // 1. When we have an Array/Delegate/Enum. These are such core types, and cannot be changed by teh user,
+        // 1. When we have an Array/Delegate/Enum. These are such core types, and cannot be changed by the user,
         //    that we can trust their impls to not change.
         // 2. We have one of the builtin structs (like int). These are such core types, and cannot be changed by teh
         //    user, that we can trust their impls to not change.

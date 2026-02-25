@@ -131,7 +131,25 @@ internal sealed class ProjectFileInfo
     /// Any package references defined on the project.
     /// </summary>
     [DataMember]
-    public ImmutableArray<PackageReference> PackageReferences { get; init; }
+    public ImmutableArray<PackageReferenceItem> PackageReferences { get; init; }
+
+    /// <summary>
+    /// Metadata references referenced by the project if not specified in <see cref="CommandLineArgs"/>.
+    /// </summary>
+    [DataMember]
+    public ImmutableArray<MetadataReferenceItem> MetadataReferences { get; init; }
+
+    /// <summary>
+    /// The value of `CodePage` property. Zero if not specified.
+    /// </summary>
+    [DataMember]
+    public int CodePage { get; init; }
+
+    /// <summary>
+    /// The value of `ChecksumAlgorithm` or `PdbChecksumAlgorithm` property.
+    /// </summary>
+    [DataMember]
+    public string? ChecksumAlgorithm { get; init; }
 
     /// <summary>
     /// Target framework version (for .net framework projects)
@@ -159,6 +177,9 @@ internal sealed class ProjectFileInfo
             AnalyzerConfigDocuments = [],
             ProjectReferences = [],
             PackageReferences = [],
+            MetadataReferences = [],
+            CodePage = 0,
+            ChecksumAlgorithm = null,
             ProjectCapabilities = [],
             ContentFilePaths = [],
             FileGlobs = []

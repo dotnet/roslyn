@@ -30,7 +30,7 @@ internal sealed class VisualStudioMSBuildInstalled : ExecutionCondition
 
         try
         {
-            buildHostProcessManager = new BuildHostProcessManager();
+            buildHostProcessManager = new BuildHostProcessManager(knownCommandLineParserLanguages: []);
 
             var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetFramework, CancellationToken.None).Result;
 
