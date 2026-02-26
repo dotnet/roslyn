@@ -27,6 +27,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
 [Export(typeof(IVisualStudioDiagnosticAnalyzerService))]
+[Export(typeof(VisualStudioDiagnosticAnalyzerService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class VisualStudioDiagnosticAnalyzerService(
@@ -34,11 +35,12 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
     IVsService<SVsStatusbar, IVsStatusbar> statusbar,
     IThreadingContext threadingContext,
     IVsHierarchyItemManager vsHierarchyItemManager,
-    IAsynchronousOperationListenerProvider listenerProvider) : IVisualStudioDiagnosticAnalyzerService
+    IAsynchronousOperationListenerProvider listenerProvider,
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider) : IVisualStudioDiagnosticAnalyzerService
 {
     // "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
     // The below ID is actually defined as "ECMD_RUNFXCOPSEL" in stdidcmd.h, we're just referencing it here.
-    private const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
+    internal const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
 
     private readonly VisualStudioWorkspace _workspace = workspace;
     private readonly IVsService<IVsStatusbar> _statusbar = statusbar;
@@ -49,19 +51,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
     private readonly CancellationSeries _cancellationSeries = new(threadingContext.DisposalToken);
 
-    private IServiceProvider? _serviceProvider;
-
-    public void Initialize(IServiceProvider serviceProvider, ThreadSafeMenuCommandService menuCommandService)
-    {
-        Contract.ThrowIfNull(serviceProvider);
-        Contract.ThrowIfNull(menuCommandService);
-
-        _serviceProvider = serviceProvider;
-
-        // Hook up the "Run Code Analysis" menu command for CPS based managed projects.
-        menuCommandService.AddCommand(VSConstants.VSStd2K, RunCodeAnalysisForSelectedProjectCommandId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-        menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-    }
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
 
     public async Task<IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>>> GetAllDiagnosticDescriptorsAsync(
         IVsHierarchy? hierarchy,
@@ -123,7 +113,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         return map.ToDictionary(kv => kv.Key, kv => (IEnumerable<DiagnosticDescriptor>)kv.Value);
     }
 
-    private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)
+    internal void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)
     {
         var command = (OleMenuCommand)sender;
 
@@ -157,7 +147,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         }
     }
 
-    private void OnRunCodeAnalysisForSelectedProject(object sender, EventArgs args)
+    internal void OnRunCodeAnalysisForSelectedProject(object sender, EventArgs args)
     {
         if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             RunAnalyzers(hierarchy);

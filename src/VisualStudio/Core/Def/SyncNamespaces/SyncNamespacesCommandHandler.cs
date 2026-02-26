@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -23,38 +23,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 
-[Export(typeof(SyncNamespacesCommandHandler)), Shared]
+[Export(typeof(SyncNamespacesCommandHandler))]
 internal sealed class SyncNamespacesCommandHandler
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IUIThreadOperationExecutor _threadOperationExecutor;
     private readonly IThreadingContext _threadingContext;
-    private IServiceProvider? _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public SyncNamespacesCommandHandler(
         IUIThreadOperationExecutor threadOperationExecutor,
         VisualStudioWorkspace workspace,
-        IThreadingContext threadingContext)
+        IThreadingContext threadingContext,
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
     {
         _threadOperationExecutor = threadOperationExecutor;
         _workspace = workspace;
         _threadingContext = threadingContext;
-    }
-
-    public void Initialize(IServiceProvider serviceProvider, ThreadSafeMenuCommandService menuCommandService)
-    {
-        Contract.ThrowIfNull(serviceProvider);
-        Contract.ThrowIfNull(menuCommandService);
-
         _serviceProvider = serviceProvider;
-
-        // Hook up the "Sync Namespaces" menu command for CPS based managed projects.
-        menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SyncNamespaces, OnSyncNamespacesForSelectedProject, OnSyncNamespacesForSelectedProjectStatus);
     }
 
-    private void OnSyncNamespacesForSelectedProjectStatus(object sender, EventArgs e)
+    internal void OnSyncNamespacesForSelectedProjectStatus(object sender, EventArgs e)
     {
         var command = (OleMenuCommand)sender;
 
@@ -85,7 +76,7 @@ internal sealed class SyncNamespacesCommandHandler
         }
     }
 
-    private void OnSyncNamespacesForSelectedProject(object sender, EventArgs args)
+    internal void OnSyncNamespacesForSelectedProject(object sender, EventArgs args)
     {
         if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var projectHierarchy))
         {

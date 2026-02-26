@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -33,9 +31,4 @@ internal interface IVisualStudioDiagnosticAnalyzerService
     /// Otherwise, analyzers are run on the current solution.
     /// </param>
     void RunAnalyzers(IVsHierarchy? hierarchy);
-
-    /// <summary>
-    /// Initializes the service.
-    /// </summary>
-    void Initialize(IServiceProvider serviceProvider, ThreadSafeMenuCommandService menuCommandService);
 }

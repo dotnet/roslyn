@@ -81,6 +81,24 @@ internal sealed class RoslynPackage : AbstractPackage
             Assumes.Present(menuCommandService);
             _menuCommandService = new ThreadSafeMenuCommandService(menuCommandService);
 
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RemoveUnusedReferences,
+                (s, e) => ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().OnRemoveUnusedReferencesForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().OnRemoveUnusedReferencesForSelectedProjectStatus(s, e));
+
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SyncNamespaces,
+                (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProjectStatus(s, e));
+
+            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.RunCodeAnalysisForSelectedProjectCommandId,
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject,
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
+
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.LogRoslynWorkspaceStructure,
+                (_, _) => ProjectSystem.Logging.RoslynWorkspaceStructureLogger.ShowSaveDialogAndLog(this));
+
             await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
             await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
         }
@@ -110,15 +128,9 @@ internal sealed class RoslynPackage : AbstractPackage
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-        this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this, _menuCommandService);
-        this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().Initialize(this, _menuCommandService);
-        this.ComponentModel.GetService<SyncNamespacesCommandHandler>().Initialize(this, _menuCommandService);
-
         await LoadAnalyzerNodeComponentsAsync(_menuCommandService, cancellationToken).ConfigureAwait(false);
 
         StackTraceExplorerCommandHandler.Initialize(_menuCommandService, this);
-
-        _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.LogRoslynWorkspaceStructure, (_, _) => ProjectSystem.Logging.RoslynWorkspaceStructureLogger.ShowSaveDialogAndLog(this));
 
         // Initialize keybinding reset detector
         await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(false);
