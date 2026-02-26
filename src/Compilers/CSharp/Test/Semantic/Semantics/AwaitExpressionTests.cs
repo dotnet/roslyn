@@ -339,7 +339,7 @@ public class C {
             Assert.Null(info.GetAwaiterMethod);
             Assert.Null(info.GetResultMethod);
             Assert.Null(info.IsCompletedProperty);
-            AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task task)", info.RuntimeAwaitMethod.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task! task)", info.RuntimeAwaitMethod.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
