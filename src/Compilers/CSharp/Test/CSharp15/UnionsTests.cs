@@ -309,6 +309,26 @@ struct S2
         }
 
         [Fact]
+        public void CaseTypes_06()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(int? x){}
+    public S1(string? x){}
+    public object? Value => null;
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.String"]);
+        }
+
+        [Fact]
         public void UnionMatching_01_Discard()
         {
             var src = @"
@@ -3886,9 +3906,9 @@ struct S1
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
-    public S1(string? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object? Value => _value;
 #nullable disable
-    public object Value => _value;
 }
 
 class Program
@@ -4081,8 +4101,10 @@ struct S1
 {
     private readonly object _value;
     public S1(int? x) { _value = x; }
+#nullable enable
     public S1(string x) { _value = x; }
-    public object Value => _value;
+    public object? Value => _value;
+#nullable disable
 }
 
 class Program
@@ -4192,9 +4214,9 @@ struct S1
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
-    public S1(string? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object? Value => _value;
 #nullable disable
-    public object Value => _value;
 }
 
 class Program
@@ -4235,9 +4257,9 @@ struct S1
     private readonly object _value;
     public S1(bool x) { _value = x; }
 #nullable enable
-    public S1(string? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object? Value => _value;
 #nullable disable
-    public object Value => _value;
 }
 
 class Program
@@ -4674,9 +4696,9 @@ struct S1
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
-    public S1(string? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object? Value => _value;
 #nullable disable
-    public object Value => _value;
 }
 
 class Program
@@ -8421,7 +8443,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -8430,7 +8452,16 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public S3(string? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -8447,6 +8478,13 @@ class Program
 #line 300
         S2 s = default;
         _ = s switch { int => 1, bool => 3 };
+    } 
+
+    static void Test4()
+    {
+#line 400
+        S3 s = default;
+        _ = s switch { int => 1, bool => 3, string => 4 };
     } 
 }
 ";
@@ -8519,7 +8557,7 @@ class Program
 " + typeKind + @" S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -8528,7 +8566,15 @@ class Program
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -8542,6 +8588,12 @@ class Program
     static void Test4(S2 s)
     {
 #line 400
+        _ = s switch { int => 1, bool => 3 };
+    } 
+
+    static void Test5(S3 s)
+    {
+#line 500
         _ = s switch { int => 1, bool => 3 };
     } 
 }
@@ -9731,7 +9783,7 @@ class Program
 " + typeKind + @" S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -9740,7 +9792,15 @@ class Program
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -9769,6 +9829,20 @@ class Program
         else
         {
 #line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test5(S3 s)
+    {
+        if (s is int)
+        {
+#line 500
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -9792,7 +9866,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -9801,7 +9875,15 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -9830,6 +9912,20 @@ class Program
         else
         {
 #line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test5(S3 s)
+    {
+        if (s is not int)
+        {
+#line 500
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -9853,7 +9949,7 @@ class Program
 class S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -9862,7 +9958,15 @@ class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -9891,6 +9995,20 @@ class Program
         else
         {
 #line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test5(S3 s)
+    {
+        if (s is not int)
+        {
+#line 500
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -9956,7 +10074,7 @@ class Program
 " + typeKind + @" S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -9965,7 +10083,15 @@ class Program
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -9994,6 +10120,20 @@ class Program
         else
         {
 #line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test5(S3 s)
+    {
+        if (s is 1)
+        {
+#line 500
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -10017,7 +10157,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -10026,7 +10166,15 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -10055,6 +10203,20 @@ class Program
         else
         {
 #line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test5(S3 s)
+    {
+        if (s is not 1)
+        {
+#line 500
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -10078,7 +10240,7 @@ class Program
 class S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -10087,7 +10249,15 @@ class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -10116,6 +10286,20 @@ class Program
         else
         {
 #line 400
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test5(S3 s)
+    {
+        if (s is not 1)
+        {
+#line 500
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -10419,7 +10603,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -10428,7 +10612,15 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -10444,6 +10636,13 @@ class Program
     {
 #line 300
         S2? s = default(S2);
+        _ = s.Value switch { int => 1, bool => 3 };
+    } 
+
+    static void Test4()
+    {
+#line 400
+        S3? s = default(S3);
         _ = s.Value switch { int => 1, bool => 3 };
     } 
 }
@@ -10466,7 +10665,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool? x) => throw null!;
+    public S1(bool x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -10475,7 +10674,15 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object? Value => throw null!;
+    public object Value => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S3
+{
+    public S3(int? x) => throw null!;
+    public S3(bool? x) => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -10491,6 +10698,13 @@ class Program
     {
         if (s is null) return;
 #line 400
+        _ = s.Value switch { int => 1, bool => 3 };
+    } 
+
+    static void Test5(S3? s)
+    {
+        if (s is null) return;
+#line 500
         _ = s.Value switch { int => 1, bool => 3 };
     } 
 }
@@ -19596,6 +19810,70 @@ class Program
         }
 
         [Fact]
+        public void NonBoxingUnionMatching_77_TryGetValue()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
         public void UnionDeclaration_01()
         {
             var unionSrc = @"
@@ -20192,7 +20470,7 @@ union S1(System.Nullable<string>);
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
-            VerifyCaseTypes(comp, "S1", ["System.String?"]);
+            VerifyCaseTypes(comp, "S1", ["System.String"]);
 
             comp.VerifyEmitDiagnostics(
                 // (100,10): error CS9402: Cannot convert type 'string?' to 'object' via an implicit reference or boxing conversion

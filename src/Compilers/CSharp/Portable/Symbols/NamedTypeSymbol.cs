@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (IsSuitableUnionConstructor(ctor))
                     {
-                        var candidate = ctor.Parameters[0].Type;
+                        var candidate = ctor.Parameters[0].Type.StrippedType();
                         if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
                         {
                             builder.Add(candidate);
