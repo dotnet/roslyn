@@ -1,49 +1,20 @@
-# Remove the line below if you want to inherit .editorconfig settings from higher directories
-root = true
+# Note: this editorconfig is *only* used during local builds.
+# The actual source package will include 'eng\config\SourcePackage.editorconfig' or similar per-TFM config to control analyzer behavior at the consumption side.
 
-# C# files
 [*.cs]
+# IDE0240: Remove redundant nullable directive
+# The directive needs to be included since all sources in a source package are considered generated code
+# when referenced from a project via package reference.
+dotnet_diagnostic.IDE0240.severity = none
 
-# We don't want any analyzer diagnostics to be reported for people consuming this as a source package.
-dotnet_analyzer_diagnostic.severity = none
-
-generated_code = true
-
-# The above configurations don't apply to compiler warnings.  Requiring all params to be documented
-# is not something we require for this project, so suppressing it directly here.
-dotnet_diagnostic.CS1573.severity = none
-
-# As above, we need to specifically disable compiler warnings that we don't want to break downstream
-# builds
-dotnet_diagnostic.IDE0005.severity = none
-
-# Disable nullability checks when targeting netstandard2.0
-dotnet_diagnostic.CS8774.severity = none # Member not null
-dotnet_diagnostic.CS8775.severity = none # Member not null when
-dotnet_diagnostic.CS8776.severity = none # Member not null bad member
-dotnet_diagnostic.CS8777.severity = none # Parameter disallows null
-dotnet_diagnostic.CS8778.severity = none # Const out of range checked
-dotnet_diagnostic.CS8600.severity = none # Converting nullable to non-nullable
-dotnet_diagnostic.CS8601.severity = none # Null reference assignment
-dotnet_diagnostic.CS8602.severity = none # Null reference receiver
-dotnet_diagnostic.CS8603.severity = none # Null reference return
-dotnet_diagnostic.CS8604.severity = none # Null reference argument
-dotnet_diagnostic.CS8605.severity = none # Unbox possible null
-dotnet_diagnostic.CS8607.severity = none # Disallow null attribute forbids maybe null assignment
-dotnet_diagnostic.CS8608.severity = none # Nullability mismatch in type on override
-dotnet_diagnostic.CS8609.severity = none # Nullability mismatch in return type on override
-dotnet_diagnostic.CS8610.severity = none # Nullability mismatch in parameter type on override
-dotnet_diagnostic.CS8611.severity = none # Nullability mismatch in parameter type on partial
-dotnet_diagnostic.CS8612.severity = none # Nullability mismatch in type on implicit implementation
-dotnet_diagnostic.CS8613.severity = none # Nullability mismatch in return type on implicit implementation
-dotnet_diagnostic.CS8614.severity = none # Nullability mismatch in parameter type on implicit implementation
-dotnet_diagnostic.CS8615.severity = none # Nullability mismatch in type on explicit implementation
-dotnet_diagnostic.CS8616.severity = none # Nullability mismatch in return type on explicit implementation
-dotnet_diagnostic.CS8617.severity = none # Nullability mismatch in parameter type on explicit implementation
-dotnet_diagnostic.CS8618.severity = none # Uninitialized non-nullable field
-dotnet_diagnostic.CS8619.severity = none # Nullability mismatch in assignment
-dotnet_diagnostic.CS8620.severity = none # Nullability mismatch in argument
-dotnet_diagnostic.CS8621.severity = none # Nullability mismatch in return type of target delegate
-dotnet_diagnostic.CS8622.severity = none # Nullability mismatch in parameter type of target delegate
-dotnet_diagnostic.CS8624.severity = none # Nullability mismatch in argument for output
-dotnet_diagnostic.CS8625.severity = none # Null as non-nullable
+dotnet_diagnostic.RS0051.severity = warning # Add internal types and members to the declared API
+dotnet_diagnostic.RS0052.severity = warning # Remove deleted types and members from the declared internal API
+dotnet_diagnostic.RS0053.severity = warning # The contents of the internal API files are invalid
+dotnet_diagnostic.RS0054.severity = warning # Do not duplicate symbols in internal API files
+dotnet_diagnostic.RS0055.severity = warning # Annotate nullability of internal types and members in the declared API
+dotnet_diagnostic.RS0056.severity = warning # Enable tracking of nullability of reference types in the declared API
+dotnet_diagnostic.RS0057.severity = warning # Internal members should not use oblivious types
+dotnet_diagnostic.RS0058.severity = warning # Missing shipped or unshipped internal API file
+dotnet_diagnostic.RS0059.severity = warning # Do not add multiple public overloads with optional parameters
+dotnet_diagnostic.RS0060.severity = warning # API with optional parameter(s) should have the most parameters amongst its public overloads
+dotnet_diagnostic.RS0061.severity = warning # Constructor make noninheritable base class inheritable

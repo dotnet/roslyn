@@ -139,10 +139,6 @@
       <Uri>https://github.com/dotnet/arcade-services</Uri>
       <Sha>8b5a2ffee4f4097893b7fc670f7d86d84c8c841f</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.FileBasedPrograms" Version="11.0.100-alpha.1.26062.101">
-      <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>7b9ad20ba1d45df5a99fdd9dedbf3bfe6a6fc24f</Sha>
-    </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
     <Dependency Name="System.Composition" Version="10.0.1">
