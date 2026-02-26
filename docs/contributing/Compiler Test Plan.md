@@ -70,6 +70,7 @@ See also [types](#types) and [members](#members) lists below.
 - constructors (static, instance, primary)
 - destructors
 - fields (required and not)
+- fixed-sized buffers
 - properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
 - Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
