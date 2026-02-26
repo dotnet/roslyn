@@ -99,6 +99,13 @@ internal sealed class RoslynPackage : AbstractPackage
             _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.LogRoslynWorkspaceStructure,
                 (_, _) => ProjectSystem.Logging.RoslynWorkspaceStructureLogger.ShowSaveDialogAndLog(this));
 
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0100,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnExecute(s, e));
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0101,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnPaste(s, e));
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0102,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnClear(s, e));
+
             await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
             await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
         }
@@ -130,7 +137,9 @@ internal sealed class RoslynPackage : AbstractPackage
 
         await LoadAnalyzerNodeComponentsAsync(_menuCommandService, cancellationToken).ConfigureAwait(false);
 
-        StackTraceExplorerCommandHandler.Initialize(_menuCommandService, this);
+        // Ensure the stack trace explorer handler is created so it subscribes to broadcast messages
+        // if the "open on focus" option is enabled.
+        await ComponentModel.GetService<StackTraceExplorerCommandHandler>().EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
         // Initialize keybinding reset detector
         await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(false);
