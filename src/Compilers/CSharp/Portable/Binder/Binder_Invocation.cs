@@ -2402,7 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.LookupError,
                     methodGroup.Flags,
                     methodGroup.FunctionType,
-                    receiverOpt: ReplaceTypeOrValueReceiver(methodGroup.ReceiverOpt, useType: false, BindingDiagnosticBag.Discarded), //only change
+                    receiverOpt: ReplaceTypeOrValueReceiver(methodGroup.ReceiverOpt, useType: true, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics), //only change
                     methodGroup.ResultKind);
             }
             else if (boundArgument is BoundPropertyAccess propertyAccess)
