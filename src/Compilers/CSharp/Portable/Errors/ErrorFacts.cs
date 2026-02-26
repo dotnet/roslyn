@@ -655,18 +655,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     => true,
 
                 ErrorCode.Void
-
-                // PROTOTYPE: move new error codes down
-                or ErrorCode.ERR_UnsafeOperation
-                or ErrorCode.ERR_UnsafeUninitializedStackAlloc
-                or ErrorCode.ERR_UnsafeMemberOperation
-                or ErrorCode.ERR_UnsafeMemberOperationCompat
-                or ErrorCode.ERR_CallerUnsafeOverridingSafe
-                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
-                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
-                or ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget
-                or ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules
-
                 or ErrorCode.Unknown
                 or ErrorCode.ERR_NoMetadataFile
                 or ErrorCode.FTL_MetadataCantOpenFile
@@ -2582,6 +2570,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_StructLayoutAndExtendedLayout
                 or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                 or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
+                or ErrorCode.ERR_UnsafeOperation
+                or ErrorCode.ERR_UnsafeUninitializedStackAlloc
+                or ErrorCode.ERR_UnsafeMemberOperation
+                or ErrorCode.ERR_UnsafeMemberOperationCompat
+                or ErrorCode.ERR_CallerUnsafeOverridingSafe
+                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
+                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget
+                or ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

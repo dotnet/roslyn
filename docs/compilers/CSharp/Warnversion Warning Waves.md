@@ -17,11 +17,9 @@ For more information on `AnalysisLevel`, see https://devblogs.microsoft.com/dotn
 
 The compiler shipped with .NET 11 (the C# 15 compiler) contains the following warnings which are reported only under `/warn:11` or higher.
 
-PROTOTYPE: Adjust the error code when numbers are compacted.
-
 | Warning ID | Description |
 |------------|-------------|
-| CS9508 | [RequiresUnsafeAttribute is only valid under the updated memory safety rules](https://github.com/dotnet/csharplang/issues/9704) |
+| CS9368 | [RequiresUnsafeAttribute is only valid under the updated memory safety rules](https://github.com/dotnet/csharplang/issues/9704) |
 
 ## Warning level 10
 

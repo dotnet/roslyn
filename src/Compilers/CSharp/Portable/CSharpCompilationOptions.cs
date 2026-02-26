@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public bool AllowUnsafe { get; private set; }
 
-        // PROTOTYPE: public API
+        // https://github.com/dotnet/roslyn/issues/82546: public API
         internal int MemorySafetyRules { get; private set; }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             topLevelBinderFlags: other.TopLevelBinderFlags,
             nullableContextOptions: other.NullableContextOptions)
         {
-            // PROTOTYPE: should be in the constructor
+            // https://github.com/dotnet/roslyn/issues/82546: should be in the constructor
             MemorySafetyRules = other.MemorySafetyRules;
         }
 
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { AllowUnsafe = enabled };
         }
 
-        // PROTOTYPE: public API
+        // https://github.com/dotnet/roslyn/issues/82546: public API
         internal CSharpCompilationOptions WithMemorySafetyRules(int version)
         {
             if (version == this.MemorySafetyRules)
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MemorySafetyRules = version };
         }
 
-        // PROTOTYPE: determine what the "updated" number should be
+        // https://github.com/dotnet/roslyn/issues/82546: determine what the "updated" number should be
         internal const int UpdatedMemorySafetyRulesVersion = 2;
 
         internal CSharpCompilationOptions WithUpdatedMemorySafetyRules(bool enabled = true)
@@ -752,7 +752,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(MetadataImportOptions), MetadataImportOptions.ToString()));
             }
 
-            // PROTOTYPE: validate the value of MemorySafetyRules?
+            // https://github.com/dotnet/roslyn/issues/82546: validate the value of MemorySafetyRules?
+            // https://github.com/dotnet/roslyn/issues/82546: report LangVersion error if using updated rules in old LangVersion.
 
             // TODO: add check for 
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&

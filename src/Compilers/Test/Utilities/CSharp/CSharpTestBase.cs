@@ -690,7 +690,7 @@ namespace System.Runtime.CompilerServices
             }
             """;
 
-        // PROTOTYPE: Confirm the attribute shape in BCL API review.
+        // https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
         protected static readonly string RequiresUnsafeAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {

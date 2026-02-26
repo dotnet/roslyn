@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules ||
-                    // PROTOTYPE: temporary way to opt in
+                    // https://github.com/dotnet/roslyn/issues/82546: temporary way to opt in
                     _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null;
             }
         }

@@ -2463,6 +2463,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionRefLikeElementType = 9358,
         ERR_BadCollectionArgumentsArgCount = 9359,
 
+        ERR_UnsafeOperation = 9360,
+        ERR_UnsafeUninitializedStackAlloc = 9361,
+        ERR_UnsafeMemberOperation = 9362,
+        ERR_UnsafeMemberOperationCompat = 9363,
+        ERR_CallerUnsafeOverridingSafe = 9364,
+        ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
+        ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
+        ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
+        WRN_RequiresUnsafeAttributeLegacyRules = 9368,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
@@ -2473,16 +2483,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
         //  5) Add message and '_Title' to CSharpResources.resx
-
-        // PROTOTYPE: pack numbers and move this up with others
-        ERR_UnsafeOperation = 9500,
-        ERR_UnsafeUninitializedStackAlloc = 9501,
-        ERR_UnsafeMemberOperation = 9502,
-        ERR_UnsafeMemberOperationCompat = 9503,
-        ERR_CallerUnsafeOverridingSafe = 9504,
-        ERR_CallerUnsafeImplicitlyImplementingSafe = 9505,
-        ERR_CallerUnsafeExplicitlyImplementingSafe = 9506,
-        ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9507,
-        WRN_RequiresUnsafeAttributeLegacyRules = 9508,
     }
 }

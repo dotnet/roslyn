@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             Uninitialized = 0,
             NoAttribute,
-            Updated, // PROTOTYPE: rename to Version15 (or whatever the value ends up being)
+            Updated, // https://github.com/dotnet/roslyn/issues/82546: rename to Version15 (or whatever the value ends up being)
             UnrecognizedAttribute,
         }
 

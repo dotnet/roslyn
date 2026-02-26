@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum MessageID
     {
-        IDS_FeatureUnsafeEvolution = MessageBase + 13000, // PROTOTYPE: move this to the bottom and pack numbers
-
         None = 0,
         MessageBase = 1200,
 
@@ -309,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
 
         IDS_FeatureCollectionExpressionArguments = MessageBase + 12858,
+        IDS_FeatureUnsafeEvolution = MessageBase + 12859,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -490,6 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_FeatureCollectionExpressionArguments:
+                case MessageID.IDS_FeatureUnsafeEvolution: // https://github.com/dotnet/roslyn/issues/82546: keep this in preview until C# 16
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.
@@ -725,10 +725,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:
                     return LanguageVersion.CSharp1;
-
-                // PROTOTYPE: move this to the top and merge with other features
-                case MessageID.IDS_FeatureUnsafeEvolution:
-                    return LanguageVersion.Preview;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(feature);
