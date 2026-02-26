@@ -329,7 +329,7 @@ internal static class DiagnosticHelper
 
         // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
         if (id == RemoveUnnecessaryImports.RemoveUnnecessaryImportsConstants.DiagnosticFixableId ||
-            id == "IDE0005_gen")
+            id == RemoveUnnecessaryImports.RemoveUnnecessaryImportsConstants.IDE0005_gen)
         {
             return null;
         }

@@ -29,11 +29,13 @@ internal readonly struct EmbeddedLanguageClassificationContext
     /// </summary>
     public SyntaxToken SyntaxToken { get; }
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
     /// <summary>
     /// The specific language identifier that triggered this embedded language classification.  For example, this is the
     /// value of the language in <c>//lang=...</c> or a <see cref="StringSyntaxAttribute"/>.  It can be missing for legacy
     /// embedded classifiers that activate on unannotated APIs.
     /// </summary>
+#pragma warning restore CS0419 // Ambiguous reference in cref attribute
     public string? LanguageIdentifier { get; }
 
     /// <summary>

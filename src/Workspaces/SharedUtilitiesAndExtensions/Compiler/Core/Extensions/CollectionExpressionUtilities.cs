@@ -126,6 +126,7 @@ internal static class CollectionExpressionUtilities
         }
     }
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
     /// <summary>
     /// Gets the collection builder factory methods for the given collection expression type, if any.  Or <see
     /// langword="null"/> if the type does not have a valid <see cref="CollectionBuilderAttribute"/> that can be
@@ -142,6 +143,7 @@ internal static class CollectionExpressionUtilities
     /// Generic factory methods will be appropriately constructed to match the type arguments of <paramref
     /// name="collectionExpressionType"/>.
     /// </summary>
+#pragma warning restore CS0419 // Ambiguous reference in cref attribute
     public static ImmutableArray<IMethodSymbol>? TryGetCollectionBuilderFactoryMethods(
         Compilation compilation, INamedTypeSymbol collectionExpressionType)
     {

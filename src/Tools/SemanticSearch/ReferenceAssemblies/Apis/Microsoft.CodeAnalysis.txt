@@ -3838,6 +3838,8 @@ Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.None
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha256
+Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha384
+Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.value__
 Microsoft.CodeAnalysis.Text.SourceText
 Microsoft.CodeAnalysis.Text.SourceText.#ctor(System.Collections.Immutable.ImmutableArray{System.Byte},Microsoft.CodeAnalysis.Text.SourceHashAlgorithm,Microsoft.CodeAnalysis.Text.SourceTextContainer)
