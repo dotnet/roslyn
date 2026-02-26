@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -58,19 +57,15 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         _globalOptions = globalOptions;
     }
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+    public void Initialize(IServiceProvider serviceProvider, ThreadSafeMenuCommandService menuCommandService)
     {
         Contract.ThrowIfNull(serviceProvider);
+        Contract.ThrowIfNull(menuCommandService);
 
-        _serviceProvider = (IServiceProvider)serviceProvider;
+        _serviceProvider = serviceProvider;
 
         // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
-        if (menuCommandService != null)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RemoveUnusedReferences, Guids.RoslynGroupId, OnRemoveUnusedReferencesForSelectedProject, OnRemoveUnusedReferencesForSelectedProjectStatus);
-        }
+        menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RemoveUnusedReferences, OnRemoveUnusedReferencesForSelectedProject, OnRemoveUnusedReferencesForSelectedProjectStatus);
     }
 
     private void OnRemoveUnusedReferencesForSelectedProjectStatus(object sender, EventArgs e)

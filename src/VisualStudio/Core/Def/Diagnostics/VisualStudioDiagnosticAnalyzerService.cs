@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -53,18 +51,16 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
     private IServiceProvider? _serviceProvider;
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+    public void Initialize(IServiceProvider serviceProvider, ThreadSafeMenuCommandService menuCommandService)
     {
-        _serviceProvider = (IServiceProvider)serviceProvider;
+        Contract.ThrowIfNull(serviceProvider);
+        Contract.ThrowIfNull(menuCommandService);
+
+        _serviceProvider = serviceProvider;
 
         // Hook up the "Run Code Analysis" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
-        if (menuCommandService != null)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-        }
+        menuCommandService.AddCommand(VSConstants.VSStd2K, RunCodeAnalysisForSelectedProjectCommandId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
+        menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
     }
 
     public async Task<IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>>> GetAllDiagnosticDescriptorsAsync(

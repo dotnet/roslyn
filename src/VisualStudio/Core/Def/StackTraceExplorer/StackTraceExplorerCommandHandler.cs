@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Design;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -177,7 +177,7 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
         window.Root?.OnClear();
     }
 
-    internal static void Initialize(OleMenuCommandService menuCommandService, RoslynPackage package)
+    internal static void Initialize(ThreadSafeMenuCommandService menuCommandService, RoslynPackage package)
     {
         if (_instance is not null)
         {
@@ -186,17 +186,8 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
 
         _instance = new(package);
 
-        var menuCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0100);
-        var menuItem = new MenuCommand(_instance.Execute, menuCommandId);
-        menuCommandService.AddCommand(menuItem);
-
-        var pasteCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0101);
-        var clearCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0102);
-
-        var pasteMenuItem = new MenuCommand(_instance.Paste, pasteCommandId);
-        var clearMenuItem = new MenuCommand(_instance.Clear, clearCommandId);
-
-        menuCommandService.AddCommand(pasteMenuItem);
-        menuCommandService.AddCommand(clearMenuItem);
+        menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0100, _instance.Execute);
+        menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0101, _instance.Paste);
+        menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0102, _instance.Clear);
     }
 }

@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -45,19 +43,15 @@ internal sealed class SyncNamespacesCommandHandler
         _threadingContext = threadingContext;
     }
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+    public void Initialize(IServiceProvider serviceProvider, ThreadSafeMenuCommandService menuCommandService)
     {
         Contract.ThrowIfNull(serviceProvider);
+        Contract.ThrowIfNull(menuCommandService);
 
-        _serviceProvider = (IServiceProvider)serviceProvider;
+        _serviceProvider = serviceProvider;
 
-        // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
-        if (menuCommandService != null)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.SyncNamespaces, Guids.RoslynGroupId, OnSyncNamespacesForSelectedProject, OnSyncNamespacesForSelectedProjectStatus);
-        }
+        // Hook up the "Sync Namespaces" menu command for CPS based managed projects.
+        menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SyncNamespaces, OnSyncNamespacesForSelectedProject, OnSyncNamespacesForSelectedProjectStatus);
     }
 
     private void OnSyncNamespacesForSelectedProjectStatus(object sender, EventArgs e)
