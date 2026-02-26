@@ -256,8 +256,7 @@ static bool IsRateLimitResponse(System.Net.HttpStatusCode statusCode, HttpRespon
         return true;
     }
 
-    return responseBody.Contains("rate limit", StringComparison.OrdinalIgnoreCase)
-        || responseBody.Contains("secondary rate limit", StringComparison.OrdinalIgnoreCase);
+    return responseBody.Contains("rate limit", StringComparison.OrdinalIgnoreCase);
 }
 
 static void LogAzDoWarning(string message)
