@@ -1,20 +1,18 @@
-# Note: this editorconfig is *only* used during local builds.
-# The actual source package will include 'eng\config\SourcePackage.editorconfig' or similar per-TFM config to control analyzer behavior at the consumption side.
+# Remove the line below if you want to inherit .editorconfig settings from higher directories
+root = true
 
+# C# files
 [*.cs]
-# IDE0240: Remove redundant nullable directive
-# The directive needs to be included since all sources in a source package are considered generated code
-# when referenced from a project via package reference.
-dotnet_diagnostic.IDE0240.severity = none
 
-dotnet_diagnostic.RS0051.severity = warning # Add internal types and members to the declared API
-dotnet_diagnostic.RS0052.severity = warning # Remove deleted types and members from the declared internal API
-dotnet_diagnostic.RS0053.severity = warning # The contents of the internal API files are invalid
-dotnet_diagnostic.RS0054.severity = warning # Do not duplicate symbols in internal API files
-dotnet_diagnostic.RS0055.severity = warning # Annotate nullability of internal types and members in the declared API
-dotnet_diagnostic.RS0056.severity = warning # Enable tracking of nullability of reference types in the declared API
-dotnet_diagnostic.RS0057.severity = warning # Internal members should not use oblivious types
-dotnet_diagnostic.RS0058.severity = warning # Missing shipped or unshipped internal API file
-dotnet_diagnostic.RS0059.severity = warning # Do not add multiple public overloads with optional parameters
-dotnet_diagnostic.RS0060.severity = warning # API with optional parameter(s) should have the most parameters amongst its public overloads
-dotnet_diagnostic.RS0061.severity = warning # Constructor make noninheritable base class inheritable
+# We don't want any analyzer diagnostics to be reported for people consuming this as a source package.
+dotnet_analyzer_diagnostic.severity = none
+
+generated_code = true
+
+# The above configurations don't apply to compiler warnings.  Requiring all params to be documented
+# is not something we require for this project, so suppressing it directly here.
+dotnet_diagnostic.CS1573.severity = none
+
+# As above, we need to specifically disable compiler warnings that we don't want to break downstream
+# builds
+dotnet_diagnostic.IDE0005.severity = none

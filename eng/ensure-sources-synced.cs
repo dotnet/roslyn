@@ -40,9 +40,15 @@ var sourceFiles = await GetDirectoryFilesAsync(
     githubDirectoryPath: "src/Cli/Microsoft.DotNet.FileBasedPrograms",
     includeFile: static name =>
         name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
-        name.EndsWith(".resx", StringComparison.OrdinalIgnoreCase) ||
-        name.EndsWith(".editorconfig", StringComparison.OrdinalIgnoreCase),
+        name.EndsWith(".resx", StringComparison.OrdinalIgnoreCase),
     mapRelativePath: static name => name).ConfigureAwait(false);
+
+var editorConfigFiles = await GetDirectoryFilesAsync(
+    httpClient,
+    sdkCommit,
+    githubDirectoryPath: "eng",
+    includeFile: static name => string.Equals(name, "SourcePackage.editorconfig", StringComparison.OrdinalIgnoreCase),
+    mapRelativePath: static _ => ".editorconfig").ConfigureAwait(false);
 
 var xlfFiles = await GetDirectoryFilesAsync(
     httpClient,
@@ -52,6 +58,7 @@ var xlfFiles = await GetDirectoryFilesAsync(
     mapRelativePath: static name => $"xlf/{name}").ConfigureAwait(false);
 
 var sourcePackageFiles = sourceFiles
+    .Concat(editorConfigFiles)
     .Concat(xlfFiles)
     .ToList();
 if (sourcePackageFiles.Count == 0) throw new InvalidOperationException("No source files found in dotnet/sdk.");
