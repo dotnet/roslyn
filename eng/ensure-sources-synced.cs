@@ -114,7 +114,20 @@ if (Directory.Exists(localSourceDir))
         localMirrorFiles.Remove(relativePath);
 
     if (localMirrorFiles.Count > 0)
-        mismatches.Add("Extra local files (not in dotnet/sdk): " + string.Join(", ", localMirrorFiles.OrderBy(x => x, StringComparer.OrdinalIgnoreCase)));
+    {
+        if (mode == SyncMode.Verify)
+        {
+            mismatches.Add("Extra local files (not in dotnet/sdk): " + string.Join(", ", localMirrorFiles.OrderBy(x => x, StringComparer.OrdinalIgnoreCase)));
+        }
+        else
+        {
+            foreach (var remainingFile in localMirrorFiles.OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
+            {
+                File.Delete(Path.Combine(localSourceDir, remainingFile));
+                mismatches.Add($"Deleting extra local file (not in dotnet/sdk): {remainingFile}");
+            }
+        }
+    }
 }
 
 if (mismatches.Count > 0)
