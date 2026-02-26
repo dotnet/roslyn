@@ -420,7 +420,6 @@ public sealed partial class StackFrameParserTests
     [InlineData(@"at M.1c()")] // Invalid start character for identifier
     [InlineData(@"at 1M.C()")]
     [InlineData(@"at M.C(string& s)")] // "string&" represents a reference (ref, out) and is not supported yet
-    [InlineData(@"at StreamJsonRpc.JsonRpc.<InvokeCoreAsync>d__139`1.MoveNext()")] // Generated/Inline methods are not supported yet
     [InlineData(@"at M(")] // Missing closing paren
     [InlineData(@"at M)")] // MIssing open paren
     [InlineData(@"at M.M[T>(T t)")] // Mismatched generic opening/close
@@ -519,4 +518,18 @@ public sealed partial class StackFrameParserTests
                 line: CreateToken(StackFrameKind.NumberToken, "16", leadingTrivia: [CreateTrivia(StackFrameKind.LineTrivia, $"{line} ")]),
                 inTrivia: CreateTrivia(StackFrameKind.InTrivia, $" {@in} "))
                 );
+
+    [Fact]
+    public void TestStateMachineMethod()
+        => Verify("Test.<MyAsyncMethod>d__610.MoveNext()",
+            methodDeclaration: MethodDeclaration(
+                QualifiedName(
+                    Identifier("Test"),
+                    StateMachineMethod(
+                        GeneratedName("MyAsyncMethod", endWithDollar: false),
+                        suffix: "610",
+                        stateMachineMethod: "MoveNext")
+                    ),
+                argumentList: EmptyParams)
+            );
 }

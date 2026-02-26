@@ -60,7 +60,7 @@ internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
         ISyntaxFactsService syntaxFacts, SyntaxNode root,
         TextSpan span, Diagnostic diagnostic)
     {
-        var token = root.FindToken(span.Start);
+        var token = root.FindToken(span.Start, findInsideTrivia: true);
         if (token.Span.IntersectsWith(span))
         {
             var first = true;

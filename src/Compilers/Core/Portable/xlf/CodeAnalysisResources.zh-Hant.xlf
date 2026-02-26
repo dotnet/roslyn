@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="AllAnalyzersConcurrentMessage">
+        <source>All analyzers have enabled concurrent execution.</source>
+        <target state="new">All analyzers have enabled concurrent execution.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含類型 '{0}' 的組件參考了 .NET Framework，此情形不受支援。</target>
@@ -9,8 +14,8 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="translated">屬性</target>
-        <note />
+        <target state="needs-review-translation">屬性</target>
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -183,6 +188,11 @@
         <target state="translated">模組有無效的屬性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="NonConcurrentAnalyzersHeader">
+        <source>Analyzers that have not enabled concurrent execution:</source>
+        <target state="new">Analyzers that have not enabled concurrent execution:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
         <target state="translated">無法隱藏識別碼為 '{0}' 的非回報診斷。</target>
@@ -273,6 +283,11 @@
         <target state="translated">SuppressionDescriptor 的識別碼不得為 null、空白字串或只包含空白字元的字串。</target>
         <note />
       </trans-unit>
+      <trans-unit id="SuppressorsNonConcurrentCountMessage">
+        <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
+        <target state="new">NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
         <target state="translated">無法發出方法 '{0}' 的原生 PDB，因為其偵錯元數據大小 {1} 超過限制 {2}。</target>
@@ -300,77 +315,77 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="translated">組件</target>
+        <target state="needs-review-translation">組件</target>
         <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="translated">類別</target>
-        <note />
+        <target state="needs-review-translation">類別</target>
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="translated">建構函式</target>
+        <target state="needs-review-translation">建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">委派</target>
-        <note />
+        <target state="needs-review-translation">委派</target>
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">列舉</target>
+        <target state="needs-review-translation">列舉</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="translated">事件</target>
-        <note />
+        <target state="needs-review-translation">事件</target>
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">欄位</target>
+        <target state="needs-review-translation">欄位</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="translated">類型參數</target>
+        <target state="needs-review-translation">類型參數</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="translated">介面</target>
-        <note />
+        <target state="needs-review-translation">介面</target>
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="translated">方法</target>
+        <target state="needs-review-translation">方法</target>
         <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="translated">模組</target>
+        <target state="needs-review-translation">模組</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="translated">參數</target>
+        <target state="needs-review-translation">參數</target>
         <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="translated">屬性, 索引子</target>
+        <target state="needs-review-translation">屬性, 索引子</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">返回</target>
-        <note />
+        <target state="needs-review-translation">返回</target>
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="translated">結構</target>
+        <target state="needs-review-translation">結構</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">

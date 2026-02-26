@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         : NonMissingAssemblySymbol
     {
         /// <summary>
+        /// Separate pool for collections commonly exceeding ArrayBuilder's size threshold
+        /// </summary>
+        private static readonly ObjectPool<ArrayBuilder<AssemblySymbol>> s_assemblySymbolBuilderPool = new ObjectPool<ArrayBuilder<AssemblySymbol>>(() => new ArrayBuilder<AssemblySymbol>());
+
+        /// <summary>
         /// Determine whether this assembly has been granted access to <paramref name="potentialGiverOfAccess"></paramref>.
         /// Assumes that the public key has been determined. The result will be cached.
         /// </summary>
@@ -73,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected bool IsDirectlyOrIndirectlyReferenced(AssemblySymbol potentialGiverOfAccess)
         {
             var checkedAssemblies = PooledHashSet<AssemblySymbol>.GetInstance();
-            var queue = ArrayBuilder<AssemblySymbol>.GetInstance(
+            ArrayBuilder<AssemblySymbol> queue = s_assemblySymbolBuilderPool.Allocate();
+            queue.EnsureCapacity(
                 this.Modules[0].ReferencedAssemblySymbols.Length +
                 (this is SourceAssemblySymbol { DeclaringCompilation.PreviousSubmission: { } } ? 1 : 0));
 
@@ -86,7 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             checkedAssemblies.Free();
-            queue.Free();
+
+            // Do not call quue.Free, as the ArrayBuilder isn't associated with its standard pool and even if it were, we don't
+            // want the default freeing behavior of limiting pooled array size to ArrayBuilder.PooledArrayLengthLimitExclusive.
+            // Instead, we need to explicitly add this item back to our pool.
+            queue.Clear();
+            s_assemblySymbolBuilderPool.Free(queue);
             return found;
 
             static bool checkReferences(AssemblySymbol current, AssemblySymbol potentialGiverOfAccess, PooledHashSet<AssemblySymbol> checkedAssemblies, ArrayBuilder<AssemblySymbol> queue)

@@ -627,4 +627,7 @@
     <value>Add 'using {0};' and simplify all occurrences</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="unsafe_block" xml:space="preserve">
+    <value>unsafe block</value>
+  </data>
 </root>

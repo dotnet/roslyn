@@ -199,69 +199,37 @@ public partial class MSBuildProjectLoader
                 ? VersionStamp.Default
                 : VersionStamp.Create(FileUtilities.GetFileTimeStamp(projectPath));
 
-            if (projectFileInfo.IsEmpty)
+            var projectDirectory = Path.GetDirectoryName(projectPath);
+            var metadataService = _solutionServices.GetRequiredService<IMetadataService>();
+
+            IEnumerable<MetadataReference> resolvedMetadataReferences;
+            string? assemblyName;
+            SourceHashAlgorithm checksumAlgorithm;
+            ParseOptions? parseOptions;
+            CompilationOptions? compilationOptions;
+            IEnumerable<AnalyzerReference> analyzerReferences;
+            Encoding? encoding;
+
+            var commandLineParser = _solutionServices.GetLanguageServices(projectFileInfo.Language).GetService<ICommandLineParserService>();
+            if (commandLineParser != null)
             {
-                var assemblyName = GetAssemblyNameFromProjectPath(projectPath);
-
-                var parseOptions = GetLanguageService<ISyntaxTreeFactoryService>(language)
-                    ?.GetDefaultParseOptions();
-                var compilationOptions = GetLanguageService<ICompilationFactoryService>(language)
-                    ?.GetDefaultCompilationOptions();
-
-                return ProjectInfo.Create(
-                        new ProjectInfo.ProjectAttributes(
-                            projectId,
-                            version,
-                            name: projectName,
-                            assemblyName: assemblyName,
-                            language: language,
-                            compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
-                            checksumAlgorithm: SourceHashAlgorithms.Default,
-                            outputFilePath: projectFileInfo.OutputFilePath,
-                            outputRefFilePath: projectFileInfo.OutputRefFilePath,
-                            filePath: projectPath),
-                        compilationOptions: compilationOptions,
-                        parseOptions: parseOptions);
-            }
-
-            return await _progress.DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
-            {
-                var projectDirectory = Path.GetDirectoryName(projectPath);
-
-                // parse command line arguments
-                var commandLineParser = GetLanguageService<ICommandLineParserService>(projectFileInfo.Language);
-
-                if (commandLineParser is null)
-                {
-                    var message = string.Format(WorkspaceMSBuildResources.Unable_to_find_a_0_for_1, nameof(ICommandLineParserService), projectFileInfo.Language);
-                    throw new Exception(message);
-                }
-
                 var commandLineArgs = commandLineParser.Parse(
                     arguments: projectFileInfo.CommandLineArgs,
                     baseDirectory: projectDirectory,
                     isInteractive: false,
                     sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-                var assemblyName = commandLineArgs.CompilationName;
-                if (RoslynString.IsNullOrWhiteSpace(assemblyName))
-                {
-                    // if there isn't an assembly name, make one from the file path.
-                    // Note: This may not be necessary any longer if the command line args
-                    // always produce a valid compilation name.
-                    assemblyName = GetAssemblyNameFromProjectPath(projectPath);
-                }
+                assemblyName = commandLineArgs.CompilationName;
 
                 // Ensure that doc-comments are parsed
-                var parseOptions = commandLineArgs.ParseOptions;
+                parseOptions = commandLineArgs.ParseOptions;
                 if (parseOptions.DocumentationMode == DocumentationMode.None)
                 {
                     parseOptions = parseOptions.WithDocumentationMode(DocumentationMode.Parse);
                 }
 
                 // add all the extra options that are really behavior overrides
-                var metadataService = GetWorkspaceService<IMetadataService>();
-                var compilationOptions = commandLineArgs.CompilationOptions
+                compilationOptions = commandLineArgs.CompilationOptions
                     .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
                     .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                     // TODO: https://github.com/dotnet/roslyn/issues/4967
@@ -269,39 +237,68 @@ public partial class MSBuildProjectLoader
                     .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
-                var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
-                var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
-                var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding);
-                CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
+                encoding = commandLineArgs.Encoding;
 
-                var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
+                analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
 
-                var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, cancellationToken).ConfigureAwait(false);
+                resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
+                    new WorkspaceMetadataFileReferenceResolver(
+                        metadataService,
+                        new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
 
-                return ProjectInfo.Create(
-                    new ProjectInfo.ProjectAttributes(
-                        projectId,
-                        version,
-                        projectName,
-                        assemblyName,
-                        language,
-                        compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
-                        checksumAlgorithm: commandLineArgs.ChecksumAlgorithm,
-                        filePath: projectPath,
-                        outputFilePath: projectFileInfo.OutputFilePath,
-                        outputRefFilePath: projectFileInfo.OutputRefFilePath,
-                        isSubmission: false),
-                    compilationOptions: compilationOptions,
-                    parseOptions: parseOptions,
-                    documents: documents,
-                    projectReferences: resolvedReferences.ProjectReferences,
-                    metadataReferences: resolvedReferences.MetadataReferences,
-                    analyzerReferences: analyzerReferences,
-                    additionalDocuments: additionalDocuments,
-                    hostObjectType: null)
-                    .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
-                    .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
-            }).ConfigureAwait(false);
+                checksumAlgorithm = commandLineArgs.ChecksumAlgorithm;
+            }
+            else
+            {
+                assemblyName = null;
+                parseOptions = null;
+                compilationOptions = null;
+                analyzerReferences = [];
+
+                encoding = EncodedStringText.TryGetCodePageEncoding(projectFileInfo.CodePage);
+
+                checksumAlgorithm = !string.IsNullOrEmpty(projectFileInfo.ChecksumAlgorithm) && SourceHashAlgorithms.TryParseAlgorithmName(projectFileInfo.ChecksumAlgorithm, out var algorithm)
+                    ? algorithm : SourceHashAlgorithms.Default;
+
+                resolvedMetadataReferences = projectFileInfo.MetadataReferences
+                    .Select(r => metadataService.GetReference(r.Path, new MetadataReferenceProperties(aliases: r.Aliases)));
+            }
+
+            var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, encoding);
+            var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, encoding);
+            var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, encoding);
+
+            CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
+
+            var resolvedReferences = await _progress.DoOperationAndReportProgressAsync(
+                ProjectLoadOperation.Resolve,
+                projectPath,
+                projectFileInfo.TargetFramework,
+                () => ResolveReferencesAsync(projectId, projectFileInfo, resolvedMetadataReferences, cancellationToken)).ConfigureAwait(false);
+
+            return ProjectInfo.Create(
+                new ProjectInfo.ProjectAttributes(
+                    projectId,
+                    version,
+                    projectName,
+                    assemblyName ?? GetAssemblyNameFromProjectPath(projectPath),
+                    language,
+                    compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
+                    checksumAlgorithm: checksumAlgorithm,
+                    filePath: projectPath,
+                    outputFilePath: projectFileInfo.OutputFilePath,
+                    outputRefFilePath: projectFileInfo.OutputRefFilePath,
+                    isSubmission: false),
+                compilationOptions: compilationOptions,
+                parseOptions: parseOptions,
+                documents: documents,
+                projectReferences: resolvedReferences.ProjectReferences,
+                metadataReferences: resolvedReferences.MetadataReferences,
+                analyzerReferences: analyzerReferences,
+                additionalDocuments: additionalDocuments,
+                hostObjectType: null)
+                .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
+                .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
         }
 
         private static string GetAssemblyNameFromProjectPath(string? projectFilePath)
@@ -408,12 +405,6 @@ public partial class MSBuildProjectLoader
                 paths.Add(doc.FilePath);
             }
         }
-
-        private TLanguageService? GetLanguageService<TLanguageService>(string languageName)
-            where TLanguageService : ILanguageService
-            => _solutionServices
-                .GetLanguageServices(languageName)
-                .GetService<TLanguageService>();
 
         private TWorkspaceService? GetWorkspaceService<TWorkspaceService>()
             where TWorkspaceService : IWorkspaceService

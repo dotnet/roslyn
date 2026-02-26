@@ -12,10 +12,10 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
 /// <para>
-/// A factory for creating <typeparamref name="TRequestContext"/> objects from <see cref="IQueueItem{RequestContextType}"/>'s.
+/// A factory for creating <typeparamref name="TRequestContext"/> objects from <see cref="QueueItem{RequestContextType}"/>'s.
 /// </para>
 /// <para>
-/// RequestContext's are useful for passing document context, since by default <see cref="CreateRequestContextAsync{TRequestParam}(IQueueItem{TRequestContext}, IMethodHandler, TRequestParam, CancellationToken)"/>
+/// RequestContext's are useful for passing document context, since by default <see cref="CreateRequestContextAsync{TRequestParam}(QueueItem{TRequestContext}, IMethodHandler, TRequestParam, CancellationToken)"/>
 /// is run on the queue thread (and thus no mutating requests may be executing simultaneously, preventing possible race conditions).
 /// It also allows somewhere to pass things like the <see cref="ILspServices" /> or <see cref="ILspLogger" /> which are useful on a wide variety of requests.
 /// </para>
@@ -24,14 +24,14 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal abstract class AbstractRequestContextFactory<TRequestContext>
 {
     /// <summary>
-    /// Create a <typeparamref name="TRequestContext"/> object from the given <see cref="IQueueItem{RequestContextType}"/>.
+    /// Create a <typeparamref name="TRequestContext"/> object from the given <see cref="QueueItem{RequestContextType}"/>.
     /// Note - throwing in the implementation of this method will cause the server to shutdown.
     /// </summary>
-    /// <param name="queueItem">The <see cref="IQueueItem{RequestContextType}"/> from which to create the request context.</param>
+    /// <param name="queueItem">The <see cref="QueueItem{RequestContextType}"/> from which to create the request context.</param>
     /// <param name="methodHandler">The <see cref="IMethodHandler"/> for which to create the request context</param>
     /// <param name="requestParam">The request parameters.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>The <typeparamref name="TRequestContext"/> for this request.</returns>
     /// <remarks>This method is called on the queue thread to allow context to be retrieved serially, without the possibility of race conditions from Mutating requests.</remarks>
-    public abstract Task<TRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<TRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken);
+    public abstract Task<TRequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<TRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken);
 }

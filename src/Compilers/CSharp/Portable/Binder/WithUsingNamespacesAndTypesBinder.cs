@@ -71,65 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        internal override void GetCandidateExtensionMethodsInSingleBinder(
-            ArrayBuilder<MethodSymbol> methods,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
-        {
-            Debug.Assert(methods.Count == 0);
-
-            bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
-
-            // We need to avoid collecting multiple candidates for an extension method imported both through a namespace and a static class
-            // We will look for duplicates only if both of the following flags are set to true
-            bool seenNamespaceWithExtensionMethods = false;
-            bool seenStaticClassWithExtensionMethods = false;
-
-            foreach (var nsOrType in this.GetUsings(basesBeingResolved: null))
-            {
-                switch (nsOrType.NamespaceOrType.Kind)
-                {
-                    case SymbolKind.Namespace:
-                        {
-                            var count = methods.Count;
-                            ((NamespaceSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
-
-                            // If we found any extension methods, then consider this using as used.
-                            if (methods.Count != count)
-                            {
-                                MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
-                                seenNamespaceWithExtensionMethods = true;
-                            }
-
-                            break;
-                        }
-
-                    case SymbolKind.NamedType:
-                        {
-                            var count = methods.Count;
-                            ((NamedTypeSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
-
-                            // If we found any extension methods, then consider this using as used.
-                            if (methods.Count != count)
-                            {
-                                MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
-                                seenStaticClassWithExtensionMethods = true;
-                            }
-
-                            break;
-                        }
-                }
-            }
-
-            if (seenNamespaceWithExtensionMethods && seenStaticClassWithExtensionMethods)
-            {
-                methods.RemoveDuplicates();
-            }
-        }
-
-        internal override void GetCandidateExtensionMembersInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
+        internal override void GetAllExtensionCandidatesInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
             Debug.Assert(members.Count == 0);
 
@@ -145,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
                 {
                     var count = members.Count;
-                    ns.GetExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
+                    ns.GetAllExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
                     // If we found any extension declarations, then consider this using as used.
                     if (members.Count != count)
                     {
@@ -156,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
                 {
                     var count = members.Count;
-                    namedType.GetExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
+                    namedType.GetAllExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
                     // If we found any extension declarations, then consider this using as used.
                     if (members.Count != count)
                     {

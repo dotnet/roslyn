@@ -215,7 +215,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
                     continue;
                 }
 
-                // The current tag is *after* teh current span we're trying to intersect with.  Move to the next span to
+                // The current tag is *after* the current span we're trying to intersect with.  Move to the next span to
                 // see if it intersects with the current tag.
                 if (currentTagSpan.Start > currentRequestSpan.End)
                 {
