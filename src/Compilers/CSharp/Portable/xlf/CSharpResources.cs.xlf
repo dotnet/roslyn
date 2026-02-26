@@ -5800,6 +5800,16 @@
         <target state="translated">Při ukončovacím konstruktoru musí vlastnost, která nemůže mít hodnotu null, obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required, deklarování vlastnosti jako vlastnosti s možnou hodnotou null nebo bezpečné ošetření případu, kdy má field v přístupovém objektu get hodnotu null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableEvent">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableEvent_Title">
+        <source>Non-nullable event must contain a non-null value when exiting constructor. Consider declaring the event as nullable.</source>
+        <target state="new">Non-nullable event must contain a non-null value when exiting constructor. Consider declaring the event as nullable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
         <target state="translated">Proměnná {0} {1}, která nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required nebo deklaraci {0} s možnou hodnotou null.</target>

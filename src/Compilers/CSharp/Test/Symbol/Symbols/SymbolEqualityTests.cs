@@ -704,7 +704,7 @@ public class B
             var source =
 @"
 #nullable enable
-#pragma warning disable 8618
+#pragma warning disable 8618, 9360
 public class A<T>
 {
     public static event System.EventHandler<T> MyEvent;
@@ -877,9 +877,9 @@ public class A<T>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,41): warning CS8618: Non-nullable event 'MyEvent' is uninitialized. Consider declaring the event as nullable.
+                // (6,41): warning CS9360: Non-nullable event 'MyEvent' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public event System.EventHandler<T> MyEvent;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyEvent").WithArguments("event", "MyEvent").WithLocation(6, 41)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "MyEvent").WithArguments("event", "MyEvent").WithLocation(6, 41)
                 );
 
             var syntaxTree = comp.SyntaxTrees[0];

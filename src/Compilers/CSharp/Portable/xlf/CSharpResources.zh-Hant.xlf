@@ -5800,6 +5800,16 @@
         <target state="translated">非可為 null 的屬性在建構函式結束時必須具有非 null 的值。請考慮加入 'required' 修飾元、將此屬性宣告為可為 null，或在 'get' 存取子中安全地處理 'field' 可能為 null 的情況。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableEvent">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableEvent_Title">
+        <source>Non-nullable event must contain a non-null value when exiting constructor. Consider declaring the event as nullable.</source>
+        <target state="new">Non-nullable event must contain a non-null value when exiting constructor. Consider declaring the event as nullable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
         <target state="translated">退出建構函式時，不可為 Null 的 {0} '{1}' 必須包含非 Null 值。請考慮新增 'required' 修飾元，或將 {0} 宣告為可以為 Null。</target>
