@@ -130,6 +130,20 @@ namespace Microsoft.CodeAnalysis
         public void RegisterImplementationSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Implementation, _sourceExtension);
 
         /// <summary>
+        /// Registers a declaration output that runs in Phase 1, before regular source outputs.
+        /// Declaration outputs from all generators are added to the compilation before Phase 2 runs,
+        /// allowing other generators to see the declared types in their source outputs.
+        /// </summary>
+        public void RegisterDeclarationOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Declaration, _sourceExtension);
+
+        /// <summary>
+        /// Registers a declaration output that runs in Phase 1, before regular source outputs.
+        /// Declaration outputs from all generators are added to the compilation before Phase 2 runs,
+        /// allowing other generators to see the declared types in their source outputs.
+        /// </summary>
+        public void RegisterDeclarationOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Declaration, _sourceExtension);
+
+        /// <summary>
         /// Registers a callback that will be invoked once, before any other source generation occurs.
         /// This is typically used to add source code that should be available for subsequent generation steps, such as attribute definitions.
         /// Use <see cref="IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition"/> to add the EmbeddedAttribute which marks generated types as internal to the current assembly.

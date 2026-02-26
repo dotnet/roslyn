@@ -12,5 +12,7 @@ namespace Microsoft.CodeAnalysis
         public const string SourceOutput = nameof(SourceOutput);
 
         public const string ImplementationSourceOutput = nameof(ImplementationSourceOutput);
+
+        public const string DeclarationOutput = nameof(DeclarationOutput);
     }
 }

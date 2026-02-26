@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var generatorState in state.GeneratorStates)
             {
                 trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
+                trees.AddRange(generatorState.DeclarationTrees.Select(t => t.Tree));
                 trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
             }
             outputCompilation = compilation.AddSyntaxTrees(trees);
@@ -191,8 +192,12 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                ArrayBuilder<GeneratedSourceResult> sources = ArrayBuilder<GeneratedSourceResult>.GetInstance(generatorState.PostInitTrees.Length + generatorState.GeneratedTrees.Length);
+                ArrayBuilder<GeneratedSourceResult> sources = ArrayBuilder<GeneratedSourceResult>.GetInstance(generatorState.PostInitTrees.Length + generatorState.DeclarationTrees.Length + generatorState.GeneratedTrees.Length);
                 foreach (var tree in generatorState.PostInitTrees)
+                {
+                    sources.Add(new GeneratedSourceResult(tree.Tree, tree.Text, tree.HintName));
+                }
+                foreach (var tree in generatorState.DeclarationTrees)
                 {
                     sources.Add(new GeneratedSourceResult(tree.Tree, tree.Text, tree.HintName));
                 }
@@ -306,9 +311,66 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-            var syntaxStoreBuilder = _state.SyntaxStore.ToBuilder(compilation, syntaxInputNodes.ToImmutableAndFree(), _state.TrackIncrementalSteps, cancellationToken);
+            // === Phase 1: Run Declaration outputs for all generators ===
+            var syntaxInputNodesArray = syntaxInputNodes.ToImmutableAndFree();
+            var declarationTreesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
+            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+            {
+                var generatorState = stateBuilder[i];
+                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
+                {
+                    continue;
+                }
 
-            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxStoreBuilder, cancellationToken);
+                // Check if this generator has any declaration outputs
+                bool hasDeclarationOutputs = false;
+                foreach (var node in generatorState.OutputNodes)
+                {
+                    if (node.Kind == IncrementalGeneratorOutputKind.Declaration)
+                    {
+                        hasDeclarationOutputs = true;
+                        break;
+                    }
+                }
+
+                if (!hasDeclarationOutputs)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var declSyntaxStoreBuilder = _state.SyntaxStore.ToBuilder(compilation, syntaxInputNodesArray, _state.TrackIncrementalSteps, cancellationToken);
+                    var declDriverStateBuilder = new DriverStateTable.Builder(compilation, _state, declSyntaxStoreBuilder, cancellationToken);
+                    var declContext = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Declaration, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, declDriverStateBuilder);
+                    (var declSources, var declDiagnostics, var declRunStateTable, _) = declContext.ToImmutableAndFree();
+                    var declTrees = ParseAdditionalSources(state.Generators[i], declSources, cancellationToken);
+
+                    // Store declaration trees in the generator state
+                    stateBuilder[i] = generatorState.WithDeclarationTrees(declTrees);
+
+                    // Collect declaration trees for enriching the compilation
+                    declarationTreesBuilder.AddRange(declTrees.Select(t => t.Tree));
+                }
+                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
+                {
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken);
+                }
+            }
+
+            // Enrich the compilation with all declaration trees
+            bool hasDeclarations = declarationTreesBuilder.Count > 0;
+            var originalCompilation = compilation;
+            if (hasDeclarations)
+            {
+                compilation = compilation.AddSyntaxTrees(declarationTreesBuilder);
+            }
+            declarationTreesBuilder.Free();
+
+            // === Phase 2: Run Source and Host outputs against the ORIGINAL compilation ===
+            // Declaration outputs are only visible to Implementation outputs (Phase 3).
+            var syntaxStoreBuilder = _state.SyntaxStore.ToBuilder(originalCompilation, syntaxInputNodesArray, _state.TrackIncrementalSteps, cancellationToken);
+            var driverStateBuilder = new DriverStateTable.Builder(originalCompilation, _state, syntaxStoreBuilder, cancellationToken);
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
@@ -320,20 +382,56 @@ namespace Microsoft.CodeAnalysis
                 using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(syntaxStoreBuilder.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
                 try
                 {
-                    // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Host, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
                     (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
-                    generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
+                    generatorDiagnostics = FilterDiagnostics(originalCompilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
                     stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
                 }
-                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
+                catch (UserFunctionException ufe) when (handleGeneratorException(originalCompilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                 {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
+                    stateBuilder[i] = SetGeneratorException(originalCompilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
                 }
             }
 
-            state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
+            // === Phase 3: Run Implementation outputs against the ENRICHED compilation ===
+            // Implementation outputs can see declaration trees from all generators.
+            var implSyntaxStoreBuilder = _state.SyntaxStore.ToBuilder(compilation, syntaxInputNodesArray, _state.TrackIncrementalSteps, cancellationToken);
+            var implDriverStateBuilder = new DriverStateTable.Builder(compilation, _state, implSyntaxStoreBuilder, cancellationToken);
+            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+            {
+                var generatorState = stateBuilder[i];
+                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Implementation, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, implDriverStateBuilder);
+                    (var implSources, var implDiagnostics, var implRunStateTable, _) = context.ToImmutableAndFree();
+                    implDiagnostics = FilterDiagnostics(compilation, implDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
+
+                    if (implSources.Length > 0 || implDiagnostics.Length > 0)
+                    {
+                        var implTrees = ParseAdditionalSources(state.Generators[i], implSources, cancellationToken);
+
+                        // Merge implementation results with the existing Source/Host results
+                        var mergedTrees = generatorState.GeneratedTrees.AddRange(implTrees);
+                        var mergedDiagnostics = generatorState.Diagnostics.AddRange(implDiagnostics);
+                        var mergedExecutedSteps = generatorState.ExecutedSteps.SetItems(implRunStateTable.ExecutedSteps);
+                        var mergedOutputSteps = generatorState.OutputSteps.SetItems(implRunStateTable.OutputSteps);
+
+                        stateBuilder[i] = generatorState.WithResults(mergedTrees, mergedDiagnostics, mergedExecutedSteps, mergedOutputSteps, generatorState.HostOutputs, generatorState.ElapsedTime);
+                    }
+                }
+                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
+                {
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken);
+                }
+            }
+
+            state = state.With(stateTable: implDriverStateBuilder.ToImmutable(), syntaxStore: implSyntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
             return state;
 
             static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)

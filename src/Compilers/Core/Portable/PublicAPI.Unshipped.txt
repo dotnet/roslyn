@@ -4,6 +4,10 @@ Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.init -> void
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Declaration = 16 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterDeclarationOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterDeclarationOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
+Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.DeclarationOutput = "DeclarationOutput" -> string!
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation

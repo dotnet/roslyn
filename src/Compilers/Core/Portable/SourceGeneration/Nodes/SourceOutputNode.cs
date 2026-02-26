@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             _source = source;
             _action = action;
 
-            Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation);
+            Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation || outputKind == IncrementalGeneratorOutputKind.Declaration);
             _outputKind = outputKind;
             _sourceExtension = sourceExtension;
         }
@@ -39,7 +39,12 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
-            string stepName = Kind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
+            string stepName = Kind switch
+            {
+                IncrementalGeneratorOutputKind.Source => WellKnownGeneratorOutputs.SourceOutput,
+                IncrementalGeneratorOutputKind.Declaration => WellKnownGeneratorOutputs.DeclarationOutput,
+                _ => WellKnownGeneratorOutputs.ImplementationSourceOutput,
+            };
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached && previousTable is not null)
             {

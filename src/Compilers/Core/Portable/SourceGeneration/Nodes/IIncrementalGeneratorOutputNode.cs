@@ -55,5 +55,10 @@ namespace Microsoft.CodeAnalysis
         /// or <see cref="IncrementalGeneratorInitializationContext.RegisterHostOutput{TSource}(IncrementalValuesProvider{TSource}, Action{HostOutputProductionContext, TSource})"/>
         /// </summary>
         Host = 0b1000,
+
+        /// <summary>
+        /// A declaration output that runs in Phase 1 and is visible to other generators in Phase 2.
+        /// </summary>
+        Declaration = 0b10000,
     }
 }

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// A generator state that has been initialized but produced no results
         /// </summary>
         public static readonly GeneratorState Empty = new GeneratorState(ImmutableArray<GeneratedSyntaxTree>.Empty,
+                                                                         ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<SyntaxInputNode>.Empty,
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,
                                                                          ImmutableArray<GeneratedSyntaxTree>.Empty,
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
             : this(postInitTrees,
+                   ImmutableArray<GeneratedSyntaxTree>.Empty,
                    inputNodes,
                    outputNodes,
                    ImmutableArray<GeneratedSyntaxTree>.Empty,
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis
 
         private GeneratorState(
             ImmutableArray<GeneratedSyntaxTree> postInitTrees,
+            ImmutableArray<GeneratedSyntaxTree> declarationTrees,
             ImmutableArray<SyntaxInputNode> inputNodes,
             ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes,
             ImmutableArray<GeneratedSyntaxTree> generatedTrees,
@@ -60,6 +63,7 @@ namespace Microsoft.CodeAnalysis
         {
             this.Initialized = true;
             this.PostInitTrees = postInitTrees;
+            this.DeclarationTrees = declarationTrees;
             this.InputNodes = inputNodes;
             this.OutputNodes = outputNodes;
             this.GeneratedTrees = generatedTrees;
@@ -79,6 +83,7 @@ namespace Microsoft.CodeAnalysis
                                           TimeSpan elapsedTime)
         {
             return new GeneratorState(this.PostInitTrees,
+                                      this.DeclarationTrees,
                                       this.InputNodes,
                                       this.OutputNodes,
                                       generatedTrees,
@@ -93,6 +98,7 @@ namespace Microsoft.CodeAnalysis
         public GeneratorState WithError(Exception exception, Diagnostic error, TimeSpan elapsedTime)
         {
             return new GeneratorState(this.PostInitTrees,
+                                      this.DeclarationTrees,
                                       this.InputNodes,
                                       this.OutputNodes,
                                       ImmutableArray<GeneratedSyntaxTree>.Empty,
@@ -107,6 +113,8 @@ namespace Microsoft.CodeAnalysis
         internal bool Initialized { get; }
 
         internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
+
+        internal ImmutableArray<GeneratedSyntaxTree> DeclarationTrees { get; }
 
         internal ImmutableArray<SyntaxInputNode> InputNodes { get; }
 
@@ -127,5 +135,22 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableDictionary<string, object> HostOutputs { get; }
 
         internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
+
+        internal bool RequiresDeclarationReparse(ParseOptions parseOptions) => DeclarationTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
+
+        public GeneratorState WithDeclarationTrees(ImmutableArray<GeneratedSyntaxTree> declarationTrees)
+        {
+            return new GeneratorState(this.PostInitTrees,
+                                      declarationTrees,
+                                      this.InputNodes,
+                                      this.OutputNodes,
+                                      this.GeneratedTrees,
+                                      this.Diagnostics,
+                                      this.ExecutedSteps,
+                                      this.OutputSteps,
+                                      this.HostOutputs,
+                                      this.Exception,
+                                      this.ElapsedTime);
+        }
     }
 }
