@@ -1,2 +1,0 @@
-# RS0006: Roslyn experimental language API
-dotnet_diagnostic.RSEXPERIMENTAL006.severity = none
