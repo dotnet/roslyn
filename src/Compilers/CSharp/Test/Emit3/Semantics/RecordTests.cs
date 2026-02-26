@@ -24754,9 +24754,9 @@ record C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,20): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
+                // (4,20): error CS9360: Cannot use primary constructor parameter 'X' in a static member.
                 //     static int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "X").WithArguments("X").WithLocation(4, 20)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -24785,9 +24785,9 @@ record C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,19): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
+                // (4,19): error CS9360: Cannot use primary constructor parameter 'X' in a static member.
                 //     const int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "X").WithArguments("X").WithLocation(4, 19),
                 // (4,19): error CS0133: The expression being assigned to 'C.Z' must be constant
                 //     const int Z = X + 1;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "X + 1").WithArguments("C.Z").WithLocation(4, 19)
@@ -29646,9 +29646,9 @@ record C2(int P)
                 // (6,15): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record C2(int P)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(6, 15),
-                // (8,19): error CS9105: Cannot use primary constructor parameter 'int P' in this context.
+                // (8,19): error CS9360: Cannot use primary constructor parameter 'P' in a static member.
                 //     const int P = P;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "P").WithArguments("int P").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "P").WithArguments("P").WithLocation(8, 19),
                 // (8,19): error CS0133: The expression being assigned to 'C2.P' must be constant
                 //     const int P = P;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "P").WithArguments("C2.P").WithLocation(8, 19)

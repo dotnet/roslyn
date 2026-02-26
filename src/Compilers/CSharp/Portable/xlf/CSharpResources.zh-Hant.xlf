@@ -1452,6 +1452,11 @@
         <target state="translated">'{0}' 不包含 '{1}' 的定義，而且找不到接受類型 '{0}' 的第一個引數的可存取方法 '{1}' (您是否要改為使用 'await foreach' 來逐一查看非同步集合?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_PrimaryConstructorParameterInStaticContext">
+        <source>Cannot use primary constructor parameter '{0}' in a static member.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in a static member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
         <target state="translated">目標執行階段不支援擴充版面配置型別。</target>

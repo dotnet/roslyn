@@ -2690,9 +2690,9 @@ record struct C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,20): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
+                // (4,20): error CS9360: Cannot use primary constructor parameter 'X' in a static member.
                 //     static int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "X").WithArguments("X").WithLocation(4, 20)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2721,9 +2721,9 @@ record struct C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,19): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
+                // (4,19): error CS9360: Cannot use primary constructor parameter 'X' in a static member.
                 //     const int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, "X").WithArguments("X").WithLocation(4, 19),
                 // (4,19): error CS0133: The expression being assigned to 'C.Z' must be constant
                 //     const int Z = X + 1;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "X + 1").WithArguments("C.Z").WithLocation(4, 19)

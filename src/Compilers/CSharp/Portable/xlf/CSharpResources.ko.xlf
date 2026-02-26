@@ -1452,6 +1452,11 @@
         <target state="translated">'{0}'에 '{1}'에 대한 정의가 없고, '{1}' 형식의 첫 번째 인수를 받는 액세스 가능한 확장 메서드 '{0}'을(를) 찾을 수 없습니다(대신 'await foreach'를 사용하여 비동기 컬렉션을 반복하려고 한 건가요?).</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_PrimaryConstructorParameterInStaticContext">
+        <source>Cannot use primary constructor parameter '{0}' in a static member.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in a static member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
         <target state="translated">대상 런타임이 확장 레이아웃 형식을 지원하지 않습니다.</target>

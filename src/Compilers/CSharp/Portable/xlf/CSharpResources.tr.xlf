@@ -1452,6 +1452,11 @@
         <target state="translated">' {0}' '{1}' için bir tanım içermiyor ve '{0}' türünden ilk bağımsız değişkeni kabul eden erişilebilir '{1}' uzantı yöntemi bulunamadı (zaman uyumsuz koleksiyon üzerinde 'await foreach' ile yineleme yapmak mı istediniz?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_PrimaryConstructorParameterInStaticContext">
+        <source>Cannot use primary constructor parameter '{0}' in a static member.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in a static member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
         <target state="translated">Hedef çalışma zamanı, genişletilmiş düzen türlerini desteklemiyor.</target>

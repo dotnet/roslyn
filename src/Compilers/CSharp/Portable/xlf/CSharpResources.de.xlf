@@ -1452,6 +1452,11 @@
         <target state="translated">„{0}“ enthält keine Definition für „{1}“, und es konnte keine zugängliche Erweiterungsmethode „{1}“ gefunden werden, die ein erstes Argument vom Typ „{0}“ akzeptiert (wollten Sie die asynchrone Sammlung mit „await foreach“ durchlaufen?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_PrimaryConstructorParameterInStaticContext">
+        <source>Cannot use primary constructor parameter '{0}' in a static member.</source>
+        <target state="new">Cannot use primary constructor parameter '{0}' in a static member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
         <target state="translated">Die Zielruntime unterstützt keine erweiterten Layouttypen.</target>

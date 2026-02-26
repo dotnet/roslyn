@@ -2086,7 +2086,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                              (this.ContainingMember() is MethodSymbol { MethodKind: MethodKind.Constructor } containingMember && (object)containingMember != primaryCtor)) && // We are in a non-primary instance constructor
                             !IsInsideNameof)
                         {
-                            Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
+                            // Give a better error for the simple case of using a primary constructor parameter in a static member
+                            if (this.ContainingMember() is { IsStatic: true } && !InParameterDefaultValue && !InAttributeArgument &&
+                                (object)this.ContainingMember().ContainingSymbol == primaryCtor.ContainingSymbol)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_PrimaryConstructorParameterInStaticContext, node, parameter.Name);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
+                            }
                         }
                         else if (parameter.IsExtensionParameter() &&
                                 (InParameterDefaultValue || InAttributeArgument ||

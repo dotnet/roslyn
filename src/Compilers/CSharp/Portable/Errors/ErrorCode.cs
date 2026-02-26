@@ -2462,6 +2462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionArgumentsMustBeEmpty = 9357,
         ERR_CollectionRefLikeElementType = 9358,
         ERR_BadCollectionArgumentsArgCount = 9359,
+        ERR_PrimaryConstructorParameterInStaticContext = 9360,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
