@@ -368,6 +368,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return parameters.RemoveAt(parameters.Length - 1);
             }
         }
+
+        public override void VisitInitializerExpression(InitializerExpressionSyntax node)
+        {
+            if (node.Kind() == SyntaxKind.ObjectInitializerExpression)
+            {
+                var objectInitializerMemberBinder = _enclosing.WithAdditionalFlags(BinderFlags.ObjectInitializerMember);
+                AddToMap(node, objectInitializerMemberBinder);
+
+                foreach (var initializer in node.Expressions)
+                {
+                    switch (initializer.Kind())
+                    {
+                        case SyntaxKind.SimpleAssignmentExpression:
+                            var assignment = (AssignmentExpressionSyntax)initializer;
+                            Visit(assignment.Left, objectInitializerMemberBinder);
+                            Visit(assignment.Right, _enclosing);
+                            break;
+
+                        case SyntaxKind.IdentifierName:
+                            Visit(initializer, objectInitializerMemberBinder);
+                            break;
+
+                        default:
+                            Visit(initializer, _enclosing);
+                            break;
+                    }
+                }
+
+                return;
+            }
+
+            base.VisitInitializerExpression(node);
+        }
 #nullable disable
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)

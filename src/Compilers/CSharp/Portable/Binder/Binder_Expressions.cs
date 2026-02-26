@@ -5851,10 +5851,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
             //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
             // Note that this is only used for the LHS of the assignment - these diagnostics do not apply on the RHS.
-            // For this reason, we will actually need two binders: this and this.WithAdditionalFlags.
+            // For this reason, we use two binders: this and a syntax-associated binder for object initializer members.
             var objectInitializerMemberBinder = useObjectInitDiagnostics
-                ? this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember)
+                ? this.GetRequiredBinder(initializerSyntax)
                 : this;
+            Debug.Assert(!useObjectInitDiagnostics || objectInitializerMemberBinder.Flags.Includes(BinderFlags.ObjectInitializerMember));
 
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
