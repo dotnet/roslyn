@@ -4628,6 +4628,127 @@ class C
     }
 
     [Fact]
+    public void ImplicitIndexIndexer_67()
+    {
+        // Use-site diagnostic for extension this[Index] and this[Range]
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 1;
+        public Missing this[System.Index i] => throw null;
+        public Missing this[System.Range r] => throw null;
+        public int this[int i] => 42;
+        public int Slice(int i, int j) => 43;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+var o = new object();
+_ = o[^1];
+_ = o[..];
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (2,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 5),
+            // (2,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 5),
+            // (3,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[..];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 5),
+            // (3,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[..];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 5)
+            );
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_68()
+    {
+        // Use-site diagnostic for extension this[int] and Slice(int, int)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(object o)
+    {
+        public int Length => throw null;
+        public Missing this[int i] => throw null;
+        public Missing Slice(int i, int j) => throw null;
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+            public int this[System.Index i] => throw null;
+            public object this[System.Range r] => throw null;
+        }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o[^1];
+_ = o[..];
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5),
+            // (4,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5),
+            // (4,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5),
+            // (4,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5),
+            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[..];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
+            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[..];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
+            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[..];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
+            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o[..];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5)
+            );
+    }
+
+    [Fact]
     public void ImplicitRangeIndexer_01()
     {
         // instance implicit indexer (instance scope) takes precedence over extension this[Range] (extension scope)

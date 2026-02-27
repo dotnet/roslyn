@@ -9496,7 +9496,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    indexerAccess = binder.BindIndexerOrIndexedPropertyAccess(syntax, receiver, filteredCandidates, analyzedArguments, out bool foundApplicable, diagnostics).MakeCompilerGenerated();
+                    var bindingUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                    indexerAccess = binder.BindIndexerOrIndexedPropertyAccess(syntax, receiver, filteredCandidates, analyzedArguments, out bool foundApplicable, ref bindingUseSiteInfo, diagnostics).MakeCompilerGenerated();
+                    diagnostics.Add(syntax, bindingUseSiteInfo);
                     return foundApplicable;
                 }
             }
@@ -10765,7 +10767,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: lookupOptions);
-            diagnostics.Add(node, useSiteInfo);
 
             // Store, rather than return, so that we can release resources.
             BoundExpression indexerAccessExpression = null;
@@ -10781,9 +10782,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 instanceRealIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, out foundApplicable, instanceRealIndexerDiagnostics);
+                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, out foundApplicable, ref useSiteInfo, instanceRealIndexerDiagnostics);
                 indexerGroup.Free();
             }
+
+            diagnostics.Add(node, useSiteInfo);
 
             BoundExpression fallbackIndexerAccess = null;
             if (!foundApplicable)
@@ -10868,7 +10871,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // converting the ArrayBuilder to ImmutableArray. Avoid the extra copy.
             var properties = ArrayBuilder<PropertySymbol>.GetInstance();
             properties.AddRange(propertyGroup);
-            var result = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, foundApplicable: out _, diagnostics);
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var result = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, foundApplicable: out _, ref useSiteInfo, diagnostics);
+            diagnostics.Add(syntax, useSiteInfo);
             properties.Free();
             return result;
         }
@@ -10924,16 +10929,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
             out bool foundApplicable,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver is not null);
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult,
                 allowRefOmittedArguments: AllowRefOmittedArguments(receiver),
                 dynamicResolution: analyzedArguments.HasDynamicArgument,
                 ref useSiteInfo);
-            diagnostics.Add(syntax, useSiteInfo);
 
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
