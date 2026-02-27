@@ -46,6 +46,7 @@ public sealed class SolutionTests : TestBase
     private static readonly string s_projectDir = Path.GetDirectoryName(typeof(SolutionTests).Assembly.Location)!;
     private static readonly MetadataReference s_mscorlib = NetFramework.mscorlib;
     private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
+    private static readonly string s_testFileRoot = Path.DirectorySeparatorChar == '/' ? "/Z" : @"Z:\";
 
     private static Workspace CreateWorkspaceWithProjectAndDocuments(string? editorConfig = null)
     {
@@ -2530,7 +2531,7 @@ public sealed class SolutionTests : TestBase
     [CombinatorialData]
     public async Task GetFirstRelatedDocumentIdWithAdditionalDocumentHavingSamePath(bool populateCacheFirst, bool passRelatedProjectHint)
     {
-        const string LinkedFileName = @"Z:\Linked.cs";
+        var LinkedFileName = Path.Combine(s_testFileRoot, "Linked.cs");
 
         using var workspace = CreateWorkspace();
 
@@ -2560,7 +2561,7 @@ public sealed class SolutionTests : TestBase
     [CombinatorialData]
     public async Task GetFirstRelatedDocumentIdWithAnalyzerConfigDocumentHavingSamePath(bool populateCacheFirst, bool passRelatedProjectHint)
     {
-        const string LinkedFileName = @"Z:\Linked.cs";
+        var LinkedFileName = Path.Combine(s_testFileRoot, "Linked.cs");
 
         using var workspace = CreateWorkspace();
 
@@ -2589,7 +2590,7 @@ public sealed class SolutionTests : TestBase
     [Fact]
     public async Task SetCurrentSolutionWithRegularAndAdditionalFileUsingSamePathDoesNotThrow()
     {
-        const string LinkedFileName = @"Z:\Linked.cs";
+        var LinkedFileName = Path.Combine(s_testFileRoot, "Linked.cs");
 
         using var workspace = CreateWorkspace();
 
@@ -2610,7 +2611,7 @@ public sealed class SolutionTests : TestBase
     [Fact]
     public async Task SetCurrentSolutionWithRegularAndAnalyzerConfigFileUsingSamePathDoesNotThrow()
     {
-        const string LinkedFileName = @"Z:\Linked.cs";
+        var LinkedFileName = Path.Combine(s_testFileRoot, "Linked.cs");
 
         using var workspace = CreateWorkspace();
 
@@ -3453,8 +3454,8 @@ public sealed class SolutionTests : TestBase
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
 
-        const string OldFilePath = @"Z:\OldFilePath.cs";
-        const string NewFilePath = @"Z:\NewFilePath.cs";
+        var OldFilePath = Path.Combine(s_testFileRoot, "OldFilePath.cs");
+        var NewFilePath = Path.Combine(s_testFileRoot, "NewFilePath.cs");
 
         using var workspace = CreateWorkspace();
         var solution = workspace.CurrentSolution
@@ -4109,7 +4110,7 @@ public sealed class SolutionTests : TestBase
 
         solution = solution
             .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-            .AddDocument(did, "x", new WorkspaceFileTextLoader(solution.Services, @"C:\doesnotexist.cs", Encoding.UTF8))
+            .AddDocument(did, "x", new WorkspaceFileTextLoader(solution.Services, Path.Combine(s_testFileRoot, "doesnotexist.cs"), Encoding.UTF8))
             .WithDocumentFilePath(did, "document path");
 
         var doc = solution.GetDocument(did);
@@ -4870,7 +4871,7 @@ public sealed class SolutionTests : TestBase
         var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
         solution = solution.AddProject(projectId, "Test", "Test.dll", languageName);
-        solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
+        solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: Path.Combine(s_testFileRoot, "Test" + extension));
 
         var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
         var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
@@ -4880,7 +4881,7 @@ public sealed class SolutionTests : TestBase
             DocumentInfo.Create(
                 editorConfigDocumentId,
                 ".editorconfig",
-                filePath: @"Z:\.editorconfig",
+                filePath: Path.Combine(s_testFileRoot, ".editorconfig"),
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
         var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
@@ -4906,14 +4907,14 @@ public sealed class SolutionTests : TestBase
         var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
         solution = solution.AddProject(projectId, "Test", "Test.dll", languageName);
-        solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
+        solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: Path.Combine(s_testFileRoot, "Test" + extension));
 
         var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
         solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
             DocumentInfo.Create(
                 editorConfigDocumentId,
                 ".editorconfig",
-                filePath: @"Z:\.editorconfig",
+                filePath: Path.Combine(s_testFileRoot, ".editorconfig"),
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
         var syntaxTreeAfterAddingEditorConfig = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
@@ -4947,14 +4948,14 @@ public sealed class SolutionTests : TestBase
         var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
         solution = solution.AddProject(projectId, "Test", "Test.dll", languageName);
-        solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
+        solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: Path.Combine(s_testFileRoot, "Test" + extension));
 
         var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
         solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
             DocumentInfo.Create(
                 editorConfigDocumentId,
                 ".editorconfig",
-                filePath: @"Z:\.editorconfig",
+                filePath: Path.Combine(s_testFileRoot, ".editorconfig"),
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
         var syntaxTreeBeforeEditorConfigChange = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
@@ -4992,7 +4993,7 @@ public sealed class SolutionTests : TestBase
         var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
         solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp);
-        solution = solution.AddDocument(sourceDocumentId, "Test.cs", "", filePath: @"Z:\Test.cs");
+        solution = solution.AddDocument(sourceDocumentId, "Test.cs", "", filePath: Path.Combine(s_testFileRoot, "Test.cs"));
 
         var originalProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
         Assert.False(originalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
@@ -5002,7 +5003,7 @@ public sealed class SolutionTests : TestBase
             DocumentInfo.Create(
                 editorConfigDocumentId,
                 ".globalconfig",
-                filePath: @"Z:\.globalconfig",
+                filePath: Path.Combine(s_testFileRoot, ".globalconfig"),
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From("is_global = true\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
         var newProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
@@ -5033,7 +5034,7 @@ public sealed class SolutionTests : TestBase
                     _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
                 }
             }
-            """, filePath: @"Z:\Test.cs");
+            """, filePath: Path.Combine(s_testFileRoot, "Test.cs"));
 
         var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
         var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
@@ -5048,7 +5049,7 @@ public sealed class SolutionTests : TestBase
             DocumentInfo.Create(
                 editorConfigDocumentId,
                 ".editorconfig",
-                filePath: @"Z:\.editorconfig",
+                filePath: Path.Combine(s_testFileRoot, ".editorconfig"),
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ngenerated_code = true"), VersionStamp.Default)))));
 
         var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
@@ -5074,7 +5075,7 @@ public sealed class SolutionTests : TestBase
         var documentId = DocumentId.CreateNewId(projectId);
 
         solution = solution.AddProject(projectId, "Test", "Test.dll", NoCompilationConstants.LanguageName);
-        solution = solution.AddDocument(documentId, "Test.cs", "", filePath: @"Z:\Test.txt");
+        solution = solution.AddDocument(documentId, "Test.cs", "", filePath: Path.Combine(s_testFileRoot, "Test.txt"));
 
         var document = solution.GetDocument(documentId)!;
 
@@ -5115,11 +5116,11 @@ public sealed class SolutionTests : TestBase
         var documentId = DocumentId.CreateNewId(projectId);
 
         solution = solution.AddProject(projectId, "Test", "Test.dll", NoCompilationConstants.LanguageName);
-        solution = solution.AddDocument(documentId, "Test.cs", "", filePath: @"Z:\Test.txt");
+        solution = solution.AddDocument(documentId, "Test.cs", "", filePath: Path.Combine(s_testFileRoot, "Test.txt"));
 
         Assert.Null(solution.GetDocument(documentId)!.GetSyntaxTreeAsync().Result);
 
-        solution = solution.WithDocumentFilePath(documentId, @"Z:\NewPath.txt");
+        solution = solution.WithDocumentFilePath(documentId, Path.Combine(s_testFileRoot, "NewPath.txt"));
 
         Assert.Null(solution.GetDocument(documentId)!.GetSyntaxTreeAsync().Result);
     }
@@ -5132,7 +5133,7 @@ public sealed class SolutionTests : TestBase
         var projectId = ProjectId.CreateNewId();
         var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
 
-        const string editorConfigFilePath = @"Z:\.editorconfig";
+        var editorConfigFilePath = Path.Combine(s_testFileRoot, ".editorconfig");
 
         var projectInfo =
             ProjectInfo.Create(projectId, VersionStamp.Default, "Test", "Test", LanguageNames.CSharp)

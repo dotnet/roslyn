@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing;
@@ -163,7 +164,6 @@ public sealed class SectionParserTests
     [InlineData("*gram.cs", @"C:\dev\sources\.editorconfig", @"C:\dev\sources\CSharp\Program.cs")]
     [InlineData("*gram.cs", @"C:\dev\sources\CSharp\.editorconfig", @"C:\dev\sources\CSharp\Program.cs")]
     [InlineData("Program.cs", @"C:\dev\sources\CSharp\.editorconfig", @"C:\dev\sources\CSharp\Program.cs")]
-    [InlineData("sources/**/*.cs", @"C:\dev\.editorconfig", @"C:\dev\sources\CSharp\Program.cs")]
     [InlineData("*.cs", @"/dev/.editorconfig", @"/dev/sources/CSharp/Program.cs")]
     [InlineData("*gram.cs", @"/dev/.editorconfig", @"/dev/sources/CSharp/Program.cs")]
     [InlineData("*gram.cs", @"/dev/sources/.editorconfig", @"/dev/sources/CSharp/Program.cs")]
@@ -175,7 +175,6 @@ public sealed class SectionParserTests
     [InlineData("*gram.vb", @"C:\dev\sources\.editorconfig", @"C:\dev\sources\VisualBasic\Program.vb")]
     [InlineData("*gram.vb", @"C:\dev\sources\VisualBasic\.editorconfig", @"C:\dev\sources\VisualBasic\Program.vb")]
     [InlineData("Program.vb", @"C:\dev\sources\VisualBasic\.editorconfig", @"C:\dev\sources\VisualBasic\Program.vb")]
-    [InlineData("sources/**/*.vb", @"C:\dev\.editorconfig", @"C:\dev\sources\VisualBasic\Program.vb")]
     [InlineData("*.vb", @"/dev/.editorconfig", @"/dev/sources/VisualBasic/Program.vb")]
     [InlineData("*gram.vb", @"/dev/.editorconfig", @"/dev/sources/VisualBasic/Program.vb")]
     [InlineData("*gram.vb", @"/dev/sources/.editorconfig", @"/dev/sources/VisualBasic/Program.vb")]
@@ -183,6 +182,15 @@ public sealed class SectionParserTests
     [InlineData("Program.vb", @"/dev/sources/VisualBasic/.editorconfig", @"/dev/sources/VisualBasic/Program.vb")]
     [InlineData("sources/**/*.vb", @"/dev/.editorconfig", @"/dev/sources/VisualBasic/Program.vb")]
     internal void TestSupportsFilePathSimpleCase(string headerText, string editorconfigFilePath, string codefilePath)
+    {
+        var section = new Section(editorconfigFilePath, false, default(TextSpan), headerText, $"[{headerText}]");
+        Assert.True(section.SupportsFilePath(codefilePath, matchKind: SectionMatch.FilePatternMatch));
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData("sources/**/*.cs", @"C:\dev\.editorconfig", @"C:\dev\sources\CSharp\Program.cs")]
+    [InlineData("sources/**/*.vb", @"C:\dev\.editorconfig", @"C:\dev\sources\VisualBasic\Program.vb")]
+    internal void TestSupportsFilePathSimpleCase_WindowsGlobPaths(string headerText, string editorconfigFilePath, string codefilePath)
     {
         var section = new Section(editorconfigFilePath, false, default(TextSpan), headerText, $"[{headerText}]");
         Assert.True(section.SupportsFilePath(codefilePath, matchKind: SectionMatch.FilePatternMatch));
