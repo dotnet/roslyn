@@ -182,6 +182,6 @@ namespace Roslyn.Test.Utilities
         /// NOTE: the path is not appropriate for actually writing files during tests, use TempRoot instead for that.
         /// </summary>
         public static string CreateAbsolutePath(string suffix)
-            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $@"C:\{suffix}" : $"/tmp/{suffix}";
+            => Path.Combine(Path.GetTempPath(), suffix);
     }
 }
