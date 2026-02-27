@@ -44,8 +44,14 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
     [Theory]
     [InlineData(DebugInformationFormat.PortablePdb, true)]
     [InlineData(DebugInformationFormat.PortablePdb, false)]
-    [InlineData(DebugInformationFormat.Pdb, true)]
     public void DebugInfo(DebugInformationFormat format, bool useSymReader)
+        => DebugInfoCore(format, useSymReader);
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public void DebugInfo_NativePdb()
+        => DebugInfoCore(DebugInformationFormat.Pdb, useSymReader: true);
+
+    private void DebugInfoCore(DebugInformationFormat format, bool useSymReader)
     {
         var source = """
 
