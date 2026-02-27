@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -77,16 +77,22 @@ internal struct WordSimilarityChecker : IDisposable
     }
 
     /// <summary>
-    /// Maximum allowed edit distance for a fuzzy match given the source length. Shorter strings
-    /// get a tighter threshold (1) to avoid excessive spurious hits; longer strings get a looser
-    /// threshold (2) to tolerate more typos.
+    /// Maximum allowed edit distance for a fuzzy match given the source length. These tiers
+    /// match Elasticsearch/Lucene's widely-deployed <c>fuzziness: AUTO</c> setting
+    /// (<see href="https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness"/>),
+    /// which is grounded in Damerau's finding that ~80% of human misspellings are edit distance 1:
+    /// <list type="bullet">
+    /// <item>Length 1–2: no fuzzy matching (see <see cref="MinFuzzyLength"/>)</item>
+    /// <item>Length 3–5: threshold 1</item>
+    /// <item>Length 6+: threshold 2</item>
+    /// </list>
     /// </summary>
     internal static int GetThreshold(string value)
         => GetThreshold(value.Length);
 
     /// <inheritdoc cref="GetThreshold(string)"/>
     internal static int GetThreshold(int length)
-        => length <= 4 ? 1 : 2;
+        => length <= 5 ? 1 : 2;
 
     /// <summary>
     /// Minimum source length for fuzzy matching to be attempted. Patterns shorter than this

@@ -56,7 +56,8 @@ internal abstract partial class AbstractNavigateToSearchService
         // First, load the lightweight filter index to check if this document could possibly match.
         // This avoids loading the much larger TopLevelSyntaxTreeIndex for non-matching documents.
         var filterIndex = await NavigateToSearchIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
-        if (!filterIndex.CouldContainNavigateToMatch(patternName, patternContainer, out var allowFuzzyMatching))
+        var matchKinds = filterIndex.CouldContainNavigateToMatch(patternName, patternContainer);
+        if (matchKinds == PatternMatcherKind.None)
             return;
 
         // The filter passed — now load the full index with all declared symbols.
@@ -72,7 +73,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         ProcessIndex(
             DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
-            allowFuzzyMatching, index, linkedIndices, onItemFound, cancellationToken);
+            matchKinds, index, linkedIndices, onItemFound, cancellationToken);
     }
 
     private static void ProcessIndex(
@@ -81,7 +82,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        bool allowFuzzyMatching,
+        PatternMatcherKind matchKinds,
         TopLevelSyntaxTreeIndex index,
         ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices,
         Action<RoslynNavigateToItem> onItemFound,
@@ -91,7 +92,7 @@ internal abstract partial class AbstractNavigateToSearchService
             return;
 
         using var containerMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);
-        using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching);
+        using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, matchKinds);
 
         foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {
