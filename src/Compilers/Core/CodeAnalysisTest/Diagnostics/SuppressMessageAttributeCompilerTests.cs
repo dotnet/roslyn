@@ -93,7 +93,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "Test relies on CRLF line endings in verbatim string literals")]
         public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
         {
             var exception = new Exception();
