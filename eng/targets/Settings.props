@@ -63,6 +63,10 @@
     <NoWarn Condition="'$(DefineConstants.Contains(`CODE_STYLE`))' == 'false'">$(NoWarn);RS1041;RS1038</NoWarn>
 
     <EnableNetAnalyzers>true</EnableNetAnalyzers>
+
+    <!-- Some packages we reference don't support net8.0 and produce build errors when multi-targeting.
+         Suppress these warnings to allow building net8.0 targets with newer package versions. -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
