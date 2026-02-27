@@ -8709,6 +8709,150 @@ static class Test1
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_AwaitTaskWhenAll_AsyncLambdaInSelect_InferenceScenarios(bool explicitReturnType, bool statementBody)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (int x) => { return await Task.FromResult(x); }",
+                (true, false) => "async Task<int> (int x) => await Task.FromResult(x)",
+                (false, true) => "async x => { return await Task.FromResult(x); }",
+                (false, false) => "async x => await Task.FromResult(x)",
+            };
+
+            var source = $$"""
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambda}}));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_InferenceScenarios(bool explicitReturnType, bool statementBody)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
+                (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
+                (false, true) => "async x => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async x => await Task.FromResult(x.Length)",
+            };
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use(Func<int, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<string, Task<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use({{lambda}});
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_GenericCandidate_InferenceScenarios(bool explicitReturnType, bool statementBody)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
+                (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
+                (false, true) => "async x => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async x => await Task.FromResult(x.Length)",
+            };
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use<T>(Func<T, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<string, Task<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use({{lambda}});
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_ValueTaskTarget()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use(Func<int, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<int, ValueTask<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use(async ValueTask<int> (int x) => await Task.FromResult(x));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_AmbiguousTaskLike_NoCrash()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static void Use(Func<int, Task<int>> f) { }
+                    static void Use(Func<int, ValueTask<int>> f) { }
+
+                    static void Main()
+                    {
+                        Use(async x => await Task.FromResult(x));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Use(System.Func<int, System.Threading.Tasks.Task<int>>)' and 'Program.Use(System.Func<int, System.Threading.Tasks.ValueTask<int>>)'
+                //         Use(async x => await Task.FromResult(x));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Use").WithArguments("Program.Use(System.Func<int, System.Threading.Tasks.Task<int>>)", "Program.Use(System.Func<int, System.Threading.Tasks.ValueTask<int>>)").WithLocation(11, 9)
+            );
+        }
+
         [Theory]
         [CombinatorialData]
         public void RuntimeAsync_CompilerFeatureFlag_EnabledWithoutRuntimeAsync(bool withNonCoreLibSources)
