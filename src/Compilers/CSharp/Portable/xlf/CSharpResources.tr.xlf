@@ -4128,7 +4128,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="new">
                              Visual C# Compiler Options
 
                        - OUTPUT FILES -
