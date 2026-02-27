@@ -654,6 +654,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_UnionAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IUnion:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray2:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray3:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray4:

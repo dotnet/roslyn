@@ -548,7 +548,7 @@ union U1(E1) : I1(1);
         }
         EOF();
 
-        var comp = CreateCompilation([src, "struct E1; interface I1;", UnionAttributeSource], parseOptions: TestOptions.RegularPreview);
+        var comp = CreateCompilation([src, "struct E1; interface I1;", UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularPreview);
         comp.VerifyDiagnostics(
             // (1,18): error CS8861: Unexpected argument list.
             // union U1(E1) : I1(1);

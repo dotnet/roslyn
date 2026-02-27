@@ -603,6 +603,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_UnionAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IUnion,
                          WellKnownType.System_Runtime_CompilerServices_ITuple,
                          WellKnownType.System_Runtime_CompilerServices_HotReloadException,
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute
@@ -704,6 +705,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_UnionAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IUnion,
                          WellKnownType.System_Runtime_CompilerServices_ITuple,
                          WellKnownType.System_Runtime_CompilerServices_HotReloadException,
                         WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute

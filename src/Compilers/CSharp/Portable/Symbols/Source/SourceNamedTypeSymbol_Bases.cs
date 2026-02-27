@@ -367,14 +367,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
+            switch (declaration.Kind)
             {
-                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
-                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
-                {
-                    baseInterfaces.Add(type);
-                    type.AddUseSiteInfo(ref useSiteInfo);
-                }
+                case DeclarationKind.Record or DeclarationKind.RecordStruct:
+                    {
+                        var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                        addImplicitlyImplementedInterface(baseInterfaces, type);
+                    }
+                    break;
+                case DeclarationKind.Union:
+                    {
+                        var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IUnion);
+                        addImplicitlyImplementedInterface(baseInterfaces, type);
+                    }
+                    break;
             }
 
             if ((object)baseType != null)
@@ -429,6 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(GetFirstLocation(), useSiteInfo);
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
+
+            static void addImplicitlyImplementedInterface(ArrayBuilder<NamedTypeSymbol> baseInterfaces, NamedTypeSymbol type)
+            {
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
+                {
+                    baseInterfaces.Add(type);
+                }
+            }
         }
 
         private static BaseListSyntax GetBaseListOpt(SingleTypeDeclaration decl)
