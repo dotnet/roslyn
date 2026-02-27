@@ -8199,17 +8199,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPatternWithUnionMatching : BoundPattern
     {
-        public BoundPatternWithUnionMatching(SyntaxNode syntax, TypeSymbol unionType, BoundPattern? leftOfPendingConjunction, BoundPropertySubpatternMember valueProperty, BoundPattern valuePattern, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
+        public BoundPatternWithUnionMatching(SyntaxNode syntax, TypeSymbol unionMatchingInputType, BoundPattern? leftOfPendingConjunction, BoundPropertySubpatternMember valueProperty, BoundPattern valuePattern, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
             : base(BoundKind.PatternWithUnionMatching, syntax, inputType, narrowedType, hasErrors || leftOfPendingConjunction.HasErrors() || valueProperty.HasErrors() || valuePattern.HasErrors())
         {
 
-            RoslynDebug.Assert(unionType is object, "Field 'unionType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(unionMatchingInputType is object, "Field 'unionMatchingInputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(valueProperty is object, "Field 'valueProperty' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(valuePattern is object, "Field 'valuePattern' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(narrowedType is object, "Field 'narrowedType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.UnionType = unionType;
+            this.UnionMatchingInputType = unionMatchingInputType;
             this.LeftOfPendingConjunction = leftOfPendingConjunction;
             this.ValueProperty = valueProperty;
             this.ValuePattern = valuePattern;
@@ -8219,7 +8219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private partial void Validate();
 
-        public TypeSymbol UnionType { get; }
+        public TypeSymbol UnionMatchingInputType { get; }
         public BoundPattern? LeftOfPendingConjunction { get; }
         public BoundPropertySubpatternMember ValueProperty { get; }
         public BoundPattern ValuePattern { get; }
@@ -8227,11 +8227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPatternWithUnionMatching(this);
 
-        public BoundPatternWithUnionMatching Update(TypeSymbol unionType, BoundPattern? leftOfPendingConjunction, BoundPropertySubpatternMember valueProperty, BoundPattern valuePattern, TypeSymbol inputType, TypeSymbol narrowedType)
+        public BoundPatternWithUnionMatching Update(TypeSymbol unionMatchingInputType, BoundPattern? leftOfPendingConjunction, BoundPropertySubpatternMember valueProperty, BoundPattern valuePattern, TypeSymbol inputType, TypeSymbol narrowedType)
         {
-            if (!TypeSymbol.Equals(unionType, this.UnionType, TypeCompareKind.ConsiderEverything) || leftOfPendingConjunction != this.LeftOfPendingConjunction || valueProperty != this.ValueProperty || valuePattern != this.ValuePattern || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(unionMatchingInputType, this.UnionMatchingInputType, TypeCompareKind.ConsiderEverything) || leftOfPendingConjunction != this.LeftOfPendingConjunction || valueProperty != this.ValueProperty || valuePattern != this.ValuePattern || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPatternWithUnionMatching(this.Syntax, unionType, leftOfPendingConjunction, valueProperty, valuePattern, inputType, narrowedType, this.HasErrors);
+                var result = new BoundPatternWithUnionMatching(this.Syntax, unionMatchingInputType, leftOfPendingConjunction, valueProperty, valuePattern, inputType, narrowedType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -12526,10 +12526,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern? leftOfPendingConjunction = (BoundPattern?)this.Visit(node.LeftOfPendingConjunction);
             BoundPropertySubpatternMember valueProperty = (BoundPropertySubpatternMember)this.Visit(node.ValueProperty);
             BoundPattern valuePattern = (BoundPattern)this.Visit(node.ValuePattern);
-            TypeSymbol? unionType = this.VisitType(node.UnionType);
+            TypeSymbol? unionMatchingInputType = this.VisitType(node.UnionMatchingInputType);
             TypeSymbol? inputType = this.VisitType(node.InputType);
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
-            return node.Update(unionType, leftOfPendingConjunction, valueProperty, valuePattern, inputType, narrowedType);
+            return node.Update(unionMatchingInputType, leftOfPendingConjunction, valueProperty, valuePattern, inputType, narrowedType);
         }
         public override BoundNode? VisitDiscardPattern(BoundDiscardPattern node)
         {
@@ -15212,13 +15212,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitPatternWithUnionMatching(BoundPatternWithUnionMatching node)
         {
-            TypeSymbol unionType = GetUpdatedSymbol(node, node.UnionType);
+            TypeSymbol unionMatchingInputType = GetUpdatedSymbol(node, node.UnionMatchingInputType);
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             TypeSymbol narrowedType = GetUpdatedSymbol(node, node.NarrowedType);
             BoundPattern? leftOfPendingConjunction = (BoundPattern?)this.Visit(node.LeftOfPendingConjunction);
             BoundPropertySubpatternMember valueProperty = (BoundPropertySubpatternMember)this.Visit(node.ValueProperty);
             BoundPattern valuePattern = (BoundPattern)this.Visit(node.ValuePattern);
-            return node.Update(unionType, leftOfPendingConjunction, valueProperty, valuePattern, inputType, narrowedType);
+            return node.Update(unionMatchingInputType, leftOfPendingConjunction, valueProperty, valuePattern, inputType, narrowedType);
         }
 
         public override BoundNode? VisitDiscardPattern(BoundDiscardPattern node)
@@ -17459,7 +17459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitPatternWithUnionMatching(BoundPatternWithUnionMatching node, object? arg) => new TreeDumperNode("patternWithUnionMatching", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("unionType", node.UnionType, null),
+            new TreeDumperNode("unionMatchingInputType", node.UnionMatchingInputType, null),
             new TreeDumperNode("leftOfPendingConjunction", null, new TreeDumperNode[] { Visit(node.LeftOfPendingConjunction, null) }),
             new TreeDumperNode("valueProperty", null, new TreeDumperNode[] { Visit(node.ValueProperty, null) }),
             new TreeDumperNode("valuePattern", null, new TreeDumperNode[] { Visit(node.ValuePattern, null) }),

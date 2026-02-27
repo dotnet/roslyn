@@ -8250,4 +8250,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NoImplicitConversionToObject" xml:space="preserve">
     <value>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</value>
   </data>
+  <data name="ERR_UnionMatchingWrongPattern" xml:space="preserve">
+    <value>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</value>
+  </data>
 </root>

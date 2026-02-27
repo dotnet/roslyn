@@ -16,16 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class Binder
     {
-        protected NamedTypeSymbol? PrepareForUnionMatchingIfAppropriateAndReturnUnionType(SyntaxNode node, ref TypeSymbol inputType, BindingDiagnosticBag diagnostics)
+        protected NamedTypeSymbol? PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(SyntaxNode node, ref TypeSymbol inputType, [NotNullWhen(true)] ref NamedTypeSymbol? unionType, BindingDiagnosticBag diagnostics)
         {
-            if (inputType is NamedTypeSymbol named && named.IsUnionType)
+            if (inputType.IsUnionMatchingInputType(out var unionTypeOverride))
             {
                 // PROTOTYPE: Check feature availability
 
+                var originalInputType = (NamedTypeSymbol)inputType;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                inputType = GetUnionTypeValueProperty(named, ref useSiteInfo)?.Type ?? Compilation.GetSpecialType(SpecialType.System_Object);
+                inputType = GetUnionTypeValueProperty(unionTypeOverride, ref useSiteInfo)?.Type ?? Compilation.GetSpecialType(SpecialType.System_Object);
                 diagnostics.Add(node, useSiteInfo);
-                return named;
+                unionType = unionTypeOverride;
+                return originalInputType;
             }
 
             return null;
@@ -506,15 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            bool isUnionMatching = false;
-
-            if (unionTypeOverride is not null)
-            {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                isUnionMatching = true;
-                unionType = unionTypeOverride;
-            }
+            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            bool isUnionMatching = unionMatchingInputType is not null;
 
             CheckFeatureAvailability(node, MessageID.IDS_FeatureListPattern, diagnostics);
 
@@ -562,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundListPattern(
                 syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthAccess: lengthAccess,
                 indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, variable: variableSymbol,
-                variableAccess: variableAccess, isUnionMatching: isUnionMatching, inputType: unionTypeOverride ?? inputType, narrowedType: narrowedType, hasErrors);
+                variableAccess: variableAccess, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: narrowedType, hasErrors);
         }
 
         /// <summary>
@@ -651,18 +646,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool hasUnionMatching)
         {
             NamedTypeSymbol? unionTypeOnEntry = unionType;
-            NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            hasUnionMatching = false;
-
-            if (unionTypeOverride is not null)
-            {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                hasUnionMatching = true;
-                unionType = unionTypeOverride;
-            }
+            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            hasUnionMatching = unionMatchingInputType is not null;
 
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression, diagnostics, ref hasErrors);
-            var convertedExpression = BindExpressionOrTypeForPattern(unionType, inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression, out Conversion patternConversion);
+            var convertedExpression = BindExpressionOrTypeForPattern(unionType, inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression, out Conversion patternConversion, out BoundExpression originalExpression);
             if (wasExpression)
             {
                 var convertedType = convertedExpression.Type ?? inputType;
@@ -677,19 +665,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_CannotMatchOnINumberBase, node.Location, inputType);
                 }
 
-                if (constantValueOpt == ConstantValue.Null && unionTypeOverride?.IsValueType == false)
+                if (IsClassOrNullableValueTypeUnionNullPatternMatching(unionMatchingInputType, constantValueOpt))
                 {
                     Debug.Assert(hasUnionMatching);
-
-                    // Special case of a null test for a class Union. Its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                    // Special case of a null test for a class Union or for a Nullable<Union>.
+                    // For class its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                    // For able<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
                     // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
+
+                    // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
+                    BindExpressionForPatternContinued(originalExpression, unionType: null, inputType: unionMatchingInputType, patternExpression: innerExpression, ref hasErrors, diagnostics, constantValueOpt: out _, patternExpressionConversion: out _);
+
                     unionType = unionTypeOnEntry;
                     return new BoundConstantPattern(
-                        node, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionTypeOverride, narrowedType: unionTypeOverride, hasErrors);
+                        node, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors);
                 }
 
                 return new BoundConstantPattern(
-                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: hasUnionMatching, inputType: unionTypeOverride ?? inputType, convertedType, hasErrors || constantValueOpt is null);
+                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, convertedType, hasErrors || constantValueOpt is null);
             }
             else
             {
@@ -698,8 +691,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = !hasUnionMatching && boundType.Type.SpecialType == SpecialType.System_Object; // PROTOTYPE: Add test coverage
-                return new BoundTypePattern(node, boundType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionTypeOverride ?? inputType, boundType.Type, hasErrors);
+                return new BoundTypePattern(node, boundType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, boundType.Type, hasErrors);
             }
+        }
+
+        internal static bool IsClassOrNullableValueTypeUnionNullPatternMatching([NotNullWhen(true)] NamedTypeSymbol? unionMatchingInputType, [NotNullWhen(true)] ConstantValue? constantValueOpt)
+        {
+            Debug.Assert(unionMatchingInputType is null || unionMatchingInputType.IsSubjectForUnionMatching);
+            return unionMatchingInputType is not null && constantValueOpt == ConstantValue.Null && (unionMatchingInputType.IsNullableType() || !unionMatchingInputType.IsValueType);
         }
 
         private bool ShouldBlockINumberBaseConversion(Conversion patternConversion, TypeSymbol inputType)
@@ -754,21 +753,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt,
             out bool wasExpression,
-            out Conversion patternExpressionConversion)
+            out Conversion patternExpressionConversion,
+            out BoundExpression originalExpression)
         {
             constantValueOpt = null;
-            BoundExpression expression = BindTypeOrRValue(patternExpression, diagnostics);
-            wasExpression = expression.Kind != BoundKind.TypeExpression;
+            originalExpression = BindTypeOrRValue(patternExpression, diagnostics);
+            wasExpression = originalExpression.Kind != BoundKind.TypeExpression;
             if (wasExpression)
             {
-                return BindExpressionForPatternContinued(expression, unionType, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt, out patternExpressionConversion);
+                return BindExpressionForPatternContinued(originalExpression, unionType, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt, out patternExpressionConversion);
             }
             else
             {
-                Debug.Assert(expression is { Kind: BoundKind.TypeExpression, Type: { } });
-                hasErrors |= CheckValidPatternType(patternExpression, unionType, inputType, expression.Type, diagnostics: diagnostics);
+                Debug.Assert(originalExpression is { Kind: BoundKind.TypeExpression, Type: { } });
+                hasErrors |= CheckValidPatternType(patternExpression, unionType, inputType, originalExpression.Type, diagnostics: diagnostics);
                 patternExpressionConversion = Conversion.NoConversion;
-                return expression;
+                return originalExpression;
             }
         }
 
@@ -783,14 +783,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt,
             out bool wasExpression,
-            out Conversion patternExpressionConversion)
+            out Conversion patternExpressionConversion,
+            out BoundExpression originalExpression)
         {
             constantValueOpt = null;
-            var expression = BindExpression(patternExpression, diagnostics: diagnostics, invoked: false, indexed: false);
-            expression = CheckValue(expression, BindValueKind.RValue, diagnostics);
-            wasExpression = expression.Kind switch { BoundKind.BadExpression => false, BoundKind.TypeExpression => false, _ => true };
+            originalExpression = BindExpression(patternExpression, diagnostics: diagnostics, invoked: false, indexed: false);
+            originalExpression = CheckValue(originalExpression, BindValueKind.RValue, diagnostics);
+            wasExpression = originalExpression.Kind switch { BoundKind.BadExpression => false, BoundKind.TypeExpression => false, _ => true };
             patternExpressionConversion = Conversion.NoConversion;
-            return wasExpression ? BindExpressionForPatternContinued(expression, unionType, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt, out patternExpressionConversion) : expression;
+            return wasExpression ? BindExpressionForPatternContinued(originalExpression, unionType, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt, out patternExpressionConversion) : originalExpression;
         }
 
         private BoundExpression BindExpressionForPatternContinued(
@@ -855,6 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
             if (inputType.ContainsTypeParameter())
             {
+                // PROTOTYPE: Make sure code in this block makes sense for union matching.
                 convertedExpression = expression;
                 // If the expression does not have a constant value, an error will be reported in the caller
                 if (!hasErrors && expression.ConstantValueOpt is object)
@@ -969,16 +971,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             constantValue = convertedExpression.ConstantValueOpt;
 
-            if (unionType is not null && !convertedExpression.HasErrors && constantValue is { IsBad: false, IsNull: false } && convertedExpression.Type is not null)
+            if (!hasErrors && unionType is not null && !convertedExpression.HasErrors && constantValue is { IsBad: false } && expression.Type is not null)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                ConstantValue match = ExpressionOfTypeMatchesUnionPatternType(Conversions, unionType, convertedExpression.Type, ref useSiteInfo, out _, operandConstantValue: null);
-                if (match == ConstantValue.False || match == ConstantValue.Bad)
+                var unionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
+                bool matched = false;
+                foreach (var caseType in unionType.UnionCaseTypes)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, unionType, expression.Display);
+                    var caseDiagnostics = BindingDiagnosticBag.GetInstance(unionDiagnostics);
+                    ConvertPatternExpression(
+                        unionType: null,
+                        inputType: caseType,
+                        node: node,
+                        expression,
+                        constantValue: out var caseConstant,
+                        hasErrors: false,
+                        caseDiagnostics,
+                        patternExpressionConversion: out _);
+
+                    if (caseConstant is { IsBad: false } && !caseDiagnostics.HasAnyResolvedErrors())
+                    {
+                        caseDiagnostics.Free();
+                        matched = true;
+                        break;
+                    }
+                    else
+                    {
+                        if (!caseDiagnostics.HasAnyResolvedErrors())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, caseType, expression.Display);
+                        }
+
+                        unionDiagnostics.AddRangeAndFree(caseDiagnostics);
+                    }
                 }
 
-                diagnostics.Add(node, useSiteInfo);
+                if (!matched)
+                {
+                    constantValue = ConstantValue.Bad;
+                    diagnostics.Add(ErrorCode.ERR_UnionMatchingWrongPattern, expression.Syntax.Location, unionType);
+                    diagnostics.AddRange(unionDiagnostics);
+                }
+
+                unionDiagnostics.Free();
             }
 
             return convertedExpression;
@@ -994,8 +1028,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol patternType,
             BindingDiagnosticBag diagnostics)
         {
-            RoslynDebug.Assert((object)inputType != null);
-            RoslynDebug.Assert((object)patternType != null);
+            Debug.Assert((object)inputType != null);
+            Debug.Assert((object)patternType != null);
+            Debug.Assert(unionType is null || unionType.IsUnionType);
 
             if (inputType.IsErrorType() || patternType.IsErrorType())
             {
@@ -1166,22 +1201,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            hasUnionMatching = false;
-
-            if (unionTypeOverride is not null)
-            {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                hasUnionMatching = true;
-                unionType = unionTypeOverride;
-            }
+            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            hasUnionMatching = unionMatchingInputType is not null;
 
             TypeSyntax typeSyntax = node.Type;
             BoundTypeExpression boundDeclType = BindTypeForPattern(typeSyntax, unionType, inputType, diagnostics, ref hasErrors);
             BindPatternDesignation(
                 designation: node.Designation, declType: boundDeclType.TypeWithAnnotations, permitDesignations, typeSyntax, diagnostics,
                 hasErrors: ref hasErrors, variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
-            return new BoundDeclarationPattern(node, boundDeclType, isVar: false, variableSymbol, variableAccess, isUnionMatching: hasUnionMatching, inputType: unionTypeOverride ?? inputType, narrowedType: boundDeclType.Type, hasErrors);
+            return new BoundDeclarationPattern(node, boundDeclType, isVar: false, variableSymbol, variableAccess, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: boundDeclType.Type, hasErrors);
         }
 
         private BoundTypeExpression BindTypeForPattern(
@@ -1300,16 +1328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            bool isUnionMatching = false;
-
-            if (unionTypeOverride is not null)
-            {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                isUnionMatching = true;
-                unionType = unionTypeOverride;
-            }
-
+            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            bool isUnionMatching = unionMatchingInputType is not null;
             hasUnionMatching = isUnionMatching;
 
             MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
@@ -1364,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BindITupleSubpatterns(positionalClause, patternsBuilder, permitDesignations, diagnostics, out bool iTupleHasUnionMatching);
                         hasUnionMatching |= iTupleHasUnionMatching;
                         deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
-                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, isUnionMatching: isUnionMatching, inputType: unionTypeOverride ?? inputType, iTupleType, hasErrors);
+                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, iTupleType, hasErrors);
                     }
                     else
                     {
@@ -1398,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, isExplicitNotNullTest: isExplicitNotNullTest,
-                variable: variableSymbol, variableAccess: variableAccess, isUnionMatching: isUnionMatching, inputType: unionTypeOverride ?? inputType,
+                variable: variableSymbol, variableAccess: variableAccess, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType,
                 narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors);
         }
 
@@ -1740,16 +1760,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundPattern bindParenthesizedVariableDesignation(VariableDesignationSyntax node, ref NamedTypeSymbol? unionType, TypeSymbol inputType, bool permitDesignations, bool hasErrors, BindingDiagnosticBag diagnostics, out bool hasUnionMatching)
             {
-                NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-                bool isUnionMatching = false;
-
-                if (unionTypeOverride is not null)
-                {
-                    // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                    isUnionMatching = true;
-                    unionType = unionTypeOverride;
-                }
-
+                NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+                bool isUnionMatching = unionMatchingInputType is not null;
                 hasUnionMatching = isUnionMatching;
 
                 MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
@@ -1788,7 +1800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         deconstructDiagnostics.Free();
                         bindITupleSubpatterns(tupleDesignation, subPatterns, permitDesignations, diagnostics, out bool iTupleHasUnionMatching);
                         hasUnionMatching |= iTupleHasUnionMatching;
-                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), isUnionMatching: isUnionMatching, inputType: unionTypeOverride ?? strippedInputType, iTupleType, hasErrors);
+                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? strippedInputType, iTupleType, hasErrors);
                     }
                     else
                     {
@@ -1814,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundRecursivePattern(
                     syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
                     deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
-                    isExplicitNotNullTest: false, isUnionMatching: isUnionMatching, inputType: unionTypeOverride ?? inputType, narrowedType: inputType.StrippedType(), hasErrors: hasErrors);
+                    isExplicitNotNullTest: false, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: inputType.StrippedType(), hasErrors: hasErrors);
 
                 void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes, ref bool hasUnionMatching)
                 {
@@ -2024,21 +2036,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            hasUnionMatching = false;
-
-            if (unionTypeOverride is not null)
-            {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                hasUnionMatching = true;
-                unionType = unionTypeOverride;
-            }
+            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            hasUnionMatching = unionMatchingInputType is not null;
 
             MessageID.IDS_FeatureTypePattern.CheckFeatureAvailability(diagnostics, node);
 
             var patternType = BindTypeForPattern(node.Type, unionType, inputType, diagnostics, ref hasErrors);
             bool isExplicitNotNullTest = patternType.Type.SpecialType == SpecialType.System_Object;
-            return new BoundTypePattern(node, patternType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionTypeOverride ?? inputType, patternType.Type, hasErrors);
+            return new BoundTypePattern(node, patternType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, patternType.Type, hasErrors);
         }
 
         private BoundPattern BindRelationalPattern(
@@ -2049,19 +2054,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            hasUnionMatching = false;
-
-            if (unionTypeOverride is not null)
-            {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                hasUnionMatching = true;
-                unionType = unionTypeOverride;
-            }
+            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            hasUnionMatching = unionMatchingInputType is not null;
 
             MessageID.IDS_FeatureRelationalPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-            BoundExpression value = BindExpressionForPattern(unionType, inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _, out Conversion patternConversion);
+            BoundExpression value = BindExpressionForPattern(unionType, inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _, out Conversion patternConversion, originalExpression: out _);
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
             var type = value.Type ?? inputType;
             Debug.Assert(type is { });
@@ -2107,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, isUnionMatching: hasUnionMatching, inputType: unionTypeOverride ?? inputType, type, hasErrors);
+            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, type, hasErrors);
 
             static BinaryOperatorKind tokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
             {
@@ -2155,24 +2153,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool underIsPattern,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionTypeOverride = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            bool isUnionMatching = false;
+            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            bool isUnionMatching = unionMatchingInputType is not null;
 
-            if (unionTypeOverride is not null)
-            {
-                // PROTOTYPE: Consider testing that non-null 'unionType' remains unchanged unless we get here
-                isUnionMatching = true;
-                unionType = unionTypeOverride;
-            }
-
-            if (unionTypeOverride is { TypeKind: not TypeKind.Struct })
+            if (unionMatchingInputType is not null && (unionMatchingInputType.TypeKind != TypeKind.Struct || unionMatchingInputType.IsNullableType()))
             {
                 // When we are not 'underIsPattern', we don't 'permitDesignations'. See an assignment and a comment below.
                 // Only 'BindIsPatternExpression' passes true for 'underIsPattern' and only 'BindUnaryPattern' propagates it. 
                 // Since we are doing Union matching, we are effectively in a sub-pattern, thus we are not directly under
-                // "is pattern", but we can still make things work for struct types, because they do not have an implicit
-                // null check for the Union instance itself. The effect of this logic can be observed in unit-tests
-                // 'UnionMatching_15_Negated' and 'UnionMatching_16_Negated', for example.   
+                // "is pattern", but we can still make things work for struct types (excluding Nullable<T>), because they
+                // do not have an implicit null check for the Union instance itself.
+                // The effect of this logic can be observed in unit-tests 'UnionMatching_15_Negated' and 'UnionMatching_16_Negated', for example.   
                 underIsPattern = false;
             }
 
@@ -2182,7 +2173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol? currentUnionType = unionType;
             var subPattern = BindPattern(node.Pattern, ref currentUnionType, inputType, permitDesignations, hasErrors, diagnostics, out hasUnionMatching, underIsPattern);
             hasUnionMatching |= isUnionMatching;
-            return new BoundNegatedPattern(node, subPattern, isUnionMatching: isUnionMatching, inputType: unionTypeOverride ?? inputType, narrowedType: inputType, hasErrors);
+            return new BoundNegatedPattern(node, subPattern, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: inputType, hasErrors);
         }
 
         private BoundPattern BindBinaryPattern(

@@ -2460,12 +2460,12 @@
       to the BoundPatternWithUnionMatching node stored in the LeftOfPendingConjunction child.
       Etc.
 
-      InputType is LeftOfPendingConjunction.InputType ?? UnionType 
+      InputType is LeftOfPendingConjunction.InputType ?? UnionMatchingInputType 
       NarrowedType is Pattern.NarrowedType
   -->
   <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true" DoesNotSurvive="InitialBinding">
-    <!-- The Union type matched -->
-    <Field Name="UnionType" Type="TypeSymbol" Null="disallow"/>
+    <!-- The Union or Nullable<Union> type matched -->
+    <Field Name="UnionMatchingInputType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>
     <!-- Info for the corresponding IUnion.Value property -->    
     <Field Name="ValueProperty" Type="BoundPropertySubpatternMember"/>
