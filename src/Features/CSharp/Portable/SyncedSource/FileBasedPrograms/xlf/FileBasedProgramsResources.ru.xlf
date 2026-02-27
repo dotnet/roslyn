@@ -27,15 +27,30 @@
         <target state="translated">Повторяющиеся директивы не поддерживаются: {0}</target>
         <note>{0} is the directive type and name.</note>
       </trans-unit>
-      <trans-unit id="EmptyTempPath">
-        <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
-        <target state="translated">Не удалось определить путь к временному каталогу. Рассмотрите возможность настроить переменную среды TEMP в Windows или папку локальных данных приложений в Unix.</target>
-        <note />
+      <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
+        <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
+        <target state="new">Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</target>
+        <note>{0} is the directive - '#:include' or '#:exclude'. {1} is a comma-separated list of file extensions, like: '.cs', '.resx'</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
         <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
         <target state="translated">Директива должна содержать имя без специальных символов и необязательное значение, разделенные символом-разделителем "{1}", например "#:{0} Имя{1}Значение".</target>
         <note>{0} is the directive type like 'package' or 'sdk'. {1} is the expected separator like '@' or '='.</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingEntry">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
+        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingExtension">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</source>
+        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingItemType">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
+        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
       </trans-unit>
       <trans-unit id="InvalidProjectDirective">
         <source>The '#:project' directive is invalid: {0}</source>
