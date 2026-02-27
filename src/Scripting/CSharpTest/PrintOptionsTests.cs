@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
   _memberDisplayFormat: SeparateLines,
   _numberRadix: 10
 }
-", s_formatter.FormatObject(options, options));
+".ReplaceLineEndings(), s_formatter.FormatObject(options, options).ReplaceLineEndings());
         }
 
         [Fact]
