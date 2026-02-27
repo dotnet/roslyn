@@ -18,6 +18,7 @@ internal sealed class UnionKeywordRecommender() : AbstractSyntacticSingleKeyword
             SyntaxKind.PrivateKeyword,
             SyntaxKind.ProtectedKeyword,
             SyntaxKind.UnsafeKeyword,
+            SyntaxKind.ReadOnlyKeyword,
             SyntaxKind.FileKeyword,
         };
 
@@ -28,7 +29,7 @@ internal sealed class UnionKeywordRecommender() : AbstractSyntacticSingleKeyword
             context.IsTypeDeclarationContext(
                 validModifiers: s_validModifiers,
                 validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
-                canBePartial: false,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 }

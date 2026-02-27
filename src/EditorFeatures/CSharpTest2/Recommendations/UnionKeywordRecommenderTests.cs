@@ -163,9 +163,9 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """, absent: true, options: s_options);
 
     [Fact]
-    public Task TestNotAfterReadonly()
+    public Task TestAfterReadonly()
         => VerifyWorkerAsync(
-@"readonly $$", absent: true, options: s_options);
+@"readonly $$", absent: false, options: s_options);
 
     [Fact]
     public Task TestNotAfterRef()
@@ -251,8 +251,8 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """, s_options, s_scriptOptions);
 
     [Fact]
-    public Task TestNotAfterPartial()
-        => VerifyAbsenceAsync(
+    public Task TestAfterPartial()
+        => VerifyKeywordAsync(
 @"partial $$", s_options, s_scriptOptions);
 
     [Fact]
