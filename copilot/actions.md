@@ -18,7 +18,14 @@
 ### PDBUsingTests (PDB/PDBUsingTests.cs)
 - ImportedNoPiaTypes: skipped — WindowsDesktopOnly, NoPIA genuinely needs desktop
 
-### CSharpDeterministicBuildCompilationTests (PDB/CSharpDeterministicBuildCompilationTests.cs)
+### AssemblyReferencesTests (Emit/EditAndContinue/AssemblyReferencesTests.cs)
+- ChangingCompilationDependencies: ported — changed WindowsOnly to Fact; EnC with EmptyLocalsProvider works on .NET Core
+- DependencyVersionWildcards_Compilation: ported — changed WindowsOnly to Fact
+- DependencyVersionWildcards_Metadata: ported — changed WindowsOnly to Fact
+- DependencyVersionWildcardsCollisions: ported — changed WindowsOnly to Fact
+- CurrentCompilationVersionWildcards: ported — changed WindowsOnly to Fact; CreateSymReader works with portable PDB
+- CompilationReferences_Less: skipped — explicit stream-based EmitDifference produces BadImageFormatException on .NET Core
+- CompilationReferences_More: skipped — same as CompilationReferences_Less
 - PortablePdb_DeterministicCompilationWithSJIS: ported — changed DesktopOnly to Theory; added Encoding.RegisterProvider for SJIS on .NET Core
 - InvalidCharacterInPdbPath: ported — changed WindowsDesktopOnly to Fact; test uses Embedded PDB format, not native
 - SwitchExpression_MethodBody_02: ported — changed WindowsOnly to Fact; test uses default format which works with portable PDB
