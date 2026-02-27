@@ -216,10 +216,13 @@ public struct StructWithValue
                 debugDocumentsCount: 2);
         }
 
-        [ConditionalTheory(typeof(DesktopOnly))]
+        [Theory]
         [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
         public void PortablePdb_DeterministicCompilationWithSJIS(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, CSharpParseOptions parseOptions)
         {
+#if NET
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
             var sourceOne = Parse(@"
 using System;
 

@@ -50,6 +50,7 @@ If tests fail:
 - Analyze the failure
 - Fix if possible with minimal changes
 - If the test genuinely needs desktop, revert the change and note it
+- Include reasons why the port failed in the actions log
 
 ### Step 5: Log actions
 
