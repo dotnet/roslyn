@@ -9282,16 +9282,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
 
                 PropertySymbol? lengthOrCountProperty;
-                BoundExpression? indexerOrSliceAccess;
+                BoundExpression? indexerOrSliceAccess = null;
 
                 bool foundApplicableLengthOrCount = tryLookupExtensionLengthOrCount(syntax, receiverPlaceholder, binder, scope,
                     ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty, diagnostics);
 
-                bool foundApplicableIndexerOrSlice = TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope,
-                    ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
-                    out indexerOrSliceAccess, ref argumentPlaceholders, diagnostics);
+                bool foundApplicableIndexerOrSlice = foundApplicableLengthOrCount
+                    && TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope,
+                        ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
+                        out indexerOrSliceAccess, ref argumentPlaceholders, diagnostics);
 
-                if (foundApplicableLengthOrCount && foundApplicableIndexerOrSlice && lengthOrCountProperty is not null && indexerOrSliceAccess is not null)
+                if (lengthOrCountProperty is not null && indexerOrSliceAccess is not null)
                 {
                     diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
                     Debug.Assert(lengthOrCountProperty.ContainingType.ExtensionParameter is not null);
@@ -9307,6 +9308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerAccess = null;
                 }
 
+                // We consider this scope to have an applicable implicit indexer if we found applicable candidates for both parts (the Length/Count and the this[int]/Slice).
+                // If only one parts or no parts are applicable, we'll continue searching further scopes.
                 return foundApplicableLengthOrCount && foundApplicableIndexerOrSlice;
             }
 
@@ -9395,7 +9398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Returns true if any applicable candidates
         // The caller is responsible to free analyzedIntIndexerOrSliceArguments and actualExtensionIntIndexerOrSliceArguments
-        static bool TryBindIntIndexerOrSliceAccessInScope(
+        private static bool TryBindIntIndexerOrSliceAccessInScope(
             SyntaxNode syntax,
             BoundImplicitIndexerReceiverPlaceholder receiver,
             IndexOrRangeArgKind argKind,
@@ -9640,7 +9643,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return hasAnyApplicableMember;
             }
 
-            Debug.Assert(actualArguments is not null);
             ImmutableArray<string?> argumentNames = analyzedArguments.GetNames();
             ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
@@ -10782,18 +10784,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexerGroup.Free();
             }
 
+            BoundExpression fallbackIndexerAccess = null;
             if (!foundApplicable)
             {
-                if (TryBindNonExtensionImplicitIndexer(node, expr, analyzedArguments, diagnostics, out var fallbackIndexerAccess)
+                if (TryBindNonExtensionImplicitIndexer(node, expr, analyzedArguments, diagnostics, out fallbackIndexerAccess)
                     || TryBindExtensionIndexer(node, expr, analyzedArguments, diagnostics, out fallbackIndexerAccess))
                 {
                     foundApplicable = true;
                     indexerAccessExpression = fallbackIndexerAccess;
                 }
-                else
-                {
-                    diagnostics.AddRange(instanceRealIndexerDiagnostics);
-                }
+            }
+
+            if (fallbackIndexerAccess is null)
+            {
+                diagnostics.AddRange(instanceRealIndexerDiagnostics);
             }
 
             if (indexerAccessExpression is null)
