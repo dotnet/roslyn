@@ -32,7 +32,7 @@ public class WorkspaceTestBase : TestBase
     /// </summary>
     public string GetSolutionFileName(string relativeFileName)
     {
-        return Path.Combine(this.SolutionDirectory.Path, relativeFileName);
+        return Path.Combine(this.SolutionDirectory.Path, relativeFileName.Replace('\\', Path.DirectorySeparatorChar));
     }
 
     protected void CreateFiles(IEnumerable<(string filePath, object fileContent)> fileNamesAndContent)
@@ -41,8 +41,10 @@ public class WorkspaceTestBase : TestBase
         {
             Debug.Assert(fileContent is string or byte[]);
 
-            var subdirectory = Path.GetDirectoryName(filePath);
-            var fileName = Path.GetFileName(filePath);
+            // Normalize path separators to the current platform
+            var normalizedPath = filePath.Replace('\\', Path.DirectorySeparatorChar);
+            var subdirectory = Path.GetDirectoryName(normalizedPath);
+            var fileName = Path.GetFileName(normalizedPath);
 
             var dir = SolutionDirectory;
 

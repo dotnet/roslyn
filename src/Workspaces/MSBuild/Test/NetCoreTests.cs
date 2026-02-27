@@ -53,11 +53,13 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
     private void DotNetRestore(string solutionOrProjectFileName)
     {
+        solutionOrProjectFileName = solutionOrProjectFileName.Replace('\\', Path.DirectorySeparatorChar);
         RunDotNet($@"msbuild ""{solutionOrProjectFileName}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}");
     }
 
     private void DotNetBuild(string solutionOrProjectFileName, string configuration = null)
     {
+        solutionOrProjectFileName = solutionOrProjectFileName.Replace('\\', Path.DirectorySeparatorChar);
         var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
 
         if (configuration != null)
