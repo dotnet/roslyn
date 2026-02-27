@@ -8711,15 +8711,16 @@ static class Test1
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
         [CombinatorialData]
-        public void RuntimeAsync_AwaitTaskWhenAll_AsyncLambdaInSelect_InferenceScenarios(bool explicitReturnType, bool statementBody)
+        public void RuntimeAsync_AwaitTaskWhenAll_AsyncLambdaInSelect_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
         {
             var lambda = (explicitReturnType, statementBody) switch
             {
                 (true, true) => "async Task<int> (int x) => { return await Task.FromResult(x); }",
                 (true, false) => "async Task<int> (int x) => await Task.FromResult(x)",
-                (false, true) => "async x => { return await Task.FromResult(x); }",
-                (false, false) => "async x => await Task.FromResult(x)",
+                (false, true) => "async (x) => { return await Task.FromResult(x); }",
+                (false, false) => "async (x) => await Task.FromResult(x)",
             };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
 
             var source = $$"""
                 using System.Linq;
@@ -8729,26 +8730,27 @@ static class Test1
                 {
                     static async Task Main()
                     {
-                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambda}}));
+                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambdaRuntimeAsyncAttribute}}{{lambda}}));
                     }
                 }
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
         [CombinatorialData]
-        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_InferenceScenarios(bool explicitReturnType, bool statementBody)
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
         {
             var lambda = (explicitReturnType, statementBody) switch
             {
                 (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
                 (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
-                (false, true) => "async x => { return await Task.FromResult(x.Length); }",
-                (false, false) => "async x => await Task.FromResult(x.Length)",
+                (false, true) => "async (x) => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async (x) => await Task.FromResult(x.Length)",
             };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
 
             var source = $$"""
                 using System;
@@ -8761,26 +8763,27 @@ static class Test1
 
                     static async Task Main()
                     {
-                        await Use({{lambda}});
+                        await Use({{lambdaRuntimeAsyncAttribute}}{{lambda}});
                     }
                 }
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
         [CombinatorialData]
-        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_GenericCandidate_InferenceScenarios(bool explicitReturnType, bool statementBody)
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_GenericCandidate_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
         {
             var lambda = (explicitReturnType, statementBody) switch
             {
                 (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
                 (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
-                (false, true) => "async x => { return await Task.FromResult(x.Length); }",
-                (false, false) => "async x => await Task.FromResult(x.Length)",
+                (false, true) => "async (x) => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async (x) => await Task.FromResult(x.Length)",
             };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
 
             var source = $$"""
                 using System;
@@ -8793,12 +8796,12 @@ static class Test1
 
                     static async Task Main()
                     {
-                        await Use({{lambda}});
+                        await Use({{lambdaRuntimeAsyncAttribute}}{{lambda}});
                     }
                 }
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
         }
 

@@ -826,9 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, _unboundLambda.WithDependencies);
             var compilation = Binder.Compilation;
-            var containingMemberOrLambda = Binder.ContainingMemberOrLambda;
-            var isInRuntimeAsyncContext = compilation.IsRuntimeAsyncEnabledIn(containingMemberOrLambda);
-            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync, isInRuntimeAsyncContext);
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
 
             // When binding for real (not for return inference), there is still a good chance
             // we could reuse a body of a lambda previous bound for return type inference.
@@ -838,11 +836,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't reuse the body if we're binding in an expression tree, because we didn't
             // know that we were binding for an expression tree when originally binding the lambda
             // for return inference.
+            // We also don't reuse the body if the value of CSharpCompilation.IsRuntimeAsyncEnabledInMethod
+            // changed after inference with the final return type, as that will change the binding of await
+            // calls within the lambda. For optimization purposes, we assume that if the lambda is async, it will
+            // end up resolving to Task/ValueTask types, as that's the 95% case for C# code. If that ends up not being
+            // true, then we need to bust the cache and rebind.
             if (!inExpressionTree &&
                 refKind == CodeAnalysis.RefKind.None &&
                 _returnInferenceCache!.TryGetValue(cacheKey, out BoundLambda? returnInferenceLambda) &&
                 GetLambdaExpressionBody(returnInferenceLambda.Body) is BoundExpression expression &&
                 (lambdaSymbol = (LambdaSymbol)returnInferenceLambda.Symbol).RefKind == refKind &&
+                !lambdaSymbol.RuntimeAsyncEnabledChangedDuringInference &&
                 (object)LambdaSymbol.InferenceFailureReturnType != lambdaSymbol.ReturnType &&
                 lambdaSymbol.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything) &&
                 lambdaSymbol.RefCustomModifiers.SequenceEqual(refCustomModifiers))
@@ -853,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                lambdaSymbol = CreateLambdaSymbol(containingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind, refCustomModifiers);
+                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind, refCustomModifiers);
                 lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
@@ -1064,9 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
         {
-            Debug.Assert(Binder.ContainingMemberOrLambda is { });
-            var isInRuntimeAsyncContext = Binder.Compilation.IsRuntimeAsyncEnabledIn(Binder.ContainingMemberOrLambda?.ContainingNonLambdaMember());
-            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync, isInRuntimeAsyncContext);
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
 
             BoundLambda? result;
             if (!_returnInferenceCache!.TryGetValue(cacheKey, out result))
@@ -1086,18 +1088,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             public readonly ImmutableArray<RefKind> ParameterRefKinds;
             public readonly NamedTypeSymbol? TaskLikeReturnTypeOpt;
-            public readonly bool IsRuntimeAsyncEnabledInContainingMember;
 
-            public static readonly ReturnInferenceCacheKey Empty = new ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty, null, isRuntimeAsyncEnabledInContainingMember: false);
+            public static readonly ReturnInferenceCacheKey Empty = new ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty, null);
 
-            private ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds, NamedTypeSymbol? taskLikeReturnTypeOpt, bool isRuntimeAsyncEnabledInContainingMember)
+            private ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds, NamedTypeSymbol? taskLikeReturnTypeOpt)
             {
                 Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
                 Debug.Assert(taskLikeReturnTypeOpt is null || ((object)taskLikeReturnTypeOpt == taskLikeReturnTypeOpt.ConstructedFrom && taskLikeReturnTypeOpt.IsCustomTaskType(out var builderArgument)));
                 this.ParameterTypes = parameterTypes;
                 this.ParameterRefKinds = parameterRefKinds;
                 this.TaskLikeReturnTypeOpt = taskLikeReturnTypeOpt;
-                this.IsRuntimeAsyncEnabledInContainingMember = isRuntimeAsyncEnabledInContainingMember;
             }
 
             public override bool Equals(object? obj)
@@ -1111,8 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (other is null ||
                     other.ParameterTypes.Length != this.ParameterTypes.Length ||
-                    !TypeSymbol.Equals(other.TaskLikeReturnTypeOpt, this.TaskLikeReturnTypeOpt, TypeCompareKind.ConsiderEverything2) ||
-                    other.IsRuntimeAsyncEnabledInContainingMember != this.IsRuntimeAsyncEnabledInContainingMember)
+                    !TypeSymbol.Equals(other.TaskLikeReturnTypeOpt, this.TaskLikeReturnTypeOpt, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }
@@ -1131,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override int GetHashCode()
             {
-                var value = Hash.Combine(IsRuntimeAsyncEnabledInContainingMember, TaskLikeReturnTypeOpt?.GetHashCode() ?? 0);
+                var value = TaskLikeReturnTypeOpt?.GetHashCode() ?? 0;
                 foreach (var type in ParameterTypes)
                 {
                     value = Hash.Combine(type.Type, value);
@@ -1139,14 +1138,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value;
             }
 
-            public static ReturnInferenceCacheKey Create(NamedTypeSymbol? delegateType, bool isAsync, bool isRuntimeAsyncEnabledInContainingMember)
+            public static ReturnInferenceCacheKey Create(NamedTypeSymbol? delegateType, bool isAsync)
             {
                 GetFields(delegateType, isAsync, out var parameterTypes, out var parameterRefKinds, out var taskLikeReturnTypeOpt);
-                if (parameterTypes.IsEmpty && parameterRefKinds.IsEmpty && taskLikeReturnTypeOpt is null && !isRuntimeAsyncEnabledInContainingMember)
+                if (parameterTypes.IsEmpty && parameterRefKinds.IsEmpty && taskLikeReturnTypeOpt is null)
                 {
                     return Empty;
                 }
-                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, taskLikeReturnTypeOpt, isRuntimeAsyncEnabledInContainingMember);
+                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, taskLikeReturnTypeOpt);
             }
 
             public static void GetFields(
