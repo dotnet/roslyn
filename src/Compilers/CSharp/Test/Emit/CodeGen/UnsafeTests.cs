@@ -861,6 +861,192 @@ unsafe struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_Arg_FunctionPointer_ReturnsRef()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p, delegate*<ref byte, ref byte> f)
+                    {
+                        ref byte b = ref f(ref *p);
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b
+                                delegate*<ref byte, ref byte> V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.2
+                  IL_0002:  stloc.1
+                  IL_0003:  ldarg.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  calli      "delegate*<ref byte, ref byte>"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloc.0
+                  IL_000c:  call       "string byte.ToString()"
+                  IL_0011:  pop
+                  IL_0012:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  .locals init (delegate*<ref byte, ref byte> V_0)
+                  IL_0000:  ldarg.2
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.1
+                  IL_0003:  ldloc.0
+                  IL_0004:  calli      "delegate*<ref byte, ref byte>"
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_Arg_FunctionPointer_ReturnsPointer()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p, delegate*<ref byte, byte*> f)
+                    {
+                        ref byte b = ref *f(ref *p);
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b
+                                delegate*<ref byte, byte*> V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.2
+                  IL_0002:  stloc.1
+                  IL_0003:  ldarg.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  calli      "delegate*<ref byte, byte*>"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloc.0
+                  IL_000c:  call       "string byte.ToString()"
+                  IL_0011:  pop
+                  IL_0012:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b
+                                delegate*<ref byte, byte*> V_1)
+                  IL_0000:  ldarg.2
+                  IL_0001:  stloc.1
+                  IL_0002:  ldarg.1
+                  IL_0003:  ldloc.1
+                  IL_0004:  calli      "delegate*<ref byte, byte*>"
+                  IL_0009:  stloc.0
+                  IL_000a:  ldloc.0
+                  IL_000b:  call       "string byte.ToString()"
+                  IL_0010:  pop
+                  IL_0011:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_FunctionPointer_ReturnsRef()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(delegate*<ref byte> f)
+                    {
+                        ref byte b = ref f();
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  calli      "delegate*<ref byte>"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  calli      "delegate*<ref byte>"
+                  IL_0006:  call       "string byte.ToString()"
+                  IL_000b:  pop
+                  IL_000c:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_FunctionPointer_ReturnsPointer()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(delegate*<byte*> f)
+                    {
+                        ref byte b = ref *f();
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  calli      "delegate*<byte*>"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  calli      "delegate*<byte*>"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  call       "string byte.ToString()"
+                  IL_000d:  pop
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
         public void Retrack_PointerToRefLocal_Synthesized()
         {
             // Implicit (synthesized) ref locals can be elided.

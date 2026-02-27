@@ -2068,6 +2068,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 return node;
             }
+
+            public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+            {
+                return node;
+            }
         }
     }
 
