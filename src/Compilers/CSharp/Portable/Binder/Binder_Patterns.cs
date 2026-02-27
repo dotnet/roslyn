@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class Binder
     {
-        protected NamedTypeSymbol? PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(SyntaxNode node, ref TypeSymbol inputType, [NotNullWhen(true)] ref NamedTypeSymbol? unionType, BindingDiagnosticBag diagnostics)
+        protected NamedTypeSymbol? PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(SyntaxNode node, ref TypeSymbol inputType, ref NamedTypeSymbol? unionType, BindingDiagnosticBag diagnostics)
         {
             if (inputType.IsUnionMatchingInputType(out var unionTypeOverride))
             {

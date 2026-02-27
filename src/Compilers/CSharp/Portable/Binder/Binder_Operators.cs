@@ -4847,7 +4847,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     inputType = operand.Type;
                 }
 
-                unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, isPatternDiagnostics);
+                if (inputType is not null)
+                {
+                    unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, isPatternDiagnostics);
+                }
+                else
+                {
+                    unionMatchingInputType = null;
+                }
 
                 bool hasErrors = node.Right.HasErrors;
                 var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, patternExpressionConversion: out _, out BoundExpression originalExpression);
@@ -4888,7 +4895,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
             var targetType = typeExpression.Type;
 
-            unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            if (inputType is not null)
+            {
+                unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            }
+            else
+            {
+                unionMatchingInputType = null;
+            }
+
             if (unionMatchingInputType is not null)
             {
                 bool hasErrors = CheckValidPatternType(node.Right, unionType, inputType, targetType, diagnostics: diagnostics);
