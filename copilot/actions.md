@@ -18,7 +18,14 @@
 ### PDBUsingTests (PDB/PDBUsingTests.cs)
 - ImportedNoPiaTypes: skipped — WindowsDesktopOnly, NoPIA genuinely needs desktop
 
-### AssemblyReferencesTests (Emit/EditAndContinue/AssemblyReferencesTests.cs)
+### EditAndContinueTests (Emit/EditAndContinue/EditAndContinueTests.cs)
+- UniqueSynthesizedNames_DynamicSiteContainer: ported — changed WindowsDesktopOnly to Fact; dynamic types available on .NET Core via TargetFramework.StandardAndCSharp
+- MethodSignatureWithNoPIAType: skipped — NoPIA genuinely needs desktop
+- LocalSignatureWithNoPIAType: skipped — NoPIA genuinely needs desktop
+- NoPIAReferences: skipped — NoPIA genuinely needs desktop
+- NoPIATypeInNamespace: skipped — NoPIA genuinely needs desktop
+- SymWriterErrors: skipped — uses MockSymUnmanagedWriter, native PDB specific
+- AnonymousTypes_OtherTypeNames: skipped — uses ILASM which doesn't support portable PDBs
 - ChangingCompilationDependencies: ported — changed WindowsOnly to Fact; EnC with EmptyLocalsProvider works on .NET Core
 - DependencyVersionWildcards_Compilation: ported — changed WindowsOnly to Fact
 - DependencyVersionWildcards_Metadata: ported — changed WindowsOnly to Fact

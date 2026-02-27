@@ -11,5 +11,5 @@ Project: `src/Compilers/CSharp/Test/Emit2/Microsoft.CodeAnalysis.CSharp.Emit2.Un
 - [x] PDB/PDBUsingTests.cs (1 method)
 - [x] PDB/CSharpDeterministicBuildCompilationTests.cs (1 method)
 - [x] Emit/EditAndContinue/AssemblyReferencesTests.cs (7 methods)
-- [ ] Emit/EditAndContinue/EditAndContinueTests.cs (7 methods)
+- [x] Emit/EditAndContinue/EditAndContinueTests.cs (7 methods)
 - [x] Emit/EditAndContinue/SymbolMatcherTests.cs (1 method)
