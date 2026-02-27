@@ -74,5 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (TypeWithAnnotations.Create(Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_Object, TypeLocation, diagnostics), nullableAnnotation: NullableAnnotation.Annotated),
                     ImmutableArray<ParameterSymbol>.Empty);
         }
+
+        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
     }
 }

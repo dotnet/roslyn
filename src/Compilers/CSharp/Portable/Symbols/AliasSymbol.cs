@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         public override Accessibility DeclaredAccessibility
         {
             get

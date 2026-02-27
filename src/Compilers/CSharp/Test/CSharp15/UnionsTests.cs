@@ -7938,11 +7938,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
 
-            // Error duplication is tracked as https://github.com/dotnet/roslyn/issues/81984.
             comp.VerifyDiagnostics(
-                // (20,16): error CS0457: Ambiguous user defined conversions 'S2.implicit operator S1(S2)' and 'S1.implicit operator S1(S2)' when converting from 'S2' to 'S1'
-                //         return x;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "x").WithArguments("S2.implicit operator S1(S2)", "S1.implicit operator S1(S2)", "S2", "S1").WithLocation(20, 16),
                 // (20,16): error CS0457: Ambiguous user defined conversions 'S2.implicit operator S1(S2)' and 'S1.implicit operator S1(S2)' when converting from 'S2' to 'S1'
                 //         return x;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "x").WithArguments("S2.implicit operator S1(S2)", "S1.implicit operator S1(S2)", "S2", "S1").WithLocation(20, 16)

@@ -1866,6 +1866,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Unsafe member access for compound assignment is checked against the accessors elsewhere.
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, eventSyntax);
+
                 if (!boundEvent.IsUsableAsField)
                 {
                     // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
@@ -2074,6 +2077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, node);
 
                     var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
                     if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
@@ -2124,6 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getMethod, node);
 
                     if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
                         reportUseSite(getMethod))

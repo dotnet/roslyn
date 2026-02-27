@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.ContainsPointerOrFunctionPointer())
                 {
-                    ReportUnsafeIfNotAllowed(node, diagnostics);
+                    ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
-            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, type);
+            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, sizeOfTypeOpt: type, disallowedUnder: MemorySafetyRules.Legacy);
             return new BoundSizeOfOperator(node, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
@@ -2054,10 +2054,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics, LookupResultKind resultKind, bool indexed, bool isError)
         {
-            // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
+            // Events are handled later as we don't know yet if we are binding to the event or its backing field.
             if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
+                AssertNotUnsafeMemberAccess(symbol); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
             }
 
             switch (symbol.Kind)
@@ -3724,7 +3725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.ContainsPointerOrFunctionPointer())
                 {
                     // CONSIDER: dev10 uses the call syntax, but this seems clearer.
-                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
+                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -5102,10 +5103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Don't worry about double reporting (i.e. for both the argument and the parameter)
                     // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics);
+                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                 }
 
                 ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, resultMember, nonNullSyntax);
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
 
@@ -5399,6 +5401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         iteratorBody: null,
                         hasErrors);
                 }
+
+                builder.ReportDiagnosticsIfUnsafeMemberAccess(@this, syntax.OperatorToken, syntax, diagnostics);
 
                 Debug.Assert(expression.Type is { });
 
@@ -6973,10 +6977,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                hasError = ReportUnsafeIfNotAllowed(node, diagnostics) || hasError;
+                hasError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) || hasError;
             }
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
             // NOTE: Use-site diagnostics were reported during overload resolution.
 
             ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor()) ?
@@ -7657,6 +7662,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
+
+                    if (!boundLeft.HasErrors)
+                    {
+                        ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
+                    }
                 }
             }
 
@@ -8073,6 +8083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
+                        AssertNotUnsafeMemberAccess(type);
 
                         return new BoundTypeExpression(node, null, type);
                     }
@@ -8677,11 +8688,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(symbol.Kind != SymbolKind.Method);
                 left = ReplaceTypeOrValueReceiver(left, symbol.IsStatic || symbol.Kind == SymbolKind.NamedType, diagnostics);
 
-                // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
+                // Events are handled later as we don't know yet if we are binding to the event or its backing field.
                 // Properties are handled in BindPropertyAccess
                 if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
+                    AssertNotUnsafeMemberAccess(symbol); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
                 }
 
                 switch (symbol.Kind)
@@ -9299,6 +9311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
 
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
+            Debug.Assert(propertySymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
+                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode) ||
+                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode));
+
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
             if (!propertySymbol.IsStatic)
@@ -9381,6 +9398,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             bool isUsableAsField = eventSymbol.HasAssociatedField && this.IsAccessible(eventSymbol.AssociatedField, ref useSiteInfo, (receiver != null) ? receiver.Type : null);
             diagnostics.Add(node, useSiteInfo);
+
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
+            Debug.Assert(eventSymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
+                (eventSymbol.AddMethod is null || eventSymbol.AddMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode) ||
+                (eventSymbol.RemoveMethod is null || eventSymbol.RemoveMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);
 
@@ -9589,7 +9611,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindElementAccess(ElementAccessExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             BoundExpression receiver = BindExpression(node.Expression, diagnostics: diagnostics, invoked: false, indexed: true);
-            return BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
+            var result = BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
+
+            if (!result.HasErrors && receiver.Type?.IsPointerOrFunctionPointer() == true)
+            {
+                Debug.Assert(receiver.Type?.IsFunctionPointer() != true, "There should have been an error reported for indexing into a function pointer.");
+                ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
+            }
+
+            return result;
         }
 
         private BoundExpression BindElementAccess(ExpressionSyntax node, BoundExpression receiver, BracketedArgumentListSyntax argumentList, bool allowInlineArrayElementAccess, BindingDiagnosticBag diagnostics)
@@ -9808,6 +9838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
                 diagnostics.ReportUseSite(elementField, node);
+                AssertNotUnsafeMemberAccess(elementField); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
 
                 TypeSymbol resultType;
 
@@ -10463,6 +10494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol property = resolutionResult.Member;
 
                 ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
+                // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
 
                 // Make sure that the result of overload resolution is valid.
                 var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
