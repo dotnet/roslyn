@@ -308,7 +308,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="FirstWorkspaceProject">
-                    <Document FilePath="C:\FirstWorkspace.cs">FirstWorkspace</Document>
+                    <Document FilePath="{TestHelpers.CreateAbsolutePath("FirstWorkspace.cs")}">FirstWorkspace</Document>
                 </Project>
             </Workspace>
             """;
@@ -318,7 +318,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         testWorkspaceTwo.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="SecondWorkspaceProject">
-                    <Document FilePath="C:\SecondWorkspace.cs">SecondWorkspace</Document>
+                    <Document FilePath="{TestHelpers.CreateAbsolutePath("SecondWorkspace.cs")}">SecondWorkspace</Document>
                 </Project>
             </Workspace>
             """));
@@ -330,8 +330,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
         Assert.True(IsWorkspaceRegistered(testWorkspaceTwo, testLspServer));
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = CreateAbsoluteDocumentUri("FirstWorkspace.cs");
+        var secondWorkspaceDocumentUri = CreateAbsoluteDocumentUri("SecondWorkspace.cs");
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -367,7 +367,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="FirstWorkspaceProject">
-                    <Document FilePath="C:\FirstWorkspace.cs">FirstWorkspace</Document>
+                    <Document FilePath="{TestHelpers.CreateAbsolutePath("FirstWorkspace.cs")}">FirstWorkspace</Document>
                 </Project>
             </Workspace>
             """;
@@ -377,7 +377,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         testWorkspaceTwo.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="SecondWorkspaceProject">
-                    <Document FilePath="C:\SecondWorkspace.cs">SecondWorkspace</Document>
+                    <Document FilePath="{TestHelpers.CreateAbsolutePath("SecondWorkspace.cs")}">SecondWorkspace</Document>
                 </Project>
             </Workspace>
             """));
@@ -385,8 +385,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         // Wait for workspace operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = CreateAbsoluteDocumentUri("FirstWorkspace.cs");
+        var secondWorkspaceDocumentUri = CreateAbsoluteDocumentUri("SecondWorkspace.cs");
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -499,7 +499,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open the doc
-        var filePath = "c:\\\ue25b\ud86d\udeac.cs";
+        var filePath = TestHelpers.CreateAbsolutePath("\ue25b\ud86d\udeac.cs");
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
         await testLspServer.OpenDocumentAsync(documentUri, "Text");
 

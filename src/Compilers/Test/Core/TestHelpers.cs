@@ -176,5 +176,12 @@ namespace Roslyn.Test.Utilities
 #endif
             }
         }
+
+        /// <summary>
+        /// Create an absolute path for the current OS platform with the given suffix.
+        /// NOTE: the path is not appropriate for actually writing files during tests, use TempRoot instead for that.
+        /// </summary>
+        public static string CreateAbsolutePath(string suffix)
+            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $@"C:\{suffix}" : $"/tmp/{suffix}";
     }
 }
