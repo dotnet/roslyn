@@ -7441,8 +7441,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
     <value>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</value>
   </data>
-  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
-    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
+  <data name="ERR_UnrecognizedAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>
@@ -8233,6 +8233,44 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
+  </data>
+  <data name="IDS_FeatureUnsafeEvolution" xml:space="preserve">
+    <value>updated memory safety rules</value>
+  </data>
+  <data name="ERR_UnsafeOperation" xml:space="preserve">
+    <value>This operation may only be used in an unsafe context</value>
+  </data>
+  <data name="ERR_UnsafeUninitializedStackAlloc" xml:space="preserve">
+    <value>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</value>
+    <comment>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</comment>
+  </data>
+  <data name="ERR_UnsafeMemberOperation" xml:space="preserve">
+    <value>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</value>
+    <comment>'RequiresUnsafe' and 'extern' should not be localized.</comment>
+  </data>
+  <data name="ERR_UnsafeMemberOperationCompat" xml:space="preserve">
+    <value>'{0}' must be used in an unsafe context because it has pointers in its signature</value>
+  </data>
+  <data name="ERR_CallerUnsafeOverridingSafe" xml:space="preserve">
+    <value>Unsafe member '{0}' cannot override safe member '{1}'</value>
+  </data>
+  <data name="ERR_CallerUnsafeImplicitlyImplementingSafe" xml:space="preserve">
+    <value>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</value>
+  </data>
+  <data name="ERR_CallerUnsafeExplicitlyImplementingSafe" xml:space="preserve">
+    <value>Unsafe member '{0}' cannot implement safe member '{1}'</value>
+  </data>
+  <data name="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget" xml:space="preserve">
+    <value>RequiresUnsafeAttribute cannot be applied to this symbol.</value>
+    <comment>'RequiresUnsafeAttribute' is not localizable</comment>
+  </data>
+  <data name="WRN_RequiresUnsafeAttributeLegacyRules" xml:space="preserve">
+    <value>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</value>
+    <comment>'RequiresUnsafeAttribute' is not localizable</comment>
+  </data>
+  <data name="WRN_RequiresUnsafeAttributeLegacyRules_Title" xml:space="preserve">
+    <value>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</value>
+    <comment>'RequiresUnsafeAttribute' is not localizable</comment>
   </data>
   <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</value>

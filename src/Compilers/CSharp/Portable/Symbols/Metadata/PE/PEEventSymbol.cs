@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Distinct accessibility value to represent unset.
         private const int UnsetAccessibility = -1;
         private int _lazyDeclaredAccessibility = UnsetAccessibility;
+
+        private byte _lazyRequiresUnsafe;
 
         private readonly Flags _flags;
         [Flags]
@@ -362,9 +365,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyCustomAttributes.IsDefault)
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
+
+                var requiresUnsafeState = (ThreeState)Volatile.Read(ref _lazyRequiresUnsafe);
+                bool checkForRequiresUnsafe = requiresUnsafeState != ThreeState.False;
+
+                if (checkForRequiresUnsafe)
+                {
+                    ImmutableArray<CSharpAttributeData> attributes = loadAndFilterAttributes(containingPEModuleSymbol, out var hasRequiresUnsafeAttribute);
+
+                    _lazyRequiresUnsafe = (byte)ComputeRequiresUnsafe(hasRequiresUnsafeAttribute).ToThreeState();
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                }
+                else
+                {
+                    containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
+                }
             }
             return _lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(PEModuleSymbol containingModule, out bool hasRequiresUnsafeAttribute)
+            {
+                hasRequiresUnsafeAttribute = false;
+
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresUnsafeAttribute))
+                    {
+                        hasRequiresUnsafeAttribute = true;
+                    }
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
@@ -500,6 +541,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
                 return _lazyObsoleteAttributeData;
+            }
+        }
+
+        private bool RequiresUnsafe
+        {
+            get
+            {
+                var requiresUnsafeState = (ThreeState)Volatile.Read(ref _lazyRequiresUnsafe);
+                if (!requiresUnsafeState.HasValue())
+                {
+                    var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
+                    bool hasRequiresUnsafeAttribute = containingPEModuleSymbol.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    bool requiresUnsafe = ComputeRequiresUnsafe(hasRequiresUnsafeAttribute);
+                    _lazyRequiresUnsafe = (byte)requiresUnsafe.ToThreeState();
+                    return requiresUnsafe;
+                }
+
+                return requiresUnsafeState.Value();
+            }
+        }
+
+        private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
+        {
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? hasRequiresUnsafeAttribute
+                // This might be expensive, so we cache it in flags.
+                : Type.ContainsPointerOrFunctionPointer();
+        }
+
+        internal override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (!RequiresUnsafe)
+                {
+                    return CallerUnsafeMode.None;
+                }
+
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.Implicit;
             }
         }
 

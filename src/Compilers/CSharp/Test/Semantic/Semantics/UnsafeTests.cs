@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// Tests related to binding (but not lowering) lock statements.
     /// </summary>
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class UnsafeTests : CompilingTestBase
     {
         private static string GetEscapedNewLine()
@@ -11406,6 +11407,9 @@ class C<T> : A
 
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
+
+            CreateCompilation(text, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expected);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expected);
 
             expected = new[]
             {
