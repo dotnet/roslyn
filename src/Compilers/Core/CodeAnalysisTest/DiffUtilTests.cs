@@ -35,7 +35,7 @@ E
 --> D
     E
 ++> 2
---> F", expected);
+--> F".ReplaceLineEndings(), expected.ReplaceLineEndings());
         }
     }
 }
