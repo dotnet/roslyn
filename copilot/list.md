@@ -5,7 +5,7 @@ Project: `src/Compilers/CSharp/Test/Emit2/Microsoft.CodeAnalysis.CSharp.Emit2.Un
 ## Classes
 
 - [ ] PDB/CheckSumTest.cs (5 methods)
-- [ ] PDB/PDBTests.cs (12 methods)
+- [x] PDB/PDBTests.cs (12 methods)
 - [ ] PDB/PDBWinMdExpTests.cs (5 methods)
 - [ ] PDB/PDBSourceLinkTests.cs (1 method)
 - [ ] PDB/PDBUsingTests.cs (1 method)
