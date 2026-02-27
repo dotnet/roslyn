@@ -9214,6 +9214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            // Returns true if we should stop searching in further scopes (ie. there were applicable candidates)
             static bool tryBindExtensionIndexersInScope(
                 SyntaxNode syntax,
                 BoundExpression receiver,
@@ -9588,11 +9589,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate in candidates)
                 {
-                    Debug.Assert(!candidate.IsStatic);
                     if (candidate is PropertySymbol property &&
                         IsValidImplicitIndexIndexer(property) &&
                         binder.CheckViability(property, arity, lookupOptions, accessThroughType: null, diagnose: false, useSiteInfo: ref useSiteInfo).Kind == LookupResultKind.Viable)
                     {
+                        Debug.Assert(!candidate.IsStatic);
                         filteredCandidates ??= ArrayBuilder<PropertySymbol>.GetInstance();
                         filteredCandidates.Add(property);
                     }
@@ -9604,11 +9605,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate in candidates)
                 {
-                    Debug.Assert(!candidate.IsStatic);
                     if (candidate is MethodSymbol method &&
                         MethodHasValidSliceSignature(method) &&
                         binder.CheckViability(method, arity, lookupOptions, accessThroughType: null, diagnose: false, useSiteInfo: ref useSiteInfo).Kind == LookupResultKind.Viable)
                     {
+                        Debug.Assert(!candidate.IsStatic);
                         filteredCandidates ??= ArrayBuilder<MethodSymbol>.GetInstance();
                         filteredCandidates.Add(method);
                     }

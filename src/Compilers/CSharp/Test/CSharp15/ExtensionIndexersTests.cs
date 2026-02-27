@@ -5526,6 +5526,34 @@ class C
     }
 
     [Fact]
+    public void ImplicitRangeIndexer_31()
+    {
+        // extension Slice method + extension Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E1
+{
+    extension(C c)
+    {
+        public int Length => 3;
+    }
+    public static C Slice(this C c, int i, int j) { System.Console.Write("ran"); return c; }
+}
+
+class C { }
+""";
+
+        // PROTOTYPE should classic extension Slice methods contribute to implicit indexer pattern?
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
     public void ObjectInitializer_01()
     {
         var src = """
