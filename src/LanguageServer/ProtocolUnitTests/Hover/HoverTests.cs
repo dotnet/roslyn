@@ -260,7 +260,7 @@ Remarks are cool too\.
   
 {WorkspacesResources.Exceptions_colon}  
 &nbsp;&nbsp;System\.NullReferenceException  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -324,7 +324,7 @@ Remarks are cool too.
 
 {WorkspacesResources.Exceptions_colon}
   System.NullReferenceException
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -375,7 +375,7 @@ Exclaim\!
 **strong\\\*\* text**  
 _italic\_ \*\*text\*\*_  
 [closing\] link](https://google.com)  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -409,7 +409,7 @@ void A.AMethod(int i)
 ```
   
 `if (true) { Console.WriteLine(""hello""); }`  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75181")]
@@ -448,7 +448,7 @@ if (true) {
     Console.WriteLine(""hello"");
 }
 ```  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1499")]
@@ -478,7 +478,7 @@ void A.AMethod(int i)
 ```
   
 Hello&nbsp;``A`1[B,C]``  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
@@ -503,7 +503,7 @@ class C
             testLspServer,
             expectedLocation).ConfigureAwait(false);
         Assert.Equal($@"{string.Format(FeaturesResources.Awaited_task_returns_0, "`class System.String`")}  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -559,7 +559,7 @@ class C
               
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts.Replace(".", "\\.")}  
             
-            """, result.Contents.Fourth.Value);
+            """.ReplaceLineEndings(), result.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
@@ -597,7 +597,7 @@ class C
             TKey&nbsp;is&nbsp;string  
             TValue&nbsp;is&nbsp;ImmutableArray\<int\>  
             
-            """, results.Contents.Fourth.Value);
+            """.ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(
