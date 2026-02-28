@@ -345,3 +345,63 @@
 ### CodeGenDeconstructTests (CodeGen/CodeGenDeconstructTests.cs)
 - Constraints_01: skipped — attempted port, fails on .NET Core
 - 2 other methods: skipped — WindowsDesktopOnly
+
+### CodeGenExprLambdaTests (CodeGen/CodeGenExprLambdaTests.cs)
+- AnonymousCreation: ported — WindowsDesktopOnly(#30160)→Fact, passes on net10.0
+- AnonTypes2: ported — WindowsDesktopOnly(#30160)→Fact, passes on net10.0
+- BinaryAddOperandTypesDelegate: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- CoalesceWithImplicitUDC: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- ArrayIndexTypeLong: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- UnsafeParamTypeInDelegate: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- ConditionalWithOperandTypesObjectArrAndStringArr: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- CheckedEnumConversion: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- EnumConversions001: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- EnumConversions002: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+- IndexerIsIndexedProperty: skipped — WindowsOnly/TestExecutionNeedsDesktopTypes
+
+### CodeGenTests (CodeGen/CodeGenTests.cs)
+- TestBug15818: ported — DesktopOnly→Fact, passes on net10.0
+- InitFromBlob: ported — DesktopOnly→Fact, passes on net10.0
+- Bug17352_VarArgCtor: skipped — DesktopOnly, __arglist fails on .NET Core
+- VarargBridgeSource: skipped — DesktopOnly, __arglist fails on .NET Core
+- VarargBridgeMeta: skipped — DesktopOnly, __arglist fails on .NET Core
+- DecimalBinaryOp_03: skipped — DesktopOnly, runtime issue #1611
+- WindowsDesktopOnly methods (3): skipped — TestExecutionNeedsWindowsTypes
+
+### CodeGenOperators (CodeGen/CodeGenOperators.cs)
+- TestFloatNegativeZero: ported — DesktopOnly→Fact, passes on net10.0
+- TestDoubleNegativeZero: ported — DesktopOnly→Fact, passes on net10.0
+- TestDecimalNegativeZero: ported — DesktopOnly→Fact, passes on net10.0
+
+### UnsafeTests (CodeGen/UnsafeTests.cs)
+- PointerArrayConversion: ported — DesktopOnly→Fact, passes on net10.0
+- PointerArrayEnumerableConversion: ported — DesktopOnly→Fact, passes on net10.0
+- PointerArrayConversionRuntimeError: skipped — DesktopOnly, runtime error message differs on .NET Core
+- PointerArrayEnumerableConversionRuntimeError: skipped — DesktopOnly, runtime error message differs
+- PointerArrayForeachEnumerable: skipped — DesktopOnly, fails on .NET Core
+
+### CodeGenExplicitImplementationTests (CodeGen/CodeGenExplicitImplementationTests.cs)
+- TestExplicitImplSignatureMismatches_ParamsAndOptionals: ported — DesktopOnly→Fact, passes on net10.0
+- Other methods: ClrOnly (already run on .NET Core)
+
+### PatternTests (CodeGen/PatternTests.cs)
+- SwitchExpressionSequencePoints: ported — WindowsOnly→Fact, passes on net10.0
+- RestrictedTypesNeedDesktop method: skipped — WindowsDesktopOnly/RestrictedTypesNeedDesktop
+
+### OptionalArgumentsTests (Emit/OptionalArgumentsTests.cs)
+- TestDuplicateConstantAttributesMetadata: ported — DesktopOnly→Fact, passes on net10.0
+
+### ResourceTests (Emit/ResourceTests.cs)
+- All methods inside #if NET472 block or WindowsDesktopOnly/WindowsOnly — cannot port
+
+### CodeGenImplicitImplementationTests (CodeGen/CodeGenImplicitImplementationTests.cs)
+- All methods are ClrOnly (Mono skip) — already run on .NET Core, no changes needed
+
+### CodeGenCheckedTests (CodeGen/CodeGenCheckedTests.cs)
+- All 4 methods: skipped — WindowsDesktopOnly(#30160), fails on .NET Core
+
+### DynamicAnalysisResourceTests (Emit/DynamicAnalysis/DynamicAnalysisResourceTests.cs)
+- All 3 methods: skipped — WindowsOnly/TestExecutionHasNewLineDependency, CRLF-dependent hashes
+
+### NoPiaEmbedTypes (Emit/NoPiaEmbedTypes.cs)
+- All methods are ClrOnly — already run on .NET Core, no changes needed
