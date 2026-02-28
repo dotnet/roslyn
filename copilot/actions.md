@@ -277,3 +277,27 @@
 - UnifyUnderlyingWithTuple_05: skipped — references mscorlib-specific symbols
 - RefTupleDynamicDecode001, RefTupleDynamicDecode004: skipped — reference mscorlib-specific symbols
 - DefaultAndFriendlyElementNames_09: skipped — WindowsOnly, newline dependency
+
+### CodeGenThrowTests (CodeGen/CodeGenThrowTests.cs)
+- TestThrowNewExpression, TestThrowLocalExpression, TestThrowNull: ported — changed DesktopOnly to Fact
+
+### CodeGenUsingStatementTests (CodeGen/CodeGenUsingStatementTests.cs)
+- ObjectCreateInsideUsing: ported — changed DesktopOnly to Fact
+
+### CodeGenNullCoalescingAssignmentTests (CodeGen/CodeGenNullCoalescingAssignmentTests.cs)
+- IndexerLvalue: ported — changed DesktopOnly to Fact
+
+### CodeGenIterators (CodeGen/CodeGenIterators.cs)
+- TestIteratorWithNullableAsCollectionVariable_Null: ported — changed DesktopOnly to Fact
+
+### CodeGenConstructorInitTests (CodeGen/CodeGenConstructorInitTests.cs)
+- StaticNullInitializerHasNoEffectOnTypeIL: skipped — fails on .NET Core (different metadata)
+
+### SwitchTests (CodeGen/SwitchTests.cs)
+- ShareLikeKindedTemps_01: skipped — WindowsOnly, NativePdbRequiresDesktop
+
+### CodeGenUsingDeclarationTests (CodeGen/CodeGenUsingDeclarationTests.cs)
+- UsingVariableVarEmitTest: skipped — WindowsOnly, NativePdbRequiresDesktop
+
+### CodeGenStructsAndEnum (CodeGen/CodeGenStructsAndEnum.cs)
+- InplaceCtor005: skipped — WindowsDesktopOnly, RestrictedTypesNeedDesktop
