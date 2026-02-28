@@ -4812,6 +4812,181 @@ class C { }
             Assert.Equal("failed", exception.Message);
         }
 
+        #region Implementation Source Output Sees Other Generators' Source Outputs
+
+        [Fact]
+        public void Implementation_Output_Sees_Other_Generator_Source_Output()
+        {
+            var source = "class C { }";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator1 = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    spc.AddSource("GeneratedType.g.cs", "public class GeneratedType { public string Name { get; set; } }");
+                });
+            });
+
+            bool generator2SawType = false;
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    var type = compilation.GetTypeByMetadataName("GeneratedType");
+                    if (type != null)
+                    {
+                        generator2SawType = true;
+                        spc.AddSource("Consumer.g.cs", "class Consumer { GeneratedType _field; }");
+                    }
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator1.AsSourceGenerator(), generator2.AsSourceGenerator()],
+                parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            Assert.Empty(diagnostics);
+            Assert.True(generator2SawType, "Generator2's implementation output should see GeneratedType from Generator1's source output");
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("GeneratedType"));
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("Consumer"));
+        }
+
+        [Fact]
+        public void Source_Output_Does_Not_See_Other_Generator_Source_Output()
+        {
+            var source = "class C { }";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator1 = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    spc.AddSource("GeneratedType.g.cs", "public class GeneratedType { }");
+                });
+            });
+
+            bool generator2SawType = false;
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    var type = compilation.GetTypeByMetadataName("GeneratedType");
+                    generator2SawType = type != null;
+                    spc.AddSource("Other.g.cs", "class Other { }");
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator1.AsSourceGenerator(), generator2.AsSourceGenerator()],
+                parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            Assert.Empty(diagnostics);
+            Assert.False(generator2SawType, "Generator2's source output should NOT see other generators' source outputs");
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("GeneratedType"));
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("Other"));
+        }
+
+        [Fact]
+        public void Implementation_Output_Sees_Own_Source_Output()
+        {
+            var source = "class C { }";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            bool implSawOwnType = false;
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    spc.AddSource("MyService.g.cs", "public partial class MyService { }");
+                });
+
+                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    var type = compilation.GetTypeByMetadataName("MyService");
+                    implSawOwnType = type != null;
+                    spc.AddSource("MyService.impl.g.cs", "public partial class MyService { void Execute() { } }");
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            Assert.Empty(diagnostics);
+            Assert.True(implSawOwnType, "Implementation output should see its own generator's source output");
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("MyService"));
+        }
+
+        [Fact]
+        public void Existing_Generators_Without_Implementation_Unaffected()
+        {
+            var source = "class C { }";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    spc.AddSource("Generated.g.cs", "class Generated { }");
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            Assert.Empty(diagnostics);
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("Generated"));
+            outputCompilation.VerifyDiagnostics();
+
+            var runResult = driver.GetRunResult();
+            Assert.Single(runResult.Results);
+            Assert.Single(runResult.Results[0].GeneratedSources);
+        }
+
+        [Fact]
+        public void Implementation_Output_Sources_Included_In_Run_Result()
+        {
+            var source = "class C { }";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    spc.AddSource("Api.g.cs", "public class Api { }");
+                });
+
+                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (spc, compilation) =>
+                {
+                    spc.AddSource("Impl.g.cs", "class Impl { }");
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            var runResult = driver.GetRunResult();
+            var result = runResult.Results.Single();
+
+            Assert.Equal(2, result.GeneratedSources.Length);
+            Assert.Contains(result.GeneratedSources, s => s.HintName == "Api.g.cs");
+            Assert.Contains(result.GeneratedSources, s => s.HintName == "Impl.g.cs");
+        }
+
+        #endregion
+
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 }
