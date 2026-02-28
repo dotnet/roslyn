@@ -9404,7 +9404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundImplicitIndexerReceiverPlaceholder receiver,
             IndexOrRangeArgKind argKind,
             Binder binder,
-            ExtensionScope? scope,
+            ExtensionScope? scope, // null scope indicates "instance" scope
             ref AnalyzedArguments? analyzedIntIndexerOrSliceArguments,
             ref AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments,
             out BoundExpression? indexerOrSliceAccess,
