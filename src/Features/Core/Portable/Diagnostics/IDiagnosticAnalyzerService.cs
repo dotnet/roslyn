@@ -100,7 +100,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
 
     /// <summary>
     /// Gets a cached snapshot of diagnostic descriptors for the given <paramref name="projectId"/>.
-    /// This call never computes descriptors synchronously. If no cached data is available, returns <see langword="false"/>.
+    /// If no cached data is available, returns <see langword="false"/>.
     /// </summary>
     bool TryGetCachedDiagnosticDescriptorsPerReference(
         ProjectId projectId, [NotNullWhen(returnValue: true)] out ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>? descriptorsPerReference);
