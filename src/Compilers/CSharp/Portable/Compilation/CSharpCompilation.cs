@@ -358,10 +358,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
             Debug.Assert(method.IsDefinition);
 
-            var runtimeAsyncEnabledInMethod = symbol switch
+            var runtimeAsyncEnabledInMethod = method.IsRuntimeAsyncEnabledInMethod switch
             {
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
+                ThreeState.True => true,
+                ThreeState.False => false,
                 _ => Feature(CodeAnalysis.Feature.RuntimeAsync) == "on"
             };
 

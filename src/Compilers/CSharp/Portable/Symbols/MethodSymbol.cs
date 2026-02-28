@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasSpecialNameAttribute { get; }
 
+        internal abstract ThreeState IsRuntimeAsyncEnabledInMethod { get; }
+
         /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
         /// listed in those attributes.
