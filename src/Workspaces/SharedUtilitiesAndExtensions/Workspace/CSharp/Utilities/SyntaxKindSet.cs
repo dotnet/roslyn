@@ -73,8 +73,7 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
-#if !ROSLYN_5_5_OR_LOWER
-        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+#if !OLDER_ROSLYN
         SyntaxKind.UnionDeclaration,
 #endif
         SyntaxKind.EnumDeclaration,
@@ -87,8 +86,7 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
-#if !ROSLYN_5_5_OR_LOWER
-        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+#if !OLDER_ROSLYN
         SyntaxKind.UnionDeclaration,
 #endif
     };
@@ -96,17 +94,14 @@ internal sealed class SyntaxKindSet
     public static readonly ISet<SyntaxKind> NonEnumTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.ClassDeclaration,
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
         SyntaxKind.ExtensionBlockDeclaration,
+        SyntaxKind.UnionDeclaration,
 #endif
         SyntaxKind.InterfaceDeclaration,
         SyntaxKind.RecordDeclaration,
         SyntaxKind.RecordStructDeclaration,
         SyntaxKind.StructDeclaration,
-#if !ROSLYN_5_5_OR_LOWER
-        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
-        SyntaxKind.UnionDeclaration,
-#endif
     };
 
     public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -128,8 +123,7 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
-#if !ROSLYN_5_5_OR_LOWER
-        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+#if !OLDER_ROSLYN
         SyntaxKind.UnionDeclaration,
 #endif
     };
@@ -138,8 +132,7 @@ internal sealed class SyntaxKindSet
     {
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
-#if !ROSLYN_5_5_OR_LOWER
-        // PROTOTYPE This needs to be updated when merging with `main` (which now has 5.6.0 in eng/Versions.props)
+#if !OLDER_ROSLYN
         SyntaxKind.UnionDeclaration,
 #endif
     };
