@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -14,11 +13,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [ExportCSharpVisualBasicStatelessLspService(typeof(IRequestExecutionQueueProvider<RequestContext>)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-internal sealed class RequestExecutionQueueProvider(IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider) : IRequestExecutionQueueProvider<RequestContext>
+internal sealed class RequestExecutionQueueProvider() : IRequestExecutionQueueProvider<RequestContext>
 {
     public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
-        var queue = new RoslynRequestExecutionQueue(languageServer, logger, handlerProvider, asynchronousOperationListenerProvider);
+        var queue = new RoslynRequestExecutionQueue(languageServer, logger, handlerProvider);
         queue.Start();
         return queue;
     }
