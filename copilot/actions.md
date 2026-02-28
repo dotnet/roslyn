@@ -46,3 +46,210 @@
 - NativeWriterLimit_Over: skipped — tests native SymWriter byte limits
 - SymWriterErrors_ErrorReturned: skipped — tests native PDB SymWriter error handling
 - SwitchExpression_MethodBody: skipped — VerifyPdb expected XML contains native-PDB-specific elements incompatible with portable PDB
+
+## Project: Microsoft.CodeAnalysis.CSharp.Emit.UnitTests
+
+### PrivateProtected (PrivateProtected.cs) — 22 methods
+- RejectIncompatibleModifiers
+- AccessibleWhereRequired_01
+- AccessibleWhereRequired_02
+- NotAccessibleWhereRequired
+- NotInStructOrNamespace
+- NotInStaticClass
+- NestedTypes
+- PermittedAccessorProtection
+- ForbiddenAccessorProtection_01
+- ForbiddenAccessorProtection_02
+- AtLeastAsRestrictivePositive_01
+- AtLeastAsRestrictiveNegative_01
+- DuplicateAccessInBinder
+- NotInVersion71
+- VerifyPrivateProtectedIL
+- VerifyPartialPartsMatch
+- VerifyProtectedSemantics
+- HidingAbstract
+- HidingInaccessible
+- UnimplementedInaccessible
+- ImplementInaccessible
+- VerifyPPExtension
+
+### CompilationEmitTests (Emit/CompilationEmitTests.cs) — 22 methods
+- RefAssembly_NoPia
+- RefAssembly_NoPia_ReferenceFromMethodBody
+- CheckUnsafeAttributes3
+- CheckUnsafeAttributes4
+- CheckUnsafeAttributes5
+- CheckUnsafeAttributes6
+- CheckUnsafeAttributes7
+- CheckUnsafeAttributes8
+- CheckUnsafeAttributes9
+- PlatformMismatch_01
+- PlatformMismatch_02
+- PlatformMismatch_03
+- PlatformMismatch_04
+- PlatformMismatch_05
+- PlatformMismatch_06
+- PlatformMismatch_07
+- PlatformMismatch_08
+- BrokenPDBStream
+- MultipleNetmodulesWithPrivateImplementationDetails
+- MultipleNetmodulesWithAnonymousTypes
+
+### CodeGenTupleTest (CodeGen/CodeGenTupleTest.cs) — 16 methods
+- LongTupleDeclaration
+- DefaultAndFriendlyElementNames_01
+- DefaultAndFriendlyElementNames_LongTuple
+- DefaultAndFriendlyElementNames_02
+- DefaultAndFriendlyElementNames_03
+- DefaultAndFriendlyElementNames_05
+- DefaultAndFriendlyElementNames_08
+- DefaultAndFriendlyElementNames_09
+- CreationOfTupleSymbols_01
+- UnifyUnderlyingWithTuple_05
+- RefTupleDynamicDecode001
+- RefTupleDynamicDecode004
+- Serialization
+
+### CodeGenExprLambdaTests (CodeGen/CodeGenExprLambdaTests.cs) — 11 methods
+- AnonymousCreation
+- BinaryAddOperandTypesDelegate
+- CoalesceWithImplicitUDC
+- ArrayIndexTypeLong
+- UnsafeParamTypeInDelegate
+- AnonTypes2
+- ConditionalWithOperandTypesObjectArrAndStringArr
+- IndexerIsIndexedProperty
+- CheckedEnumConversion
+- EnumConversions001
+- EnumConversions002
+
+### CodeGenTests (CodeGen/CodeGenTests.cs) — 9 methods
+- TestBug15818
+- TestAssignIdentity
+- TestRefCast
+- InitFromBlob
+- VarargBridgeSource
+- VarargByRef
+- VarargBridgeMeta
+
+### CodeGenOperators (CodeGen/CodeGenOperators.cs) — 8 methods
+- TestFloatNegativeZero
+- TestDoubleNegativeZero
+- TestDecimalNegativeZero
+
+### DestructorTests (CodeGen/DestructorTests.cs) — 7 methods
+- ClassDestructor
+- SubclassDestructor
+- DestructorOverridesNonDestructor
+- BaseTypeHasNonVirtualFinalize
+- GenericBaseTypeHasNonVirtualFinalize
+
+### CodeGenTryFinally (CodeGen/CodeGenTryFinally.cs) — 7 methods
+- NestedExceptionHandlersThreadAbort01
+- NestedExceptionHandlersThreadAbort02
+- NestedExceptionHandlersThreadAbort03
+- NestedExceptionHandlersThreadAbort04
+- NestedExceptionHandlersThreadAbort05
+- NestedExceptionHandlersThreadAbort06
+- NestedExceptionHandlersThreadAbort07
+
+### ResourceTests (Emit/ResourceTests.cs) — 5 methods
+- DefaultVersionResource
+- ResourcesInCoff
+- AddManagedResource
+- AddResourceToModule
+- ResourceWithAttrSettings
+
+### UnsafeTests (CodeGen/UnsafeTests.cs) — 5 methods
+- PointerArrayConversion
+- PointerArrayConversionRuntimeError
+- PointerArrayEnumerableConversion
+- PointerArrayEnumerableConversionRuntimeError
+- PointerArrayForeachEnumerable
+
+### CodeGenImplicitImplementationTests (CodeGen/CodeGenImplicitImplementationTests.cs) — 5 methods
+- TestImplicitImplementationInBaseGenericType
+- TestImplicitImplementationInBaseGenericType2
+- TestImplicitImplementationInBaseGenericType3
+- TestImplicitImplementationInBaseGenericType4
+- TestImplicitImplementationInBaseGenericType5
+
+### CodeGenCheckedTests (CodeGen/CodeGenCheckedTests.cs) — 4 methods
+- CheckedConversionsInExpressionTrees_Implicit
+- CheckedConversionsInExpressionTrees_Explicit
+- CheckedConversionsInExpressionTrees_ExplicitTuple
+
+### DynamicAnalysisResourceTests (Emit/DynamicAnalysis/DynamicAnalysisResourceTests.cs) — 3 methods
+- TestSpansPresentInResource
+- ResourceStatementKinds
+- TestMethodSpansWithAttributes
+
+### CodeGenThrowTests (CodeGen/CodeGenThrowTests.cs) — 3 methods
+- TestThrowNewExpression
+- TestThrowLocalExpression
+- TestThrowNull
+
+### CodeGenExplicitImplementationTests (CodeGen/CodeGenExplicitImplementationTests.cs) — 3 methods
+- TestExplicitImplSignatureMismatches_ParamsAndOptionals
+- TestExplicitImplementationInBaseGenericType
+- TestExplicitImplementationInBaseGenericType2
+
+### CodeGenDeconstructTests (CodeGen/CodeGenDeconstructTests.cs) — 3 methods
+- Constraints_01
+
+### CodeGenCapturing (CodeGen/CodeGenCapturing.cs) — 3 methods
+- GenerateAllTest
+- ExpressionGeneratorTest01
+- AllCaptureTests
+
+### BreakingChanges (BreakingChanges.cs) — 3 methods
+- ExpressionTreeNoCovertForIdentityConversion
+- ExpressionTreeWithNullableUDCandOperator
+
+### PatternTests (CodeGen/PatternTests.cs) — 2 methods
+- SwitchExpressionSequencePoints
+- TargetTypedSwitch_Arglist
+
+### CodeGenShortCircuitOperatorTests (CodeGen/CodeGenShortCircuitOperatorTests.cs) — 2 methods
+
+### CodeGenScriptTests (CodeGen/CodeGenScriptTests.cs) — 2 methods
+- ScriptEntryPoint
+- SubmissionEntryPoint
+
+### CodeGenLocalFunctionTests (CodeGen/CodeGenLocalFunctionTests.cs) — 2 methods
+- LocalFunctionAttribute_TypeIL
+
+### CodeGenInParametersTests (CodeGen/CodeGenInParametersTests.cs) — 2 methods
+- InParamGenericReadonly
+- InParamGenericReadonlyROstruct
+
+### OptionalArgumentsTests (Emit/OptionalArgumentsTests.cs) — 1 method
+- TestDuplicateConstantAttributesMetadata
+
+### NoPiaEmbedTypes (Emit/NoPiaEmbedTypes.cs) — 1 method
+
+### SwitchTests (CodeGen/SwitchTests.cs) — 1 method
+- ShareLikeKindedTemps_01
+
+### CodeGenUsingStatementTests (CodeGen/CodeGenUsingStatementTests.cs) — 1 method
+- ObjectCreateInsideUsing
+
+### CodeGenUsingDeclarationTests (CodeGen/CodeGenUsingDeclarationTests.cs) — 1 method
+- UsingVariableVarEmitTest
+
+### CodeGenStructsAndEnum (CodeGen/CodeGenStructsAndEnum.cs) — 1 method
+- InplaceCtor005
+
+### CodeGenOverridingAndHiding (CodeGen/CodeGenOverridingAndHiding.cs) — 1 method
+- TestCallMethodsWithLeastCustomModifiers
+
+### CodeGenNullCoalescingAssignmentTests (CodeGen/CodeGenNullCoalescingAssignmentTests.cs) — 1 method
+- IndexerLvalue
+
+### CodeGenIterators (CodeGen/CodeGenIterators.cs) — 1 method
+
+### CodeGenDynamicTests (CodeGen/CodeGenDynamicTests.cs) — 1 method
+- ByRefDynamic
+
+### CodeGenConstructorInitTests (CodeGen/CodeGenConstructorInitTests.cs) — 1 method
+- StaticNullInitializerHasNoEffectOnTypeIL
