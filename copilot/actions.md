@@ -301,3 +301,47 @@
 
 ### CodeGenStructsAndEnum (CodeGen/CodeGenStructsAndEnum.cs)
 - InplaceCtor005: skipped — WindowsDesktopOnly, RestrictedTypesNeedDesktop
+
+### DestructorTests (CodeGen/DestructorTests.cs)
+- ClassDestructor: ported — DesktopOnly→Fact, passes on net10.0
+- ExpressionBodiedClassDestructor: ported — DesktopOnly→Fact, passes on net10.0
+- ExpressionBodiedSubClassDestructor: ported — DesktopOnly→Fact, passes on net10.0
+- SubclassDestructor: ported — DesktopOnly→Fact, passes on net10.0
+- DestructorOverridesNonDestructor: skipped — WindowsDesktopOnly
+- DestructorBody: skipped — WindowsDesktopOnly
+- PartialClassDestructor: skipped — WindowsDesktopOnly
+
+### CodeGenShortCircuitOperatorTests (CodeGen/CodeGenShortCircuitOperatorTests.cs)
+- TestOr: ported — DesktopOnly→Fact, passes on net10.0
+- TestAnd: ported — DesktopOnly→Fact, passes on net10.0
+
+### CodeGenScriptTests (CodeGen/CodeGenScriptTests.cs)
+- ScriptEntryPoint: ported — DesktopOnly→Fact, passes on net10.0
+- SubmissionEntryPoint: ported — DesktopOnly→Fact, passes on net10.0
+
+### CodeGenDynamicTests (CodeGen/CodeGenDynamicTests.cs)
+- ByRefDynamic: ported — DesktopOnly→Fact, passes on net10.0
+
+### CodeGenCapturing (CodeGen/CodeGenCapturing.cs)
+- GenerateAllTest: ported — WindowsOnly→Fact, passes on net10.0
+- ExpressionGeneratorTest01: ported — WindowsOnly→Fact, passes on net10.0
+- AllCaptureTests: ported — removed WindowsOnly from multi-condition, passes on net10.0
+
+### CodeGenOverridingAndHiding (CodeGen/CodeGenOverridingAndHiding.cs)
+- All methods are ClrOnly (Mono skip) — already run on .NET Core, no changes needed
+
+### CodeGenInParametersTests (CodeGen/CodeGenInParametersTests.cs)
+- All methods are ClrOnly (Mono skip) — already run on .NET Core, no changes needed
+
+### CodeGenTryFinally (CodeGen/CodeGenTryFinally.cs)
+- All 7 methods: skipped — WindowsDesktopOnly, ThreadAbort not supported on .NET Core
+
+### BreakingChanges (BreakingChanges.cs)
+- All 3 methods: skipped — WindowsDesktopOnly, fails on .NET Core
+
+### CodeGenLocalFunctionTests (CodeGen/CodeGenLocalFunctionTests.cs)
+- All 2 methods: skipped — attempted port, tests fail on .NET Core
+
+### CodeGenDeconstructTests (CodeGen/CodeGenDeconstructTests.cs)
+- Constraints_01: skipped — attempted port, fails on .NET Core
+- 2 other methods: skipped — WindowsDesktopOnly
