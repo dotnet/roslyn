@@ -80,8 +80,9 @@ internal abstract class CodeGenerationTypeSymbol(
 
     public virtual bool IsRecord => false;
 
-    public NullableAnnotation NullableAnnotation { get; } = nullableAnnotation;
+    public virtual bool IsUnion => false;
 
+    public NullableAnnotation NullableAnnotation { get; } = nullableAnnotation;
     public ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation)
         => this.NullableAnnotation == nullableAnnotation ? this : CloneWithNullableAnnotation(nullableAnnotation);
 

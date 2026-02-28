@@ -1490,6 +1490,7 @@ Microsoft.CodeAnalysis.ITypeSymbol.get_IsRecord
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsRefLikeType
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsReferenceType
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsTupleType
+Microsoft.CodeAnalysis.ITypeSymbol.get_IsUnion
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsUnmanagedType
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsValueType
 Microsoft.CodeAnalysis.ITypeSymbol.get_NullableAnnotation

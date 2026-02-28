@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
@@ -67,14 +68,14 @@ sealed class C4 : C1
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyEmitDiagnostics();
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
-            Assert.True(comp.GetTypeByMetadataName("C1").IsUnionType);
-            Assert.True(comp.GetTypeByMetadataName("C2").IsUnionType);
-            Assert.False(comp.GetTypeByMetadataName("C4").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
+            Assert.True(comp.GetTypeByMetadataName("C1").GetPublicSymbol().IsUnion);
+            Assert.True(comp.GetTypeByMetadataName("C2").GetPublicSymbol().IsUnion);
+            Assert.False(comp.GetTypeByMetadataName("C4").GetPublicSymbol().IsUnion);
 
-            Assert.False(comp.GetTypeByMetadataName("I1").IsUnionType);
-            Assert.False(comp.GetTypeByMetadataName("S2").IsUnionType);
-            Assert.False(comp.GetTypeByMetadataName("C3").IsUnionType);
+            Assert.False(comp.GetTypeByMetadataName("I1").GetPublicSymbol().IsUnion);
+            Assert.False(comp.GetTypeByMetadataName("S2").GetPublicSymbol().IsUnion);
+            Assert.False(comp.GetTypeByMetadataName("C3").GetPublicSymbol().IsUnion);
         }
 
         [Fact]
@@ -97,7 +98,7 @@ namespace System.Runtime.CompilerServices
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
         }
 
         [Fact]
@@ -112,7 +113,7 @@ public struct S1
 ";
             var comp1 = CreateCompilation([src1, UnionAttributeSource]);
             comp1.VerifyEmitDiagnostics();
-            Assert.True(comp1.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp1.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
 
             var src2 = @"
 [System.Runtime.CompilerServices.Union]
@@ -124,8 +125,55 @@ struct S2
             var comp2 = CreateCompilation([src2, UnionAttributeSource], references: [comp1.EmitToImageReference()]);
             comp1.VerifyEmitDiagnostics();
 
-            Assert.True(comp2.GetTypeByMetadataName("S1").IsUnionType);
-            Assert.True(comp2.GetTypeByMetadataName("S2").IsUnionType);
+            Assert.True(comp2.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
+            Assert.True(comp2.GetTypeByMetadataName("S2").GetPublicSymbol().IsUnion);
+        }
+
+        [Fact]
+        public void UnionType_04_Retargeting()
+        {
+            var libSrc = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1
+{
+    public S1(int x) {}
+    public S1(bool x) {}
+    public object Value => null;
+}
+
+public struct S2
+{
+    public object Value => null;
+}
+";
+            var libComp = CreateCompilation([libSrc, UnionAttributeSource], targetFramework: TargetFramework.Mscorlib40);
+            libComp.VerifyEmitDiagnostics();
+
+            var comp = CreateCompilation("", targetFramework: TargetFramework.Mscorlib46, references: [libComp.ToMetadataReference()]);
+
+            var s1 = comp.GetTypeByMetadataName("S1");
+            Assert.IsType<RetargetingNamedTypeSymbol>(s1);
+            Assert.True(s1.GetPublicSymbol().IsUnion);
+
+            var s2 = comp.GetTypeByMetadataName("S2");
+            Assert.IsType<RetargetingNamedTypeSymbol>(s2);
+            Assert.False(s2.GetPublicSymbol().IsUnion);
+        }
+
+        [Fact]
+        public void UnionType_05_Retargeting_UnionDeclaration()
+        {
+            var libSrc = @"
+public union S1(int, bool);
+";
+            var libComp = CreateCompilation([libSrc, UnionAttributeSource], targetFramework: TargetFramework.Mscorlib40);
+            libComp.VerifyEmitDiagnostics();
+
+            var comp = CreateCompilation("", targetFramework: TargetFramework.Mscorlib46, references: [libComp.ToMetadataReference()]);
+
+            var s1 = comp.GetTypeByMetadataName("S1");
+            Assert.IsType<RetargetingNamedTypeSymbol>(s1);
+            Assert.True(s1.GetPublicSymbol().IsUnion);
         }
 
         [Fact]
@@ -183,7 +231,7 @@ class C5
         private static void VerifyCaseTypes(CSharpCompilation comp, string typeName, string[] caseTypes)
         {
             var type = comp.GetTypeByMetadataName(typeName);
-            Assert.True(type.IsUnionType);
+            Assert.True(type.GetPublicSymbol().IsUnion);
             AssertEx.SequenceEqual(caseTypes, type.UnionCaseTypes.ToTestDisplayStrings());
         }
 
@@ -227,7 +275,7 @@ struct S2
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("S2");
-            Assert.False(type.IsUnionType);
+            Assert.False(type.GetPublicSymbol().IsUnion);
             AssertEx.SequenceEqual([], type.UnionCaseTypes.ToTestDisplayStrings());
         }
 
@@ -274,7 +322,7 @@ sealed class C5 : C1
             VerifyCaseTypes(comp, "C4", ["System.String"]);
 
             var c5 = comp.GetTypeByMetadataName("C5");
-            Assert.False(c5.IsUnionType);
+            Assert.False(c5.GetPublicSymbol().IsUnion);
             AssertEx.SequenceEqual([], c5.UnionCaseTypes.ToTestDisplayStrings());
         }
 
@@ -19633,7 +19681,7 @@ class Program
 
             var comp1 = CreateCompilation([unionSrc, UnionAttributeSource, consumer], options: TestOptions.DebugExe);
             var s1 = comp1.GetTypeByMetadataName("S1");
-            Assert.True(s1.IsUnionType);
+            Assert.True(s1.GetPublicSymbol().IsUnion);
             Assert.False(s1.IsRecordStruct);
             Assert.False(s1.IsRecord);
 
@@ -19781,7 +19829,7 @@ class Program
 
             var comp2 = CreateCompilation(consumer, references: [verifier.GetImageReference()], options: TestOptions.DebugExe);
             var s12 = comp2.GetTypeByMetadataName("S1");
-            Assert.True(s12.IsUnionType);
+            Assert.True(s12.GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp2, "S1", ["System.Boolean", "System.Int32"]);
 
             members = s12.GetMembers();
@@ -19864,7 +19912,7 @@ union S1(int, long)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int, long)").WithLocation(200, 9)
                 );
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
         }
 
@@ -19883,7 +19931,7 @@ partial union S1
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyEmitDiagnostics();
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
         }
 
@@ -19902,7 +19950,7 @@ partial union S1(int, bool)
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyEmitDiagnostics();
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
         }
 
@@ -20013,7 +20061,7 @@ union S1;
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "S1").WithLocation(100, 7)
                 );
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", []);
         }
 
@@ -20033,7 +20081,7 @@ union S1();
                 Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(100, 10)
                 );
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["?"]);
         }
 
@@ -20054,7 +20102,7 @@ union S1(int, bool)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(2, 7)
                 );
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
         }
 
@@ -20069,7 +20117,7 @@ union S1(
 );
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["System.String"]);
 
             CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify).VerifyDiagnostics();
@@ -20077,6 +20125,7 @@ union S1(
             void verify(ModuleSymbol m)
             {
                 var s1 = m.GlobalNamespace.GetTypeMember("S1");
+                Assert.True(s1.GetPublicSymbol().IsUnion);
                 AssertEx.Equal("S1..ctor(System.String? value)", s1.InstanceConstructors.Where(c => c.ParameterCount == 1).Single().ToTestDisplayString());
             }
         }
@@ -20088,8 +20137,12 @@ union S1(
 union S1<T>(T);
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            Assert.True(comp.GetTypeByMetadataName("S1`1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1`1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1`1", ["T"]);
+
+            var s1OfInt = comp.GetTypeByMetadataName("S1`1").Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.IsType<ConstructedNamedTypeSymbol>(s1OfInt);
+            Assert.True(s1OfInt.GetPublicSymbol().IsUnion);
 
             comp.VerifyEmitDiagnostics();
         }
@@ -20102,7 +20155,7 @@ union S1<T>(T);
 union S1(System.ArgIterator, int);
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["System.ArgIterator", "System.Int32"]);
 
             comp.VerifyEmitDiagnostics(
@@ -20191,7 +20244,7 @@ class Program
 union S1(System.Nullable<string>);
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("S1").GetPublicSymbol().IsUnion);
             VerifyCaseTypes(comp, "S1", ["System.String?"]);
 
             comp.VerifyEmitDiagnostics(

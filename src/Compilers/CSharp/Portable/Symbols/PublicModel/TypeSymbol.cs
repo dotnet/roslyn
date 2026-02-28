@@ -199,5 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
 
         bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord || UnderlyingTypeSymbol.IsRecordStruct;
+
+        bool ITypeSymbol.IsUnion => UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsUnionType: true };
     }
 }

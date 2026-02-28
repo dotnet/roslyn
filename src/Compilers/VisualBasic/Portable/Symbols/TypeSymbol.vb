@@ -611,6 +611,13 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsUnion As Boolean Implements ITypeSymbol.IsUnion
+            Get
+                ' VB does not have unions
+                Return False
+            End Get
+        End Property
+
         Private Function ITypeSymbol_ToDisplayString(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToDisplayString
             Return ToDisplayString(format)
         End Function
