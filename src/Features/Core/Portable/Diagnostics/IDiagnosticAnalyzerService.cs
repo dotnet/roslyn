@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -96,6 +97,13 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Solution solution, ProjectId? projectId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets a cached snapshot of diagnostic descriptors for the given <paramref name="projectId"/>.
+    /// This call never computes descriptors synchronously. If no cached data is available, returns <see langword="false"/>.
+    /// </summary>
+    bool TryGetCachedDiagnosticDescriptorsPerReference(
+        ProjectId projectId, [NotNullWhen(returnValue: true)] out ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>? descriptorsPerReference);
 
     /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(

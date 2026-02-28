@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -56,6 +55,7 @@ internal sealed partial class DiagnosticAnalyzerService
     private readonly IGlobalOptionService _globalOptions;
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
+    private readonly DiagnosticDescriptorCache _descriptorCache;
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
     private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
     private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
@@ -81,6 +81,7 @@ internal sealed partial class DiagnosticAnalyzerService
         _listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         _globalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
+        _descriptorCache = new(workspace, this, _listener);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {

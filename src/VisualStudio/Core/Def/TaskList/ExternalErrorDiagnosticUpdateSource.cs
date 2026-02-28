@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -118,13 +117,13 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     /// for the given <paramref name="projectId"/> during the current build in progress.
     /// This API is only intended to be invoked from <see cref="ProjectExternalErrorReporter"/> while a build is in progress.
     /// </summary>
-    public async Task<bool> IsSupportedDiagnosticIdAsync(ProjectId projectId, string id, CancellationToken cancellationToken)
+    public bool IsUnsupportedDiagnosticId(ProjectId projectId, string id)
     {
         var state = GetBuildInProgressState();
         if (state is null)
             return false;
 
-        return await state.IsSupportedDiagnosticIdAsync(projectId, id, cancellationToken).ConfigureAwait(false);
+        return state.IsUnsupportedDiagnosticId(projectId, id);
     }
 
     public void ClearErrors(ProjectId projectId)
@@ -327,39 +326,36 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         /// <summary>
         /// Map from project ID to all the possible analyzer diagnostic IDs that can be reported in the project.
         /// </summary>
-        private ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> _allDiagnosticIdMap = ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>>.Empty;
+        private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = [];
 
         public Solution Solution { get; } = solution;
 
-        public async Task<bool> IsSupportedDiagnosticIdAsync(ProjectId projectId, string id, CancellationToken cancellationToken)
+        public bool IsUnsupportedDiagnosticId(ProjectId projectId, string id)
         {
-            var lazyIds = _allDiagnosticIdMap.TryGetValue(projectId, out var temp)
-                ? temp
-                : GetLazyIdsSlow();
-
-            var ids = await lazyIds.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return ids.Contains(id);
-
-            AsyncLazy<ImmutableHashSet<string>> GetLazyIdsSlow()
+            var project = Solution.GetProject(projectId);
+            if (project is null)
             {
-                return ImmutableInterlocked.GetOrAdd(ref _allDiagnosticIdMap, projectId, projectId => AsyncLazy.Create(async cancellationToken =>
-                {
-                    var project = Solution.GetProject(projectId);
-                    if (project == null)
-                    {
-                        // projectId no longer exist
-                        return [];
-                    }
-
-                    // set ids set
-                    var builder = ImmutableHashSet.CreateBuilder<string>();
-                    var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                    var descriptorMap = await service.GetDiagnosticDescriptorsPerReferenceAsync(project, cancellationToken).ConfigureAwait(false);
-                    builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-                    return builder.ToImmutable();
-                }));
+                return true;
             }
+
+            if (!_allDiagnosticIdMap.TryGetValue(projectId, out var supportedIds))
+            {
+                var service = Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                if (!service.TryGetCachedDiagnosticDescriptorsPerReference(projectId, out var descriptorMap))
+                {
+                    // The cache hasn't been populated yet. We will report false because we do not know
+                    // for certain that we do not support the diagnostic id.
+                    return false;
+                }
+
+                supportedIds = _allDiagnosticIdMap.AddOrUpdate(
+                    projectId,
+                    static (projectId, descriptorMap) => [.. descriptorMap.Values.SelectMany(static descriptors => descriptors.Select(descriptor => descriptor.Id))],
+                    static (_, existing, _) => existing,
+                    descriptorMap);
+            }
+
+            return !supportedIds.Contains(id);
         }
     }
 }

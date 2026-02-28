@@ -7,8 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,7 +17,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -202,78 +199,72 @@ internal sealed class ProjectExternalErrorReporter(
         int iEndColumn,
         string bstrFileName)
     {
-
         // make sure we have error id, otherwise, we simple don't support
         // this error
-        if (bstrErrorId == null)
+        if (bstrErrorId?.Length is null or 0)
         {
-            // record NFW to see who violates contract.
-            FatalError.ReportAndCatch(new Exception("errorId is null"));
+            if (bstrErrorId is null)
+                // record NFW to see who violates contract.
+                FatalError.ReportAndCatch(new Exception("errorId is null"));
+
+            throw new NotImplementedException();
+        }
+
+        if (!bstrErrorId.StartsWith(_errorCodePrefix) &&
+            DiagnosticProvider.IsUnsupportedDiagnosticId(_projectId, bstrErrorId))
+        {
+            throw new NotImplementedException();
+        }
+
+        if ((iEndLine >= 0 && iEndColumn >= 0) &&
+            ((iEndLine < iStartLine) ||
+            (iEndLine == iStartLine && iEndColumn < iStartColumn)))
+        {
+            throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
+        }
+
+        var severity = nPriority switch
+        {
+            VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
+            VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
+            VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
+            _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
+        };
+
+        DocumentId? documentId;
+        if (iStartLine < 0 || iStartColumn < 0)
+        {
+            documentId = null;
+            iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
+        }
+        else
+        {
+            documentId = TryGetDocumentId(bstrFileName);
+        }
+
+        if (iEndLine < 0)
+            iEndLine = iStartLine;
+        if (iEndColumn < 0)
+            iEndColumn = iStartColumn;
+
+        var solution = _workspace.CurrentSolution;
+        var project = solution.GetProject(_projectId);
+        if (project is null)
             return;
-        }
 
-        Task.Run(() => ReportErrorAsync()).Forget();
+        var diagnostic = GetDiagnosticData(
+            project,
+            documentId,
+            bstrErrorId,
+            bstrErrorMessage,
+            severity,
+            _language,
+            new FileLinePositionSpan(
+                bstrFileName,
+                new LinePosition(iStartLine, iStartColumn),
+                new LinePosition(iEndLine, iEndColumn)));
 
-        async Task ReportErrorAsync()
-        {
-
-            if (!bstrErrorId.StartsWith(_errorCodePrefix) &&
-                !await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
-                    _projectId, bstrErrorId, CancellationToken.None).ConfigureAwait(false))
-            {
-                return;
-            }
-
-            if ((iEndLine >= 0 && iEndColumn >= 0) &&
-               ((iEndLine < iStartLine) ||
-                (iEndLine == iStartLine && iEndColumn < iStartColumn)))
-            {
-                throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
-            }
-
-            var severity = nPriority switch
-            {
-                VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
-                VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
-                VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
-                _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
-            };
-
-            DocumentId? documentId;
-            if (iStartLine < 0 || iStartColumn < 0)
-            {
-                documentId = null;
-                iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
-            }
-            else
-            {
-                documentId = TryGetDocumentId(bstrFileName);
-            }
-
-            if (iEndLine < 0)
-                iEndLine = iStartLine;
-            if (iEndColumn < 0)
-                iEndColumn = iStartColumn;
-
-            var solution = _workspace.CurrentSolution;
-            var project = solution.GetProject(_projectId);
-            if (project is null)
-                return;
-
-            var diagnostic = GetDiagnosticData(
-                project,
-                documentId,
-                bstrErrorId,
-                bstrErrorMessage,
-                severity,
-                _language,
-                new FileLinePositionSpan(
-                    bstrFileName,
-                    new LinePosition(iStartLine, iStartColumn),
-                    new LinePosition(iEndLine, iEndColumn)));
-
-            DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
-        }
+        DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
     }
 
     private static DiagnosticData GetDiagnosticData(

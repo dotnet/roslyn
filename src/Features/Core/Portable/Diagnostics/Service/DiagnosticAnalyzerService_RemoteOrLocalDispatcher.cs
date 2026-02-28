@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -100,6 +100,11 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         }
 
         return builder.ToImmutableArray();
+    }
+
+    public bool TryGetCachedDiagnosticDescriptorsPerReference(ProjectId projectId, [NotNullWhen(returnValue: true)] out ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>? descriptorsPerReference)
+    {
+        return _descriptorCache.TryGetDiagnosticDescriptorsPerReference(projectId, out descriptorsPerReference);
     }
 
     public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
