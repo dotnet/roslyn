@@ -253,3 +253,8 @@
 
 ### CodeGenConstructorInitTests (CodeGen/CodeGenConstructorInitTests.cs) — 1 method
 - StaticNullInitializerHasNoEffectOnTypeIL
+
+---
+
+### PrivateProtected (PrivateProtected.cs)
+- All 22 methods: ported — changed DesktopOnly to Fact; pure compilation/diagnostic tests with no desktop dependencies
