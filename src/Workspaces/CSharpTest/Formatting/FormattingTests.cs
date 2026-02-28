@@ -9899,9 +9899,11 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
     private Task AssertFormatBodyAsync(string expected, string input)
     {
-        static string transform(string s)
+        var newLine = LineFormattingOptions.Default.NewLine;
+
+        static string transform(string s, string nl)
         {
-            var lines = s.Split([Environment.NewLine], StringSplitOptions.None);
+            var lines = s.Split([nl], StringSplitOptions.None);
             for (var i = 0; i < lines.Length; i++)
             {
                 if (!string.IsNullOrEmpty(lines[i]))
@@ -9910,7 +9912,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
 
-            return string.Join(Environment.NewLine, lines);
+            return string.Join(nl, lines);
         }
 
         var pattern = """
@@ -9924,8 +9926,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }}
             """;
 
-        expected = string.Format(pattern, transform(expected));
-        input = string.Format(pattern, transform(input));
+        expected = string.Format(pattern, transform(expected, newLine));
+        input = string.Format(pattern, transform(input, newLine));
         return AssertFormatAsync(expected, input);
     }
 

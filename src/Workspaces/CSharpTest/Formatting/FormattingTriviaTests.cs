@@ -1657,7 +1657,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
             }
             """;
         var tree = SyntaxFactory.ParseCompilationUnit(code);
-        var newLine = Environment.NewLine;
+        var newLine = LineFormattingOptions.Default.NewLine;
 
         tree = tree.ReplaceTokens(tree.DescendantTokens(descendIntoTrivia: true)
                                       .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(SyntaxFactory.ElasticEndOfLine(newLine)))
