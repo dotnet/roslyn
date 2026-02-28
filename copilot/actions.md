@@ -258,3 +258,22 @@
 
 ### PrivateProtected (PrivateProtected.cs)
 - All 22 methods: ported — changed DesktopOnly to Fact; pure compilation/diagnostic tests with no desktop dependencies
+
+### CompilationEmitTests (Emit/CompilationEmitTests.cs)
+- RefAssembly_NoPia: skipped — NoPIA genuinely needs desktop
+- RefAssembly_NoPia_ReferenceFromMethodBody: skipped — NoPIA genuinely needs desktop
+- RefAssembly_InvariantToResourceChanges: skipped — wrapped in #if NET472, not compilable on .NET Core
+- CheckUnsafeAttributes3-9: skipped — hardcodes mscorlib assembly identity in DeclSecurity validation
+- PlatformMismatch_01-08, TestCompilationEmitUsesDifferentStreamsForBinaryAndPdb: skipped — uses CreateEmptyCompilation with no .NET Core refs, fails with OperatingSystem.IsWindows() error
+- BrokenPDBStream: skipped — native PDB stream error handling differs on .NET Core
+- MultipleNetmodulesWithPrivateImplementationDetails: skipped — net modules need desktop
+- MultipleNetmodulesWithAnonymousTypes: skipped — net modules need desktop
+
+### CodeGenTupleTests (CodeGen/CodeGenTupleTest.cs)
+- LongTupleDeclaration: ported — changed DesktopOnly to Fact
+- Serialization: ported — changed DesktopOnly to Fact
+- DefaultAndFriendlyElementNames_01, _02, _03, _05, _08, _LongTuple: skipped — tests use MscorlibRef or reference mscorlib identity in symbol validation
+- CreationOfTupleSymbols_01: skipped — references mscorlib-specific symbols
+- UnifyUnderlyingWithTuple_05: skipped — references mscorlib-specific symbols
+- RefTupleDynamicDecode001, RefTupleDynamicDecode004: skipped — reference mscorlib-specific symbols
+- DefaultAndFriendlyElementNames_09: skipped — WindowsOnly, newline dependency

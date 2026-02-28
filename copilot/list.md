@@ -19,8 +19,8 @@
 ### Classes
 
 - [x] PrivateProtected.cs (22 methods)
-- [ ] Emit/CompilationEmitTests.cs (22 methods)
-- [ ] CodeGen/CodeGenTupleTest.cs (16 methods)
+- [x] Emit/CompilationEmitTests.cs (22 methods)
+- [x] CodeGen/CodeGenTupleTest.cs (16 methods)
 - [ ] CodeGen/CodeGenExprLambdaTests.cs (11 methods)
 - [ ] CodeGen/CodeGenTests.cs (9 methods)
 - [ ] CodeGen/CodeGenOperators.cs (8 methods)
