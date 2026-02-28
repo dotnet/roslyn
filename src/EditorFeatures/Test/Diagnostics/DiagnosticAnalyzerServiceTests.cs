@@ -13,12 +13,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -68,6 +68,103 @@ public sealed class DiagnosticAnalyzerServiceTests
             workspace.CurrentSolution.Projects.Single(), documentIds: default, diagnosticIds: null, AnalyzerFilter.All,
             includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
+    }
+
+    [Fact]
+    public async Task TestDiagnosticDescriptorCache_Populates()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class A { }");
+        var listenerProvider = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+
+        var analyzer = new DescriptorOnlyAnalyzer("CACHE001");
+        var analyzerReference = new AnalyzerImageReference([analyzer]);
+        SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference);
+
+        var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(analyzerReference);
+        Assert.True(workspace.TryApplyChanges(project.Solution));
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        Assert.False(service.TryGetCachedDiagnosticDescriptorsPerReference(project.Id, out _));
+
+        // Waiting for DiagnosticService to process should populate the cache.
+        await listenerProvider.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService]);
+
+        Assert.True(service.TryGetCachedDiagnosticDescriptorsPerReference(project.Id, out var descriptorsPerReference));
+
+        AssertEx.NotNull(descriptorsPerReference);
+
+        Assert.Contains(
+            descriptorsPerReference.Values.SelectMany(static descriptors => descriptors),
+            static descriptor => descriptor.Id == "CACHE001");
+    }
+
+    [Fact]
+    public async Task TestDiagnosticDescriptorCache_RefreshesOnAnalyzerReferenceChange()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class A { }");
+        var listenerProvider = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+
+        var analyzer1 = new DescriptorOnlyAnalyzer("CACHE001");
+        var analyzerReference1 = new AnalyzerImageReference([analyzer1]);
+        SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference1);
+
+        var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(analyzerReference1);
+        Assert.True(workspace.TryApplyChanges(project.Solution));
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        await listenerProvider.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService]);
+
+        Assert.True(service.TryGetCachedDiagnosticDescriptorsPerReference(project.Id, out var initialDescriptors));
+        Assert.Contains(initialDescriptors.Values.SelectMany(static descriptors => descriptors), static descriptor => descriptor.Id == "CACHE001");
+
+        var analyzer2 = new DescriptorOnlyAnalyzer("CACHE002");
+        var analyzerReference2 = new AnalyzerImageReference([analyzer2]);
+        SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference2);
+
+        project = workspace.CurrentSolution.Projects.Single().WithAnalyzerReferences([analyzerReference2]);
+        Assert.True(workspace.TryApplyChanges(project.Solution));
+
+        await listenerProvider.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService]);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        Assert.True(service.TryGetCachedDiagnosticDescriptorsPerReference(project.Id, out var refreshedDescriptors));
+
+        var refreshed = refreshedDescriptors.Values.SelectMany(static descriptors => descriptors).Select(static d => d.Id).ToImmutableHashSet();
+        Assert.Contains("CACHE002", refreshed);
+        Assert.DoesNotContain("CACHE001", refreshed);
+    }
+
+    [Fact]
+    public async Task TestDiagnosticDescriptorCache_RemovesDeletedProjects()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class A { }");
+        var listenerProvider = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+
+        var analyzer = new DescriptorOnlyAnalyzer("CACHE001");
+        var analyzerReference = new AnalyzerImageReference([analyzer]);
+        SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference);
+
+        var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(analyzerReference);
+        Assert.True(workspace.TryApplyChanges(project.Solution));
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var projectId = project.Id;
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        await listenerProvider.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService]);
+
+        Assert.True(service.TryGetCachedDiagnosticDescriptorsPerReference(projectId, out _));
+
+        var newSolution = workspace.CurrentSolution.RemoveProject(projectId);
+        Assert.True(workspace.TryApplyChanges(newSolution));
+
+        await listenerProvider.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService]);
+
+        Assert.False(service.TryGetCachedDiagnosticDescriptorsPerReference(projectId, out _));
     }
 
     [Fact]
@@ -1015,6 +1112,19 @@ public sealed class DiagnosticAnalyzerServiceTests
         public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
         {
             return [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())];
+        }
+    }
+
+    private sealed class DescriptorOnlyAnalyzer(string id) : DiagnosticAnalyzer
+    {
+#pragma warning disable RS1017 // DiagnosticId for analyzers must be a non-null constant
+        private readonly DiagnosticDescriptor _descriptor = new(id, "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+#pragma warning restore RS1017 // DiagnosticId for analyzers must be a non-null constant
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
         }
     }
 

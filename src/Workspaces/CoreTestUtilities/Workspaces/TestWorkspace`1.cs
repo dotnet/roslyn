@@ -337,6 +337,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         {
             case ApplyChangesKind.AddDocument:
             case ApplyChangesKind.RemoveDocument:
+            case ApplyChangesKind.RemoveProject:
                 return KindSupportsAddRemoveDocument();
 
             case ApplyChangesKind.AddAdditionalDocument:

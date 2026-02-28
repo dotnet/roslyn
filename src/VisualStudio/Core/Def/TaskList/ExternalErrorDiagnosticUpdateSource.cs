@@ -121,7 +121,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         var state = GetBuildInProgressState();
         if (state is null)
-            return false;
+            return true;
 
         return state.IsUnsupportedDiagnosticId(projectId, id);
     }
