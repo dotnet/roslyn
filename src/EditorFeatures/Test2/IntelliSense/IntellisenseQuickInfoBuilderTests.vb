@@ -1278,6 +1278,45 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
+        ' PROTOTYPE Consider displaying unions as `union MyUnion` instead of `struct MyUnion` and with a separate classification type
+        ' PROTOTYPE Consider listing case types in QuickInfo tooltip for unions
+        <WpfFact>
+        Public Async Function QuickInfoForUnions() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <Document>
+                            union TestUnion(int, string) { }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    Test$$Union x = default;
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ValueTypeInternal)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "struct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "TestUnion", navigationAction:=Sub() Return, "TestUnion"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16353")>
         Public Async Function QuickInfoForAlias1() As Task
             Dim workspace =
