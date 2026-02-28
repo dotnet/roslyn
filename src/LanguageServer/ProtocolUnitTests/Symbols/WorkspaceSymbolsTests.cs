@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -48,6 +49,29 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
         var expected = new LSP.SymbolInformation[]
         {
             CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal, GetContainerName(testLspServer.GetCurrentSolution()))
+        };
+
+        var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A").ConfigureAwait(false);
+        AssertSetEquals(expected, results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetWorkspaceSymbolsAsync_Union(bool mutatingLspWorkspace)
+    {
+        // Verifies that union declarations map to SymbolKind.Struct in LSP
+        var markup =
+            """
+            union {|union:A|}(int)
+            {
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(
+            markup, mutatingLspWorkspace,
+            initializationOptions: new InitializationOptions { ParseOptions = new CSharpParseOptions(LanguageVersion.Preview) },
+            composition: Composition.AddParts(typeof(TestWorkspaceNavigateToSearchHostService)));
+        var expected = new LSP.SymbolInformation[]
+        {
+            CreateSymbolInformation(LSP.SymbolKind.Struct, "A", testLspServer.GetLocations("union").Single(), Glyph.StructureInternal, GetContainerName(testLspServer.GetCurrentSolution()))
         };
 
         var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A").ConfigureAwait(false);

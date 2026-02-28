@@ -39,7 +39,8 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
         NavigateToItemKind.Method,
         NavigateToItemKind.Module,
         NavigateToItemKind.Property,
-        NavigateToItemKind.Structure
+        NavigateToItemKind.Structure,
+        NavigateToItemKind.Union
     ];
 
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);

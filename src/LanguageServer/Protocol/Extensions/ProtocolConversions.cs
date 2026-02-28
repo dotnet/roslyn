@@ -628,6 +628,7 @@ internal static partial class ProtocolConversions
             case NavigateToItemKind.EnumItem:
                 return LSP.SymbolKind.EnumMember;
             case NavigateToItemKind.Structure:
+            case NavigateToItemKind.Union:
                 return LSP.SymbolKind.Struct;
             case NavigateToItemKind.Delegate:
                 return LSP.SymbolKind.Function;

@@ -20,5 +20,6 @@ internal static class NavigateToItemKind
     public const string Method = nameof(Method);
     public const string Property = nameof(Property);
     public const string Event = nameof(Event);
+    public const string Union = nameof(Union);
     public const string OtherSymbol = nameof(OtherSymbol);
 }
