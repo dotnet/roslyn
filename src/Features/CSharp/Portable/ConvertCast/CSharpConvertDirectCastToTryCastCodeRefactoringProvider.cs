@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertCast;
 
-using static SyntaxFactory;
 using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 /// <summary>
 /// Refactor:
