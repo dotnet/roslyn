@@ -24,9 +24,9 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.1</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>11.0.0-preview.3.26127.101</MicrosoftExtensionsPrimitivesPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>5.5.0-2.26127.101</MicrosoftNetCompilersToolsetPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.5.0-2.26127.101</RoslynDiagnosticsAnalyzersPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.5.0-2.26128.104</RoslynDiagnosticsAnalyzersPackageVersion>
     <SystemCollectionsImmutablePackageVersion>11.0.0-preview.3.26127.101</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-preview.3.26127.101</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-preview.3.26128.104</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>11.0.0-preview.3.26127.101</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>11.0.0-preview.3.26127.101</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>11.0.0-preview.3.26127.101</SystemConfigurationConfigurationManagerPackageVersion>
