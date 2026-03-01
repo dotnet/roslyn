@@ -126,7 +126,6 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 NavigateToItemKind.OtherSymbol => CodeSearchResultType.OtherSymbol,
                 NavigateToItemKind.Property => CodeSearchResultType.Property,
                 NavigateToItemKind.Structure => CodeSearchResultType.Structure,
-                NavigateToItemKind.Union => CodeSearchResultType.Structure,
                 _ => kind
             };
     }

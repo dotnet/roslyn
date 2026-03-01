@@ -110,8 +110,9 @@ public sealed class NavigateToTests : AbstractNavigateToTests
             """);
         await TestAsync(testHost, composition, content, async w =>
         {
+            // PROTOTYPE Consider using separate NavigateToItemKind and Glyph for unions
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
-            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.UnionInternal);
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
         });
     }
 

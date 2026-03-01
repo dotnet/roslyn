@@ -26,8 +26,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             .Add(NavigateToItemKind.Structure)
             .Add(NavigateToItemKind.Interface)
             .Add(NavigateToItemKind.Delegate)
-            .Add(NavigateToItemKind.Module)
-            .Add(NavigateToItemKind.Union);
+            .Add(NavigateToItemKind.Module);
         private static readonly IImmutableSet<string> s_memberKinds = ImmutableHashSet<string>.Empty
             .Add(NavigateToItemKind.Constant)
             .Add(NavigateToItemKind.EnumItem)

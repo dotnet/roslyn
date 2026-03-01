@@ -27,8 +27,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         NavigateToItemKind.Method,
         NavigateToItemKind.Module,
         NavigateToItemKind.Property,
-        NavigateToItemKind.Structure,
-        NavigateToItemKind.Union];
+        NavigateToItemKind.Structure];
 
     public IImmutableSet<string> KindsProvided { get; } = AllKinds;
 
