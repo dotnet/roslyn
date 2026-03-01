@@ -2165,7 +2165,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             testHost,
             TestOptions.RegularNext,
             Keyword("union"),
-            Struct("Union1"),
+            Union("Union1"),
             Punctuation.OpenParen,
             Keyword("int"),
             Punctuation.Comma,

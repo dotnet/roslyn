@@ -72,7 +72,7 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
         var expected = new LSP.SymbolInformation[]
         {
             // PROTOTYPE Consider adding LSP.SymbolKind.Union to Roslyn.LanguageServer.Protocol
-            CreateSymbolInformation(LSP.SymbolKind.Struct, "A", testLspServer.GetLocations("union").Single(), Glyph.StructureInternal, GetContainerName(testLspServer.GetCurrentSolution()))
+            CreateSymbolInformation(LSP.SymbolKind.Struct, "A", testLspServer.GetLocations("union").Single(), Glyph.UnionInternal, GetContainerName(testLspServer.GetCurrentSolution()))
         };
 
         var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A").ConfigureAwait(false);
