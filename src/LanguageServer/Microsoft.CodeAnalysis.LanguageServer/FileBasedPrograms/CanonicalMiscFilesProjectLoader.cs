@@ -67,17 +67,25 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         });
     }
 
-    public async ValueTask<TextDocument> AddMiscellaneousDocumentAsync(string documentPath, SourceText documentText, CancellationToken cancellationToken)
+    public async ValueTask<TextDocument> AddMiscellaneousDocumentAsync(string documentPath, SourceText documentText, LooseDocumentKind documentKind, LanguageInformation languageInformation, CancellationToken cancellationToken)
     {
         return await ExecuteUnderGateAsync(async loadedProjects =>
         {
+            if (documentKind == LooseDocumentKind.MiscellaneousFileWithNoReferences)
+            {
+                // Do not fork or load a canonical project, instead use a primordial misc files project which lacks references, etc.
+                return AddPrimordialMiscProject_NoLock(loadedProjects, documentPath, documentText, languageInformation);
+            }
+
+            Contract.ThrowIfTrue(MiscellaneousFileUtilities.IsScriptFile(languageInformation, documentPath));
             var canonicalDocumentPath = _canonicalDocumentPath.Value;
             if (loadedProjects.TryGetValue(canonicalDocumentPath, out var canonicalLoadState))
             {
                 Contract.ThrowIfFalse(canonicalLoadState is ProjectLoadState.Primordial or ProjectLoadState.LoadedTargets(LoadedProjectTargets: [_]));
                 if (canonicalLoadState is ProjectLoadState.LoadedTargets)
                 {
-                    return await AddForkedCanonicalProject_NoLockAsync(loadedProjects, documentPath, documentText, cancellationToken);
+                    var hasAllInformation = documentKind == LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
+                    return await AddForkedCanonicalProject_NoLockAsync(loadedProjects, documentPath, documentText, hasAllInformation, cancellationToken);
                 }
             }
             else
@@ -86,11 +94,11 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             }
 
             // Not ready to fork the canonical project. Create a primordial project instead.
-            return AddPrimordialMiscProject_NoLock(loadedProjects, documentPath, documentText);
+            return AddPrimordialMiscProject_NoLock(loadedProjects, documentPath, documentText, languageInformation);
         }, cancellationToken);
     }
 
-    private async ValueTask<TextDocument> AddForkedCanonicalProject_NoLockAsync(Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SourceText documentText, CancellationToken cancellationToken)
+    private async ValueTask<TextDocument> AddForkedCanonicalProject_NoLockAsync(Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SourceText documentText, bool hasAllInformation, CancellationToken cancellationToken)
     {
         var newProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{documentPath}'");
         var newDocumentInfo = DocumentInfo.Create(
@@ -99,13 +107,13 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
 
-        var forkedProjectInfo = await GetForkedProjectInfoAsync(GetRequiredCanonicalProject(), newDocumentInfo, documentText, GlobalOptionService, cancellationToken);
+        var forkedProjectInfo = await GetForkedProjectInfoAsync(GetRequiredCanonicalProject(), newDocumentInfo, hasAllInformation, cancellationToken);
 
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
             workspace.OnProjectAdded(forkedProjectInfo);
         }, cancellationToken);
-        loadedProjects[documentPath] = new ProjectLoadState.CanonicalForked(forkedProjectInfo.Id);
+        loadedProjects.Add(documentPath, new ProjectLoadState.CanonicalForked(forkedProjectInfo.Id));
 
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
         var addedDocument = miscWorkspace.CurrentSolution.GetRequiredDocument(newDocumentInfo.Id);
@@ -123,13 +131,13 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     }
 
     /// <returns>The single document in the misc project.</returns>
-    private Document AddPrimordialMiscProject_NoLock(Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SourceText documentText)
+    private Document AddPrimordialMiscProject_NoLock(Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SourceText documentText, LanguageInformation languageInformation)
     {
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
         var sourceTextLoader = new SourceTextLoader(documentText, documentPath);
         var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            miscWorkspace, documentPath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, scriptExtension: null), documentText.ChecksumAlgorithm, miscWorkspace.Services.SolutionServices, [], enableFileBasedPrograms);
+            miscWorkspace, documentPath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, miscWorkspace.Services.SolutionServices, [], enableFileBasedPrograms);
 
         _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
         loadedProjects.Add(documentPath, new ProjectLoadState.Primordial(_workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, projectInfo.Id));
@@ -173,7 +181,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         // This loader should only do a design time build on the canonical project
         Contract.ThrowIfFalse(canonicalProjectPath == _canonicalDocumentPath.Value);
 
-        // Set the FileBasedProgram feature flag so that '#:' is permitted without errors in rich misc files.
+        // Set the FileBasedProgram feature flag so that '#:' is permitted without errors in Miscellaneous Files With Standard References.
         // This allows us to avoid spurious errors for files which contain '#:' directives yet are not treated as file-based programs (due to not being saved to disk, for example.)
         var virtualProjectXml = $"""
             <Project Sdk="Microsoft.NET.Sdk">
@@ -218,21 +226,13 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             .Where(entry => entry.Key != canonicalProjectPath && entry.Value is ProjectLoadState.Primordial)
             .ToArray();
 
-        // Replace all primordial projects in 'loadedProjects' with forked canonical projects
+        // Unload all primordial projects.
+        // When new requests come in for those projects, we will create the appropriate kind of project,
+        // based on its classification
         foreach (var (projectPath, projectLoadState) in entriesToReplace)
         {
-            // Get the text from the primordial project
-            var primordial = (ProjectLoadState.Primordial)projectLoadState;
-            var solution = primordial.PrimordialProjectFactory.Workspace.CurrentSolution;
-            var document = solution.GetRequiredProject(primordial.PrimordialProjectId).Documents.Single();
-            var text = await document.GetTextAsync(cancellationToken);
-
-            // Remove the primordial project
             var wasUnloaded = await TryUnloadProject_NoLockAsync(projectPath);
             Contract.ThrowIfFalse(wasUnloaded);
-
-            // Replace with a forked canonical project
-            await AddForkedCanonicalProject_NoLockAsync(loadedProjects, projectPath, text, cancellationToken);
         }
 
         // Now remove the primordial canonical project
@@ -245,14 +245,12 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// Creates a new project based on the canonical project with a new document added.
     /// This should only be called when the canonical project is in the FullyLoaded state.
     /// </summary>
-    private static async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, SourceText documentText, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
+    private static async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, bool hasAllInformation, CancellationToken cancellationToken)
     {
         var newDocumentPath = newDocumentInfo.FilePath;
         Contract.ThrowIfNull(newDocumentPath);
 
         var forkedProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{newDocumentPath}'");
-        var syntaxTree = CSharpSyntaxTree.ParseText(text: documentText, canonicalProject.ParseOptions as CSharpParseOptions, path: newDocumentPath, cancellationToken);
-        var hasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(globalOptionService, syntaxTree, cancellationToken);
         var forkedProjectAttributes = new ProjectInfo.ProjectAttributes(
             newDocumentInfo.Id.ProjectId,
             version: VersionStamp.Create(),

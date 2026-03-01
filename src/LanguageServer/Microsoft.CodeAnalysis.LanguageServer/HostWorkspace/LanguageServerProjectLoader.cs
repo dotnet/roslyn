@@ -248,10 +248,11 @@ internal abstract class LanguageServerProjectLoader
             var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (remoteProjectLoadResult is null)
             {
-                // Note that this is a fairly common condition, e.g. for VB projects.
-                // In the file-based programs primordial case, no 'LoadedProject' is produced for the project,
-                // and therefore no reloading is performed for it after failing to load it once (in this code path).
-                _logger.LogWarning($"Unable to load project '{projectPath}'.");
+                // Example cases where this might occur:
+                // - Loading VB projects
+                // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
+                //   making the file no longer a file-based app entry point.
+                _logger.LogDebug("Reload of '{projectPath}' was canceled.", projectPath);
                 return false;
             }
 
@@ -415,14 +416,6 @@ internal abstract class LanguageServerProjectLoader
                 message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
 
             await toastErrorReporter.ReportErrorAsync(worstLspMessageKind, message, cancellationToken);
-        }
-    }
-
-    protected async ValueTask<bool> IsProjectLoadedAsync(string projectPath, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
-        {
-            return _loadedProjects.ContainsKey(projectPath);
         }
     }
 

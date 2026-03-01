@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -15,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit.Abstractions;
 
@@ -89,7 +92,8 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """).ConfigureAwait(false);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // Document is classified as file-based app, so is put in host workspace in a primordial state.
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.False(document.Project.State.HasAllInformation);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
@@ -125,7 +129,8 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """, languageId: "csharp").ConfigureAwait(false);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // Document is classified as file-based app, so is put in host workspace in a primordial state.
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.False(document.Project.State.HasAllInformation);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
@@ -335,8 +340,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """,
             (await canonicalDocumentTwo.GetSyntaxRootAsync())!.ToFullString());
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // When presence of top-level statements changes, the misc project is forked again in order to change attributes.
-        Assert.NotEqual(canonicalDocumentOne.Project.Id, canonicalDocumentTwo.Project.Id);
         // Now that it has top-level statements, it should be considered to have all information.
         Assert.True(canonicalDocumentTwo.Project.State.HasAllInformation);
     }
@@ -432,14 +435,15 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
         await testLspServer.OpenDocumentAsync(looseFileUri, """
             #:sdk Microsoft.Net.Sdk
             Console.WriteLine("Hello World!");
             """).ConfigureAwait(false);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // Document is classified as file-based app, so is put in host workspace in a primordial state.
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.Equal(1, document.Project.Documents.Count());
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
@@ -632,7 +636,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // The document is now in a primordial state in the FileBasedProgramsProjectSystem.
         Assert.NotEqual(fileBasedDocumentOne, canonicalDocumentOne);
         var fileBasedProject = fileBasedDocumentOne.Project;
-        Assert.Same(miscFilesWorkspace, fileBasedProject.Solution.Workspace);
+        Assert.Equal(WorkspaceKind.Host, fileBasedProject.Solution.WorkspaceKind);
         Assert.NotEqual(canonicalDocumentOne.Project.Id, fileBasedProject.Id);
         Assert.Equal("""
             #!/usr/bin/env dotnet
@@ -652,6 +656,57 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Contains(fullFileBasedDocumentOne!.Project.Documents, d => d.Name == "SomeFile.AssemblyInfo.cs");
         // Because it is loaded as a file-based program, it should be considered to have all information (semantic diagnostics should be reported etc.)
         Assert.True(canonicalDocumentOne.Project.State.HasAllInformation);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileStopsBeingFileBasedProgramWhenDirectivesDeleted(bool mutatingLspWorkspace)
+    {
+        var tempDir = _tempRoot.CreateDirectory();
+        var appCsText = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World!");
+            """;
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(
+            string.Empty,
+            mutatingLspWorkspace,
+            new InitializationOptions
+            {
+                ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer
+            });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        var appCsUri = CreateAbsoluteDocumentUri(appCsFile.Path);
+        await testLspServer.OpenDocumentAsync(appCsUri, """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World!");
+            """).ConfigureAwait(false);
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        // Document is loaded as a file-based app
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        // Removing a #! directive (line 0) causes it to stop being a file-based app
+        var newAppCsText = """
+            Console.WriteLine("Hello World!");
+            """;
+        await testLspServer.DeleteTextAsync(appCsUri,
+            (StartLine: 0, StartColumn: 0, EndLine: 1, EndColumn: 0));
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(newAppCsText, (await document.GetTextAsync()).ToString());
+
+        // Flush the document change to disk to trigger a reload of the FBA project.
+        appCsFile.WriteAllText(newAppCsText);
+        // Wait for the batching queue timeout.
+        await Task.Delay(100);
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        // Now the document is a miscellaneous file
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
@@ -724,8 +779,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var utilCsFile = tempDir.CreateFile("util.cs").WriteAllText(utilCsText);
 
         var appCsText = """
-            #:property Foo=Bar
-
+            #:property A=B
             new Util();
             """;
         var appCsFile = tempDir.CreateFile("app.cs").WriteAllText(appCsText);
@@ -758,5 +812,185 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
         Assert.Empty(model.GetDiagnostics());
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
+    public async Task TestMultiFile_Simulated_02(bool mutatingLspWorkspace)
+    {
+        // Reference the same non-entry-point file in both an `#:include` and `<Compile Include=...` of an ordinary project
+        var tempDir = _tempRoot.CreateDirectory();
+        var dbPropsText = """
+            <Project>
+                <ItemGroup>
+                    <Compile Include="Util.cs" />
+                </ItemGroup>
+            </Project>
+            """;
+        var dbPropsFile = tempDir.CreateFile("Directory.Build.props").WriteAllText(dbPropsText);
+
+        var utilCsText = """
+            internal class Util { }
+            """;
+        var utilCsFile = tempDir.CreateFile("Util.cs").WriteAllText(utilCsText);
+
+        var appCsText = """
+            #:property A=B
+            new Util();
+            """;
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+        });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
+        await testLspServer.OpenDocumentAsync(appCsUri, appCsText).ConfigureAwait(false);
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        // app.cs project was loaded and includes util.cs as one of the files
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+        Assert.True(document.Project.Documents.Contains(document => document.Name == "Util.cs"));
+
+        // Add an ordinary project containing the same "util.cs" file
+        workspace.SetCurrentSolution(
+            solution => solution.AddProject("Ordinary", "Ordinary", LanguageNames.CSharp)
+                .AddDocument("Util.cs", SourceText.From(utilCsText), filePath: utilCsFile.Path)
+                .Project.Solution,
+            WorkspaceChangeKind.ProjectAdded);
+        var solution = workspace.CurrentSolution;
+        var projects = solution.Projects.ToImmutableArray();
+        Assert.Equal(2, projects.Length);
+        Assert.Equal("App", projects[0].AssemblyName);
+        Assert.Equal("Ordinary", projects[1].AssemblyName);
+
+        // Lookup "Util.cs" in the "App" project context
+        var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilCsFile.Path);
+        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        Assert.NotNull(textDocument);
+        Assert.Equal("App", textDocument.Project.AssemblyName);
+
+        // Lookup "Util.cs" in the "Ordinary" project context
+        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        Assert.NotNull(textDocument);
+        Assert.Equal("Ordinary", textDocument.Project.AssemblyName);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
+    public async Task TestOrdinaryProjectContainsFileBasedAppEntryPoint_01(bool mutatingLspWorkspace)
+    {
+        // Error scenario: open a file-based app entry point document,
+        // then load a project which contains the same document.
+        var tempDir = _tempRoot.CreateDirectory();
+        var appCsText = """
+            #:property A=B
+            Console.WriteLine("Hello");
+            """;
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+        });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // Open the file-based app entry point first
+        var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
+        await testLspServer.OpenDocumentAsync(appCsUri, appCsText).ConfigureAwait(false);
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        // Add an ordinary project containing the same "App.cs" file
+        workspace.SetCurrentSolution(
+            solution => solution.AddProject("Ordinary", "Ordinary", LanguageNames.CSharp)
+                .AddDocument("App.cs", SourceText.From(appCsText), filePath: appCsFile.Path)
+                .Project.Solution,
+            WorkspaceChangeKind.ProjectAdded);
+        var solution = workspace.CurrentSolution;
+        var projects = solution.Projects.ToImmutableArray();
+        Assert.Equal(2, projects.Length);
+        Assert.Equal("App", projects[0].AssemblyName);
+        Assert.Equal("Ordinary", projects[1].AssemblyName);
+
+        // Lookup "App.cs" in the "App" project context
+        var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
+        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        document = (Document)textDocument!;
+        Assert.Equal("App", document.Project.AssemblyName);
+
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Contains("FileBasedProgram", syntaxTree.Options.Features.Keys);
+        Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
+
+        // Lookup "App.cs" in the "Ordinary" project context
+        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        Assert.NotNull(textDocument);
+        document = (Document)textDocument!;
+        Assert.Equal("Ordinary", document.Project.AssemblyName);
+
+        // TODO: it's unclear why, but, a syntax error is not being reported for '#:' here despite absence of FileBasedProgram feature flag
+        // Perhaps a syntax tree from the other document is being reused?
+        syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.DoesNotContain("FileBasedProgram", syntaxTree.Options.Features.Keys);
+        Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
+    public async Task TestOrdinaryProjectContainsFileBasedAppEntryPoint_02(bool mutatingLspWorkspace)
+    {
+        // Error scenario: load a project which contains a file-based app entry point,
+        // then open the file-based app entry point.
+        var tempDir = _tempRoot.CreateDirectory();
+        var appCsText = """
+            #:property A=B
+            Console.WriteLine("Hello");
+            """;
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+        });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // Add an ordinary project containing the "App.cs" file
+        testLspServer.TestWorkspace.SetCurrentSolution(
+            solution => solution.AddProject("Ordinary", "Ordinary", LanguageNames.CSharp)
+                .AddDocument("App.cs", SourceText.From(appCsText), filePath: appCsFile.Path)
+                .Project.Solution,
+            WorkspaceChangeKind.ProjectAdded);
+
+        // Document is found in the ordinary project and syntax error reported on '#:'
+        var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Equal("Ordinary", document.Project.AssemblyName);
+
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        syntaxTree.GetDiagnostics(CancellationToken.None).Verify(
+            // App.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
+            // #:property A=B
+            TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
+
+        // Now open the file-based app entry point file
+        await testLspServer.OpenDocumentAsync(appCsUri, appCsText).ConfigureAwait(false);
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        // The file-based app project doesn't end up getting loaded.
+        // That's OK, as long as something in the editor reports an error (in this case the parse error on '#:' above).
+        // User needs to either remove App.cs from the ordinary project, or, delete the '#:' directives in App.cs. 
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Equal("Ordinary", document.Project.AssemblyName);
+        var assemblyNames = workspace.CurrentSolution.Projects.SelectAsArray(project => project.AssemblyName);
+        AssertEx.SetEqual(["Test", "Ordinary"], assemblyNames);
     }
 }

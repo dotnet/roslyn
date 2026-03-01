@@ -246,74 +246,75 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Get the LSP view of all the workspace solutions.
         var uri = textDocumentIdentifier.DocumentUri;
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
-
-        // Find the matching document from the LSP solutions.
-        foreach (var (workspace, lspSolution, isForked) in lspSolutions)
+        if (await GetLspDocumentInfoCoreAsync().ConfigureAwait(false) is var (document, isForked))
         {
-            var documents = await lspSolution.GetTextDocumentsAsync(textDocumentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
+            // Record metadata on how we got this document.
+            var workspaceKind = document.Project.Solution.WorkspaceKind;
+            _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
+            _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
+            _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}; project {document.Project.Name}");
 
-            if (documents.Length > 0)
-            {
-                // We have at least one document, so find the one in the right project context.
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
-
-                if (_lspMiscellaneousFilesWorkspaceProvider is not null)
-                {
-                    // It is possible that a document that was previously a misc file is now part of a real workspace (e.g. project system told us about a file we already had open).
-                    // If we found a non-misc document, we should clean up any references to it in the misc provider.
-                    var foundNonMiscDocument = await documents
-                        .AnyAsync(async doc => !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(doc, cancellationToken).ConfigureAwait(false))
-                        .ConfigureAwait(false);
-                    if (foundNonMiscDocument)
-                    {
-                        try
-                        {
-                            var didRemove = await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
-                            if (didRemove)
-                            {
-                                // If we actually removed something, lookup the document again to ensure we return updated solutions without the misc document.
-                                return await GetLspDocumentInfoAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
-                            }
-                        }
-                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                        {
-                            _logger.LogException(ex);
-                        }
-                    }
-                }
-
-                // Record metadata on how we got this document.
-                var workspaceKind = document.Project.Solution.WorkspaceKind;
-                _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
-                _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}; project {document.Project.Name}");
-
-                return (workspace, document.Project.Solution, document);
-            }
-        }
-
-        // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
-        // Depending on the host, this can be entirely normal (e.g. opening a loose file)
-        var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.LogDebug($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
-        _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
-
-        // Add the document to our loose files workspace (if we have one) if it is open.
-        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument) && _lspMiscellaneousFilesWorkspaceProvider is not null)
-        {
-            try
-            {
-                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.SourceText, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
-                if (miscDocument is not null)
-                    return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-                _logger.LogException(ex);
-            }
+            return (document.Project.Solution.Workspace, document.Project.Solution, document);
         }
 
         return default;
+
+        async Task<(TextDocument, bool isForked)?> GetLspDocumentInfoCoreAsync()
+        {
+            // First search LSP solutions, which aren't managed by the _lspMiscellaneousFilesWorkspaceProvider.
+            foreach (var (workspace, lspSolution, isForked) in lspSolutions)
+            {
+                if (_lspMiscellaneousFilesWorkspaceProvider?.ManagesWorkspace(workspace) == true)
+                    continue;
+
+                var documents = await lspSolution.GetTextDocumentsAsync(textDocumentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
+                if (documents.Length > 0)
+                {
+                    // Since a *non-miscellaneous files* workspace contains this file, don't retain any document for it in the miscellaneous files workspace.
+                    if (_lspMiscellaneousFilesWorkspaceProvider is { })
+                    {
+                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(textDocumentIdentifier.DocumentUri).ConfigureAwait(false);
+                    }
+
+                    // We have at least one document, so find the one in the right project context.
+                    var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
+                    return (document, isForked);
+                }
+            }
+
+            // Get it from the miscellaneous files workspace if we have one and the document is open.
+            // Note: we generally expect that if the document is not open, it won't be present in the miscellaneous files workspace.
+            if (_trackedDocuments.TryGetValue(uri, out var trackedDocument) && _lspMiscellaneousFilesWorkspaceProvider is not null)
+            {
+                try
+                {
+                    if (await _lspMiscellaneousFilesWorkspaceProvider.GetOrAddDocumentAsync(uri, trackedDocument, cancellationToken).ConfigureAwait(false)
+                        is var (looseDoc, alreadyExists))
+                    {
+                        if (!alreadyExists)
+                            ReportDocumentNotFound();
+
+                        return (looseDoc, isForked: false);
+                    }
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                    _logger.LogException(ex);
+                }
+            }
+
+            ReportDocumentNotFound();
+            return null;
+        }
+
+        void ReportDocumentNotFound()
+        {
+            // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
+            // Depending on the host, this can be entirely normal (e.g. opening a loose file)
+            var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
+            _logger.LogDebug($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
+            _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
+        }
     }
 
     /// <summary>
@@ -321,16 +322,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// </summary>
     private async Task<ImmutableArray<(Workspace workspace, Solution Solution, bool IsForked)>> GetLspSolutionsAsync(CancellationToken cancellationToken)
     {
-        // Ensure that the loose files workspace is searched last.
         var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
-        registeredWorkspaces =
-        [
-            .. registeredWorkspaces
-                        .Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles)
-,
-            .. registeredWorkspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles),
-        ];
-
         var solutions = new FixedSizeArrayBuilder<(Workspace, Solution, bool)>(registeredWorkspaces.Length);
         foreach (var workspace in registeredWorkspaces)
         {
@@ -587,7 +579,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
         {
-            return _manager._lspMiscellaneousFilesWorkspaceProvider!.IsMiscellaneousFilesDocumentAsync(document, CancellationToken.None);
+            return ValueTask.FromResult(_manager._lspMiscellaneousFilesWorkspaceProvider!.ManagesWorkspace(document.Project.Solution.Workspace));
         }
 
         public async IAsyncEnumerable<T> GetMiscellaneousDocumentsAsync<T>(Func<Project, IEnumerable<T>> documentSelector) where T : TextDocument
