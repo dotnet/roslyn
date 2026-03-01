@@ -70,6 +70,9 @@ internal sealed class AzDOConnection : IDisposable
         }
     }
 
+    public TClient GetClient<TClient>() where TClient : VssHttpClientBase
+        => Connection.GetClient<TClient>();
+
     public async Task TryRunPipelineAsync(string? pipelineName, Dictionary<string, RepositoryResourceParameters> repositoryParams, RunPipelineParameters runPipelineParams, ILogger logger)
     {
         try

@@ -136,7 +136,7 @@ internal class PRFinder
 
         logger.LogDebug("{Header}", formatter.FormatChangesHeader(startRef, host.GetCommitUrl(startRef), endRef, host.GetCommitUrl(endRef), path));
 
-        RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(startRef, endRef)), logger, builder);
+        RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(startRef, endRef)), builder);
 
         var commitHeaderAdded = false;
         var mergePRHeaderAdded = false;
@@ -170,7 +170,7 @@ internal class PRFinder
                 if (commitHeaderAdded && !mergePRHeaderAdded)
                 {
                     mergePRHeaderAdded = true;
-                    RecordLine(formatter.GetPRSectionHeader(), logger, builder);
+                    RecordLine(formatter.GetPRSectionHeader(), builder);
                 }
 
                 mergePRFound = true;
@@ -187,7 +187,7 @@ internal class PRFinder
                 if (!commitHeaderAdded)
                 {
                     commitHeaderAdded = true;
-                    RecordLine(formatter.GetCommitSectionHeader(), logger, builder);
+                    RecordLine(formatter.GetCommitSectionHeader(), builder);
                 }
 
                 var fullSHA = commit.Sha;
@@ -196,7 +196,7 @@ internal class PRFinder
                 prLink = formatter.FormatCommitListItem(commit.MessageShort, shortSHA, host.GetCommitUrl(fullSHA));
             }
 
-            RecordLine(prLink, logger, builder);
+            RecordLine(prLink, builder);
         }
 
         logger.LogInformation("{Builder}", builder);
@@ -204,7 +204,7 @@ internal class PRFinder
         return 0;
     }
 
-    private static void RecordLine(string line, ILogger logger, StringBuilder? builder)
+    private static void RecordLine(string line, StringBuilder? builder)
     {
         builder?.AppendLine(line);
     }
