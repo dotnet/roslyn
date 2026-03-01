@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertCast;
 
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static SyntaxFactory;
 using static CSharpSyntaxTokens;
 
 /// <summary>
