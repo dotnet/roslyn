@@ -1308,11 +1308,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
                 New ContainerElement(
                     ContainerElementStyle.Wrapped,
-                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ValueTypeInternal)),
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.UnionInternal)),
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "struct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "struct"), ' TODO2
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "TestUnion", navigationAction:=Sub() Return, "TestUnion"))))
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "TestUnion", navigationAction:=Sub() Return, "TestUnion")))) ' TODO2
 
             ToolTipAssert.EqualContent(expected, container)
         End Function

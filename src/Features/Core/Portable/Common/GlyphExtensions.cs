@@ -207,6 +207,14 @@ internal static class GlyphExtensions
                     Accessibility.Internal => Glyph.StructureInternal,
                     _ => Glyph.StructurePublic,
                 };
+            case WellKnownTags.Union:
+                return GetAccessibility(allTags) switch
+                {
+                    Accessibility.Protected => Glyph.UnionProtected,
+                    Accessibility.Private => Glyph.UnionPrivate,
+                    Accessibility.Internal => Glyph.UnionInternal,
+                    _ => Glyph.UnionPublic,
+                };
             case WellKnownTags.TypeParameter:
                 return Glyph.TypeParameter;
 
@@ -297,7 +305,7 @@ internal static class GlyphExtensions
             DeclaredSymbolInfoKind.Property => Glyph.PropertyPublic,
             DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
             DeclaredSymbolInfoKind.RecordStruct => Glyph.StructurePublic,
-            DeclaredSymbolInfoKind.Union => Glyph.StructurePublic,
+            DeclaredSymbolInfoKind.Union => Glyph.UnionPublic,
             _ => Glyph.ClassPublic,
         };
 }

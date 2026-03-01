@@ -109,6 +109,11 @@ internal enum Glyph
 
     TypeParameter,
 
+    UnionPublic,
+    UnionProtected,
+    UnionPrivate,
+    UnionInternal,
+
     Snippet,
 
     CompletionWarning,

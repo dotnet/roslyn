@@ -56,7 +56,14 @@ internal static partial class ISymbolExtensions2
             case SymbolKind.NamedType:
             case SymbolKind.ErrorType:
                 {
-                    switch (((INamedTypeSymbol)symbol).TypeKind)
+                    var namedType = (INamedTypeSymbol)symbol;
+                    if (namedType.IsUnion)
+                    {
+                        publicIcon = Glyph.UnionPublic;
+                        break;
+                    }
+
+                    switch (namedType.TypeKind)
                     {
                         case TypeKind.Extension:
                         case TypeKind.Class:

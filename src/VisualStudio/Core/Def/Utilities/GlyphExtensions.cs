@@ -148,6 +148,12 @@ internal static class GlyphExtensions
             case Glyph.StructureInternal:
                 return StandardGlyphGroup.GlyphGroupStruct;
 
+            case Glyph.UnionPublic:
+            case Glyph.UnionProtected:
+            case Glyph.UnionPrivate:
+            case Glyph.UnionInternal:
+                return StandardGlyphGroup.GlyphGroupUnion;
+
             case Glyph.TypeParameter:
                 return StandardGlyphGroup.GlyphGroupType;
 
@@ -177,6 +183,7 @@ internal static class GlyphExtensions
             case Glyph.ModuleProtected:
             case Glyph.PropertyProtected:
             case Glyph.StructureProtected:
+            case Glyph.UnionProtected:
                 return StandardGlyphItem.GlyphItemProtected;
 
             case Glyph.ClassPrivate:
@@ -190,6 +197,7 @@ internal static class GlyphExtensions
             case Glyph.ModulePrivate:
             case Glyph.PropertyPrivate:
             case Glyph.StructurePrivate:
+            case Glyph.UnionPrivate:
                 return StandardGlyphItem.GlyphItemPrivate;
 
             case Glyph.ClassInternal:
@@ -203,6 +211,7 @@ internal static class GlyphExtensions
             case Glyph.ModuleInternal:
             case Glyph.PropertyInternal:
             case Glyph.StructureInternal:
+            case Glyph.UnionInternal:
                 return StandardGlyphItem.GlyphItemFriend;
 
             default:

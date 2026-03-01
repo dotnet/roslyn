@@ -104,6 +104,11 @@ internal static partial class Extensions
 
         public const int Type = 3233;
 
+        public const int UnionInternal = 3263;
+        public const int UnionPrivate = 3264;
+        public const int UnionProtected = 3265;
+        public const int UnionPublic = 3266;
+
         public const int ValueTypeInternal = 3332;
         public const int ValueTypePrivate = 3333;
         public const int ValueTypeProtected = 3334;

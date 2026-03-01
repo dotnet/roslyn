@@ -475,6 +475,11 @@ internal static partial class Extensions
 
             Glyph.TypeParameter => (KnownImageIds.ImageCatalogGuid, KnownImageIds.Type),
 
+            Glyph.UnionPublic => (KnownImageIds.ImageCatalogGuid, KnownImageIds.UnionPublic),
+            Glyph.UnionProtected => (KnownImageIds.ImageCatalogGuid, KnownImageIds.UnionProtected),
+            Glyph.UnionPrivate => (KnownImageIds.ImageCatalogGuid, KnownImageIds.UnionPrivate),
+            Glyph.UnionInternal => (KnownImageIds.ImageCatalogGuid, KnownImageIds.UnionInternal),
+
             Glyph.Copilot => (KnownImageIds.ImageCatalogGuid, KnownImageIds.SparkleNoColor),
 
             _ => throw new ArgumentException($"Unknown glyph value: {glyph}", nameof(glyph)),

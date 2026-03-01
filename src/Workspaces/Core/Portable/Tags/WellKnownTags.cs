@@ -44,6 +44,8 @@ public static class WellKnownTags
     public const string Reference = nameof(Reference);
     public const string Structure = nameof(Structure);
     public const string TypeParameter = nameof(TypeParameter);
+    // PROTOTYPE mark public API as experimental
+    public const string Union = nameof(Union);
 
     // other
     public const string Snippet = nameof(Snippet);
@@ -130,6 +132,10 @@ internal static class WellKnownTagArrays
     internal static readonly ImmutableArray<string> StructurePrivate = [WellKnownTags.Structure, WellKnownTags.Private];
     internal static readonly ImmutableArray<string> StructureInternal = [WellKnownTags.Structure, WellKnownTags.Internal];
     internal static readonly ImmutableArray<string> TypeParameter = [WellKnownTags.TypeParameter];
+    internal static readonly ImmutableArray<string> UnionPublic = [WellKnownTags.Union, WellKnownTags.Public];
+    internal static readonly ImmutableArray<string> UnionProtected = [WellKnownTags.Union, WellKnownTags.Protected];
+    internal static readonly ImmutableArray<string> UnionPrivate = [WellKnownTags.Union, WellKnownTags.Private];
+    internal static readonly ImmutableArray<string> UnionInternal = [WellKnownTags.Union, WellKnownTags.Internal];
     internal static readonly ImmutableArray<string> Snippet = [WellKnownTags.Snippet];
 
     internal static readonly ImmutableArray<string> Error = [WellKnownTags.Error];
