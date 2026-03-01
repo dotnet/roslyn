@@ -12,3 +12,4 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasVal
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnion.get -> bool
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.UnionName = 33 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind

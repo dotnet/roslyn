@@ -89,11 +89,14 @@ namespace Microsoft.CodeAnalysis
         RecordClassName = 31,
         /// <summary>The name of a record struct.</summary>
         RecordStructName = 32,
+        // PROTOTYPE mark as experimental
+        /// <summary>The name of a union.</summary>
+        UnionName = 33,
     }
 
     internal static class InternalSymbolDisplayPartKind
     {
-        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.RecordStructName + 1;
+        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.UnionName + 1;
         public const SymbolDisplayPartKind Arity = @base + 0;
         public const SymbolDisplayPartKind Other = @base + 1;
     }
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsValid(this SymbolDisplayPartKind value)
         {
-            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.RecordStructName) ||
+            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.UnionName) ||
                 (value >= InternalSymbolDisplayPartKind.Arity && value <= InternalSymbolDisplayPartKind.Other);
         }
     }

@@ -9282,5 +9282,38 @@ End Class
                 type.ToMinimalDisplayString(model, tree.GetRoot().Span.End,
                     SymbolDisplayFormat.MinimallyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)));
         }
+
+        [Fact]
+        public void TestUnionName_01()
+        {
+            var text = """
+union U(int)
+{
+    void M(U p1) { }
+}
+""";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMember("U").GetMember("M");
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview),
+                "void M(U p1)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.UnionName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //p1
+                SymbolDisplayPartKind.Punctuation);
+        }
     }
 }

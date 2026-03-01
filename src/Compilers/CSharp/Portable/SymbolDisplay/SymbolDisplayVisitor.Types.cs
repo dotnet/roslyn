@@ -644,6 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SymbolDisplayPartKind.RecordClassName;
                 case TypeKind.Struct when symbol.IsRecord:
                     return SymbolDisplayPartKind.RecordStructName;
+                case TypeKind.Struct when symbol.IsUnion:
+                    return SymbolDisplayPartKind.UnionName;
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:
@@ -795,7 +797,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddSpace();
                             }
 
-                            AddKeyword(SyntaxKind.StructKeyword);
+                            if (symbol.IsUnion)
+                            {
+                                AddKeyword(SyntaxKind.UnionKeyword);
+                            }
+                            else
+                            {
+                                AddKeyword(SyntaxKind.StructKeyword);
+                            }
+
                             AddSpace();
                             break;
                     }
