@@ -60,7 +60,7 @@ Create a standard insertion PR:
 dotnet roslyn-tools create-insertion \
   --vs-branch main \
   --component-branch main \
-  --build-queue Roslyn-Signed
+  --component-build-queue Roslyn-Signed
 ```
 
 Create a dummy insertion PR (placeholder to update later):
@@ -79,7 +79,7 @@ dotnet roslyn-tools update-insertion \
   --pr-id 123456 \
   --vs-branch main \
   --component-branch main \
-  --build-queue Roslyn-Signed
+  --component-build-queue Roslyn-Signed
 ```
 
 ## How to Build from Source
