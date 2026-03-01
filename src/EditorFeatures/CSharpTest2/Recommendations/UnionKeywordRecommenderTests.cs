@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -12,56 +11,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
 public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
 {
-    private static readonly CSharpParseOptions s_options = CSharpNextParseOptions;
-    private static readonly CSharpParseOptions s_scriptOptions = CSharpNextScriptParseOptions;
-
-    [Fact]
-    public Task TestAtRoot_Interactive()
-        => VerifyWorkerAsync(@"$$", absent: false, options: s_scriptOptions);
-
-    [Fact]
-    public Task TestAfterClass_Interactive()
-        => VerifyWorkerAsync(
-            """
-            class C { }
-            $$
-            """, absent: false, options: s_scriptOptions);
-
     [Fact]
     public Task TestAfterGlobalStatement()
         => VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
-            """, s_options, s_scriptOptions);
-
-    [Fact]
-    public Task TestAfterGlobalVariableDeclaration_Interactive()
-        => VerifyWorkerAsync(
-            """
-            int i = 0;
-            $$
-            """, absent: false, options: s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestNotInUsingAlias()
         => VerifyAbsenceAsync(
-@"using Goo = $$", s_options, s_scriptOptions);
+@"using Goo = $$");
 
     [Fact]
     public Task TestNotInGlobalUsingAlias()
-        => VerifyAbsenceAsync(
-@"global using Goo = $$", s_options, s_scriptOptions);
+        => VerifyAbsenceAsync("global using Goo = $$");
 
     [Fact]
     public Task TestNotInEmptyStatement()
-        => VerifyAbsenceAsync(AddInsideMethod(
-@"$$"), s_options, s_scriptOptions);
+        => VerifyAbsenceAsync(AddInsideMethod("$$"));
 
     [Fact]
     public Task TestInCompilationUnit()
-        => VerifyKeywordAsync(
-@"$$", s_options, s_scriptOptions);
+        => VerifyKeywordAsync("$$");
+
+    [Fact]
+    public Task TestInCompilationUnit_LangVer14()
+        => VerifyKeywordAsync("$$", CSharp14ParseOptions);
 
     [Fact]
     public Task TestAfterExtern()
@@ -69,7 +46,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             extern alias Goo;
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterUsing()
@@ -77,7 +54,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             using Goo;
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterGlobalUsing()
@@ -85,7 +62,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             global using Goo;
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterNamespace()
@@ -93,7 +70,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             namespace N {}
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterFileScopedNamespace()
@@ -101,7 +78,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             namespace N;
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterTypeDeclaration()
@@ -109,7 +86,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             class C {}
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterDelegateDeclaration()
@@ -117,7 +94,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             delegate void Goo();
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterMethod()
@@ -126,7 +103,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             class C {
               void Goo() {}
               $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterField()
@@ -135,7 +112,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             class C {
               int i;
               $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterProperty()
@@ -144,63 +121,55 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             class C {
               int i { get; }
               $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestNotBeforeUsing()
-        => VerifyWorkerAsync(
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             $$
             using Goo;
-            """, absent: true, options: s_options);
+            """);
 
     [Fact]
     public Task TestNotBeforeGlobalUsing()
-        => VerifyWorkerAsync(
+        => VerifyAbsenceAsync(
             """
             $$
             global using Goo;
-            """, absent: true, options: s_options);
+            """);
 
     [Fact]
     public Task TestAfterReadonly()
-        => VerifyWorkerAsync(
-@"readonly $$", absent: false, options: s_options);
+        => VerifyKeywordAsync("readonly $$");
 
     [Fact]
     public Task TestNotAfterRef()
-        => VerifyWorkerAsync(
-@"ref $$", absent: true, options: s_options);
+        => VerifyAbsenceAsync("ref $$");
 
     [Fact]
     public Task TestNotAfterRefReadonly()
-        => VerifyWorkerAsync(
-@"ref readonly $$", absent: true, options: s_options);
+        => VerifyAbsenceAsync("ref readonly $$");
 
     [Fact]
     public Task TestNotAfterPublicRefReadonly()
-        => VerifyWorkerAsync(
-@"public ref readonly $$", absent: true, options: s_options);
+        => VerifyAbsenceAsync("public ref readonly $$");
 
     [Fact]
     public Task TestNotAfterReadonlyRef()
-        => VerifyWorkerAsync(
-@"readonly ref $$", absent: true, options: s_options);
+        => VerifyAbsenceAsync("readonly ref $$");
 
     [Fact]
     public Task TestNotAfterInternalReadonlyRef()
-        => VerifyWorkerAsync(
-@"internal readonly ref $$", absent: true, options: s_options);
+        => VerifyAbsenceAsync("internal readonly ref $$");
 
     [Fact]
     public Task TestNotAfterReadonlyInMethod()
-        => VerifyWorkerAsync(
-@"class C { void M() { readonly $$ } }", absent: true, options: s_options);
+        => VerifyAbsenceAsync("class C { void M() { readonly $$ } }");
 
     [Fact]
     public Task TestNotAfterRefInMethod()
-        => VerifyWorkerAsync(
-@"class C { void M() { ref $$ } }", absent: true, options: s_options);
+        => VerifyAbsenceAsync("class C { void M() { ref $$ } }");
 
     [Fact]
     public Task TestAfterAssemblyAttribute()
@@ -208,7 +177,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             [assembly: goo]
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterRootAttribute()
@@ -216,7 +185,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             [goo]
             $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterNestedAttribute()
@@ -225,7 +194,7 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             class C {
               [goo]
               $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestInsideStruct()
@@ -233,14 +202,14 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             struct S {
                $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestInsideInterface()
         => VerifyKeywordAsync("""
             interface I {
                $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestInsideClass()
@@ -248,62 +217,55 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
             """
             class C {
                $$
-            """, s_options, s_scriptOptions);
+            """);
 
     [Fact]
     public Task TestAfterPartial()
-        => VerifyKeywordAsync(
-@"partial $$", s_options, s_scriptOptions);
+        => VerifyKeywordAsync("partial $$");
 
     [Fact]
     public Task TestNotAfterAbstract()
-        => VerifyAbsenceAsync(@"abstract $$", s_options, s_scriptOptions);
+        => VerifyAbsenceAsync("abstract $$");
 
     [Fact]
     public Task TestAfterInternal()
-        => VerifyKeywordAsync(
-@"internal $$", s_options, s_scriptOptions);
+        => VerifyKeywordAsync("internal $$");
 
     [Fact]
     public Task TestAfterPublic()
-        => VerifyKeywordAsync(
-@"public $$", s_options, s_scriptOptions);
+        => VerifyKeywordAsync("public $$");
 
     [Fact]
     public Task TestAfterFile()
-        => VerifyWorkerAsync(
-@"file $$", absent: false, options: s_options);
+        => VerifyKeywordAsync(SourceCodeKind.Regular, "file $$");
 
     [Fact]
     public Task TestAfterPrivate()
-        => VerifyKeywordAsync(
-@"private $$", s_options, s_scriptOptions);
+        => VerifyKeywordAsync("private $$");
 
     [Fact]
     public Task TestAfterProtected()
-        => VerifyKeywordAsync(
-@"protected $$", s_options, s_scriptOptions);
+        => VerifyKeywordAsync("protected $$");
 
     [Fact]
     public Task TestNotAfterSealed()
-        => VerifyAbsenceAsync(@"sealed $$", s_options, s_scriptOptions);
+        => VerifyAbsenceAsync("sealed $$");
 
     [Fact]
     public Task TestNotAfterStatic()
-        => VerifyAbsenceAsync(@"static $$", s_options, s_scriptOptions);
+        => VerifyAbsenceAsync("static $$");
 
     [Fact]
     public Task TestNotAfterAbstractPublic()
-        => VerifyAbsenceAsync(@"abstract public $$", s_options, s_scriptOptions);
+        => VerifyAbsenceAsync("abstract public $$");
 
     [Fact]
     public Task TestNotAfterStruct()
-        => VerifyAbsenceAsync(@"struct $$", s_options, s_scriptOptions);
+        => VerifyAbsenceAsync("struct $$");
 
     [Fact]
     public Task TestNotInTypeParameterConstraint()
-        => VerifyAbsenceAsync(
-@"class C<T> where T : $$", s_options, s_scriptOptions);
+        => VerifyAbsenceAsync("class C<T> where T : $$");
 
     [Fact]
     public Task TestWithinExtension()
@@ -316,7 +278,5 @@ public sealed class UnionKeywordRecommenderTests : KeywordRecommenderTests
                     $$
                 }
             }
-            """,
-            CSharpNextParseOptions,
-            CSharpNextScriptParseOptions);
+            """);
 }
