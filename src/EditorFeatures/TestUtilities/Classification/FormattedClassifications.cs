@@ -39,6 +39,10 @@ public static partial class FormattedClassifications
         => New(text, ClassificationTypeNames.RecordStructName);
 
     [DebuggerStepThrough]
+    public static FormattedClassification Union(string text)
+        => New(text, ClassificationTypeNames.UnionName);
+
+    [DebuggerStepThrough]
     public static FormattedClassification Delegate(string text)
         => New(text, ClassificationTypeNames.DelegateName);
 

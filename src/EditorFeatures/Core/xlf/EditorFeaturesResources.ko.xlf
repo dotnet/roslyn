@@ -497,6 +497,11 @@
         <target state="translated">문자열 - 축자</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Unions">
+        <source>User Types - Unions</source>
+        <target state="new">User Types - Unions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">
         <source>Waiting for background work to finish...</source>
         <target state="translated">백그라운드 작업이 완료될 때까지 대기 중...</target>

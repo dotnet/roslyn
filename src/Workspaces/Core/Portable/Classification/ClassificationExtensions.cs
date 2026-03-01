@@ -11,7 +11,7 @@ internal static class ClassificationExtensions
         {
             TypeKind.Class => type.IsRecord ? ClassificationTypeNames.RecordClassName : ClassificationTypeNames.ClassName,
             TypeKind.Module => ClassificationTypeNames.ModuleName,
-            TypeKind.Struct => type.IsRecord ? ClassificationTypeNames.RecordStructName : ClassificationTypeNames.StructName,
+            TypeKind.Struct => type.IsRecord ? ClassificationTypeNames.RecordStructName : type.IsUnion ? ClassificationTypeNames.UnionName : ClassificationTypeNames.StructName,
             TypeKind.Interface => ClassificationTypeNames.InterfaceName,
             TypeKind.Enum => ClassificationTypeNames.EnumName,
             TypeKind.Delegate => ClassificationTypeNames.DelegateName,

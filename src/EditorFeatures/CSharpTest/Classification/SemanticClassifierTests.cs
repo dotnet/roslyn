@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -3494,6 +3495,19 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             RecordStruct("R"));
+
+    [Theory, CombinatorialData]
+    public Task BasicUnionClassification(TestHost testHost)
+        => TestAsync(
+            """
+            union U(int)
+            {
+                U property { get; set; }
+            }
+            """,
+            testHost,
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            Union("U"));
 
     [Theory, CombinatorialData]
     public Task BasicFileScopedNamespaceClassification(TestHost testHost)

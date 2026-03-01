@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
@@ -64,6 +65,52 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
                    0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
             ];
         }
+
+        await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
+        AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetSemanticTokensRange_UnionAsync(bool mutatingLspWorkspace, bool isVS)
+    {
+        var markup =
+            """
+            {|range:union U(int)
+            {
+            }|}
+
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(
+            markup, mutatingLspWorkspace,
+            initializationOptions: new InitializationOptions
+            {
+                ClientCapabilities = GetCapabilities(isVS),
+                ParseOptions = new CSharpParseOptions(LanguageVersion.Preview)
+            });
+
+        var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("range").First());
+
+        var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
+
+        // The VS schema keys by ClassificationTypeNames (e.g. "union name"),
+        // while the pure-LSP schema keys by CustomLspSemanticTokenNames (e.g. "union").
+        var unionToken = isVS ? ClassificationTypeNames.UnionName : CustomLspSemanticTokenNames.UnionName;
+        var punctuationToken = isVS ? ClassificationTypeNames.Punctuation : CustomLspSemanticTokenNames.Punctuation;
+
+        var expectedResults = new LSP.SemanticTokens
+        {
+            Data =
+            [
+                // Line | Char | Len | Token type                                                | Modifier
+                   0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],  0, // 'union'
+                   0,     6,     1,    tokenTypeToIndex[unionToken],                  0, // 'U'
+                   0,     1,     1,    tokenTypeToIndex[punctuationToken],             0, // '('
+                   0,     1,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],  0, // 'int'
+                   0,     3,     1,    tokenTypeToIndex[punctuationToken],             0, // ')'
+                   1,     0,     1,    tokenTypeToIndex[punctuationToken],             0, // '{'
+                   1,     0,     1,    tokenTypeToIndex[punctuationToken],             0, // '}'
+            ]
+        };
 
         await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
         AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));

@@ -22,6 +22,9 @@ internal static class SymbolDisplayPartKindTags
         if (namedType.IsRecord)
             return namedType.IsValueType ? SymbolDisplayPartKind.RecordStructName : SymbolDisplayPartKind.RecordClassName;
 
+        if (namedType.IsUnion)
+            return SymbolDisplayPartKind.UnionName;
+
         if (namedType.IsStructType())
             return SymbolDisplayPartKind.StructName;
 
@@ -70,6 +73,7 @@ internal static class SymbolDisplayPartKindTags
             SymbolDisplayPartKind.ConstantName => TextTags.Constant,
             SymbolDisplayPartKind.RecordClassName => TextTags.Record,
             SymbolDisplayPartKind.RecordStructName => TextTags.RecordStruct,
+            SymbolDisplayPartKind.UnionName => TextTags.Union,
             _ => string.Empty,
         };
 }

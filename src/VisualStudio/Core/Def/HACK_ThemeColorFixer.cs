@@ -162,6 +162,7 @@ internal sealed class HACK_ThemeColorFixer : IWpfTextViewConnectionListener
         UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
         UpdateForegroundColor(ClassificationTypeNames.RecordClassName, sourceFormatMap, targetFormatMap);
         UpdateForegroundColor(ClassificationTypeNames.StructName, sourceFormatMap, targetFormatMap);
+        UpdateForegroundColor(ClassificationTypeNames.UnionName, sourceFormatMap, targetFormatMap);
         UpdateForegroundColor(ClassificationTypeNames.InterfaceName, sourceFormatMap, targetFormatMap);
         UpdateForegroundColor(ClassificationTypeNames.DelegateName, sourceFormatMap, targetFormatMap);
         UpdateForegroundColor(ClassificationTypeNames.EnumName, sourceFormatMap, targetFormatMap);

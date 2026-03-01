@@ -537,4 +537,10 @@ public sealed class SpellCheckSpanTests : AbstractSpellCheckSpanTests
         => TestAsync("""
             struct {|Identifier:C|};
             """);
+
+    [Fact]
+    public Task TestIdentifier35()
+        => TestAsync("""
+            union {|Identifier:C|} { }
+            """);
 }

@@ -42,6 +42,7 @@ public static class ClassificationTypeNames
         ModuleName,
         StructName,
         RecordStructName,
+        UnionName,
         TypeParameterName,
         ArrayName,
         PointerName,
@@ -132,6 +133,8 @@ public static class ClassificationTypeNames
     public const string ModuleName = "module name";
     public const string StructName = "struct name";
     public const string RecordStructName = "record struct name";
+    // PROTOTYPE mark public API as experimental
+    public const string UnionName = "union name";
     public const string TypeParameterName = "type parameter name";
     internal const string ArrayName = "array name";
     internal const string PointerName = "pointer name";

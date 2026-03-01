@@ -163,6 +163,7 @@ public static class Classifier
             ClassificationTypeNames.ClassName => SymbolDisplayPartKind.ClassName,
             ClassificationTypeNames.RecordClassName => SymbolDisplayPartKind.RecordClassName,
             ClassificationTypeNames.StructName => SymbolDisplayPartKind.StructName,
+            ClassificationTypeNames.UnionName => SymbolDisplayPartKind.UnionName,
             ClassificationTypeNames.InterfaceName => SymbolDisplayPartKind.InterfaceName,
             ClassificationTypeNames.DelegateName => SymbolDisplayPartKind.DelegateName,
             ClassificationTypeNames.EnumName => SymbolDisplayPartKind.EnumName,

@@ -497,6 +497,11 @@
         <target state="translated">文字列 - Verbatim</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Unions">
+        <source>User Types - Unions</source>
+        <target state="new">User Types - Unions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">
         <source>Waiting for background work to finish...</source>
         <target state="translated">バックグラウンド作業が終了するのを待っています...</target>

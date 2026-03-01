@@ -93,6 +93,12 @@ internal sealed class ClassificationTypeDefinitions
     [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeStructuresTypeDefinition;
     #endregion
+    #region User Types - Unions
+    [Export]
+    [Name(ClassificationTypeNames.UnionName)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+    internal readonly ClassificationTypeDefinition UserTypeUnionsTypeDefinition;
+    #endregion
     #region User Types - Type Parameters 
     [Export]
     [Name(ClassificationTypeNames.TypeParameterName)]

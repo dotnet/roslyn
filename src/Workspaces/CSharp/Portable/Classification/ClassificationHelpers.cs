@@ -296,8 +296,7 @@ internal static class ClassificationHelpers
             SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
             SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
             SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
-            // PROTOTYPE consider using a separate classification type for unions so users can color them differently
-            SyntaxKind.UnionDeclaration => ClassificationTypeNames.StructName,
+            SyntaxKind.UnionDeclaration => ClassificationTypeNames.UnionName,
             _ => null
         };
 
@@ -344,7 +343,7 @@ internal static class ClassificationHelpers
             SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
             SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
             SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
-            SyntaxKind.UnionDeclaration => ClassificationTypeNames.StructName,
+            SyntaxKind.UnionDeclaration => ClassificationTypeNames.UnionName,
             SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
             SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
             SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,

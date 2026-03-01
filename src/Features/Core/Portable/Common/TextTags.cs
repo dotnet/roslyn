@@ -43,6 +43,8 @@ public static class TextTags
     public const string Constant = nameof(Constant);
     public const string Record = nameof(Record);
     public const string RecordStruct = nameof(RecordStruct);
+    // PROTOTYPE mark public API as experimental
+    public const string Union = nameof(Union);
 
     /// <summary>
     /// Indicates the start of a text container. The elements after <see cref="ContainerStart"/> through (but not

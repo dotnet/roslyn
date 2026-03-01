@@ -215,6 +215,24 @@ public sealed partial class TotalClassifierTests : AbstractCSharpClassifierTests
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
+    public Task TestUnion(TestHost testHost)
+        => TestAsync(
+            """
+            union U(int)
+            {
+            }
+            """,
+            testHost,
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            Keyword("union"),
+            Union("U"),
+            Punctuation.OpenParen,
+            Keyword("int"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
     public Task UsingAliasGlobalNamespace(TestHost testHost)
         => TestAsync(
 @"using IO = global::System.IO;",

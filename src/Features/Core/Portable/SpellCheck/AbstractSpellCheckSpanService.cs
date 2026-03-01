@@ -221,6 +221,7 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
                 case ClassificationTypeNames.ModuleName:
                 case ClassificationTypeNames.StructName:
                 case ClassificationTypeNames.RecordStructName:
+                case ClassificationTypeNames.UnionName:
                 case ClassificationTypeNames.TypeParameterName:
                 case ClassificationTypeNames.FieldName:
                 case ClassificationTypeNames.EnumMemberName:

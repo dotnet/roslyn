@@ -180,6 +180,7 @@ internal static class TaggedTextExtensions
             TextTags.AnonymousTypeIndicator or TextTags.Text => ClassificationTypeNames.Text,
             TextTags.Record => ClassificationTypeNames.RecordClassName,
             TextTags.RecordStruct => ClassificationTypeNames.RecordStructName,
+            TextTags.Union => ClassificationTypeNames.UnionName,
             // These tags are not visible so classify them as whitespace
             TextTags.ContainerStart or TextTags.ContainerEnd or TextTags.CodeBlockStart or TextTags.CodeBlockEnd => ClassificationTypeNames.WhiteSpace,
             _ => throw ExceptionUtilities.UnexpectedValue(taggedTextTag),

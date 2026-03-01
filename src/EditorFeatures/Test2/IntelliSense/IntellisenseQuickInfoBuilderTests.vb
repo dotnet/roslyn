@@ -1278,7 +1278,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        ' PROTOTYPE Consider displaying unions as `union MyUnion` instead of `struct MyUnion` and with a separate classification type
         ' PROTOTYPE Consider listing case types in QuickInfo tooltip for unions
         <WpfFact>
         Public Async Function QuickInfoForUnions() As Task
@@ -1310,9 +1309,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     ContainerElementStyle.Wrapped,
                     New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.UnionInternal)),
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "struct"), ' TODO2
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "union"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "TestUnion", navigationAction:=Sub() Return, "TestUnion")))) ' TODO2
+                        New ClassifiedTextRun(ClassificationTypeNames.UnionName, "TestUnion", navigationAction:=Sub() Return, "TestUnion"))))
 
             ToolTipAssert.EqualContent(expected, container)
         End Function

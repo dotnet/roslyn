@@ -33,6 +33,7 @@ internal sealed class CustomLspSemanticTokenNames
     public const string DelegateName = "delegate";
     public const string ModuleName = "module";
     public const string RecordStructName = "recordStruct";
+    public const string UnionName = "union";
     public const string FieldName = "field";
     public const string ConstantName = "constant";
     public const string ExtensionMethodName = "extensionMethod";
@@ -102,6 +103,7 @@ internal sealed class CustomLspSemanticTokenNames
         [ClassificationTypeNames.DelegateName] = DelegateName,
         [ClassificationTypeNames.ModuleName] = ModuleName,
         [ClassificationTypeNames.RecordStructName] = RecordStructName,
+        [ClassificationTypeNames.UnionName] = UnionName,
         [ClassificationTypeNames.FieldName] = FieldName,
         [ClassificationTypeNames.ConstantName] = ConstantName,
         [ClassificationTypeNames.ExtensionMethodName] = ExtensionMethodName,

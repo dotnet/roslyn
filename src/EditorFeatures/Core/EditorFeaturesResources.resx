@@ -138,6 +138,9 @@
   <data name="User_Types_Structures" xml:space="preserve">
     <value>User Types - Structures</value>
   </data>
+  <data name="User_Types_Unions" xml:space="preserve">
+    <value>User Types - Unions</value>
+  </data>
   <data name="User_Types_Type_Parameters" xml:space="preserve">
     <value>User Types - Type Parameters</value>
   </data>

@@ -497,6 +497,11 @@
         <target state="translated">字符串 - 逐字字符串</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Unions">
+        <source>User Types - Unions</source>
+        <target state="new">User Types - Unions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">
         <source>Waiting for background work to finish...</source>
         <target state="translated">正在等待后台工作完成...</target>

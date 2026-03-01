@@ -3145,6 +3145,7 @@ Microsoft.CodeAnalysis.SymbolDisplayPartKind.StringLiteral
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.StructName
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.Text
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.TypeParameterName
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.UnionName
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.value__
 Microsoft.CodeAnalysis.SymbolDisplayPropertyStyle
 Microsoft.CodeAnalysis.SymbolDisplayPropertyStyle.NameOnly

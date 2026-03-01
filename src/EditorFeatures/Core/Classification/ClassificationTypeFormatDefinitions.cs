@@ -366,6 +366,25 @@ internal sealed class ClassificationTypeFormatDefinitions
         }
     }
     #endregion
+    #region User Types - Unions
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.UnionName)]
+    [Name(ClassificationTypeNames.UnionName)]
+    [Order(After = PredefinedClassificationTypeNames.Identifier)]
+    [Order(After = PredefinedClassificationTypeNames.Keyword)]
+    [Order(Before = ClassificationTypeNames.StaticSymbol)]
+    [UserVisible(true)]
+    [ExcludeFromCodeCoverage]
+    private sealed class UserTypeUnionsFormatDefinition : ClassificationFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UserTypeUnionsFormatDefinition()
+        {
+            this.DisplayName = EditorFeaturesResources.User_Types_Unions;
+        }
+    }
+    #endregion
     #region User Types - Type Parameters
     [Export(typeof(EditorFormatDefinition))]
     [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.TypeParameterName)]

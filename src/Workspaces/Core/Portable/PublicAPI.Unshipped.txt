@@ -1,1 +1,2 @@
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.UnionName = "union name" -> string
 const Microsoft.CodeAnalysis.Tags.WellKnownTags.Union = "Union" -> string
