@@ -437,4 +437,35 @@ public sealed class ConvertDirectCastToTryCastTests
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82576")]
+    public Task TestTrailingTrivia()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System.Linq;
+            
+            class Program
+            {
+                void M(object o)
+                {
+                    _ = from v in ([||]object[])o
+                        select v;
+                }
+            }
+            """,
+            FixedCode = """
+            using System.Linq;
+            
+            class Program
+            {
+                void M(object o)
+                {
+                    _ = from v in o as object[]
+                        select v;
+                }
+            }
+            """,
+            CodeActionValidationMode = CodeActionValidationMode.Full,
+        }.RunAsync();
 }
