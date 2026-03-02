@@ -217,7 +217,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     }
 
     /// <summary>
-    /// Ensures that no <see cref="TextChange"/> modifies line break characters.  The Proposal system's
+    /// Ensures that no <see cref="TextChange"/> modifies line break characters.  The Proposal system
     /// rejects edits that modify a line break (e.g. adding a \r to a \n), and the suggestion
     /// service already corrects line break mismatches on insertion, so changing them here is both invalid
     /// and unnecessary. For each change, we match every line ending in <see cref="TextChange.NewText"/>
