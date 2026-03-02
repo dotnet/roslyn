@@ -39,6 +39,10 @@ internal static partial class RoslynInsertionTool
         ? Connections.DevDivConnection
         : Connections.DncEngConnection;
 
+    private static string ComponentAzdoToken => s_lazyComponentConnectionKind.Value == ComponentConnectionKind.DevDiv
+        ? Options.DevDivAzdoToken
+        : Options.DncEngAzdoToken;
+
     private static async Task EnsureAuthenticatedAsync(AzDOConnection connection, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -427,14 +431,7 @@ internal static partial class RoslynInsertionTool
             // See https://developercommunity.visualstudio.com/t/exception-is-being-thrown-for-getartifactcontentzi/1270336
             // It recommended to use http client to download the payload directly from the Url.
             var downloadUrl = artifact.Resource.DownloadUrl;
-            var pat = !string.IsNullOrEmpty(Options.ComponentBuildAzdoUri)
-                ? Options.ComponentBuildAzdoPassword
-                : Options.VisualStudioRepoAzdoPassword;
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(string.Format("{0}:{1}", "", pat))));
-
-            using var response = await client.GetAsync(downloadUrl, cancellationToken).ConfigureAwait(false);
+            using var response = await ComponentBuildConnection.HttpClient.GetAsync(downloadUrl, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             await ExtractToDirectoryAsync(contentStream, tempDirectory).ConfigureAwait(false);

@@ -56,7 +56,6 @@ internal static class UpdateInsertionCommand
             CommonInsertionOptions.UpdateAssemblyVersionsOption,
 
             CommonInsertionOptions.QueueValidationBuildOption,
-            CommonInsertionOptions.ValidationBuildQueueOption,
             CommonInsertionOptions.RunDDRITsInValidationOption,
             CommonInsertionOptions.RunRPSInValidationOption,
             CommonInsertionOptions.RunSpeedometerInValidationOption,
@@ -69,7 +68,6 @@ internal static class UpdateInsertionCommand
             CommonInsertionOptions.TitleSuffixOption,
             CommonInsertionOptions.CherryPickOption,
 
-            CommonInsertionOptions.BuildConfigOption,
             CommonInsertionOptions.BuildDropPathOption,
             CommonInsertionOptions.InsertionBranchPrefixOption,
             CommonInsertionOptions.SkipPackageVersionValidationOption,
@@ -96,7 +94,6 @@ internal static class UpdateInsertionCommand
                 VisualStudioRepoAzdoUri: parseResult.GetValue(CommonInsertionOptions.VsAzdoUriOption)!,
                 VisualStudioRepoProjectName: parseResult.GetValue(CommonInsertionOptions.VsProjectOption)!,
                 ComponentBuildQueueName: parseResult.GetValue(CommonInsertionOptions.ComponentBuildQueueOption)!,
-                BuildConfig: parseResult.GetValue(CommonInsertionOptions.BuildConfigOption)!,
                 InsertionBranchName: parseResult.GetValue(CommonInsertionOptions.InsertionBranchPrefixOption)!,
                 BuildDropPath: parseResult.GetValue(CommonInsertionOptions.BuildDropPathOption)!,
                 InsertCoreXTPackages: parseResult.GetValue(CommonInsertionOptions.InsertCoreXTPackagesOption),
@@ -107,7 +104,6 @@ internal static class UpdateInsertionCommand
                 InsertionName: parseResult.GetValue(CommonInsertionOptions.InsertionNameOption)!,
                 RetainInsertedBuild: parseResult.GetValue(CommonInsertionOptions.RetainInsertedBuildOption),
                 QueueValidationBuild: parseResult.GetValue(CommonInsertionOptions.QueueValidationBuildOption),
-                ValidationBuildQueueName: parseResult.GetValue(CommonInsertionOptions.ValidationBuildQueueOption)!,
                 RunDDRITsInValidation: parseResult.GetValue(CommonInsertionOptions.RunDDRITsInValidationOption),
                 RunRPSInValidation: parseResult.GetValue(CommonInsertionOptions.RunRPSInValidationOption),
                 RunSpeedometerInValidation: parseResult.GetValue(CommonInsertionOptions.RunSpeedometerInValidationOption),
@@ -116,9 +112,9 @@ internal static class UpdateInsertionCommand
                 SkipCoreXTPackages: CommonInsertionOptions.ParseCsv(parseResult.GetValue(CommonInsertionOptions.SkipCoreXTPackagesOption)))
             {
                 VisualStudioBranchName = parseResult.GetValue(CommonInsertionOptions.VsBranchOption)!,
-                VisualStudioRepoAzdoPassword = settings.DevDivAzureDevOpsToken,
+                DevDivAzdoToken = settings.DevDivAzureDevOpsToken,
                 ComponentBuildAzdoUsername = "dn-bot@microsoft.com",
-                ComponentBuildAzdoPassword = settings.DncEngAzureDevOpsToken,
+                DncEngAzdoToken = settings.DncEngAzureDevOpsToken,
                 ComponentBuildAzdoUri = parseResult.GetValue(CommonInsertionOptions.ComponentAzdoUriOption) ?? string.Empty,
                 ComponentBuildProjectName = parseResult.GetValue(CommonInsertionOptions.ComponentProjectOption) ?? string.Empty,
                 ComponentBranchName = parseResult.GetValue(s_componentBranchOption) ?? string.Empty,

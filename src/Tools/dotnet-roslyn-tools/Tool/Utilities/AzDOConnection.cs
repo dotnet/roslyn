@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
 using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.Build.WebApi;
@@ -23,25 +25,27 @@ internal sealed class AzDOConnection : IDisposable
     private VssConnection Connection { get; }
     public GitHttpClient GitClient { get; }
     public BuildHttpClient BuildClient { get; }
+    public HttpClient HttpClient { get; }
     public HttpClient NuGetClient { get; }
     public FileContainerHttpClient ContainerClient { get; }
     public ProjectHttpClient ProjectClient { get; }
     public PipelinesHttpClient PipelinesHttpClient { get; }
 
-    public AzDOConnection(VssConnection vssConnection, string projectName)
+    public AzDOConnection(VssConnection vssConnection, string projectName, string token)
     {
         Connection = vssConnection;
         BuildProjectName = projectName;
 
-        NuGetClient = new HttpClient();
+        HttpClient = new HttpClient();
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
 
+        NuGetClient = new HttpClient();
         GitClient = Connection.GetClient<GitHttpClient>();
         BuildClient = Connection.GetClient<BuildHttpClient>();
-
         ContainerClient = Connection.GetClient<FileContainerHttpClient>();
-
         ProjectClient = Connection.GetClient<ProjectHttpClient>();
-
         PipelinesHttpClient = Connection.GetClient<PipelinesHttpClient>();
     }
 
@@ -97,6 +101,7 @@ internal sealed class AzDOConnection : IDisposable
             _disposed = true;
 
             Connection.Dispose();
+            HttpClient.Dispose();
             NuGetClient.Dispose();
             GitClient.Dispose();
             BuildClient.Dispose();

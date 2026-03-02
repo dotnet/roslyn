@@ -39,7 +39,7 @@ internal static class CommonInsertionOptions
     public static readonly Option<string> ComponentBuildQueueOption = new("--component-build-queue")
     {
         Description = "Component build queue to insert from.",
-        DefaultValueFactory = _ => "Roslyn-Signed",
+        DefaultValueFactory = _ => "dotnet-roslyn-official",
     };
 
     public static readonly Option<string> SpecificBuildOption = new("--specific-build")
@@ -85,13 +85,7 @@ internal static class CommonInsertionOptions
     public static readonly Option<bool> QueueValidationBuildOption = new("--queue-validation-build")
     {
         Description = "Queue VS validation policies for the insertion PR.",
-        DefaultValueFactory = _ => false,
-    };
-
-    public static readonly Option<string> ValidationBuildQueueOption = new("--validation-build-queue")
-    {
-        Description = "Validation build policy display name.",
-        DefaultValueFactory = _ => "DD-VS-VAL-VSALL (dev15 efforts)",
+        DefaultValueFactory = _ => true,
     };
 
     public static readonly Option<bool> RunDDRITsInValidationOption = new("--run-ddrits-in-validation")
@@ -153,12 +147,6 @@ internal static class CommonInsertionOptions
     public static readonly Option<string> SkipCoreXTPackagesOption = new("--skip-corext-packages")
     {
         Description = "Comma-separated CoreXT package names to skip.",
-    };
-
-    public static readonly Option<string> BuildConfigOption = new("--build-config")
-    {
-        Description = "Build configuration used when locating artifacts.",
-        DefaultValueFactory = _ => "Release",
     };
 
     public static readonly Option<string> BuildDropPathOption = new("--build-drop-path")

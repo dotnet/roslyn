@@ -14,10 +14,15 @@ using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Microsoft.RoslynTools.Utilities;
 
+using AzdoToken = (string token, bool isOAuth);
+
 internal record RemoteConnections : IDisposable
 {
     private readonly AzDOConnection? _devDivConnection;
     private readonly AzDOConnection? _dncEngConnection;
+
+    private readonly IAzureDevOpsTokenProvider? _devDivTokenProvider;
+    private readonly IAzureDevOpsTokenProvider? _dncEngTokenProvider;
 
     public AzDOConnection DevDivConnection => _devDivConnection is not null ? _devDivConnection : throw new InvalidOperationException("DevDivConnection is not initialized");
     public AzDOConnection DncEngConnection => _dncEngConnection is not null ? _dncEngConnection : throw new InvalidOperationException("DncEngConnection is not initialized");
@@ -28,8 +33,11 @@ internal record RemoteConnections : IDisposable
     {
         if (loginToAzureDevOps)
         {
-            _devDivConnection = CreateDevDivAzdoConnection(settings.GetDevDivAzDOTokenProvider());
-            _dncEngConnection = CreateDncEngAzdoConnection(settings.GetDncEngAzDOTokenProvider());
+            _devDivTokenProvider = settings.GetDevDivAzDOTokenProvider();
+            _devDivConnection = CreateDevDivAzdoConnection(_devDivTokenProvider);
+
+            _dncEngTokenProvider = settings.GetDncEngAzDOTokenProvider();
+            _dncEngConnection = CreateDncEngAzdoConnection(_dncEngTokenProvider);
         }
 
         var gitHubTokenProvider = settings.GetGitHubTokenProvider();
@@ -44,27 +52,38 @@ internal record RemoteConnections : IDisposable
     }
 
     private static AzDOConnection CreateDncEngAzdoConnection(IAzureDevOpsTokenProvider tokenProvider)
-        => new(CreateVssConnection("dnceng", tokenProvider), "internal");
+    {
+        var token = GetAzdoToken("dnceng", tokenProvider);
+        return new(CreateVssConnection("dnceng", token), "internal", token.token);
+    }
 
     private static AzDOConnection CreateDevDivAzdoConnection(IAzureDevOpsTokenProvider tokenProvider)
-        => new(CreateVssConnection("devdiv", tokenProvider), "DevDiv");
-
-    private static VssConnection CreateVssConnection(string accountName, IAzureDevOpsTokenProvider tokenProvider)
     {
-        var accountUri = new Uri($"https://dev.azure.com/{accountName}");
+        var token = GetAzdoToken("devdiv", tokenProvider);
+        return new(CreateVssConnection("devdiv", token), "DevDiv", token.token);
+    }
+
+    private static AzdoToken GetAzdoToken(string accountName, IAzureDevOpsTokenProvider tokenProvider)
+    {
         var pat = tokenProvider.GetTokenForAccount(accountName);
 
-        VssCredentials creds;
         if (!string.IsNullOrEmpty(pat) && pat != "unset")
         {
-            creds = new VssCredentials(new VssBasicCredential("", pat));
+            return (pat, false);
         }
-        else
-        {
-            var credential = new DefaultAzureCredential();
-            var accessToken = credential.GetToken(new TokenRequestContext(["499b84ac-1321-427f-aa17-267ca6975798/.default"]));
-            creds = new VssOAuthAccessTokenCredential(accessToken.Token);
-        }
+
+        var credential = new DefaultAzureCredential();
+        var accessToken = credential.GetToken(new TokenRequestContext(["499b84ac-1321-427f-aa17-267ca6975798/.default"]));
+        return (accessToken.Token, true);
+    }
+
+    private static VssConnection CreateVssConnection(string accountName, AzdoToken token)
+    {
+        var accountUri = new Uri($"https://dev.azure.com/{accountName}");
+
+        var creds = token.isOAuth
+            ? new VssOAuthAccessTokenCredential(token.token)
+            : new VssCredentials(new VssBasicCredential("", token.token));
 
         return new VssConnection(accountUri, creds);
     }

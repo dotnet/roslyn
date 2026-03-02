@@ -12,7 +12,6 @@ internal sealed record RoslynInsertionToolOptions(
     string VisualStudioRepoAzdoUri,
     string VisualStudioRepoProjectName,
     string ComponentBuildQueueName,
-    string BuildConfig,
     string InsertionBranchName,
     string BuildDropPath,
     bool InsertCoreXTPackages,
@@ -23,7 +22,6 @@ internal sealed record RoslynInsertionToolOptions(
     string InsertionName,
     bool RetainInsertedBuild,
     bool QueueValidationBuild,
-    string ValidationBuildQueueName,
     bool RunDDRITsInValidation,
     bool RunRPSInValidation,
     bool RunSpeedometerInValidation,
@@ -33,9 +31,9 @@ internal sealed record RoslynInsertionToolOptions(
 {
 
     public string VisualStudioBranchName { get; init; } = string.Empty;
-    public string VisualStudioRepoAzdoPassword { get; init; } = string.Empty;
+    public string DevDivAzdoToken { get; init; } = string.Empty;
     public string ComponentBuildAzdoUsername { get; init; } = string.Empty;
-    public string ComponentBuildAzdoPassword { get; init; } = string.Empty;
+    public string DncEngAzdoToken { get; init; } = string.Empty;
     public string ComponentBuildAzdoUri { get; init; } = string.Empty;
     public string ComponentBuildProjectName { get; init; } = string.Empty;
     public string ComponentBranchName { get; init; } = string.Empty;
@@ -96,7 +94,6 @@ internal sealed record RoslynInsertionToolOptions(
                     !string.IsNullOrEmpty(VisualStudioBranchName) &&
                     !string.IsNullOrEmpty(ComponentBuildQueueName) &&
                     !string.IsNullOrEmpty(ComponentBranchName) &&
-                    !string.IsNullOrEmpty(BuildConfig) &&
                     !string.IsNullOrEmpty(VisualStudioRepoAzdoUri) &&
                     !string.IsNullOrEmpty(VisualStudioRepoProjectName) &&
                     !string.IsNullOrEmpty(BuildDropPath);
@@ -196,11 +193,6 @@ internal sealed record RoslynInsertionToolOptions(
                 if (string.IsNullOrEmpty(ComponentBranchName))
                 {
                     builder.AppendLine($"{nameof(ComponentBranchName).ToLowerInvariant()} is required");
-                }
-
-                if (string.IsNullOrEmpty(BuildConfig))
-                {
-                    builder.AppendLine($"{nameof(BuildConfig).ToLowerInvariant()} is required");
                 }
 
                 if (string.IsNullOrEmpty(VisualStudioRepoAzdoUri))

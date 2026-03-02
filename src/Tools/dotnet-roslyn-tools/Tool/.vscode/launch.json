@@ -70,13 +70,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-      "args": [
-        "vsbranchinfo",
-        "--branch",
-        "rel/d17.11",
-        "-v",
-        "diag"
-      ],
+      "args": ["vsbranchinfo", "--branch", "rel/d17.11", "-v", "diag"],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false
@@ -87,11 +81,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-      "args": [
-        "create-release-tags",
-        "-p",
-        "roslyn"
-      ],
+      "args": ["create-release-tags", "-p", "roslyn"],
       "cwd": "${workspaceFolder}/../../../roslyn",
       "console": "internalConsole",
       "stopAtEntry": false
@@ -102,11 +92,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-      "args": [
-        "create-release-tags",
-        "-p",
-        "razor"
-      ],
+      "args": ["create-release-tags", "-p", "razor"],
       "cwd": "${workspaceFolder}/../../../razor",
       "console": "internalConsole",
       "stopAtEntry": false
@@ -117,9 +103,26 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": ["authenticate", "--clear"],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run `create-insertion`",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
       "args": [
-        "authenticate",
-        "--clear"
+        "create-insertion",
+        "--vs-branch",
+        "main",
+        "--component-branch",
+        "main",
+        "--component-build-queue",
+        "dotnet-roslyn-official",
+        "--create-draft-pr"
       ],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",

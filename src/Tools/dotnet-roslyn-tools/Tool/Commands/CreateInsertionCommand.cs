@@ -47,7 +47,6 @@ internal static class CreateInsertionCommand
             CommonInsertionOptions.UpdateAssemblyVersionsOption,
 
             CommonInsertionOptions.QueueValidationBuildOption,
-            CommonInsertionOptions.ValidationBuildQueueOption,
             CommonInsertionOptions.RunDDRITsInValidationOption,
             CommonInsertionOptions.RunRPSInValidationOption,
             CommonInsertionOptions.RunSpeedometerInValidationOption,
@@ -61,7 +60,6 @@ internal static class CreateInsertionCommand
             CommonInsertionOptions.CherryPickOption,
 
             s_dummyOption,
-            CommonInsertionOptions.BuildConfigOption,
             CommonInsertionOptions.BuildDropPathOption,
             CommonInsertionOptions.InsertionBranchPrefixOption,
             CommonInsertionOptions.SkipPackageVersionValidationOption,
@@ -89,7 +87,6 @@ internal static class CreateInsertionCommand
                 VisualStudioRepoAzdoUri: parseResult.GetValue(CommonInsertionOptions.VsAzdoUriOption)!,
                 VisualStudioRepoProjectName: parseResult.GetValue(CommonInsertionOptions.VsProjectOption)!,
                 ComponentBuildQueueName: parseResult.GetValue(CommonInsertionOptions.ComponentBuildQueueOption)!,
-                BuildConfig: parseResult.GetValue(CommonInsertionOptions.BuildConfigOption)!,
                 InsertionBranchName: parseResult.GetValue(CommonInsertionOptions.InsertionBranchPrefixOption)!,
                 BuildDropPath: parseResult.GetValue(CommonInsertionOptions.BuildDropPathOption)!,
                 InsertCoreXTPackages: parseResult.GetValue(CommonInsertionOptions.InsertCoreXTPackagesOption),
@@ -100,7 +97,6 @@ internal static class CreateInsertionCommand
                 InsertionName: parseResult.GetValue(CommonInsertionOptions.InsertionNameOption)!,
                 RetainInsertedBuild: parseResult.GetValue(CommonInsertionOptions.RetainInsertedBuildOption),
                 QueueValidationBuild: parseResult.GetValue(CommonInsertionOptions.QueueValidationBuildOption),
-                ValidationBuildQueueName: parseResult.GetValue(CommonInsertionOptions.ValidationBuildQueueOption)!,
                 RunDDRITsInValidation: parseResult.GetValue(CommonInsertionOptions.RunDDRITsInValidationOption),
                 RunRPSInValidation: parseResult.GetValue(CommonInsertionOptions.RunRPSInValidationOption),
                 RunSpeedometerInValidation: parseResult.GetValue(CommonInsertionOptions.RunSpeedometerInValidationOption),
@@ -109,9 +105,9 @@ internal static class CreateInsertionCommand
                 SkipCoreXTPackages: CommonInsertionOptions.ParseCsv(parseResult.GetValue(CommonInsertionOptions.SkipCoreXTPackagesOption)))
             {
                 VisualStudioBranchName = parseResult.GetValue(CommonInsertionOptions.VsBranchOption)!,
-                VisualStudioRepoAzdoPassword = settings.DevDivAzureDevOpsToken,
+                DevDivAzdoToken = settings.DevDivAzureDevOpsToken,
                 ComponentBuildAzdoUsername = "dn-bot@microsoft.com",
-                ComponentBuildAzdoPassword = settings.DncEngAzureDevOpsToken,
+                DncEngAzdoToken = settings.DncEngAzureDevOpsToken,
                 ComponentBuildAzdoUri = parseResult.GetValue(CommonInsertionOptions.ComponentAzdoUriOption) ?? string.Empty,
                 ComponentBuildProjectName = parseResult.GetValue(CommonInsertionOptions.ComponentProjectOption) ?? string.Empty,
                 ComponentBranchName = parseResult.GetValue(s_componentBranchOption) ?? string.Empty,
@@ -129,13 +125,13 @@ internal static class CreateInsertionCommand
                 SkipPackageVersionValidation = parseResult.GetValue(CommonInsertionOptions.SkipPackageVersionValidationOption),
             };
 
-            if (string.IsNullOrWhiteSpace(settings.DevDivAzureDevOpsToken))
+            if (settings.IsCI && string.IsNullOrWhiteSpace(settings.DevDivAzureDevOpsToken))
             {
                 logger.LogError("Missing DevDiv Azure DevOps token.");
                 return -1;
             }
 
-            if (!insertionOptions.CreateDummyPr && string.IsNullOrWhiteSpace(settings.DncEngAzureDevOpsToken))
+            if (settings.IsCI && !insertionOptions.CreateDummyPr && string.IsNullOrWhiteSpace(settings.DncEngAzureDevOpsToken))
             {
                 logger.LogError("Missing DncEng Azure DevOps token.");
                 return -1;
