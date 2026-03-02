@@ -559,6 +559,175 @@ class C
 }", {ProposalAdjusterKinds.FormatCode}.ToImmutableHashSet())
         End Function
 
+        <WpfFact>
+        Public Async Function TestCSharp_LineEndingsPreserved_LfOnly() As Task
+            ' Ensure that when the original document uses LF-only line endings, the adjusted
+            ' text changes also use LF-only line endings (not CRLF).
+            Await TestLineEndingsPreserved(vbLf)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_LineEndingsPreserved_CrLf() As Task
+            ' Ensure that when the original document uses CRLF line endings, the adjusted
+            ' text changes also use CRLF line endings.
+            Await TestLineEndingsPreserved(vbCrLf)
+        End Function
+
+        Private Shared Async Function TestLineEndingsPreserved(lineEnding As String) As Task
+            ' Build a C# source file that uses the specified line ending and that will
+            ' trigger the AddMissingImports adjuster (Console.WriteLine needs System).
+            Dim nl = lineEnding
+            Dim originalCode =
+                "class C" & nl &
+                "{" & nl &
+                "    void M()" & nl &
+                "    {" & nl &
+                "    }" & nl &
+                "}"
+
+            Dim proposalText = "Console.WriteLine(1);"
+
+            Using workspace = EditorTestWorkspace.CreateCSharp(
+                    originalCode, composition:=s_composition)
+                Dim documentId = workspace.Documents.First().Id
+                Dim originalDocument = workspace.CurrentSolution.GetDocument(documentId)
+                Dim originalText = Await originalDocument.GetTextAsync()
+
+                ' Verify the document actually has the line endings we expect.
+                Assert.True(originalText.ToString().Contains(lineEnding))
+
+                ' Insert the proposal text inside the method body (after the opening brace of M).
+                ' Find the position right after "    {" + lineEnding.
+                Dim insertPos = originalCode.IndexOf("    {" & nl, originalCode.IndexOf("void M()")) + ("    {" & nl).Length
+                Dim changes = CopilotUtilities.TryNormalizeCopilotTextChanges(
+                    {New TextChange(New TextSpan(insertPos, 0), "        " & proposalText & nl)})
+
+                Dim fixers = {
+                    ProposalAdjusterKinds.AddMissingImports,
+                    ProposalAdjusterKinds.FormatCode
+                }.ToImmutableHashSet()
+
+                Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
+                Dim result = Await service.TryAdjustProposalAsync(
+                    allowableAdjustments:=fixers, originalDocument, changes, CancellationToken.None)
+
+                ' The adjuster should have made changes (at minimum, adding "using System;").
+                Assert.False(result.TextChanges.IsDefaultOrEmpty)
+
+                ' Verify that every line ending in every TextChange.NewText matches the
+                ' original document's line ending style.
+                For Each change In result.TextChanges
+                    Dim newText = change.NewText
+                    If newText Is Nothing Then Continue For
+
+                    If lineEnding = vbLf Then
+                        ' LF-only: there should be no CR characters at all.
+                        Assert.DoesNotContain(vbCr, newText)
+                    Else
+                        ' CRLF: every LF should be preceded by a CR.
+                        For i = 0 To newText.Length - 1
+                            If newText(i) = CChar(vbLf) Then
+                                Assert.True(i > 0 AndAlso newText(i - 1) = CChar(vbCr),
+                                    $"Found bare LF at position {i} in TextChange.NewText: ""{newText}""")
+                            End If
+                        Next
+                    End If
+                Next
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_LineEndingsPreserved_Mixed() As Task
+            ' Build a document that uses CRLF for most lines but LF for the line inside the
+            ' method body.  The adjuster should preserve each line's original ending in the
+            ' corresponding TextChange, even when they differ within a single change span.
+            Dim crlf = vbCrLf
+            Dim lf = vbLf
+            Dim originalCode =
+                "class C" & crlf &
+                "{" & crlf &
+                "    void M()" & crlf &
+                "    {" & lf &
+                "    }" & crlf &
+                "}"
+
+            Dim proposalText = "Console.WriteLine(1);"
+
+            Using workspace = EditorTestWorkspace.CreateCSharp(
+                    originalCode, composition:=s_composition)
+                Dim documentId = workspace.Documents.First().Id
+                Dim originalDocument = workspace.CurrentSolution.GetDocument(documentId)
+                Dim originalText = Await originalDocument.GetTextAsync()
+
+                ' The document should contain both CRLF and bare-LF.
+                Dim originalString = originalText.ToString()
+                Assert.Contains(crlf, originalString)
+                Assert.True(originalString.Contains("    {" & lf))
+
+                ' Insert the proposal text inside the method body (after "    {" + LF).
+                Dim insertPos = originalCode.IndexOf("    {" & lf) + ("    {" & lf).Length
+                Dim changes = CopilotUtilities.TryNormalizeCopilotTextChanges(
+                    {New TextChange(New TextSpan(insertPos, 0), "        " & proposalText & lf)})
+
+                Dim fixers = {
+                    ProposalAdjusterKinds.AddMissingImports,
+                    ProposalAdjusterKinds.FormatCode
+                }.ToImmutableHashSet()
+
+                Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
+                Dim result = Await service.TryAdjustProposalAsync(
+                    allowableAdjustments:=fixers, originalDocument, changes, CancellationToken.None)
+
+                Assert.False(result.TextChanges.IsDefaultOrEmpty)
+
+                ' For each change, collect the line endings from the original text within
+                ' the change's span, then verify the NewText uses those same endings in order.
+                For Each change In result.TextChanges
+                    Dim newText = change.NewText
+                    If newText Is Nothing Then Continue For
+
+                    ' Collect expected line endings from the original span.
+                    Dim expectedEndings = New List(Of String)()
+                    Dim startLine = originalText.Lines.GetLineFromPosition(change.Span.Start).LineNumber
+                    Dim endLine = originalText.Lines.GetLineFromPosition(change.Span.End).LineNumber
+                    For i = startLine To endLine
+                        Dim line = originalText.Lines(i)
+                        If line.End >= change.Span.Start AndAlso line.End < change.Span.End Then
+                            Dim breakLen = line.EndIncludingLineBreak - line.End
+                            If breakLen = 2 Then
+                                expectedEndings.Add(crlf)
+                            ElseIf breakLen = 1 Then
+                                expectedEndings.Add(If(originalString(line.End) = CChar(vbLf), lf, vbCr))
+                            End If
+                        End If
+                    Next
+
+                    ' Collect actual line endings from the new text.
+                    Dim actualEndings = New List(Of String)()
+                    Dim j = 0
+                    While j < newText.Length
+                        If newText(j) = CChar(vbCr) AndAlso j + 1 < newText.Length AndAlso newText(j + 1) = CChar(vbLf) Then
+                            actualEndings.Add(crlf)
+                            j += 2
+                        ElseIf newText(j) = CChar(vbLf) Then
+                            actualEndings.Add(lf)
+                            j += 1
+                        ElseIf newText(j) = CChar(vbCr) Then
+                            actualEndings.Add(vbCr)
+                            j += 1
+                        Else
+                            j += 1
+                        End If
+                    End While
+
+                    ' The endings that overlap with original span positions should match 1:1.
+                    For i = 0 To Math.Min(expectedEndings.Count, actualEndings.Count) - 1
+                        Assert.Equal(expectedEndings(i), actualEndings(i))
+                    Next
+                Next
+            End Using
+        End Function
+
 #End Region
 
 #Region "Visual Basic"
