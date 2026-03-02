@@ -11471,7 +11471,7 @@ public class X
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
+        [Fact]
         public void Scope_Query_01()
         {
             var source =

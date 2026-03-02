@@ -2114,7 +2114,7 @@ public class Test
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void TestWellKnownAttributeOnProperty_DynamicAttribute()
         {
             string source = @"

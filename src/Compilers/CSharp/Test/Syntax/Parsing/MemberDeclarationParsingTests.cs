@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(ParseDeclaration("+-!@#$%^&*()"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void ParseOverflow()
         {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void ParseOverflow2()
         {

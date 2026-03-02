@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void TestNormalizeSwitchExpressionRawStringsMultiline()
         {
             TestNormalizeStatement(""""
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void TestNormalizeSwitchExpressionRawStringsMultilineUtf8_01()
         {
             TestNormalizeStatement(""""
