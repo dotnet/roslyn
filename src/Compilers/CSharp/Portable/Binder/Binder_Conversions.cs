@@ -987,7 +987,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                     }
 
-                    // A parameterless constructor was found to break the cycle. Proceed with it.
+                    // A parameterless constructor was set during conversion classification (by
+                    // HasCollectionExpressionApplicableConstructor) to break the cycle. Proceed with it.
+                    Debug.Assert(constructor.Parameters.IsEmpty);
                 }
 
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
