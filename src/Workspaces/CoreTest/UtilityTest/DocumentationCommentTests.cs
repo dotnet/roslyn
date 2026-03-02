@@ -321,13 +321,13 @@ public sealed class DocumentationCommentTests
 
         var comment = DocumentationComment.FromXmlFragment(fullXml);
 
-        Assert.Equal(expected, comment.SummaryText);
-        Assert.Equal(expected, comment.ReturnsText);
-        Assert.Equal(expected, comment.ValueText);
-        Assert.Equal(expected, comment.ExampleText);
-        Assert.Equal(expected, comment.GetParameterText("goo"));
-        Assert.Equal(expected, comment.GetTypeParameterText("T"));
-        Assert.Equal(expected, comment.RemarksText);
+        Assert.Equal(expected.ReplaceLineEndings(), comment.SummaryText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.ReturnsText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.ValueText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.ExampleText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.GetParameterText("goo")?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.GetTypeParameterText("T")?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.RemarksText?.ReplaceLineEndings());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/18901")]
@@ -374,12 +374,12 @@ public sealed class DocumentationCommentTests
 
         var comment = DocumentationComment.FromXmlFragment(fullXml);
 
-        Assert.Equal(expected, comment.SummaryText);
-        Assert.Equal(expected, comment.ReturnsText);
-        Assert.Equal(expected, comment.ValueText);
-        Assert.Equal(expected, comment.ExampleText);
-        Assert.Equal(expected, comment.GetParameterText("goo"));
-        Assert.Equal(expected, comment.GetTypeParameterText("T"));
-        Assert.Equal(expected, comment.RemarksText);
+        Assert.Equal(expected.ReplaceLineEndings(), comment.SummaryText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.ReturnsText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.ValueText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.ExampleText?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.GetParameterText("goo")?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.GetTypeParameterText("T")?.ReplaceLineEndings());
+        Assert.Equal(expected.ReplaceLineEndings(), comment.RemarksText?.ReplaceLineEndings());
     }
 }

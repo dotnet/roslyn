@@ -77,7 +77,7 @@ public sealed partial class FindAllDeclarationsTests
         var composition = FeaturesTestCompositions.Features.WithTestHostParts(testHost);
         var workspace = new AdhocWorkspace(composition.GetHostServices());
 
-        if (testHost == TestHost.OutOfProcess)
+        if (testHost == TestHost.OutOfProcess && ExecutionConditionUtil.IsWindows)
         {
             var remoteHostProvider = (InProcRemoteHostClientProvider)workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
             remoteHostProvider.TraceListener = new XunitTraceListener(_logger);

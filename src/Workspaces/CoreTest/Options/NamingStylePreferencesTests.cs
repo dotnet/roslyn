@@ -21,7 +21,7 @@ public sealed class NamingStylePreferencesTests
     }
 
     private static void AssertTrimmedEqual(string expected, string actual)
-        => Assert.Equal(expected.Trim(), actual.Trim());
+        => Assert.Equal(expected.Trim().ReplaceLineEndings(), actual.Trim().ReplaceLineEndings());
 
     [Fact]
     public void Equality()
