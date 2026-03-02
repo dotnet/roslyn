@@ -8192,10 +8192,40 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(1)];
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
-        comp.VerifyEmitDiagnostics(
-            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection()'.
-            // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection()").WithLocation(5, 6));
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77784")]
+    public void ParamsCycle_MultipleConstructors_ClassContext()
+    {
+        // Regression test for https://github.com/dotnet/roslyn/issues/77784
+        // False positive CS9223 in collection expression arguments when a parameterless constructor
+        // exists alongside a params constructor.
+        string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public MyCollection() { _list = new(); }
+                    public MyCollection(params MyCollection<T> other) { _list = new(other); }
+                    public void Add(T t) { _list.Add(t); }
+                }
+
+                class C
+                {
+                    public void M()
+                    {
+                        MyCollection<int> c = [with(1)];
+                    }
+                }
+                """;
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

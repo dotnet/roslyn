@@ -979,9 +979,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_targetType is NamedTypeSymbol namedType &&
                     _binder.HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
                 {
-                    Debug.Assert(inProgressConstructor is not null);
-                    _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
-                    return null;
+                    if (constructor is null)
+                    {
+                        // No specific constructor was found to break the cycle - this is a true infinite chain.
+                        Debug.Assert(inProgressConstructor is not null);
+                        _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
+                        return null;
+                    }
+
+                    // A parameterless constructor was found to break the cycle. Proceed with it.
                 }
 
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
@@ -1615,6 +1621,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (HasParamsCollectionTypeInProgress(namedType, out _, out _))
                 {
+                    if (!hasWithElement)
+                    {
+                        // We are in a cycle, but without a with-element, a parameterless constructor can break the
+                        // cycle since it won't recursively invoke the params constructor. Check if one is accessible.
+                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                        var candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
+                            namedType, allowProtectedConstructorsOfBaseType: false,
+                            out _, ref useSiteInfo);
+
+                        foreach (var ctor in candidateConstructors)
+                        {
+                            if (ctor.Parameters.IsEmpty)
+                            {
+                                constructor = ctor;
+                                isExpanded = false;
+                                return true;
+                            }
+                        }
+                    }
+
                     // We are in a cycle. Optimistically assume we have the right constructor to break the cycle
                     return true;
                 }
