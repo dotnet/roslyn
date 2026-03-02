@@ -1291,6 +1291,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.ReportUseSite(iTupleGetLength, node) ||
                 diagnostics.ReportUseSite(iTupleGetItem, node);
 
+            AssertNotUnsafeMemberAccess(iTupleType);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, iTupleGetLength, node);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, iTupleGetItem, node);
+
             return true;
 
             bool hasBaseInterface(TypeSymbol type, NamedTypeSymbol possibleBaseInterface)

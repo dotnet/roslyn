@@ -633,6 +633,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                if (this.MethodKind is MethodKind.AnonymousFunction or MethodKind.Destructor or MethodKind.LambdaMethod or MethodKind.StaticConstructor)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+                else
+                {
+                    if (ContainingModule.UseUpdatedMemorySafetyRules)
+                    {
+                        MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, arguments.AttributeSyntaxOpt.Location);
+                    }
+
+                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasRequiresUnsafeAttribute = true;
+                }
+            }
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
                 DecodeInterceptsLocationAttribute(arguments);

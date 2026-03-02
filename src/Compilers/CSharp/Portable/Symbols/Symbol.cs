@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -618,6 +617,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return false; }
         }
+
+        // https://github.com/dotnet/roslyn/issues/82546: add a public API for this (probably just expose a bool)
+        /// <summary>
+        /// Whether this member is considered unsafe under the updated memory safety rules.
+        /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
+        /// </summary>
+        internal abstract CallerUnsafeMode CallerUnsafeMode { get; }
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
@@ -1531,6 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefSafetyRulesAttribute = 1 << 13,
             RequiresLocationAttribute = 1 << 14,
             ExtensionMarkerAttribute = 1 << 15,
+            MemorySafetyRulesAttribute = 1 << 16,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1605,6 +1612,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((reserved & ReservedAttributes.RefSafetyRulesAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.MemorySafetyRulesAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.MemorySafetyRulesAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&

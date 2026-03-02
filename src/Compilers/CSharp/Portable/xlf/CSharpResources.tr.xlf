@@ -387,6 +387,21 @@
         <target state="translated">Açık dönüş türü olmadan, anonim yöntemlerde AsyncMethodBuilder özniteliğine izin verilmez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">Bu üyede 'OverloadResolutionPriorityAttribute' kullanılamaz.</target>
@@ -1451,6 +1466,11 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">' {0}' '{1}' için bir tanım içermiyor ve '{0}' türünden ilk bağımsız değişkeni kabul eden erişilebilir '{1}' uzantı yöntemi bulunamadı (zaman uyumsuz koleksiyon üzerinde 'await foreach' ile yineleme yapmak mı istediniz?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
+        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
+        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2667,10 +2687,30 @@
         <target state="translated">'{0}', 'UnmanagedCallersOnly' özniteliğine sahip ve temsilci türüne dönüştürülemez. Bu yöntem için bir işlev işaretçisi edinin.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}' tanınmayan bir RefSafetyRulesAttribute sürümüne sahip bir modülde tanımlandı ve '11' bekleniyor.</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperation">
+        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
+        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperationCompat">
+        <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
+        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="new">This operation may only be used in an unsafe context</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
+        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
+        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
@@ -3050,6 +3090,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nameof işlecindeki bağlı olmayan genel türler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>updated memory safety rules</source>
+        <target state="new">updated memory safety rules</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3836,6 +3881,16 @@
         <source>Struct member returns 'this' or other instance members by reference</source>
         <target state="translated">Struct üyesi, 'tis' veya diğer örnek üyelerini referans olarak döndürür</target>
         <note />
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
