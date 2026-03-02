@@ -575,7 +575,7 @@ class C
 
         Private Shared Async Function TestLineEndingsPreserved(lineEnding As String) As Task
             ' Build a C# source file that uses the specified line ending and that will
-            ' trigger the AddMissingImports adjuster (Console.WriteLine needs System).
+            ' trigger the AddMissingImports adjuster
             Dim nl = lineEnding
             Dim originalCode =
                 "class C" & nl &
@@ -596,8 +596,6 @@ class C
                 ' Verify the document actually has the line endings we expect.
                 Assert.True(originalText.ToString().Contains(lineEnding))
 
-                ' Insert the proposal text inside the method body (after the opening brace of M).
-                ' Find the position right after "    {" + lineEnding.
                 Dim insertPos = originalCode.IndexOf("    {" & nl, originalCode.IndexOf("void M()")) + ("    {" & nl).Length
                 Dim changes = CopilotUtilities.TryNormalizeCopilotTextChanges(
                     {New TextChange(New TextSpan(insertPos, 0), "        " & proposalText & nl)})
@@ -664,7 +662,6 @@ class C
                 Assert.Contains(crlf, originalString)
                 Assert.True(originalString.Contains("    {" & lf))
 
-                ' Insert the proposal text inside the method body (after "    {" + LF).
                 Dim insertPos = originalCode.IndexOf("    {" & lf) + ("    {" & lf).Length
                 Dim changes = CopilotUtilities.TryNormalizeCopilotTextChanges(
                     {New TextChange(New TextSpan(insertPos, 0), "        " & proposalText & lf)})
