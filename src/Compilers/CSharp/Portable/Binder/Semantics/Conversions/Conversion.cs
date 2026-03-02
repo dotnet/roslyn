@@ -884,6 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [MemberNotNullWhen(true, nameof(BestUnionConversionAnalysis))]
         public bool IsUnion
         {
+            [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
             get
             {
                 return Kind.IsUnionConversion();

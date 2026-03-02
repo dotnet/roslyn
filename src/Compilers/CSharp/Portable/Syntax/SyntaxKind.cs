@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <see langword="extension"/>.</summary>
         ExtensionKeyword = 8451,
         /// <summary>Represents <see langword="union"/>.</summary>
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         UnionKeyword = 8452,
 
         // when adding a contextual keyword following functions must be adapted:
@@ -941,6 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82210")]
         WithElement = 9081,
 
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         UnionDeclaration = 9082,
     }
 }
