@@ -2747,7 +2747,7 @@ class P
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(542559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542559")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void StaticTypeInFromClause()
         {
             string source = @"
