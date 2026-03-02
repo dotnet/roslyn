@@ -839,7 +839,7 @@ public class Derived2 : Derived
             Assert.False(derived2Indexer2.Parameters.Single().IsParamsCollection);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(ClrOnly))]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void Repro819774()
