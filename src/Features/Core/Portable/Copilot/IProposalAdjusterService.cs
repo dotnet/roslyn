@@ -147,7 +147,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         // Get the final set of changes between the original document and the new document.
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
-        var totalChanges = allChanges.AsImmutableOrEmpty();
+        var totalChanges = NormalizeLineEndingsInChanges(oldText, allChanges.AsImmutableOrEmpty());
 
         return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
@@ -214,5 +214,137 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var totalSpans = CopilotUtilities.GetTextSpansFromTextChanges(changes);
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, totalSpans);
         return totalNewSpan;
+    }
+
+    /// <summary>
+    /// Ensures that no <see cref="TextChange"/> modifies line break characters.  The Proposal system's
+    /// rejects edits that modify a line break (e.g. adding a \r to a \n), and the suggestion
+    /// service already corrects line break mismatches on insertion, so changing them here is both invalid
+    /// and unnecessary. For each change, we match every line ending in <see cref="TextChange.NewText"/>
+    /// 1:1 with the line endings found in the original text within the change's <see cref="TextChange.Span"/>.
+    /// </summary>
+    private static ImmutableArray<TextChange> NormalizeLineEndingsInChanges(
+        SourceText originalText, ImmutableArray<TextChange> changes)
+    {
+        if (changes.IsDefaultOrEmpty)
+            return changes;
+
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
+        foreach (var change in changes)
+        {
+            var newText = NormalizeNewlines(change.NewText ?? "", originalText, change.Span);
+            result.Add(new TextChange(change.Span, newText));
+        }
+
+        return result.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// Normalizes every line ending in <paramref name="newText"/> to match the line endings found within
+    /// <paramref name="span"/> of <paramref name="originalText"/>. Line endings are matched in order:
+    /// the first line break in <paramref name="newText"/> gets the first line ending from the original
+    /// span, the second gets the second, and so on. If <paramref name="newText"/> has more line breaks
+    /// than the original span, the extras use the last line ending found in the span (or, if the span
+    /// contains no line breaks, the nearest line ending from the surrounding text).
+    /// </summary>
+    private static string NormalizeNewlines(string newText, SourceText originalText, TextSpan span)
+    {
+        if (newText.IndexOf('\r') < 0 && newText.IndexOf('\n') < 0)
+            return newText;
+
+        // Collect the line endings within the original span, in order.
+        using var _1 = ArrayBuilder<string>.GetInstance(out var originalEndings);
+        GetLineEndingsInSpan(originalText, span, originalEndings);
+
+        // Determine the fallback line ending to use for extra newlines in newText (or when
+        // the original span had no line breaks at all, e.g. a pure insertion).
+        var fallback = originalEndings.Count > 0
+            ? originalEndings[^1]
+            : GetLineEndingAtPosition(originalText, span.Start);
+
+        // Walk through newText, replacing each line ending with the corresponding original one.
+        using var _2 = PooledStringBuilder.GetInstance(out var sb);
+        var endingIndex = 0;
+        for (var i = 0; i < newText.Length; i++)
+        {
+            var ch = newText[i];
+            if (ch == '\r' && i + 1 < newText.Length && newText[i + 1] == '\n')
+            {
+                sb.Append(endingIndex < originalEndings.Count ? originalEndings[endingIndex] : fallback);
+                endingIndex++;
+                i++;
+            }
+            else if (ch == '\r' || ch == '\n')
+            {
+                sb.Append(endingIndex < originalEndings.Count ? originalEndings[endingIndex] : fallback);
+                endingIndex++;
+            }
+            else
+            {
+                sb.Append(ch);
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Collects all line endings whose start position (<see cref="TextLine.End"/>) falls within
+    /// <paramref name="span"/> of <paramref name="text"/>, in document order.
+    /// </summary>
+    private static void GetLineEndingsInSpan(SourceText text, TextSpan span, ArrayBuilder<string> endings)
+    {
+        var startLine = text.Lines.GetLineFromPosition(span.Start).LineNumber;
+        var endLine = text.Lines.GetLineFromPosition(span.End).LineNumber;
+
+        for (var i = startLine; i <= endLine; i++)
+        {
+            var line = text.Lines[i];
+
+            // Only include line endings that start within the span.
+            if (line.End < span.Start || line.End >= span.End)
+                continue;
+
+            var breakLength = line.EndIncludingLineBreak - line.End;
+            if (breakLength == 2)
+                endings.Add("\r\n");
+            else if (breakLength == 1)
+                endings.Add(text[line.End] == '\n' ? "\n" : "\r");
+        }
+    }
+
+    /// <summary>
+    /// Gets the line ending used by the line at <paramref name="position"/> in <paramref name="text"/>.
+    /// If that line has no line break (e.g. last line of the file), searches backwards for the nearest
+    /// line that does. Falls back to <c>"\r\n"</c> if the file has no line endings at all.
+    /// </summary>
+    private static string GetLineEndingAtPosition(SourceText text, int position)
+    {
+        var lineIndex = text.Lines.GetLineFromPosition(position).LineNumber;
+
+        // Walk backwards from the current line to find one with a line break.
+        for (var i = lineIndex; i >= 0; i--)
+        {
+            var line = text.Lines[i];
+            var breakLength = line.EndIncludingLineBreak - line.End;
+            if (breakLength == 2)
+                return "\r\n";
+            if (breakLength == 1)
+                return text[line.End] == '\n' ? "\n" : "\r";
+        }
+
+        // No line endings found anywhere before this position; try lines after.
+        for (var i = lineIndex + 1; i < text.Lines.Count; i++)
+        {
+            var line = text.Lines[i];
+            var breakLength = line.EndIncludingLineBreak - line.End;
+            if (breakLength == 2)
+                return "\r\n";
+            if (breakLength == 1)
+                return text[line.End] == '\n' ? "\n" : "\r";
+        }
+
+        // File has no line endings at all (single-line file).
+        return "\r\n";
     }
 }
