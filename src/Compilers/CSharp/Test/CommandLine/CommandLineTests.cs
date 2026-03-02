@@ -7133,7 +7133,7 @@ class C
         }
 
         [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void CompilationWithWarnAsError_01()
         {
             string source = @"
@@ -7160,7 +7160,7 @@ public class C
         }
 
         [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void CompilationWithWarnAsError_02()
         {
             string source = @"
@@ -12351,7 +12351,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal("", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
         public void PdbPathNotEmittedWithoutPdb()
         {

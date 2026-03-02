@@ -405,3 +405,39 @@
 
 ### NoPiaEmbedTypes (Emit/NoPiaEmbedTypes.cs)
 - All methods are ClrOnly — already run on .NET Core, no changes needed
+
+---
+
+## Project: `src/Compilers/CSharp/Test/CommandLine/Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj`
+
+
+### CommandLineTests (CommandLineTests.cs)
+- CompilationWithWarnAsError_01: ported — WindowsOnly→Fact, passes on net10.0
+- CompilationWithWarnAsError_02: ported — WindowsOnly→Fact, passes on net10.0
+- PdbPathNotEmittedWithoutPdb: ported — WindowsOnly→Fact, passes on net10.0
+- 28 WindowsOnly methods: skipped — Windows path handling (hardcoded C:\, backslash normalization, cmd.exe usage)
+- 9 WindowsDesktopOnly(#30289) methods: skipped — Windows paths in test data
+- 13 WindowsDesktopOnly(#30321) methods: skipped — uses ProcessUtilities.RunAndGetOutput with cmd.exe or s_CSharpCompilerExecutable
+- 2 WindowsDesktopOnly(#30328) methods: skipped — codepage/process execution
+- 2 WindowsDesktopOnly(TestExecutionNeedsWindowsTypes): skipped — genuine restriction
+- 3 WindowsDesktopOnly(NativePdbRequiresDesktop): skipped — genuine restriction
+- 1 DesktopClrOnly (SxS loading): skipped — genuine restriction
+- 4 WindowsDesktopOnly(#30321) with IsEnglishLocal: skipped — locale + process execution
+- WindowsOnly+IsEnglishLocal(Bug15538): skipped
+- WindowsOnly+WorkItem(FileShareDeleteCompatibility_ReadOnlyFiles): skipped
+- WindowsTheory(TestDuplicateAdditionalFiles_Windows): skipped — Windows path dedup logic
+
+### SarifV2ErrorLoggerTests (SarifV2ErrorLoggerTests.cs)
+- AnalyzerDisabledWithCommandLineOptions: ported — WindowsOnly→Fact, passes on net10.0
+- 4 WindowsOnly(#30289) methods: skipped — SARIF output contains Windows-style URIs
+- 7 WindowsOnly methods: skipped — SARIF URI path formatting differs on Linux
+- 1 WindowsTheory(#30289): skipped
+
+### SarifV1ErrorLoggerTests (SarifV1ErrorLoggerTests.cs)
+- All 9 methods: skipped — SARIF URI path formatting differs on Linux
+
+### CommandLineDiagnosticFormatterTests (CommandLineDiagnosticFormatterTests.cs)
+- All 5 methods: skipped — tests Windows path formatting (C:\, X:\rootdir)
+
+### TouchedFileLoggingTests (TouchedFileLoggingTests.cs)
+- All 4 methods: skipped — path normalization fails on Linux

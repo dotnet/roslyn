@@ -52,3 +52,12 @@
 - [x] CodeGen/CodeGenIterators.cs (1 method)
 - [x] CodeGen/CodeGenDynamicTests.cs (1 method)
 - [x] CodeGen/CodeGenConstructorInitTests.cs (1 method)
+## Project: `src/Compilers/CSharp/Test/CommandLine/Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj`
+
+### Classes
+
+- [x] CommandLineTests.cs (76 methods)
+- [x] SarifV2ErrorLoggerTests.cs (13 methods)
+- [x] SarifV1ErrorLoggerTests.cs (9 methods)
+- [x] CommandLineDiagnosticFormatterTests.cs (5 methods)
+- [x] TouchedFileLoggingTests.cs (4 methods)
