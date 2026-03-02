@@ -173,7 +173,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         var workspace = CreateWorkspace(workspaceMarkupOrCode, parameters, composition, documentServiceProvider);
 
 #if !CODE_STYLE
-        if (parameters.testHost == TestHost.OutOfProcess && _logger != null)
+        if (parameters.testHost == TestHost.OutOfProcess && _logger != null && ExecutionConditionUtil.IsWindows)
         {
             var remoteHostProvider = (InProcRemoteHostClientProvider)workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
             remoteHostProvider.TraceListener = new XunitTraceListener(_logger);

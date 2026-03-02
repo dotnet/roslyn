@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
@@ -74,15 +74,16 @@ internal sealed class CSharpAddDocCommentNodesCodeFixProvider()
         // implementation causes an exception, so we have to add an XmlElementSyntax
         var newDocCommentNode = SyntaxFactory.DocumentationComment(SyntaxFactory.XmlParamElement(parameterName));
         var elementNode = (XmlElementSyntax)newDocCommentNode.ChildNodes().ElementAt(0);
+        var newLine = LineFormattingOptions.Default.NewLine;
 
         // return node on new line
         if (isFirstNodeInComment)
         {
-            return elementNode.WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(Environment.NewLine));
+            return elementNode.WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(newLine));
         }
 
         return elementNode.WithLeadingTrivia(
-            SyntaxFactory.ParseLeadingTrivia(Environment.NewLine)
+            SyntaxFactory.ParseLeadingTrivia(newLine)
                 .AddRange(elementNode.GetLeadingTrivia()));
     }
 }

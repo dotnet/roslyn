@@ -27,5 +27,5 @@ public static class FeaturesTestCompositions
         .AddParts(typeof(TestSerializerService.Factory));
 
     public static TestComposition WithTestHostParts(this TestComposition composition, TestHost host)
-        => (host == TestHost.InProcess) ? composition : composition.AddAssemblies(typeof(RemoteWorkspacesResources).Assembly).AddParts(typeof(InProcRemoteHostClientProvider.Factory));
+        => (host == TestHost.InProcess || !ExecutionConditionUtil.IsWindows) ? composition : composition.AddAssemblies(typeof(RemoteWorkspacesResources).Assembly).AddParts(typeof(InProcRemoteHostClientProvider.Factory));
 }

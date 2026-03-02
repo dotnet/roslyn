@@ -21,14 +21,15 @@ public sealed class FormattingAnalyzerTests
     [Fact]
     public async Task TrailingWhitespace()
     {
+        var newLine = "\r\n";
         var testCode =
-            "class X[| |]" + Environment.NewLine +
-            "{" + Environment.NewLine +
-            "}" + Environment.NewLine;
+            "class X[| |]" + newLine +
+            "{" + newLine +
+            "}" + newLine;
         var expected =
-            "class X" + Environment.NewLine +
-            "{" + Environment.NewLine +
-            "}" + Environment.NewLine;
+            "class X" + newLine +
+            "{" + newLine +
+            "}" + newLine;
         await Verify.VerifyCodeFixAsync(testCode, expected);
     }
 
