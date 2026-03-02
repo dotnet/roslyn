@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+
             if (containingType.IsStructType())
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;

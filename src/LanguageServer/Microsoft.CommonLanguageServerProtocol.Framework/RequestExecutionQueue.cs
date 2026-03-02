@@ -65,7 +65,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     /// The queue containing the ordered LSP requests along with the trace activityId (to associate logs with a request) and
     ///  a combined cancellation token representing the queue's cancellation token and the individual request cancellation token.
     /// </summary>
-    protected readonly AsyncQueue<(IQueueItem<TRequestContext> queueItem, Guid ActivityId, CancellationToken cancellationToken)> _queue = new();
+    protected readonly AsyncQueue<(QueueItem<TRequestContext> queueItem, Guid ActivityId, CancellationToken cancellationToken)> _queue = new();
     private readonly CancellationTokenSource _cancelSource = new();
 
     /// <summary>
@@ -198,7 +198,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             {
                 // First attempt to de-queue the work item in its own try-catch.
                 // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
-                (IQueueItem<TRequestContext> work, Guid activityId, CancellationToken cancellationToken) queueItem;
+                (QueueItem<TRequestContext> work, Guid activityId, CancellationToken cancellationToken) queueItem;
                 try
                 {
                     queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
@@ -303,11 +303,11 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     }
 
     /// <summary>
-    /// Reflection invokes <see cref="ProcessQueueCoreAsync{TRequest, TResponse}(IQueueItem{TRequestContext}, IMethodHandler, RequestHandlerMetadata, ConcurrentDictionary{Task, CancellationTokenSource}, CancellationTokenSource?, CancellationToken)"/>
+    /// Reflection invokes <see cref="ProcessQueueCoreAsync{TRequest, TResponse}(QueueItem{TRequestContext}, IMethodHandler, RequestHandlerMetadata, ConcurrentDictionary{Task, CancellationTokenSource}, CancellationTokenSource?, CancellationToken)"/>
     /// using the concrete types defined by the handler's metadata.
     /// </summary>
     private async Task InvokeProcessCoreAsync(
-        IQueueItem<TRequestContext> work,
+        QueueItem<TRequestContext> work,
         RequestHandlerMetadata metadata,
         IMethodHandler handler,
         MethodInfo methodInfo,
@@ -330,7 +330,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     /// waiting or not waiting on results as defined by the handler.
     /// </summary>
     private async Task ProcessQueueCoreAsync<TRequest, TResponse>(
-        IQueueItem<TRequestContext> work,
+        QueueItem<TRequestContext> work,
         IMethodHandler handler,
         RequestHandlerMetadata metadata,
         ConcurrentDictionary<Task, CancellationTokenSource> concurrentlyExecutingTasks,
@@ -369,7 +369,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             Debug.Assert(!concurrentlyExecutingTasks.Any(t => !t.Key.IsCompleted), "The tasks should have all been drained before continuing");
             // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
             // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, metadata.Language, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
+            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
         }
         else
         {
@@ -378,7 +378,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             // though these errors don't put us into a bad state as far as the rest of the queue goes.
             // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
             // blocking the request queue for longer periods of time (it enforces parallelizability).
-            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, metadata.Language, cancellationToken), cancellationToken), rethrowExceptions: false);
+            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), cancellationToken), rethrowExceptions: false);
 
             if (CancelInProgressWorkUponMutatingRequest)
             {
@@ -413,7 +413,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         return;
     }
 
-    private (RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo) GetHandlerForRequest(IQueueItem<TRequestContext> work, string language)
+    private (RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo) GetHandlerForRequest(QueueItem<TRequestContext> work, string language)
     {
         var handlersForMethod = _handlerInfoMap[work.MethodName];
         if (handlersForMethod.TryGetValue(language, out var lazyData) ||

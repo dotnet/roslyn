@@ -3177,7 +3177,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_does_not_support_Hot_Reload">
         <source>{0} does not support Hot Reload.</source>
-        <target state="new">{0} does not support Hot Reload.</target>
+        <target state="translated">{0}은(는) 핫 다시 로드를 지원하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_expected">

@@ -5,7 +5,7 @@
   <!-- Roslyn version -->
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
-    <MinorVersion>5</MinorVersion>
+    <MinorVersion>6</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <PreReleaseVersionLabel Condition="'$(DotNetSignType)' == 'test'">$(PreReleaseVersionLabel)-test</PreReleaseVersionLabel>
@@ -135,7 +135,7 @@
       in Directory.Packages.props - Microsoft.TestPlatform.TranslationLayer and Microsoft.TestPlatform.ObjectModel.
       This version needs to match the Test SDK version consumed by Arcade.
     -->
-    <MicrosoftNETTestSdkVersion>17.13.0</MicrosoftNETTestSdkVersion>
+    <MicrosoftNETTestSdkVersion>17.14.1</MicrosoftNETTestSdkVersion>
   </PropertyGroup>
 
 </Project>

@@ -307,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
 
         IDS_FeatureCollectionExpressionArguments = MessageBase + 12858,
+        IDS_FeatureUnsafeEvolution = MessageBase + 12859,
 
         IDS_FeatureUnions = MessageBase + 12900, // PROTOTYPE: Pack numbers
     }
@@ -490,6 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_FeatureCollectionExpressionArguments:
+                case MessageID.IDS_FeatureUnsafeEvolution: // https://github.com/dotnet/roslyn/issues/82546: keep this in preview until C# 16
                 case MessageID.IDS_FeatureUnions:
                     return LanguageVersion.Preview;
 
