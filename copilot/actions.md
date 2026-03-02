@@ -457,3 +457,130 @@
 - UnableWriteOutput_OutputFileLocked: skipped — file locking (FileShare.None) behaves differently on Linux
 - WRN_InvalidSearchPathDir: skipped — '::' is a valid (non-existent) path on Linux, invalid on Windows
 - PathMapPdbParser: skipped — /pdb:a\data.pdb uses backslash path that doesn't resolve on Linux
+
+## Project: Syntax (4 methods)
+
+### MemberDeclarationParsingTests.cs
+- ✅ ParseOverflow — `WindowsOnly` → `Fact` (stack depth test, works on Core)
+- ✅ ParseOverflow2 — `WindowsOnly` → `Fact` (stack depth test, works on Core)
+
+### SyntaxNormalizerTests.cs
+- ✅ TestNormalizeSwitchExpressionRawStringsMultiline — `WindowsOnly` → `Fact`
+- ✅ TestNormalizeSwitchExpressionRawStringsMultilineUtf8_01 — `WindowsOnly` → `Fact`
+
+## Project: Emit3 (5 ported, 38 skipped)
+
+### OutVarTests.cs
+- ✅ Scope_Query_01 — `DesktopOnly` → `Fact`
+- ⏭️ Query_01 — failed (issue 28026, different diagnostics on Core)
+- ⏭️ 4 RestrictedTypes tests — skipped (RestrictedTypesNeedDesktop)
+
+### AttributeTests_Assembly.cs
+- ✅ Bug16465 — `DesktopOnly` → `Fact`
+
+### AttributeTests_WellKnownAttributes.cs
+- ✅ TestPseudoAttributes1 — `DesktopOnly` → `Fact`
+
+### AttributeTests_CallerInfoAttributes.cs
+- ✅ TestCallerMemberName_ConstructorDestructor — `DesktopOnly` → `Fact`
+- ⏭️ 1 test — skipped (TestExecutionHasNewLineDependency)
+
+### AttributeTests.cs
+- ✅ TestWellKnownAttributeOnProperty_DynamicAttribute — `DesktopOnly` → `Fact`
+- ⏭️ TestUnicodeAttributeArgumentsStrings — failed (issue 41280)
+- ⏭️ 1 test — skipped (TestExecutionNeedsDesktopTypes)
+
+### CollectionExpressionTests.cs
+- ⏭️ CollectionBuilder_02B — failed (different diagnostics on Core)
+- ⏭️ RestrictedTypes — failed (restricted types not available on Core)
+
+### PatternMatchingTests.cs
+- ⏭️ PatternInFieldInitializer — failed (issue 28026)
+- ⏭️ Query_01 — failed (issue 28026)
+
+### InternalsVisibleToAndStrongNameTests.cs
+- ⏭️ All 23 — genuinely Windows-only (signing, key containers, paths)
+
+### Other skipped
+- ⏭️ RefReadonlyParameterTests — RestrictedTypes
+- ⏭️ AttributeTests_Security — TestExecutionNeedsDesktopTypes
+
+## Project: Semantic (8 ported, 29 skipped)
+
+### LocalFunctionTests.cs
+- ✅ LocalFunctionResetsLockScopeFlag — `DesktopOnly` → `Fact`
+- ✅ LocalFunctionResetsTryCatchFinallyScopeFlags — `DesktopOnly` → `Fact`
+- ✅ LocalFunctionDoesNotOverwriteInnerLockScopeFlag — `DesktopOnly` → `Fact`
+- ✅ LocalFunctionDoesNotOverwriteInnerTryCatchFinallyScopeFlags — `DesktopOnly` → `Fact`
+- ✅ RethrowingExceptionsInCatchInsideLocalFuncIsAllowed — `DesktopOnly` → `Fact`
+- ✅ RethrowingExceptionsInLocalFuncInsideCatchIsNotAllowed — `DesktopOnly` → `Fact`
+- ⏭️ CanAccessScriptGlobalsFromInsideMethod — failed (issue 28001 scripting)
+- ⏭️ CanAccessScriptGlobalsFromInsideLambda — failed (issue 28001 scripting)
+
+### OperatorTests.cs
+- ✅ DynamicAmbiguousOrConversion — `DesktopOnly` → `Fact`
+
+### QueryTests.cs
+- ✅ StaticTypeInFromClause — `DesktopOnly` → `Fact`
+
+### LambdaTests.cs
+- ⏭️ All 3 failed (missing COM types like IDispatchConstant on Core)
+
+### ScriptSemanticsTests.cs
+- ⏭️ All 3 failed (issue 28001 scripting)
+
+### Other skipped
+- ⏭️ ArglistTests (9) — RestrictedTypesNeedDesktop
+- ⏭️ NameLengthTests (2) — NativePdbRequiresDesktop
+- ⏭️ NamedAndOptionalTests (2) — failed (COM types)
+- ⏭️ RefFieldTests (2) — NoPiaNeedsDesktop
+- ⏭️ SemanticErrorTests (2) — NativePdb + issue 18610
+- ⏭️ NonTrailingNamedArgumentsTests (1) — RestrictedTypes
+- ⏭️ OverloadResolutionTests (1) — RestrictedTypes
+- ⏭️ ImplicitObjectCreationTests (1) — RestrictedTypes
+- ⏭️ DelegateTypeTests (1) — failed (missing types)
+
+## Project: Symbol (37 ported, 64 skipped)
+
+### CustomModifiersTests.cs
+- ✅ 26 pure `DesktopOnly` → `Fact`
+- ✅ 4 `ClrOnly+DesktopOnly` → `ConditionalFact(typeof(ClrOnly))`
+
+### IndexedPropertyTests.cs
+- ✅ IndexedPropertyDynamicInvocation — `ClrOnly+DesktopOnly` → `ClrOnly`
+- ✅ IndexedPropertyDynamicColorColorInvocation — `DesktopOnly+ClrOnly` → `ClrOnly`
+
+### OverriddenOrHiddenMembersTests.cs
+- ✅ MethodConstructedFromOverrideWithCustomModifiers — `DesktopOnly+ClrOnly` → `ClrOnly`
+
+### GenericConstraintTests.cs
+- ✅ SpellingOfGenericClassNameIsPreserved5 — `ClrOnly+DesktopOnly` → `ClrOnly`
+
+### DynamicTransformsTests.cs
+- ✅ TestDynamicTransformsBadMetadata — `DesktopOnly+ClrOnly` → `ClrOnly`
+
+### PropertyTests.cs
+- ✅ InteropDynamification — `DesktopOnly` → `Fact`
+
+### CustomModifierCopyTests.cs
+- ✅ Repro819774 — `ClrOnly+DesktopOnly` → `ClrOnly`
+
+### Skipped files
+- ⏭️ Retargeting/NoPia.cs (18) — all NoPia
+- ⏭️ CompilationAPITests.cs (17) — all scripting/submission failures
+- ⏭️ DocumentationCommentCompilerTests.cs (9) — all failed on Core
+- ⏭️ SymbolErrorTests.cs (7) — netmodules/NoPIA
+- ⏭️ ModuleInitializersTests.cs (2) — NetModulesNeedDesktop
+- ⏭️ TypeForwarders.cs (2) — netmodule failures
+- ⏭️ NoPiaInstantiationOfGenericClassAndStruct.cs (2) — NoPia
+- ⏭️ ReferenceManagerTests.cs (2) — both failed
+- ⏭️ ConversionTests.cs (1) — expression tree failure
+- ⏭️ NoPia.cs (1) — NoPia
+- ⏭️ TypeResolutionTests.cs (1) — reflection type failure
+- ⏭️ SemanticModelGetSemanticInfoTests.cs (1) — scripting failure
+
+## Projects: WinRT, IOperation (0 ported, 3 skipped)
+
+- ⏭️ WinRT/WinMdMetadataTests (1) — NeedsDesktopTypes
+- ⏭️ WinRT/PdbTests (1) — NativePdbRequiresDesktop
+- ⏭️ IOperation/IParameterReferenceExpression (1) — RestrictedTypesNeedDesktop
