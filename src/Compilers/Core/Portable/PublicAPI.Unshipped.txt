@@ -5,7 +5,7 @@ Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.ini
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?
