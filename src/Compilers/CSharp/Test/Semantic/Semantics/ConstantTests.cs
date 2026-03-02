@@ -1456,7 +1456,7 @@ ulong.MinValue --> 0";
                 OfType<BoundExpression>().
                 Where(node => node.ConstantValueOpt != null).
                 Select(node => node.Syntax.ToFullString().Trim() + " --> " + ExtractValue(node.ConstantValueOpt));
-            var result = string.Join(Environment.NewLine, constants);
+            var result = string.Join("\r\n", constants);
             return result;
         }
 

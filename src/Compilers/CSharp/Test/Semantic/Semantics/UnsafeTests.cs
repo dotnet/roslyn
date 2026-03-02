@@ -5210,7 +5210,7 @@ No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
 
             CheckFixingVariablesVisitor.Process(block, binder, builder);
 
-            var actual = string.Join(Environment.NewLine, builder);
+            var actual = string.Join("\r\n", builder);
 
             Assert.Equal(expected, actual);
 
