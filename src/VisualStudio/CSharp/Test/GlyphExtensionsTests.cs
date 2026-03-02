@@ -134,6 +134,11 @@ public sealed class GlyphExtensionsTests : TestBase
             SymbolKind.NamedType,
             typeKind: TypeKind.Struct);
         TestGlyph(
+            StandardGlyphGroup.GlyphGroupUnion,
+            SymbolKind.NamedType,
+            typeKind: TypeKind.Struct,
+            isUnion: true);
+        TestGlyph(
             StandardGlyphGroup.GlyphGroupError,
             SymbolKind.NamedType,
             typeKind: TypeKind.Error);
@@ -178,9 +183,10 @@ public sealed class GlyphExtensionsTests : TestBase
         INamespaceOrTypeSymbol target = null,
         ITypeSymbol pointedAtType = null,
         bool isWithEvents = false,
-        TypeKind typeKind = TypeKind.Unknown)
+        TypeKind typeKind = TypeKind.Unknown,
+        bool isUnion = false)
     {
-        var symbol = CreateSymbolMock(kind, declaredAccessibility, isExtensionMethod, methodKind, containingType, isConst, elementType, target, pointedAtType, isWithEvents, typeKind);
+        var symbol = CreateSymbolMock(kind, declaredAccessibility, isExtensionMethod, methodKind, containingType, isConst, elementType, target, pointedAtType, isWithEvents, typeKind, isUnion);
         Assert.Equal(expectedGlyphGroup, symbol.GetGlyph().GetStandardGlyphGroup());
     }
 
@@ -195,7 +201,8 @@ public sealed class GlyphExtensionsTests : TestBase
         INamespaceOrTypeSymbol target = null,
         ITypeSymbol pointedAtType = null,
         bool isWithEvents = false,
-        TypeKind typeKind = TypeKind.Unknown)
+        TypeKind typeKind = TypeKind.Unknown,
+        bool isUnion = false)
     {
         var symbolMock = new Mock<ISymbol>(MockBehavior.Strict);
 
@@ -226,6 +233,7 @@ public sealed class GlyphExtensionsTests : TestBase
         {
             var namedTypeMock = symbolMock.As<INamedTypeSymbol>();
             namedTypeMock.SetupGet(s => s.TypeKind).Returns(typeKind);
+            namedTypeMock.SetupGet(s => s.IsUnion).Returns(isUnion);
         }
 
         if (kind == SymbolKind.Field)
