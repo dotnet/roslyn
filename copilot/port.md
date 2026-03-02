@@ -51,6 +51,15 @@ Tests that depend on types only available in .NET Framework.
 
 **How to port:** Usually **cannot be ported**. Check what specific types are needed.
 
+### Hardcoded Windows paths
+
+Tests that use hardcoded Windows paths (e.g., `C:\temp\file.txt`) may fail on non-Windows platforms.
+
+**How to port:** 
+1. Refactor the base path to a local in the method 
+2. Have the local change from a windows to a unix path based on `ExecutionConditionUtil.IsWindows` or similar
+2. Update the paths in the test to use the local variable with `Path.Combine` instead of hardcoded separators
+
 ## Testing
 
 After modifying tests, run them on .NET Core:

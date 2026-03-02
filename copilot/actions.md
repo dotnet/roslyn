@@ -441,3 +441,19 @@
 
 ### TouchedFileLoggingTests (TouchedFileLoggingTests.cs)
 - All 4 methods: skipped — path normalization fails on Linux
+
+### CommandLineTests - Additional ports (path refactoring)
+- NullBaseDirectoryNotAddedToKeyFileSearchPaths: ported — refactored c:/test.cs to platform-conditional path
+- NullBaseDirectoryWithAdditionalFiles: ported — same platform-conditional path refactoring
+- NullBaseDirectoryWithAdditionalFiles_Wildcard: ported — same approach
+- AppConfigParse: ported — refactored baseDirectory to platform-conditional, used Path.Combine for assertions
+- AppConfigBasicFail: ported — used Path.Combine for non-existent config path
+- ParseDocAndOut: ported — used platform-conditional baseDirectory and Path.DirectorySeparatorChar for subpaths
+- ParseErrorLogAndOut: ported — same approach as ParseDocAndOut
+- SdkPathAndLibEnvVariable: ported — no path changes needed, only used relative paths
+- CompilationWithNonExistingOutPath: ported — used Path.DirectorySeparatorChar and Path.Combine for assertions
+- ResponseFilesWithNoconfig_02: ported — removed \r\n from Assert.Contains (line ending independence)
+- ResponseFilesWithNoconfig_04: ported — same \r\n removal
+- UnableWriteOutput_OutputFileLocked: skipped — file locking (FileShare.None) behaves differently on Linux
+- WRN_InvalidSearchPathDir: skipped — '::' is a valid (non-existent) path on Linux, invalid on Windows
+- PathMapPdbParser: skipped — /pdb:a\data.pdb uses backslash path that doesn't resolve on Linux
