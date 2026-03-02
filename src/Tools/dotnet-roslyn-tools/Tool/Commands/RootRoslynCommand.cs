@@ -23,6 +23,8 @@ internal static class RootRoslynCommand
             DartTestCommand.GetCommand(),
             PRValidationCommand.GetCommand(),
             PRValidationSuiteCommand.GetCommand(),
+            CreateInsertionCommand.GetCommand(),
+            UpdateInsertionCommand.GetCommand(),
         };
         command.Description = "The command line tool for performing infrastructure tasks.";
         return command;

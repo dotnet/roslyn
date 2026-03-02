@@ -33,19 +33,54 @@ Usage:
 
 Commands:
   authenticate                       Stores the AzDO and GitHub tokens required for remote operations.
-  pr-finder                          Find merged PRs between two commits
+  pr-finder                           Find merged PRs between two commits
   pr-tagger                          Tags PRs inserted in a given VS build.
   nuget-dependencies                 Lists dependencies that are missing or out of date for a folder of .nupkg files.
   nuget-prepare                      Prepares packages built from the Roslyn repo for validation.
   nuget-publish <roslyn|roslyn-sdk>  Publishes packages built from a Roslyn repo. [default: roslyn]
-  create-release-tags                Generates git tags for VS releases in the repo.
+  create-release-tags                Generates git tags for VS adn SDK releases in the repo.
   vsbranchinfo                       Provides information about the state of Roslyn in one or more branches of Visual Studio.
   dart-test                          Runs the dartlab pipeline for a given PR number and optionally SHA.
   pr-val                             Runs the PR validation pipeline for a given PR number and optionally SHA and branch.
   pr-suite                           Runs the PR validation pipeline and dartlab pipeline for a given PR number and optionally SHA and branch.
+  create-insertion                   Create a Visual Studio insertion PR from a component build.
+  update-insertion                   Update an existing Visual Studio insertion PR with a new build.
 ```
 
 For example you could run `dotnet roslyn-tools vsbranchinfo` to display information about the Roslyn package most recently inserted into Visual Studio's main branch.
+
+## Insertion Commands
+
+`create-insertion` and `update-insertion` use the same token sources as the other remote commands.
+You can either run `authenticate` first, or pass `--devdiv-azdo-token` and `--dnceng-azdo-token` directly.
+
+Create a standard insertion PR:
+
+```console
+dotnet roslyn-tools create-insertion \
+  --vs-branch main \
+  --component-branch main \
+  --component-build-queue dotnet-roslyn-official
+```
+
+Create a dummy insertion PR (placeholder to update later):
+
+```console
+dotnet roslyn-tools create-insertion \
+  --dummy \
+  --insertion-name Roslyn \
+  --vs-branch main
+```
+
+Update an existing insertion PR with a new build:
+
+```console
+dotnet roslyn-tools update-insertion \
+  --pr-id 123456 \
+  --vs-branch main \
+  --component-branch main \
+  --component-build-queue dotnet-roslyn-official
+```
 
 ## How to Build from Source
 

@@ -31,7 +31,7 @@ internal class CreateReleaseTagsCommand
 
     public static Command GetCommand()
     {
-        var command = new Command("create-release-tags", "Generates git tags for VS releases in the repo.")
+        var command = new Command("create-release-tags", "Generates git tags for VS and SDK releases in the repo.")
         {
             ProductOption,
             VerbosityOption,
