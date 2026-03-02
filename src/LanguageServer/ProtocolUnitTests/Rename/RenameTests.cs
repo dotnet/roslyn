@@ -174,7 +174,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var renameText = "RENAME";
         var renameParams = CreateRenameParams(new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(Path.GetTempPath(), TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = startPosition, End = endPosition }
         }, "RENAME");
 

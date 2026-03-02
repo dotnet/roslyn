@@ -1,8 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    private static readonly string s_firstWorkspacePath = Path.Combine(Path.GetTempPath(), "FirstWorkspace.cs");
+    private static readonly string s_secondWorkspacePath = Path.Combine(Path.GetTempPath(), "SecondWorkspace.cs");
+
     [Theory, CombinatorialData]
     public async Task TestUsesLspTextOnOpenCloseAsync(bool mutatingLspWorkspace)
     {
@@ -236,7 +240,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="FirstWorkspaceProject">
-                    <Document FilePath="C:\FirstWorkspace.cs">FirstWorkspace</Document>
+                    <Document FilePath="{s_firstWorkspacePath}">FirstWorkspace</Document>
                 </Project>
             </Workspace>
             """;
@@ -245,7 +249,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="SecondWorkspaceProject">
-                    <Document FilePath="C:\SecondWorkspace.cs">SecondWorkspace</Document>
+                    <Document FilePath="{s_secondWorkspacePath}">SecondWorkspace</Document>
                 </Project>
             </Workspace>
             """;
@@ -283,7 +287,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="FirstWorkspaceProject">
-                    <Document FilePath="C:\FirstWorkspace.cs">FirstWorkspace</Document>
+                    <Document FilePath="{s_firstWorkspacePath}">FirstWorkspace</Document>
                 </Project>
             </Workspace>
             """;
@@ -308,7 +312,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="FirstWorkspaceProject">
-                    <Document FilePath="C:\FirstWorkspace.cs">FirstWorkspace</Document>
+                    <Document FilePath="{s_firstWorkspacePath}">FirstWorkspace</Document>
                 </Project>
             </Workspace>
             """;
@@ -318,7 +322,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         testWorkspaceTwo.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="SecondWorkspaceProject">
-                    <Document FilePath="C:\SecondWorkspace.cs">SecondWorkspace</Document>
+                    <Document FilePath="{s_secondWorkspacePath}">SecondWorkspace</Document>
                 </Project>
             </Workspace>
             """));
@@ -330,8 +334,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
         Assert.True(IsWorkspaceRegistered(testWorkspaceTwo, testLspServer));
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_firstWorkspacePath);
+        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_secondWorkspacePath);
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -367,7 +371,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="FirstWorkspaceProject">
-                    <Document FilePath="C:\FirstWorkspace.cs">FirstWorkspace</Document>
+                    <Document FilePath="{s_firstWorkspacePath}">FirstWorkspace</Document>
                 </Project>
             </Workspace>
             """;
@@ -377,7 +381,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         testWorkspaceTwo.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="SecondWorkspaceProject">
-                    <Document FilePath="C:\SecondWorkspace.cs">SecondWorkspace</Document>
+                    <Document FilePath="{s_secondWorkspacePath}">SecondWorkspace</Document>
                 </Project>
             </Workspace>
             """));
@@ -385,8 +389,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         // Wait for workspace operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_firstWorkspacePath);
+        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_secondWorkspacePath);
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -422,7 +426,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         testWorkspace.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
-                    <Document FilePath="C:\test1.cs">Original text</Document>
+                    <Document FilePath="{Path.Combine(Path.GetTempPath(), "test1.cs")}">Original text</Document>
                 </Project>
             </Workspace>
             """));
@@ -499,7 +503,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open the doc
-        var filePath = "c:\\\ue25b\ud86d\udeac.cs";
+        var filePath = Path.Combine(Path.GetTempPath(), "\ue25b\ud86d\udeac.cs");
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
         await testLspServer.OpenDocumentAsync(documentUri, "Text");
 

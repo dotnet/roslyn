@@ -262,8 +262,8 @@ public sealed class SolutionAnalyzerConfigOptionsUpdaterTests
                 <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Error" />
               </NamingRules>
             </NamingPreferencesInfo>
-            """,
-            documentPreferences.Inspect());
+            """.ReplaceLineEndings(),
+            documentPreferences.Inspect().ReplaceLineEndings());
     }
 
     [Fact]

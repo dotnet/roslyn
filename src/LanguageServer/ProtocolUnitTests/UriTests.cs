@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -33,7 +34,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [WorkItem("https://github.com/dotnet/runtime/issues/89538")]
     public async Task TestMiscDocument_WithFileScheme(bool mutatingLspWorkspace)
     {
-        var filePath = "C:\\\ud86d\udeac\ue25b.txt";
+        var filePath = Path.Combine(Path.GetTempPath(), "\ud86d\udeac\ue25b.txt");
 
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
@@ -86,11 +87,12 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDocument_WithFileScheme(bool mutatingLspWorkspace)
     {
-        var documentFilePath = @"C:\A.cs";
+        var documentFilePath = Path.Combine(Path.GetTempPath(), "A.cs");
+        var projectFilePath = Path.Combine(Path.GetTempPath(), "CSProj1.csproj");
         var markup =
             $$"""
             <Workspace>
-                <Project Language="C#" Name="CSProj1" CommonReferences="true" FilePath="C:\CSProj1.csproj">
+                <Project Language="C#" Name="CSProj1" CommonReferences="true" FilePath="{{projectFilePath}}">
                     <Document FilePath="{{documentFilePath}}">
                         public class A
                         {

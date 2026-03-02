@@ -278,7 +278,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             •&nbsp;Item 2\.  
               
             [link text](https://google.com)
-            """, results.Documentation.Value.Second.Value);
+            """.ReplaceLineEndings(), results.Documentation.Value.Second.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
