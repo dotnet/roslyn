@@ -423,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => false;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)

@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>$(NetVSShared)</TargetFramework>
+    <TargetFrameworks>$(NetRoslynAll)</TargetFrameworks>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
