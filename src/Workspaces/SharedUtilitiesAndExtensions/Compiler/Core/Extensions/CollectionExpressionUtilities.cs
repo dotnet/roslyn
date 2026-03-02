@@ -128,7 +128,7 @@ internal static class CollectionExpressionUtilities
 
     /// <summary>
     /// Gets the collection builder factory methods for the given collection expression type, if any.  Or <see
-    /// langword="null"/> if the type does not have a valid <see cref="System.Runtime.CompilerServices.CollectionBuilderAttribute"/> that can be
+    /// langword="null"/> if the type does not have a valid <see cref="T:System.Runtime.CompilerServices.CollectionBuilderAttribute"/> that can be
     /// resolved.  The returned methods are guaranteed to match the language rules about what a factory method
     /// must look like.  That means, at a minimum:
     /// <list type="number">
