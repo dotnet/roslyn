@@ -10838,7 +10838,7 @@ class C
             diff1.EmitResult.Diagnostics.Verify();
         }
 
-        [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
+        [ConditionalFact(typeof(IsEnglishLocal)), WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
         public void MissingAsyncStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -10890,13 +10890,13 @@ class C
 
             diff1.EmitResult.Diagnostics.Verify(
                 // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Constructor, "System.Exception..ctor(string)").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)").WithLocation(1, 1),
                 // (6,28): error CS7043: Cannot emit update; attribute 'System.Runtime.CompilerServices.AsyncStateMachineAttribute' is missing.
                 //     public async Task<int> F()
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol, "F").WithArguments(CodeAnalysisResources.Attribute, "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol, "F").WithArguments("attribute", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void AddedAsyncStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -10955,7 +10955,7 @@ class C
 
             diff1.EmitResult.Diagnostics.Verify(
                 // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Constructor, "System.Exception..ctor(string)"));
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)"));
         }
 
         [Fact]
@@ -11072,7 +11072,7 @@ class C
             diff1.EmitResult.Diagnostics.Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void NonAsyncToAsync_MissingAttribute()
         {
             var source0 = MarkedSource(@"
@@ -11122,10 +11122,10 @@ class C
 
             diff1.EmitResult.Diagnostics.Verify(
                     // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
-                    Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Constructor, "System.Exception..ctor(string)").WithLocation(1, 1),
+                    Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)").WithLocation(1, 1),
                     // (6,28): error CS7043: Cannot emit update; attribute 'System.Runtime.CompilerServices.AsyncStateMachineAttribute' is missing.
                     //     public async Task<int> F()
-                    Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol, "F").WithArguments(CodeAnalysisResources.Attribute, "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
+                    Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol, "F").WithArguments("attribute", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
         }
 
         [Fact]
