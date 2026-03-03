@@ -192,9 +192,10 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         await testLspServer.CloseDocumentAsync(looseFileUri);
 
-        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        // TODO2: We should unload the file-based program in this scenario.
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
     }
 
     [Theory, CombinatorialData]

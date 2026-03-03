@@ -276,14 +276,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
+        // Note: we intentionally do not unload file-based apps in this path.
+        // This is because we want to unload from the miscellaneous files workspace only, when a file is found in the host workspace.
         var documentPath = GetDocumentFilePath(uri);
-        // First try to remove from the canonical misc files loader if it was created
-        var removedFromCanonical = await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
-        if (removedFromCanonical)
-            return true;
-
-        // Fall back to the file-based programs logic
-        return await TryUnloadProjectAsync(documentPath);
+        return await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
