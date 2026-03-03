@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FileBasedProgramsResources.resx">
     <body>
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
-        <target state="new">Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</target>
+        <target state="translated">'{0}' 指令中的文件扩展名无法识别。当前仅识别以下扩展名: {1}</target>
         <note>{0} is the directive - '#:include' or '#:exclude'. {1} is a comma-separated list of file extensions, like: '.cs', '.resx'</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingEntry">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
-        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</target>
+        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 属性中的每个条目必须包含由 '=' 分隔的两部分。条目 '{0}' 无效。</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingExtension">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
-        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</target>
+        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 属性中的每个条目必须映射到非空项类型。条目 '{1}' 中的项类型 '{0}' 无效。</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
       </trans-unit>
       <trans-unit id="InvalidProjectDirective">
