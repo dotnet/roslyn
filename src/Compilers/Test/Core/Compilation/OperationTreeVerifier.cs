@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return "null";
             }
 
-            var text = syntax.ToString().Trim(Environment.NewLine.ToCharArray());
+            var text = syntax.ToString().Trim(['\r', '\n']);
             var lines = text.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToArray();
             if (lines.Length <= 1 && text.Length < 25)
             {
