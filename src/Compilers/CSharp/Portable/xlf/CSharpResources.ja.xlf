@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">安全でないメンバー '{0}' は安全なメンバー '{1}' を実装できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">安全でないメンバー '{0}' は、安全なメンバー '{1}' を暗黙的に実装できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">安全でないメンバー '{0}' はセーフ メンバー '{1}' をオーバーライドできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute をこのシンボルに適用することはできません。</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">'{0}' は、認識されない {1} バージョンのモジュールで定義されています。'{2}' が予想されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">'requiresUnsafe' または 'extern' としてマークされているため、'{0}' は安全でないコンテキストで使用する必要があります</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">'{0}' はシグネチャにポインターがあるため、安全でないコンテキストで使用する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">この操作は、安全でないコンテキストでのみ使用できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">SkipLocalsInit 内の初期化子のない stackalloc 式は、安全でないコンテキストでのみ使用できます</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">更新されたメモリの安全性ルール</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute は、更新されたメモリの安全性規則でのみ有効です。</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute は、更新されたメモリの安全性規則でのみ有効です。</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,23 +4183,23 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# Compiler のオプション
 
                        - 出力ファイル -
 -out:&lt;file&gt;                   出力ファイル名を指定します (既定値: main クラスを含むファイルの
                               ベース名また最初のファイル)
--target:exe                   コンソール アプリケーションをビルドします (既定) (短い
+-target:exe                   コンソール アプリケーションを構築します (既定) (短い
                               形式: -t:exe)
--target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
+-target:winexe                Windows 実行可能ファイルを構築します (短い形式:
                               -t:winexe)
--target:library               ライブラリをビルドします (短い形式: -t:library)
+-target:library               ライブラリを構築します (短い形式: -t:library)
 -target:module                別のアセンブリに追加できるモジュールを
-                              ビルドします (短い形式: -t:module)
--target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
+                              構築します (短い形式: -t:module)
+-target:appcontainerexe       Appcontainer 実行可能ファイルを構築します (短い形式:
                               -t:appcontainerexe)
 -target:winmdobj              WinMDExp が使用する、Windows ランタイムの
-                              中間ファイルをビルドします (短い形式: -t:winmdobj)
+                              中間ファイルを構築します (短い形式: -t:winmdobj)
 -doc:&lt;file&gt;                   生成する XML ドキュメント ファイルです
 -refout:&lt;file&gt;                    生成する参照アセンブリ出力です
 -platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。x86、
@@ -4236,7 +4236,7 @@
                               &lt;file&gt;[,&lt;string name&gt;[,public|private]] となります
 
                        - コード生成 -
--debug[+|-]                       デバッグ情報を出力します
+-debug[+|-]                       デバッグ情報を生成します
 -debug:{full|pdbonly|portable|embedded}
                               デバッグの種類を指定します ('full' は既定、
                               'portable' はクロスプラットフォーム形式、
@@ -4286,7 +4286,7 @@
 
                        - セキュリティ -
 -delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
-                              アセンブリに公開署名します
+                              アセンブリに遅延署名します
 -publicsign[+|-]                  厳密な名前キーの公開部分のみを使用して
                               アセンブリに公開署名します
 -keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します
@@ -4298,14 +4298,14 @@
 -help                       この使用法メッセージを表示します (短い形式: -?)
 -nologo                       コンパイラの著作権メッセージを表示しません
 -noconfig                     CSC.RSP ファイルを自動的に含めません
--parallel[+|-]                同時にビルドします。
+-parallel[+|-]                同時に構築します。
 -version                      コンパイラのバージョン番号を表示して終了します。
 
                        - 詳細設定 -
--baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
+-baseaddress:&lt;address&gt;        構築するライブラリのベース アドレス
 -checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイル チェックサムを計算するための
                               アルゴリズムを指定します。サポートされている値:
-                              SHA1 または SHA256 (既定値)。
+                              SHA1、SHA256 (既定)、SHA384、または SHA512。
 -codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコードページを
                               指定します
 -utf8output                   UTF-8 エンコードでコンパイラのメッセージを出力します

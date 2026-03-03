@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 암시적으로 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 재정의할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute는 이 기호에 적용할 수 없습니다.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">'{0}'은(는) 인식할 수 없는 {1} 버전의 모듈에 정의되어 있으며, '{2}' 버전을 기대합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">'{0}'은(는) 'RequiresUnsafe' 또는 'extern'으로 표시되어 있어 안전하지 않은 컨텍스트에서 사용해야 합니다.</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">'{0}'은(는) 시그니처에 포인터가 있으므로 안전하지 않은 컨텍스트에서 사용해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">이 작업은 안전하지 않은 컨텍스트에서만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">SkipLocalsInit 내에서 이니셜라이저 없는 stackalloc 식은 안전하지 않은 컨텍스트에서만 사용할 수 있습니다.</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">업데이트된 메모리 안전 규칙</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute는 업데이트된 메모리 안전 규칙에서만 유효합니다.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute는 업데이트된 메모리 안전 규칙에서만 유효합니다.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,7 +4183,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# 컴파일러 옵션
 
                        - 출력 파일 -
@@ -4241,7 +4241,7 @@
                               디버깅 유형 지정('full'은 기본값,
                               'portable'은 플랫폼 간 형식,
                               'embedded'는 대상 .dll 또는 .exe에 포함된
-                              플랫폼 간간 형식입니다)
+                              플랫폼 간 형식입니다)
 -optimize[+|-]                최적화 활성화(약식: -o)
 -deterministic                결정적 어셈블리 생성
                               (모듈 버전 GUID 및 타임스탬프 포함)
@@ -4257,7 +4257,7 @@
 -warn:&lt;n&gt;                     경고 수준 설정(0 이상)(약식: -w)
 -nowarn:&lt;warn list&gt;           특정 경고 메시지 비활성화
                               (모든 Null 허용 여부에 대해 "nullable" 사용)
--ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 설정하는 규칙 집합 파일을
+-ruleset:&lt;file&gt;                   특정 진단을 비활성화하는 규칙 집합 파일을
                               지정합니다.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
                               모든 컴파일러 및 분석기의 진단을 로그할 파일을
@@ -4275,7 +4275,7 @@
                               : -d)
 -langversion:?                언어 버전에 허용되는 값 표시
 -langversion:&lt;string&gt;         다음과 같은 언어 버전 지정
-                              'latest'(부 버전을 포함한 최신 버전),
+                              `latest`(부 버전을 포함한 최신 버전),
                               `default`(`latest`와 동일),
                               `latestmajor`(부 버전을 제외한 최신 버전),
                               `preview`(지원되지 않는 미리 보기의 기능을 포함한 최신 버전),
@@ -4305,7 +4305,7 @@
 -baseaddress:&lt;address&gt;        빌드할 라이브러리의 기준 주소
 -checksumalgorithm:&lt;alg&gt;          PBD에 저장된 소스 파일 체크섬을 계산하기 위한
                               알고리즘을 지정합니다. 지원되는 값은
-                              SHA1 또는 SHA256(기본값)입니다.
+                              SHA-1, SHA256(기본값), SHA384 또는 SHA512입니다.
 -codepage:&lt;n&gt;                 소스를 열 때 사용할 코드페이지 지정
                               파일
 -utf8output                   UTF-8 인코딩으로 컴파일러 메시지 출력
@@ -4323,14 +4323,14 @@
 -errorendlocation             각 오류의 끝 위치의
                               행 및 열 출력
 -preferreduilang                  기본 출력 언어 이름을 지정합니다.
--nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 사용하지 않도록 설정합니다.
+-nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 비활성화합니다.
 -sdkpath:&lt;path&gt;         표준 라이브러리 어셈블리를 검색하는 데 사용되는 경로입니다.
 -nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않음
 -subsystemversion:&lt;string&gt;    이 어셈블리의 하위 시스템 버전 지정
 -lib:&lt;file list&gt;              참조를 검색할 추가 디렉터리
                               지정
--errorreport:&lt;string&gt;        내부 컴파일러 오류 처리 방법을 지정합니다
-                              (prompt, send, queue 또는 none). 기본값은
+-errorreport:&lt;string&gt;        내부 컴파일러 오류 처리 방법을 지정합니다.
+                              prompt, send, queue 또는 none. 기본값은
                               queue입니다.
 -appconfig:&lt;file&gt;             어셈블리 바인딩 설정이 포함된
                               애플리케이션 구성 파일 지정
