@@ -8741,6 +8741,63 @@ static class Test1
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
         [CombinatorialData]
+        public void RuntimeAsync_LambdaReturnInference_InferenceScenarios_CustomTaskLikeContainingMethod(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (int x) => { return await Task.FromResult(x); }",
+                (true, false) => "async Task<int> (int x) => await Task.FromResult(x)",
+                (false, true) => "async (x) => { return await Task.FromResult(x); }",
+                (false, false) => "async (x) => await Task.FromResult(x)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System;
+                using System.Linq;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                [AsyncMethodBuilder(typeof(MyTaskBuilder))]
+                class MyTask
+                {
+                }
+
+                class MyTaskBuilder
+                {
+                    public static MyTaskBuilder Create() => null;
+                    public MyTask Task => null;
+                    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+                    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+                    public void SetResult() { }
+                    public void SetException(Exception exception) { }
+                    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                        where TAwaiter : INotifyCompletion
+                        where TStateMachine : IAsyncStateMachine
+                    {
+                    }
+                    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                        where TAwaiter : ICriticalNotifyCompletion
+                        where TStateMachine : IAsyncStateMachine
+                    {
+                    }
+                }
+
+                class Program
+                {
+                    static async MyTask Main()
+                    {
+                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambdaRuntimeAsyncAttribute}}{{lambda}}));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
         public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
         {
             var lambda = (explicitReturnType, statementBody) switch
