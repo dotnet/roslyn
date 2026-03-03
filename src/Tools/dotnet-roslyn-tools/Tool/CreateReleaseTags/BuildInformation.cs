@@ -4,8 +4,9 @@
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-internal abstract class BuildInformation(string commitSha, string buildId)
+internal abstract class BuildInformation(string commitSha, string buildId, string? packageVersion)
 {
     public readonly string CommitSha = commitSha;
     public readonly string BuildId = buildId;
+    public readonly string? PackageVersion = packageVersion;
 }

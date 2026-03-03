@@ -144,7 +144,7 @@ internal sealed partial class SdkReleaseTagger(ILogger logger)
         return new SdkUnifiedBuildInformation(
             repository.CommitSha,
             vmrBuild.BuildId,
-            vmrBuild.ProductVersion,
+            vmrBuild.PackageVersion!,
             vmrBuild.CommitSha);
     }
 
@@ -160,10 +160,10 @@ internal sealed partial class SdkReleaseTagger(ILogger logger)
     {
         if (build is SdkUnifiedBuildInformation unifiedBuild)
         {
-            return $"{product.Name} VMR Version: {build.ProductVersion}\r\nVMR Commit SHA: {unifiedBuild.VmrCommitSha}\r\nVMR Internal ID: {build.BuildId}\r\nSDK Tag: {release.SdkTagName}";
+            return $"{product.Name} VMR Version: {build.PackageVersion}\r\nVMR Commit SHA: {unifiedBuild.VmrCommitSha}\r\nVMR Internal ID: {build.BuildId}\r\nSDK Tag: {release.SdkTagName}";
         }
 
-        return $"{product.Name} Version: {build.ProductVersion}\r\nInternal ID: {build.BuildId}\r\nSDK Tag: {release.SdkTagName}";
+        return $"{product.Name} Version: {build.PackageVersion}\r\nInternal ID: {build.BuildId}\r\nSDK Tag: {release.SdkTagName}";
     }
 
     public class RefResponse
@@ -207,16 +207,13 @@ internal sealed partial class SdkReleaseTagger(ILogger logger)
     internal class SdkBuildInformation(
         string commitSha,
         string buildId,
-        string productVersion) : BuildInformation(commitSha, buildId)
-    {
-        public readonly string ProductVersion = productVersion;
-    }
+        string packageVersion) : BuildInformation(commitSha, buildId, packageVersion);
 
     internal class SdkUnifiedBuildInformation(
         string commitSha,
         string vmrBuildId,
-        string vmrProductVersion,
-        string vmrCommitSha) : SdkBuildInformation(commitSha, vmrBuildId, vmrProductVersion)
+        string vmrPackageVersion,
+        string vmrCommitSha) : SdkBuildInformation(commitSha, vmrBuildId, vmrPackageVersion)
     {
         public readonly string VmrCommitSha = vmrCommitSha;
     }
