@@ -13,7 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Threading;
 using StreamJsonRpc;
 
@@ -231,7 +230,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // Ensure we've actually been asked to shutdown before waiting.
             if (_shutdownRequestTask == null)
             {
-                throw new InvalidOperationException("The language server has not yet been asked to shutdown.");
+                throw new ServerNotShutDownException("The language server has not yet been asked to shutdown.");
             }
         }
 
@@ -285,7 +284,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         {
             if (_shutdownRequestTask?.IsCompleted != true)
             {
-                throw new InvalidOperationException("The language server has not yet been asked to shutdown or has not finished shutting down.");
+                throw new ServerNotShutDownException("The language server has not yet been asked to shutdown or has not finished shutting down.");
             }
 
             // Run exit or return the already running exit request.
@@ -350,10 +349,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         async Task JsonRpc_DisconnectedAsync(object? sender, JsonRpcDisconnectedEventArgs e)
         {
             var exceptionToReport = TryGetReportableException(e);
-            if (exceptionToReport != null)
-            {
-                FatalError.ReportNonFatalError(exceptionToReport, ErrorSeverity.Critical);
-            }
 
             // It is possible this gets called during normal shutdown and exit.
             // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.

@@ -90,6 +90,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
     private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = ImmutableDictionary<ProjectId, Func<string?>>.Empty;
 
+    /// <summary>
+    /// Mapping from project system name to a list of projects.
+    /// Only access when holding <see cref="_gate"/>
+    /// </summary>
     private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = [];
 
     /// <summary>
@@ -1559,21 +1563,24 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal void RemoveProjectFromMaps(CodeAnalysis.Project project)
     {
-        foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
+        using (_gate.DisposableWait())
         {
-            if (projects.RemoveAll(p => p.Id == project.Id) > 0)
+            foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
             {
-                if (projects.Count == 0)
+                if (projects.RemoveAll(p => p.Id == project.Id) > 0)
                 {
-                    _projectSystemNameToProjectsMap.Remove(projectName);
+                    if (projects.Count == 0)
+                    {
+                        _projectSystemNameToProjectsMap.Remove(projectName);
+                    }
+
+                    break;
                 }
-
-                break;
             }
-        }
 
-        _projectToHierarchyMap = _projectToHierarchyMap.Remove(project.Id);
-        _projectToGuidMap = _projectToGuidMap.Remove(project.Id);
+            _projectToHierarchyMap = _projectToHierarchyMap.Remove(project.Id);
+            _projectToGuidMap = _projectToGuidMap.Remove(project.Id);
+        }
 
         ImmutableInterlocked.TryRemove(ref _projectToRuleSetFilePath, project.Id, out _);
 

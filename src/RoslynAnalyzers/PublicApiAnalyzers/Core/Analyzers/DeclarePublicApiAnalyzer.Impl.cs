@@ -603,6 +603,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     for (var current = symbol; current is not null; current = current.ContainingSymbol)
                     {
+start:
                         foreach (var attribute in current.GetAttributes())
                         {
                             if (attribute.AttributeClass is { Name: "ExperimentalAttribute", ContainingSymbol: INamespaceSymbol { Name: nameof(System.Diagnostics.CodeAnalysis), ContainingNamespace: { Name: nameof(System.Diagnostics), ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true } } } })
@@ -611,8 +612,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                     return "???";
 
                                 return diagnosticId;
-
                             }
+                        }
+
+                        if (current is IMethodSymbol { AssociatedSymbol: { } associatedSymbol })
+                        {
+                            current = associatedSymbol;
+                            goto start;
                         }
                     }
 
