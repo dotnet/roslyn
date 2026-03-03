@@ -13,12 +13,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -1015,19 +1015,6 @@ public sealed class DiagnosticAnalyzerServiceTests
         public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
         {
             return [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())];
-        }
-    }
-
-    private sealed class DescriptorOnlyAnalyzer(string id) : DiagnosticAnalyzer
-    {
-#pragma warning disable RS1017 // DiagnosticId for analyzers must be a non-null constant
-        private readonly DiagnosticDescriptor _descriptor = new(id, "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-#pragma warning restore RS1017 // DiagnosticId for analyzers must be a non-null constant
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
-
-        public override void Initialize(AnalysisContext context)
-        {
         }
     }
 
