@@ -282,6 +282,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
     }
 
+    public async ValueTask CloseDocumentAsync(DocumentUri uri)
+    {
+        var documentPath = GetDocumentFilePath(uri);
+        await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
+        await TryUnloadProjectAsync(documentPath);
+    }
+
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {

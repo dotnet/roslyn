@@ -37,4 +37,10 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
     /// </summary>
     /// <returns><see langword="true"/> when a document was found and removed</returns>
     ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri);
+
+    /// <summary>
+    /// Notify this provider that a document was closed.
+    /// This may result in unloading the document from the miscellaneous files workspace or from the host workspace.
+    /// </summary>
+    ValueTask CloseDocumentAsync(DocumentUri uri);
 }

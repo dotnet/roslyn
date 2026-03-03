@@ -111,6 +111,9 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
         return false;
     }
 
+    public async ValueTask CloseDocumentAsync(DocumentUri uri)
+        => await TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+
     public async ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
     {
         this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
