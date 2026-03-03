@@ -2624,7 +2624,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}'은(는) 인식할 수 없는 RefSafetyRulesAttribute 버전이 있는 모듈에 정의되어 있으며 '11'이 필요합니다.</target>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -4078,165 +4078,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
-                             Visual C# 컴파일러 옵션
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - 출력 파일 -
--out:&lt;file&gt;                   출력 파일 이름 지정(기본값: 
-                              메인 클래스가 있는 파일의 기본 이름 또는 첫 번째 파일)
--target:exe                   콘솔 실행 파일 빌드(기본값)(약식:
-                              -t:exe)
--target:winexe                Windows 실행 파일 빌드(약식:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               라이브러리 빌드(약식: -t:library)
--target:module                다른 어셈블리에 추가할 수 있는 모듈
-                              빌드(약식: -t:module)
--target:appcontainerexe       Appcontainer 실행 파일 빌드(약식:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              WinMDExp에서 사용하는 Windows 런타임 중간 파일
-                              빌드(약식: -t:winmdobj)
--doc:&lt;file&gt;                   생성할 XML 문서 파일
--refout:&lt;file&gt;                생성할 참조 어셈블리 출력
--platform:&lt;string&gt;            이 코드가 실행될 수 있는 플랫폼 제한: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred 또는
-                              anycpu. 기본값은 anycpu입니다.
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - 입력 파일 -
--recurse:&lt;wildcard&gt;           와일드카드 사양 따른 현재 디렉터리 및 하위 디렉터리의
-                              모든 파일
-                              포함
--reference:&lt;alias&gt;=&lt;file&gt;      지정된 별칭을 사용하여 지정된 어셈블리 파일의
-                              메타데이터 참조(약식: -r)
--reference:&lt;file list&gt;       지정된 어셈블리 파일의 메타데이터
-                              참조(약식: -r)
--addmodule:&lt;file list&gt;        지정된 모듈을 이 어셈블리에 연결
--link:&lt;file list&gt;             지정된 interop 어셈블리 파일의
-                              메타데이터 포함(약식: -l)
--analyzer:&lt;file list&gt;         이 어셈블리에서 분석기 실행
-                              (약식: -a)
--additionalfile:&lt;file list&gt;   코드 생성에 직접적인 영향을 미치지 않지만
-                              오류 또는 경고를 생성하기 위해 분석기에서
-                              사용할 수 있는 추가 파일입니다.
--embed                        모든 소스 파일을 PDB에 삽입합니다.
--embed:&lt;file list&gt;            PDB에 특정 파일을 포함합니다.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - 리소스 -
--win32res:&lt;file&gt;             Win32 리소스 파일(.res) 지정
--win32icon:&lt;file&gt;            출력에 이 아이콘 사용
--win32manifest:&lt;file&gt;         Win32 매니페스트 파일(.xml) 지정
--nowin32manifest              기본 Win32 매니페스트를 포함하지 않음
--resource:&lt;resinfo&gt;           지정된 리소스 포함(약식: -res)
--linkresource:&lt;resinfo&gt;       지정된 리소스를 이 어셈블리에 연결
-                              (약식: -linkres) 여기서 resinfo 형식은
-                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]입니다.
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - 코드 생성 -
--debug[+|-]                  디버깅 정보 내보내기
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              디버깅 유형 지정('full'은 기본값,
-                              'portable'은 플랫폼 간 형식,
-                              'embedded'는 대상 .dll 또는 .exe에 포함된
-                              플랫폼 간간 형식입니다)
--optimize[+|-]                최적화 활성화(약식: -o)
--deterministic                결정적 어셈블리 생성
-                              (모듈 버전 GUID 및 타임스탬프 포함)
--refonly                      기본 출력 대신 참조 어셈블리 생성
--instrument:TestCoverage        커버리지 정보를 수집하기 위해 계측된
-                              어셈블리 생성
--sourcelink:&lt;file&gt;            PDB에 포함할 소스 링크 정보입니다.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                       - 오류 및 경고 -
--warnaserror[+|-]             모든 경고를 오류로 보고
--warnaserror[+|-]:&lt;warn list&gt; 특정 경고를 오류로 보고
-                              (모든 Null 허용 여부 경고에 대해 "nullable" 사용)
--warn:&lt;n&gt;                     경고 수준 설정(0 이상)(약식: -w)
--nowarn:&lt;warn list&gt;           특정 경고 메시지 비활성화
-                              (모든 Null 허용 여부에 대해 "nullable" 사용)
--ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 설정하는 규칙 집합 파일을
-                              지정합니다.
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              모든 컴파일러 및 분석기의 진단을 로그할 파일을
-                              지정합니다.
-                              sarif_version:{1|2|2.1} 기본값은 1. 2와 2.1이며
-                              둘 다 SARIF 버전 2.1.0을 의미합니다.
--reportanalyzer                실행 시간과 같은 추가 분석기 정보를
-                              보고합니다.
--skipanalyzers[+|-]           진단 분석기 실행을 건너뜁니다.
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       - 언어 -
--checked[+|-]                오버플로 검사 생성
--unsafe[+|-]                  '안전하지 않은' 코드 허용
--define:&lt;symbol list&gt;         조건부 컴파일 기호 정의(약식
-                              : -d)
--langversion:?                언어 버전에 허용되는 값 표시
--langversion:&lt;string&gt;         다음과 같은 언어 버전 지정
-                              'latest'(부 버전을 포함한 최신 버전),
-                              `default`(`latest`와 동일),
-                              `latestmajor`(부 버전을 제외한 최신 버전),
-                              `preview`(지원되지 않는 미리 보기의 기능을 포함한 최신 버전),
-                              또는 `6` 또는 `7.1`과 같은 특정 버전
--nullable[+|-]                null 허용 컨텍스트 옵션 enable|disable을 지정합니다.
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              null 허용 컨텍스트 옵션 enable|disable|warnings|annotations를 지정합니다.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - 보안 -
--delaysign[+|-]               강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
-                              지연
--publicsign[+|-]                  강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
-                              공개적으로 진행합니다.
--keyfile:&lt;file&gt;               강력한 이름의 키 파일 지정
--keycontainer:&lt;string&gt;        강력한 이름의 키 컨테이너 지정
--highentropyva[+|-]           높은 엔트로피 ASLR 사용
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - 기타 -
-@&lt;file&gt;                       응답 파일 읽어 추가 옵션 확인
--help                         이 사용 메시지 표시(약식: -?)
--nologo                       컴파일러 저작권 메시지 표시 안 함
--noconfig                      CSC.RSP 파일을 자동으로 포함하지 않음
--parallel[+|-]                           동시 빌드입니다.
--version                           컴파일러 버전 번호를 표시하고 종료합니다.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - 고급 -
--baseaddress:&lt;address&gt;        빌드할 라이브러리의 기준 주소
--checksumalgorithm:&lt;alg&gt;          PBD에 저장된 소스 파일 체크섬을 계산하기 위한
-                              알고리즘을 지정합니다. 지원되는 값은
-                              SHA1 또는 SHA256(기본값)입니다.
--codepage:&lt;n&gt;                 소스를 열 때 사용할 코드페이지 지정
-                              파일
--utf8output                   UTF-8 인코딩으로 컴파일러 메시지 출력
--main:&lt;type&gt;                  진입점을 포함하는 유형 지정
-                              (가능한 다른 모든 진입점 무시)(약식
-                              : -m)
--fullpaths                    컴파일러로 정규화된 경로 생성
--filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 정렬
-                              지정
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              컴파일러가 생성한 원본 경로 이름 출력의 매핑을
-                              지정합니다.
--pdb:&lt;file&gt;                  디버그 정보 파일 이름 지정(기본값:
-                              확장자가 .pdb인 출력 파일 이름)
--errorendlocation             각 오류의 끝 위치의
-                              행 및 열 출력
--preferreduilang                  기본 출력 언어 이름을 지정합니다.
--nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 사용하지 않도록 설정합니다.
--sdkpath:&lt;path&gt;         표준 라이브러리 어셈블리를 검색하는 데 사용되는 경로입니다.
--nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않음
--subsystemversion:&lt;string&gt;    이 어셈블리의 하위 시스템 버전 지정
--lib:&lt;file list&gt;              참조를 검색할 추가 디렉터리
-                              지정
--errorreport:&lt;string&gt;        내부 컴파일러 오류 처리 방법을 지정합니다
-                              (prompt, send, queue 또는 none). 기본값은
-                              queue입니다.
--appconfig:&lt;file&gt;             어셈블리 바인딩 설정이 포함된
-                              애플리케이션 구성 파일 지정
--moduleassemblyname:&lt;string&gt;   이 모듈이 속할 어셈블리의
-                              이름 지정
--modulename:&lt;string&gt;          소스 모듈의 이름을 지정합니다.
--generatedfilesout:&lt;dir&gt;      지정된 디렉터리에 컴파일 중 생성된 파일을
-                              이동합니다.
--reportivts[+|-]                    모든 종속 항목에 의한 이 어셈블리에 부여된 모든 IVT에 대한
-                              정보를 출력하고 어떤 어셈블리에서 발생했는지에 대한 정보를 포함하여
-                              외부 어셈블리 접근성 오류에 주석을 답니다.
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
