@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="EmptyTempPath">
         <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
-        <target state="translated">Ein temporärer Verzeichnispfad kann nicht ermittelt werden. Erwägen Sie, die TEMP-Umgebungsvariable unter Windows oder den lokalen App-Datenordner unter Unix zu konfigurieren.</target>
+        <target state="new">Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
