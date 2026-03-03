@@ -24,10 +24,7 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
     private readonly ImmutableDictionary<string, string> _vsVersionMap = new Dictionary<string, string>
     {
         { "16.11.", "2019" },
-        { "17.8.", "2022" },
-        { "17.10.", "2022" },
         { "17.12.", "2022" },
-        { "17.13.", "2022" },
         { "17.14.", "2022" },
         { "18.", "2026" },
     }.ToImmutableDictionary();
@@ -156,6 +153,8 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
                 return default;
             }
 
+            var packageVersion = await TryGetPackageVersionFromPackagePropsAsync(product, release, vsConnection);
+
             // First we try to get the info we want from the build directly, if we can find it
             var buildNumber = VisualStudioRepository.GetBuildNumberFromUrl(url);
             var pipelineName = product.GetBuildPipelineName(connection.BuildProjectName);
@@ -168,7 +167,7 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
                     {
                         if (!string.IsNullOrWhiteSpace(build.SourceBranch))
                         {
-                            return new VsBuildInformation(build.SourceVersion, build.SourceBranch, build.BuildNumber);
+                            return new VsBuildInformation(build.SourceVersion, build.SourceBranch, build.BuildNumber, packageVersion);
                         }
                     }
                 }
@@ -190,7 +189,7 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
 
             var buildId = product.GetBuildPipelineName(connection.BuildProjectName) + "_" + buildNumber;
 
-            return new VsBuildInformation(commitSha, branchName, buildId);
+            return new VsBuildInformation(commitSha, branchName, buildId, packageVersion);
         }
         catch
         {
@@ -237,6 +236,53 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
         }
 
         return build.SourceVersion;
+    }
+
+    private static async Task<string?> TryGetPackageVersionFromPackagePropsAsync(
+        IProduct product,
+        VsReleaseInformation release,
+        AzDOConnection vsConnection)
+    {
+        if (product.VsPackagePropsFileName is null)
+        {
+            return null;
+        }
+
+        var packagePropsContents = await VisualStudioRepository.TryGetFileContentsAsync(release.CommitSha, GitVersionType.Commit, vsConnection, product.VsPackagePropsFileName);
+        if (string.IsNullOrEmpty(packagePropsContents))
+        {
+            return null;
+        }
+
+        var packageProps = XDocument.Parse(packagePropsContents);
+
+        var packageVersionElement = packageProps.Descendants("PackageVersion")
+            .SingleOrDefault(element => element.Attribute("Include")?.Value == product.VsPackageName);
+        if (packageVersionElement == null)
+        {
+            return null;
+        }
+
+        var packageVersion = packageVersionElement.Attribute("Version")?.Value;
+
+        if (packageVersion?.StartsWith("$(") == true)
+        {
+            // If the version is specified as a variable, try to resolve it from the default config file
+            var variableName = packageVersion[2..^1];
+
+            var variableElement = packageProps.Descendants("PropertyGroup")
+                .SingleOrDefault()
+                ?.Descendants(variableName)
+                .SingleOrDefault();
+            if (variableElement == null)
+            {
+                return null;
+            }
+
+            packageVersion = variableElement.Value;
+        }
+
+        return packageVersion;
     }
 
     private static async Task<string?> TryGetRoslynCommitShaFromNuspecAsync(
@@ -295,7 +341,18 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
 
     public override string CreateTagMessage(IProduct product, VsReleaseInformation release, VsBuildInformation build)
     {
-        return $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {release.BuildId}";
+        List<(string Key, string Value)>? information = [
+            ( "Build Branch", build.SourceBranch ),
+            ( "Internal ID", build.BuildId ),
+            ( "Internal VS ID", release.BuildId ),
+        ];
+
+        if (build.PackageVersion is not null)
+        {
+            information.Add(("Package Version", build.PackageVersion));
+        }
+
+        return string.Join(Environment.NewLine, information.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
     }
 
     public class VsReleaseInformation(
@@ -312,7 +369,8 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
     internal class VsBuildInformation(
         string commitSha,
         string sourceBranch,
-        string buildId) : BuildInformation(commitSha, buildId)
+        string buildId,
+        string? packageVersion) : BuildInformation(commitSha, buildId, packageVersion)
     {
         public readonly string SourceBranch = sourceBranch;
     }

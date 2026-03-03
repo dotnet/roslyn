@@ -96,4 +96,16 @@ internal static class VisualStudioRepository
         using var streamReader = new StreamReader(componentsJsonStream);
         return await streamReader.ReadToEndAsync();
     }
+
+    public static async Task<string> TryGetFileContentsAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string jsonFile)
+    {
+        try
+        {
+            return await GetFileContentsAsync(gitVersion, versionType, devdiv, jsonFile);
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
 }
