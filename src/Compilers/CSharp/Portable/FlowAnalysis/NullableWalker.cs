@@ -12594,7 +12594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is AsyncHelpers.Await. We can directly use `_visitResult`
                 SetResult(node, _visitResult, updateAnalyzedNullability: true, isLvalue: false);
             }
-            if (awaitableInfo.GetResult is null)
+            else if (awaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
             }
