@@ -376,7 +376,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic Compiler Options
+        <target state="new">                  Visual Basic Compiler Options
 
                                   - OUTPUT FILE -
 -out:&lt;file&gt;                       Specifies the output file name.
