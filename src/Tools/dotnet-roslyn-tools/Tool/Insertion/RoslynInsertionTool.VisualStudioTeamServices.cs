@@ -540,7 +540,9 @@ internal static partial class RoslynInsertionTool
     private static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromAzDOAsync(Build tobuild, string repoId, string fromSHA, string toSHA)
     {
         var gitClient = ComponentBuildConnection.GitClient;
+        var project = Options.ComponentBuildProjectNameOrFallback;
         var getCommits = (await gitClient.GetCommitsAsync(
+            project,
             repoId,
             new GitQueryCommitsCriteria()
             {
@@ -548,7 +550,7 @@ internal static partial class RoslynInsertionTool
                 CompareVersion = new GitVersionDescriptor() { Version = toSHA, VersionType = GitVersionType.Commit }
             }))
             // AzDO does not provide the full commit message, so we must query for each commit to provide better messages for PR merge commits.
-            .Select(c => gitClient.GetCommitAsync(c.CommitId, repoId));
+            .Select(c => gitClient.GetCommitAsync(project, c.CommitId, repoId));
         var commits = (await Task.WhenAll(getCommits))
             .Select(c =>
                 new GitCommit()
