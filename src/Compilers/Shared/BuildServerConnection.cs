@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
+                    logger.Log($"Connecting to server timed out after {timeoutMs} ms: '{e.GetType().Name}' '{e.Message}'");
                     pipeStream.Dispose();
                     return null;
                 }
