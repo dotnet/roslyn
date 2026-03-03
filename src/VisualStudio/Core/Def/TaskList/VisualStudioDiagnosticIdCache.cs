@@ -94,7 +94,7 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
             var oldProject = projectChange.OldProject;
             var newProject = projectChange.NewProject;
 
-            var analyzersChanged = oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
+            var analyzersChanged = !oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
             if (analyzersChanged)
             {
                 _projectDescriptorRefreshQueue.AddWork(projectChange.NewProject.Id);

@@ -15,10 +15,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
     <[UseExportProvider]>
     Public Class VisualStudioDiagnosticIdCacheTests
+        Private Shared ReadOnly s_composition As TestComposition = VisualStudioTestCompositions.LanguageServices
 
         <Fact>
         Public Async Function TestDiagnosticDescriptorCache_Populates() As Task
-            Using workspace = EditorTestWorkspace.CreateCSharp("class A { }")
+            Using workspace = EditorTestWorkspace.CreateCSharp("class A { }", composition:=s_composition)
                 Dim listenerProvider = workspace.GetService(Of AsynchronousOperationListenerProvider)()
 
                 Dim analyzer = New DescriptorOnlyAnalyzer("CACHE001")
@@ -46,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestDiagnosticDescriptorCache_RefreshesOnAnalyzerReferenceChange() As Task
-            Using workspace = EditorTestWorkspace.CreateCSharp("class A { }")
+            Using workspace = EditorTestWorkspace.CreateCSharp("class A { }", composition:=s_composition)
                 Dim listenerProvider = workspace.GetService(Of AsynchronousOperationListenerProvider)()
 
                 Dim analyzer1 = New DescriptorOnlyAnalyzer("CACHE001")
@@ -85,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestDiagnosticDescriptorCache_RemovesDeletedProjects() As Task
-            Using workspace = EditorTestWorkspace.CreateCSharp("class A { }")
+            Using workspace = EditorTestWorkspace.CreateCSharp("class A { }", composition:=s_composition)
                 Dim listenerProvider = workspace.GetService(Of AsynchronousOperationListenerProvider)()
 
                 Dim analyzer = New DescriptorOnlyAnalyzer("CACHE001")
