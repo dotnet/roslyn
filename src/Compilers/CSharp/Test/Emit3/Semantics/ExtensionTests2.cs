@@ -27365,14 +27365,12 @@ class MyAttribute : System.Attribute
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        var escapedNewline = Environment.NewLine switch
-        {
-            "\r\n" => "\\r\\n",
-            "\n" => "\\n",
-            _ => throw ExceptionUtilities.Unreachable()
-        };
-
-        AssertEx.Equal($$"""extension([MyAttribute/*(System.String)*/("\\r\\n\\t\\0\\a\\b\\f\\v\\U0001D11E{{escapedNewline}}end")] System.Int32)""", extension.ComputeExtensionMarkerRawName());
+        // Source text is normalized to CRLF in test infrastructure, so the literal newline in the
+        // attribute string always becomes \r\n regardless of platform.
+        // The method escapes both the verbatim string backslashes (doubled) and the real CRLF (to \r\n text).
+        AssertEx.Equal(
+            @"extension([MyAttribute/*(System.String)*/(""\\r\\n\\t\\0\\a\\b\\f\\v\\U0001D11E\r\nend"")] System.Int32)",
+            extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]

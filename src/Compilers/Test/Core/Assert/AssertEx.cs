@@ -209,6 +209,14 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
+            // Normalize line endings before comparing to avoid false failures from platform
+            // differences (e.g., \r\n on Windows vs \n on Linux in XmlWriter output,
+            // StringBuilder.AppendLine, etc.)
+            if (string.Equals(expected?.ReplaceLineEndings("\n"), actual?.ReplaceLineEndings("\n"), StringComparison.Ordinal))
+            {
+                return;
+            }
+
             var message = new StringBuilder();
             message.AppendLine();
             message.AppendLine("Expected:");

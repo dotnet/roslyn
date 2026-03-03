@@ -28220,14 +28220,14 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28348,7 +28348,7 @@ namespace NamespaceA
         </member>
     </members>
 </doc>";
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -28372,14 +28372,14 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28518,7 +28518,7 @@ namespace System.Runtime.CompilerServices
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary <paramref name=""I1""/></summary>
     <param name=""I1"">Description for I1</param>
@@ -28581,7 +28581,7 @@ namespace System.Runtime.CompilerServices
 
             comp.VerifyDiagnostics();
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28589,7 +28589,7 @@ namespace System.Runtime.CompilerServices
 ", cMember.GetDocumentationCommentXml());
 
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28599,7 +28599,7 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""P:C.I1"">
     <summary>Property summary</summary>
 </member>
@@ -28627,14 +28627,14 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
 </member>
 ", cMember.GetDocumentationCommentXml());
 
             var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.IsEmpty).Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor"">
     <summary>Summary</summary>
 </member>
@@ -28665,7 +28665,7 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
 
             var c = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28673,7 +28673,7 @@ namespace System.Runtime.CompilerServices
 ", c.GetDocumentationCommentXml());
 
             var cConstructor = c.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28712,7 +28712,7 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
 
             var d = comp.GetMember<NamedTypeSymbol>("D");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:D"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28720,7 +28720,7 @@ namespace System.Runtime.CompilerServices
 ", d.GetDocumentationCommentXml());
 
             var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28766,7 +28766,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28814,7 +28814,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28865,7 +28865,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var c = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28911,7 +28911,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var d = comp.GetMember<NamedTypeSymbol>("D");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:D"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28919,7 +28919,7 @@ namespace System.Runtime.CompilerServices
 ", d.GetDocumentationCommentXml());
 
             var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -28967,7 +28967,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -28978,7 +28978,7 @@ namespace System.Runtime.CompilerServices
 
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -29027,7 +29027,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary2</summary>
     <param name=""S1"">Description2 for S1</param>
@@ -29074,7 +29074,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -29085,7 +29085,7 @@ namespace System.Runtime.CompilerServices
 
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -29125,7 +29125,7 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:Outer.C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -29133,7 +29133,7 @@ namespace System.Runtime.CompilerServices
 ", cMember.GetDocumentationCommentXml());
 
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -29202,7 +29202,7 @@ namespace System.Runtime.CompilerServices
 
             var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
