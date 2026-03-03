@@ -27,20 +27,19 @@ public sealed class OrganizeUsingsTests
     {
         using var workspace = new AdhocWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
-        var newLine = endOfLine ?? OrganizeImportsOptions.Default.NewLine;
-        var document = project.AddDocument("Document", initial.ReplaceLineEndings(newLine));
+        var document = project.AddDocument("Document", initial.ReplaceLineEndings(endOfLine ?? Environment.NewLine));
 
         var options = new OrganizeImportsOptions()
         {
             PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
             SeparateImportDirectiveGroups = separateImportGroups,
-            NewLine = newLine
+            NewLine = endOfLine ?? OrganizeImportsOptions.Default.NewLine
         };
 
         var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
         var newDocument = await organizeImportsService.OrganizeImportsAsync(document, options, CancellationToken.None);
         var newRoot = await newDocument.GetRequiredSyntaxRootAsync(default);
-        Assert.Equal(final.ReplaceLineEndings(newLine), newRoot.ToFullString());
+        Assert.Equal(final.ReplaceLineEndings(endOfLine ?? Environment.NewLine), newRoot.ToFullString());
     }
 
     [Fact]

@@ -21,6 +21,9 @@ Public Structure BasicTestSource
                                  Optional checksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithms.Default) As SyntaxTree
 
         ' Normalize line endings to CRLF to ensure consistent behavior across platforms.
+        ' NOTE: This means we don't exercise the compiler with LF-only source text in these tests.
+        ' Ideally tests should work with either line ending; this normalization is a pragmatic workaround
+        ' until tests can be updated to be line-ending-agnostic.
         text = text.ReplaceLineEndings(vbCrLf)
         Dim sourceTest = SourceText.From(text, If(encoding, Encoding.UTF8), checksumAlgorithm)
         Dim tree = SyntaxFactory.ParseSyntaxTree(sourceTest, If(options, TestOptions.RegularLatest), path)

@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // Test source strings come from .cs file literals which have platform-dependent line endings
             // (CRLF on Windows, LF on Linux due to git checkout normalization). PDB checksums, line numbers,
             // and other position-dependent test assertions all assume CRLF source text.
+            // NOTE: This means we don't exercise the compiler with LF-only source text in these tests.
+            // Ideally tests should work with either line ending; this normalization is a pragmatic workaround
+            // until tests can be updated to be line-ending-agnostic.
             text = text.ReplaceLineEndings("\r\n");
             var stringText = SourceText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
             var tree = SyntaxFactory.ParseSyntaxTree(stringText, options ?? TestOptions.RegularPreview, path);

@@ -227,6 +227,35 @@ namespace Roslyn.Test.Utilities
             Assert.True(false, message.ToString());
         }
 
+        /// <summary>
+        /// Asserts that two strings are equal after normalizing line endings to '\n'.
+        /// Use this when the actual output may have platform-dependent line endings.
+        /// </summary>
+        public static void EqualIgnoringLineEndings(string expected, string actual)
+        {
+            if (string.Equals(expected, actual, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var normalizedExpected = expected?.ReplaceLineEndings("\n");
+            var normalizedActual = actual?.ReplaceLineEndings("\n");
+
+            if (string.Equals(normalizedExpected, normalizedActual, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var messageBuilder = new StringBuilder();
+            messageBuilder.AppendLine();
+            messageBuilder.AppendLine("Expected:");
+            messageBuilder.AppendLine(expected);
+            messageBuilder.AppendLine("Actual:");
+            messageBuilder.AppendLine(actual);
+
+            Assert.True(false, messageBuilder.ToString());
+        }
+
         public static void Equal<T>(
             IEnumerable<T> expected,
             IEnumerable<T> actual,
