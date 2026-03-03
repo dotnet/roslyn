@@ -1278,8 +1278,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        ' PROTOTYPE Consider displaying unions as `union MyUnion` instead of `struct MyUnion` and with a separate classification type
-        ' PROTOTYPE Consider listing case types in QuickInfo tooltip for unions
+        ' Tracked by https//github.com/dotnet/roslyn/issues/82607
+        ' Consider displaying unions as `union MyUnion` instead of `struct MyUnion` and with a separate classification type
+        ' Consider listing case types in QuickInfo tooltip for unions
         <WpfFact>
         Public Async Function QuickInfoForUnions() As Task
             Dim workspace =

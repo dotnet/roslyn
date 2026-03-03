@@ -296,7 +296,8 @@ internal static class ClassificationHelpers
             SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
             SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
             SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
-            // PROTOTYPE consider using a separate classification type for unions so users can color them differently
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider using a separate classification type for unions so users can color them differently
             SyntaxKind.UnionDeclaration => ClassificationTypeNames.StructName,
             _ => null
         };
