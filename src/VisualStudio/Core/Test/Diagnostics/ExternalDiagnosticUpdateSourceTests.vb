@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -38,7 +37,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Async Function TestExternalDiagnostics_UnsupportedId() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
                 Dim listener = workspace.GetService(Of AsynchronousOperationListenerProvider)()
-                Dim waiter = listener.GetWaiter(FeatureAttribute.ErrorList)
+                Dim diagnosticWaiter = listener.GetWaiter(FeatureAttribute.DiagnosticService)
+                Dim errorListWaiter = listener.GetWaiter(FeatureAttribute.ErrorList)
                 Dim analyzer = New AnalyzerForErrorLogTest()
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
@@ -50,20 +50,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
-
-                ' Getting the DiagnosticAnalyzerService will initialize the cache of supported diagnostics.
-                ' We get it through the vsWorkspace because there are two MefWorkspaceServices at play in these
-                ' tests. The first is in the TestWorkspace we create initially and the second is in the
-                ' MockVisualStudioWorkspace as it inherits the VisualStudioWorkspaceImpl.
-
-                Dim analyzerService = vsWorkspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
-                Await listener.WaitAllAsync(workspace, New String() {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
-
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
+
                     Dim project = workspace.CurrentSolution.Projects.First()
 
                     source.OnSolutionBuildStarted()
-                    Await waiter.ExpeditedWaitAsync()
+                    Await diagnosticWaiter.ExpeditedWaitAsync()
+                    Await errorListWaiter.ExpeditedWaitAsync()
 
                     Assert.False(source.IsUnsupportedDiagnosticId(project.Id, "ID1"))
                     Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "CA1002"))
@@ -75,7 +68,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Async Function TestExternalDiagnostics_UnsupportedIdTrueIfBuildNotStarted() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
                 Dim listener = workspace.GetService(Of AsynchronousOperationListenerProvider)()
-                Dim waiter = listener.GetWaiter(FeatureAttribute.ErrorList)
+                Dim diagnosticWaiter = listener.GetWaiter(FeatureAttribute.DiagnosticService)
+                Dim errorListWaiter = listener.GetWaiter(FeatureAttribute.ErrorList)
                 Dim analyzer = New AnalyzerForErrorLogTest()
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
@@ -87,15 +81,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
-
-                ' Getting the DiagnosticAnalyzerService will initialize the cache of supported diagnostics.
-                ' We get it through the vsWorkspace because there are two MefWorkspaceServices at play in these
-                ' tests. The first is in the TestWorkspace we create initially and the second is in the
-                ' MockVisualStudioWorkspace as it inherits the VisualStudioWorkspaceImpl.
-
-                Dim analyzerService = vsWorkspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
-                Await listener.WaitAllAsync(workspace, New String() {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
-
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
 
                     Dim project = workspace.CurrentSolution.Projects.First()
