@@ -8709,6 +8709,210 @@ static class Test1
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_AwaitTaskWhenAll_AsyncLambdaInSelect_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (int x) => { return await Task.FromResult(x); }",
+                (true, false) => "async Task<int> (int x) => await Task.FromResult(x)",
+                (false, true) => "async (x) => { return await Task.FromResult(x); }",
+                (false, false) => "async (x) => await Task.FromResult(x)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambdaRuntimeAsyncAttribute}}{{lambda}}));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_LambdaReturnInference_InferenceScenarios_CustomTaskLikeContainingMethod(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (int x) => { return await Task.FromResult(x); }",
+                (true, false) => "async Task<int> (int x) => await Task.FromResult(x)",
+                (false, true) => "async (x) => { return await Task.FromResult(x); }",
+                (false, false) => "async (x) => await Task.FromResult(x)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System;
+                using System.Linq;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                [AsyncMethodBuilder(typeof(MyTaskBuilder))]
+                class MyTask
+                {
+                }
+
+                class MyTaskBuilder
+                {
+                    public static MyTaskBuilder Create() => null;
+                    public MyTask Task => null;
+                    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+                    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+                    public void SetResult() { }
+                    public void SetException(Exception exception) { }
+                    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                        where TAwaiter : INotifyCompletion
+                        where TStateMachine : IAsyncStateMachine
+                    {
+                    }
+                    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                        where TAwaiter : ICriticalNotifyCompletion
+                        where TStateMachine : IAsyncStateMachine
+                    {
+                    }
+                }
+
+                class Program
+                {
+                    static async MyTask Main()
+                    {
+                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambdaRuntimeAsyncAttribute}}{{lambda}}));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
+                (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
+                (false, true) => "async (x) => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async (x) => await Task.FromResult(x.Length)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use(Func<int, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<string, Task<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use({{lambdaRuntimeAsyncAttribute}}{{lambda}});
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_GenericCandidate_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
+                (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
+                (false, true) => "async (x) => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async (x) => await Task.FromResult(x.Length)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use<T>(Func<T, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<string, Task<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use({{lambdaRuntimeAsyncAttribute}}{{lambda}});
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_ValueTaskTarget()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use(Func<int, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<int, ValueTask<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use(async ValueTask<int> (int x) => await Task.FromResult(x));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_AmbiguousTaskLike_NoCrash()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static void Use(Func<int, Task<int>> f) { }
+                    static void Use(Func<int, ValueTask<int>> f) { }
+
+                    static void Main()
+                    {
+                        Use(async x => await Task.FromResult(x));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Use(System.Func<int, System.Threading.Tasks.Task<int>>)' and 'Program.Use(System.Func<int, System.Threading.Tasks.ValueTask<int>>)'
+                //         Use(async x => await Task.FromResult(x));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Use").WithArguments("Program.Use(System.Func<int, System.Threading.Tasks.Task<int>>)", "Program.Use(System.Func<int, System.Threading.Tasks.ValueTask<int>>)").WithLocation(11, 9)
+            );
+        }
+
         [Theory]
         [CombinatorialData]
         public void RuntimeAsync_CompilerFeatureFlag_EnabledWithoutRuntimeAsync(bool withNonCoreLibSources)
