@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(NarrowedType.IsObjectType() ||
                              NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions) ||
-                             (ConstantValue == ConstantValue.Null && !InputType.IsValueType && NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions)));
+                             (ConstantValue == ConstantValue.Null && (InputType.IsNullableType() || !InputType.IsValueType) && NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions)));
             }
             else
             {

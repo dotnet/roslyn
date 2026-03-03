@@ -54,21 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamedTypeSymbol ObjectType => _compilation.GetSpecialType(SpecialType.System_Object);
 
-        private static BoundPatternWithUnionMatching CreatePatternWithUnionMatching(NamedTypeSymbol inputUnionType, BoundPattern innerPattern)
+        private static BoundPatternWithUnionMatching CreatePatternWithUnionMatching(NamedTypeSymbol unionMatchingInputType, BoundPattern innerPattern)
         {
-            Debug.Assert(inputUnionType.IsUnionType);
+            Debug.Assert(unionMatchingInputType.IsSubjectForUnionMatching);
             Debug.Assert(innerPattern.InputType.IsObjectType());
 
-            PropertySymbol? valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(inputUnionType);
+            PropertySymbol? valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics((NamedTypeSymbol)unionMatchingInputType.StrippedType());
 
             var member = new BoundPropertySubpatternMember(innerPattern.Syntax, receiver: null, valueProperty, type: innerPattern.InputType, hasErrors: valueProperty is null).MakeCompilerGenerated();
 
             return new BoundPatternWithUnionMatching(
                 syntax: innerPattern.Syntax,
-                inputUnionType,
+                unionMatchingInputType,
                 member,
                 innerPattern,
-                inputType: inputUnionType).MakeCompilerGenerated();
+                inputType: unionMatchingInputType).MakeCompilerGenerated();
         }
 
         public override BoundNode? VisitConstantPattern(BoundConstantPattern node)
@@ -76,11 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             node = (BoundConstantPattern)base.VisitConstantPattern(node)!;
             if (node.IsUnionMatching)
             {
-                Debug.Assert(node.InputType is NamedTypeSymbol { IsUnionType: true });
+                Debug.Assert(node.InputType.IsSubjectForUnionMatching);
 
-                if (node.ConstantValue == ConstantValue.Null && !node.InputType.IsValueType && node.NarrowedType.Equals(node.InputType, TypeCompareKind.AllIgnoreOptions))
+                if (Binder.IsClassOrNullableValueTypeUnionNullPatternMatching((NamedTypeSymbol)node.InputType, node.ConstantValue) && node.NarrowedType.Equals(node.InputType, TypeCompareKind.AllIgnoreOptions))
                 {
                     // Special case of a null test for a class Union. Its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                    // Or a special case of a null test for a Nullable<Union>. Its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
                     BoundPatternWithUnionMatching underlyingValueMatching = CreatePatternWithUnionMatching(
                         (NamedTypeSymbol)node.InputType,
                         node.Update(node.Value, node.ConstantValue, isUnionMatching: false, inputType: ObjectType, narrowedType: ObjectType));
@@ -364,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rightUnionPattern = stack.Pop();
                             leftOfPendingConjunction = new BoundPatternWithUnionMatching(
                                 syntax: node,
-                                rightUnionPattern.UnionType,
+                                rightUnionPattern.UnionMatchingInputType,
                                 leftOfPendingConjunction,
                                 rightUnionPattern.ValueProperty,
                                 rightUnionPattern.ValuePattern,
@@ -385,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // since neither of them contain union patterns, we can simply create a BoundBinaryPattern for that.
                             return new BoundPatternWithUnionMatching(
                                 syntax: node,
-                                leftUnionPattern.UnionType,
+                                leftUnionPattern.UnionMatchingInputType,
                                 leftUnionPattern.LeftOfPendingConjunction,
                                 leftUnionPattern.ValueProperty,
                                 MakeBinaryAnd(node, leftUnionPattern.ValuePattern, right, makeCompilerGenerated),
@@ -415,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unionPattern = leftUnionPattern;
                 }
 
-                return unionPattern.UnionType;
+                return unionPattern.UnionMatchingInputType;
             }
 #endif
         }
@@ -439,13 +440,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // at the bottom, and BoundRecursivePatterns corresponding to the bottom-most BoundPatternWithUnionMatching will be
                 // at the top.
 
-                TypeSymbol unionType = unionPattern.UnionType;
+                TypeSymbol unionMatchingInputType = unionPattern.UnionMatchingInputType;
                 BoundPropertySubpatternMember valueProperty = unionPattern.ValueProperty;
                 BoundPattern? leftOfPendingConjunction = unionPattern.LeftOfPendingConjunction;
                 BoundPattern valuePattern = unionPattern.ValuePattern;
 
                 while (true)
                 {
+                    var unionType = unionMatchingInputType.StrippedType();
+
                     BoundPattern result = new BoundRecursivePattern(
                         syntax: valuePattern.Syntax,
                         declaredType: null,
@@ -459,9 +462,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         inputType: unionType,
                         narrowedType: unionType).MakeCompilerGenerated();
 
+                    if (unionMatchingInputType.IsNullableType())
+                    {
+                        // Prepend the 'Value' property pattern with a type pattern unwrapping the nullable value.
+                        result = MakeBinaryAnd(
+                            result.Syntax,
+                            new BoundTypePattern(
+                                result.Syntax,
+                                declaredType: new BoundTypeExpression(result.Syntax, aliasOpt: null, unionType).MakeCompilerGenerated(),
+                                isExplicitNotNullTest: false, // PROTOTYPE: Is passing 'true' going to make a difference?
+                                isUnionMatching: false,
+                                inputType: unionMatchingInputType,
+                                narrowedType: unionType).MakeCompilerGenerated(),
+                            result,
+                            makeCompilerGenerated: true);
+                    }
+
                     if (leftOfPendingConjunction is BoundPatternWithUnionMatching leftUnionPattern)
                     {
-                        unionType = leftUnionPattern.UnionType;
+                        unionMatchingInputType = leftUnionPattern.UnionMatchingInputType;
                         valueProperty = leftUnionPattern.ValueProperty;
                         leftOfPendingConjunction = leftUnionPattern.LeftOfPendingConjunction;
                         valuePattern = MakeBinaryAnd(pattern.Syntax, leftUnionPattern.ValuePattern, result, makeCompilerGenerated: true);

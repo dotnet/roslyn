@@ -329,7 +329,7 @@ struct S1
         }
 
         [Fact]
-        public void UnionMatching_01_Discard()
+        public void UnionMatching_01_Discard_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -379,7 +379,86 @@ class Program
         }
 
         [Fact]
-        public void UnionMatching_02_Var()
+        public void UnionMatching_01_Discard_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1() { Value = null; }
+    public S1(int x) { Value = x; }
+    public S1(string x) { Value = x; }
+    public object Value { get; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1()));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(null));
+    }
+
+    static bool Test1(S1 u)
+    {
+        if (u switch {_ => true })
+        {
+            return true;
+        }
+
+        return false;
+    }   
+
+    static bool Test2(S1? u)
+    {
+        if (u switch {_ => true })
+        {
+            return true;
+        }
+
+        return false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrue TrueTrueTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  brfalse.s  IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldc.i4.0
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  brfalse.s  IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldc.i4.0
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_02_Var_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -396,22 +475,63 @@ class Program
 {
     static void Main()
     {
-        System.Console.Write(Test(new S1(10)));
-        System.Console.Write(Test(default));
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(null) is null);
     }
 
-    static int Test(S1 u)
+    static int Test1(S1 u)
     {
         return (u switch {var v => v }).Int;
+    }   
+
+    static int? Test2(S1? u)
+    {
+        return (u switch {var v => v })?.Int;
     }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "123123 123123True").VerifyDiagnostics();
         }
 
         [Fact]
-        public void UnionMatching_03_Var_Deconstruct()
+        public void UnionMatching_02_Var_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(int x) { Value = x; }
+    public S1(string x) { Value = x; }
+    public object Value { get; }
+
+    public int Int => 123;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(null) is null);
+    }
+
+    static int? Test1(S1 u)
+    {
+        return (u switch {var v => v })?.Int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "123True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_03_Var_Deconstruct_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -428,11 +548,61 @@ class Program
 {
     static void Main()
     {
-        System.Console.Write(Test(new S1(10)));
-        System.Console.Write(Test(default));
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(null));
     }
 
-    static int Test(S1 u)
+    static int Test1(S1 u)
+    {
+        return (u switch {var (a, b) => a * 1000 + b * 10, _ => -1 } );
+    }   
+
+    static int Test2(S1? u)
+    {
+        return (u switch {var (a, b) => a * 1000 + b * 10, _ => -1 } );
+    }   
+}
+
+static class Extensions
+{
+    public static void Deconstruct(this object o, out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "1020-1 1020-1-1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_03_Var_Deconstruct_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(int x) { Value = x; }
+    public S1(string x) { Value = x; }
+    public object Value { get; }
+
+    public void Deconstruct(out int x, out int y) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(null));
+    }
+
+    static int Test2(S1 u)
     {
         return (u switch {var (a, b) => a * 1000 + b * 10, _ => -1 } );
     }   
@@ -452,7 +622,7 @@ static class Extensions
         }
 
         [Fact]
-        public void UnionMatching_04_Var_ITuple()
+        public void UnionMatching_04_Var_ITuple_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -528,11 +698,290 @@ static class Extensions
         }
 
         [Fact]
-        public void UnionMatching_05_Constant()
+        public void UnionMatching_04_Var_ITuple_02()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
 struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(new C())));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2((new S1(10), -1)));
+        System.Console.Write(Test2((default(S1), -1)));
+        System.Console.Write(Test2((new S1(new C()), -1)));
+        System.Console.Write(Test2((null, -1)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new C2(new S1(10))));
+        System.Console.Write(Test3(new C2(default(S1))));
+        System.Console.Write(Test3(new C2(new S1(new C()))));
+        System.Console.Write(Test3(new C2(null)));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u is var (_, i) && (int)i == 10;
+    }   
+
+    static bool Test2((S1?, int) u)
+    {
+        return u is var ((_, i), _) && (int)i == 10;
+    }   
+
+    static bool Test3(C2 u)
+    {
+        return u is var (_, ((_, i), _, _)) && (int)i == 10;
+    }   
+}
+
+public class C : System.Runtime.CompilerServices.ITuple
+{
+    int System.Runtime.CompilerServices.ITuple.Length => 2;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => i * 10;
+}
+
+class C2 : System.Runtime.CompilerServices.ITuple
+{
+    private readonly S1? _value;
+    public C2(S1? x) { _value = x; }
+    int System.Runtime.CompilerServices.ITuple.Length => 2;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => _value;
+}
+
+static class Extensions
+{
+    public static void Deconstruct(this object o, out S1? x, out int y, out int z)
+    {
+        x = (S1?)o;
+        y = 2;
+        z = 3;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrueFalse FalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_04_Var_ITuple_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(new C())));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2((new S1(10), -1)));
+        System.Console.Write(Test2((new S1(new C()), -1)));
+        System.Console.Write(Test2((null, -1)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new C2(new S1(10))));
+        System.Console.Write(Test3(new C2(new S1(new C()))));
+        System.Console.Write(Test3(new C2(null)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is var (_, i) && (int)i == 10;
+    }   
+
+    static bool Test2((S1, int) u)
+    {
+        return u is var ((_, i), _) && (int)i == 10;
+    }   
+
+    static bool Test3(C2 u)
+    {
+        return u is var (_, ((_, i), _, _)) && (int)i == 10;
+    }   
+}
+
+public class C : System.Runtime.CompilerServices.ITuple
+{
+    int System.Runtime.CompilerServices.ITuple.Length => 2;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => i * 10;
+}
+
+class C2 : System.Runtime.CompilerServices.ITuple
+{
+    private readonly S1 _value;
+    public C2(S1 x) { _value = x; }
+    int System.Runtime.CompilerServices.ITuple.Length => 2;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => _value;
+}
+
+static class Extensions
+{
+    public static void Deconstruct(this object o, out S1 x, out int y, out int z)
+    {
+        x = (S1)o;
+        y = 2;
+        z = 3;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueFalse FalseTrueFalse FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_05_Constant_01()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(new S1(11)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(default));
+        System.Console.Write(Test3(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test5(new S1(10)));
+        System.Console.Write(Test5(default(S1)));
+        System.Console.Write(Test5(new S1(""11"")));
+        System.Console.Write(Test5(new S1(0)));
+        System.Console.Write(Test5(null));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is 10 or 11;
+    }   
+
+    static bool Test3(S1 u)
+    {
+        return u is ""11"" and ['1', '1'];
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u is null;
+    }   
+
+    static bool Test5(S1? u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  isinst     ""int""
+  IL_000e:  brfalse.s  IL_001b
+  IL_0010:  ldloc.0
+  IL_0011:  unbox.any  ""int""
+  IL_0016:  ldc.i4.s   10
+  IL_0018:  ceq
+  IL_001a:  ret
+  IL_001b:  ldc.i4.0
+  IL_001c:  ret
+}
+");
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (S1 V_0,
+                object V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""readonly bool S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_002c
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""readonly S1 S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S1.Value.get""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  isinst     ""int""
+  IL_001f:  brfalse.s  IL_002c
+  IL_0021:  ldloc.1
+  IL_0022:  unbox.any  ""int""
+  IL_0027:  ldc.i4.s   10
+  IL_0029:  ceq
+  IL_002b:  ret
+  IL_002c:  ldc.i4.0
+  IL_002d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_05_Constant_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
@@ -592,28 +1041,30 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (object V_0)
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""object S1.Value.get""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  isinst     ""int""
-  IL_000e:  brfalse.s  IL_001b
-  IL_0010:  ldloc.0
-  IL_0011:  unbox.any  ""int""
-  IL_0016:  ldc.i4.s   10
-  IL_0018:  ceq
-  IL_001a:  ret
-  IL_001b:  ldc.i4.0
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S1.Value.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""int""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldloc.0
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  ldc.i4.s   10
+  IL_001a:  ceq
   IL_001c:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
 }
 ");
         }
 
         [Fact]
-        public void UnionMatching_06_Constant()
+        public void UnionMatching_06_Constant_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -663,11 +1114,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue FalseTrueFalseTrue").VerifyDiagnostics();
-
-            // PROTOTYPE: Note the difference in behavior between S1? and C1.
-            // For S1?, 'is null' is true only when S1? itself is null value. 
-            // Perhaps we should do union matching against the Nullable<union struct> and treat null check similar to a null check for class?
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrue FalseTrueFalseTrue").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test2", @"
 {
@@ -688,10 +1135,170 @@ class Program
   IL_0012:  ret
 }
 ");
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (S1 V_0,
+                bool V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_001a
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S1.Value.get""
+  IL_0018:  brtrue.s   IL_001e
+  IL_001a:  ldc.i4.1
+  IL_001b:  stloc.1
+  IL_001c:  br.s       IL_0020
+  IL_001e:  ldc.i4.0
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  ret
+}
+");
         }
 
         [Fact]
-        public void UnionMatching_07_Constant()
+        public void UnionMatching_06_Constant_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1() {}
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2;
+
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    private readonly object _value;
+    public S2(int x) { _value = x; }
+    public S2(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static bool Test1(S1? u)
+    {
+#line 100
+        return u is (string)null;
+    }   
+
+    static bool Test2(C1 u)
+    {
+#line 200
+        return u is (string)null;
+    }   
+
+    static bool Test3(S1 u)
+    {
+#line 300
+        return u is (string)null;
+    }   
+
+    static bool Test4(C2 u)
+    {
+#line 400
+        return u is (string)null;
+    }   
+
+    static bool Test5(S2 u)
+    {
+#line 500
+        return u is null;
+    }   
+
+    static bool Test6(C2 u)
+    {
+#line 600
+        return u is (object)null;
+    }   
+
+    static bool Test7(string u)
+    {
+#line 700
+        return u is (object)null;
+    }   
+
+    static bool Test8(S2 u)
+    {
+#line 800
+        return u is (object)null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("S1").WithLocation(100, 21),
+                // (100,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "int").WithLocation(100, 21),
+                // (100,21): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(100, 21),
+                // (200,21): error CS9403: An expression of type 'C1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("C1").WithLocation(200, 21),
+                // (200,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "int").WithLocation(200, 21),
+                // (200,21): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(200, 21),
+                // (300,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("S1").WithLocation(300, 21),
+                // (300,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "int").WithLocation(300, 21),
+                // (300,21): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(300, 21),
+                // (400,21): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         return u is (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(400, 21),
+                // (600,21): error CS0266: Cannot implicitly convert type 'object' to 'C2'. An explicit conversion exists (are you missing a cast?)
+                //         return u is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "C2").WithLocation(600, 21),
+                // (700,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(700, 21),
+                // (800,21): error CS9403: An expression of type 'S2' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is (object)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(object)null").WithArguments("S2").WithLocation(800, 21),
+                // (800,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         return u is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "int").WithLocation(800, 21),
+                // (800,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(800, 21)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_07_Constant_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -716,28 +1323,577 @@ class Program
         System.Console.Write(Test4(new S1(11)));
         System.Console.Write(Test4(default));
         System.Console.Write(Test4(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test10(new S1(10)));
+        System.Console.Write(Test10(default));
+        System.Console.Write(Test10(new S1(""11"")));
+        System.Console.Write(Test10(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test40(new S1(11)));
+        System.Console.Write(Test40(default));
+        System.Console.Write(Test40(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test100(new S1(10)));
+        System.Console.Write(Test100(default));
+        System.Console.Write(Test100(new S1(""11"")));
+        System.Console.Write(Test100(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test400(new S1(11)));
+        System.Console.Write(Test400(default));
+        System.Console.Write(Test400(new S1(""11"")));
     }
 
     const int _int_10 = 10;
+    const string _string_null = null;
     const object _object_null = null;
 
     static bool Test1(S1 u)
     {
-        return u is _int_10;
+        return u switch { _int_10 => true, _ => false };
     }   
 
     static bool Test4(S1 u)
     {
-        return u is _object_null;
+        return u switch { _string_null => true, _ => false };
+    }   
+
+    static bool Test10(S1 u)
+    {
+        return u is _int_10;
+    }   
+
+    static bool Test40(S1 u)
+    {
+        return u is _string_null;
+    }   
+
+    static bool Test100(S1 u)
+    {
+        switch (u)
+        {
+            case _int_10: return true;
+        };
+
+        return false;
+    }   
+
+    static bool Test400(S1 u)
+    {
+        switch (u)
+        {
+            case _string_null: return true;
+        };
+
+        return false;
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse TrueFalseFalseFalse FalseTrueFalse TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
         }
 
         [Fact]
-        public void UnionMatching_08_Recursive_Property()
+        public void UnionMatching_07_Constant_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    const object _object_null = null;
+
+    static bool Test5(S1 u)
+    {
+        return u switch { _object_null => true, _ => false };
+    }   
+
+    static bool Test50(S1 u)
+    {
+        return u is _object_null;
+    }   
+
+    static bool Test500(S1 u)
+    {
+        switch (u)
+        {
+            case _object_null: return true;
+        };
+
+        return false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (17,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(17, 27),
+                // (17,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(17, 27),
+                // (17,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(17, 27),
+                // (22,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(22, 21),
+                // (22,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(22, 21),
+                // (22,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(22, 21),
+                // (29,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(29, 18),
+                // (29,18): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(29, 18),
+                // (29,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(29, 18)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_07_Constant_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test10(new S1(10)));
+        System.Console.Write(Test10(default(S1)));
+        System.Console.Write(Test10(new S1(""11"")));
+        System.Console.Write(Test10(new S1(0)));
+        System.Console.Write(Test10(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test100(new S1(10)));
+        System.Console.Write(Test100(default(S1)));
+        System.Console.Write(Test100(new S1(""11"")));
+        System.Console.Write(Test100(new S1(0)));
+        System.Console.Write(Test100(null));
+    }
+
+    const int _int_10 = 10;
+
+    static bool Test1(S1? u)
+    {
+        return u switch { _int_10 => true, _ => false };
+    }   
+
+    static bool Test10(S1? u)
+    {
+        return u is _int_10;
+    }   
+
+    static bool Test100(S1? u)
+    {
+        switch (u)
+        {
+            case _int_10: return true;
+        };
+
+        return false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse TrueFalseFalseFalseFalse TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_07_Constant_04()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    const string _string_null = null;
+    const object _object_null = null;
+
+    static bool Test4(S1? u)
+    {
+        return u switch { _string_null => true, _ => false };
+    }   
+
+    static bool Test5(S1? u)
+    {
+        return u switch { _object_null => true, _ => false };
+    }   
+
+    static bool Test40(S1? u)
+    {
+        return u is _string_null;
+    }   
+
+    static bool Test50(S1? u)
+    {
+        return u is _object_null;
+    }   
+
+    static bool Test400(S1? u)
+    {
+        switch (u)
+        {
+            case _string_null: return true;
+        };
+
+        return false;
+    }   
+
+    static bool Test500(S1? u)
+    {
+        switch (u)
+        {
+            case _object_null: return true;
+        };
+
+        return false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (18,27): error CS9135: A constant value of type 'S1' is expected
+                //         return u switch { _string_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(18, 27),
+                // (23,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(23, 27),
+                // (23,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(23, 27),
+                // (23,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(23, 27),
+                // (28,21): error CS9135: A constant value of type 'S1' is expected
+                //         return u is _string_null;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(28, 21),
+                // (33,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(33, 21),
+                // (33,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(33, 21),
+                // (33,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(33, 21),
+                // (40,18): error CS9135: A constant value of type 'S1' is expected
+                //             case _string_null: return true;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(40, 18),
+                // (50,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(50, 18),
+                // (50,18): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(50, 18),
+                // (50,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(50, 18)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_07_Constant_05()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(S1 x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(null));
+        System.Console.Write(Test4(new S1(""11"")));
+        System.Console.Write(Test4(new S1((string)null)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test10(new S1(10)));
+        System.Console.Write(Test10(null));
+        System.Console.Write(Test10(new S1(""11"")));
+        System.Console.Write(Test10(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test40(new S1(11)));
+        System.Console.Write(Test40(null));
+        System.Console.Write(Test40(new S1(""11"")));
+        System.Console.Write(Test40(new S1((string)null)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test100(new S1(10)));
+        System.Console.Write(Test100(null));
+        System.Console.Write(Test100(new S1(""11"")));
+        System.Console.Write(Test100(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test400(new S1(11)));
+        System.Console.Write(Test400(null));
+        System.Console.Write(Test400(new S1(""11"")));
+        System.Console.Write(Test400(new S1((string)null)));
+    }
+
+    const int _int_10 = 10;
+    const S1 _S1_null = null;
+
+    static bool Test1(S1 u)
+    {
+        return u switch { _int_10 => true, _ => false };
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u switch { _S1_null => true, _ => false };
+    }   
+
+    static bool Test10(S1 u)
+    {
+        return u is _int_10;
+    }   
+
+    static bool Test40(S1 u)
+    {
+        return u is _S1_null;
+    }   
+
+    static bool Test100(S1 u)
+    {
+        switch (u)
+        {
+            case _int_10: return true;
+        };
+
+        return false;
+    }   
+
+    static bool Test400(S1 u)
+    {
+        switch (u)
+        {
+            case _S1_null: return true;
+        };
+
+        return false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalseTrue TrueFalseFalseFalse FalseTrueFalseTrue TrueFalseFalseFalse FalseTrueFalseTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test4",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000b
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S1.Value.get""
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test40",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000b
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S1.Value.get""
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test400",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000b
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S1.Value.get""
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldc.i4.1
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_07_Constant_06()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    const string _string_null = null;
+    const object _object_null = null;
+
+    static bool Test4(S1 u)
+    {
+        return u switch { _string_null => true, _ => false };
+    }   
+
+    static bool Test5(S1 u)
+    {
+        return u switch { _object_null => true, _ => false };
+    }   
+
+    static bool Test40(S1 u)
+    {
+        return u is _string_null;
+    }   
+
+    static bool Test50(S1 u)
+    {
+        return u is _object_null;
+    }   
+
+    static bool Test400(S1 u)
+    {
+        switch (u)
+        {
+            case _string_null: return true;
+        };
+
+        return false;
+    }   
+
+    static bool Test500(S1 u)
+    {
+        switch (u)
+        {
+            case _object_null: return true;
+        };
+
+        return false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (18,27): error CS9135: A constant value of type 'S1' is expected
+                //         return u switch { _string_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(18, 27),
+                // (23,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(23, 27),
+                // (23,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(23, 27),
+                // (23,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u switch { _object_null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(23, 27),
+                // (28,21): error CS9135: A constant value of type 'S1' is expected
+                //         return u is _string_null;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(28, 21),
+                // (33,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(33, 21),
+                // (33,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(33, 21),
+                // (33,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         return u is _object_null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(33, 21),
+                // (40,18): error CS9135: A constant value of type 'S1' is expected
+                //             case _string_null: return true;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(40, 18),
+                // (50,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(50, 18),
+                // (50,18): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "int").WithLocation(50, 18),
+                // (50,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             case _object_null: return true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(50, 18)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_08_Recursive_Property_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -811,6 +1967,157 @@ class Program
         }
 
         [Fact]
+        public void UnionMatching_08_Recursive_Property_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(S2<int> x) { _value = x; }
+    public S1(S2<string> x) { _value = x; }
+    public S1(S2<object> x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2<T>
+{
+    public T Value;
+}
+
+class A;
+class B;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(Test2(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test3(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u is S2<int> { Value: 10 };
+    }   
+
+    static bool Test2(S1? u)
+    {
+        return u is S2<int> { Value: 10 or 11 };
+    }   
+
+    static bool Test3(S1? u)
+    {
+        return u is S2<string> { Value: ""11"" } and { Value: ['1', '1'] };
+    }   
+
+    static bool Test4(S1? u)
+    {
+#line 58
+        return u is S2<object> { Value: not A or B };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (58,50): warning CS9336: The pattern is redundant.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_08_Recursive_Property_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(S2<int> x) { _value = x; }
+    public S1(S2<string> x) { _value = x; }
+    public S1(S2<object> x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2<T>
+{
+    public T Value;
+}
+
+class A;
+class B;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(Test1(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(Test2(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(Test2(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(Test3(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test3(null));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is S2<int> { Value: 10 };
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is S2<int> { Value: 10 or 11 };
+    }   
+
+    static bool Test3(S1 u)
+    {
+        return u is S2<string> { Value: ""11"" } and { Value: ['1', '1'] };
+    }   
+
+    static bool Test4(S1 u)
+    {
+#line 58
+        return u is S2<object> { Value: not A or B };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseTrueFalse FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (58,50): warning CS9336: The pattern is redundant.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
+                );
+        }
+
+        [Fact]
         public void UnionMatching_09_Recursive_ITuple()
         {
             var src = @"
@@ -830,9 +2137,19 @@ class Program
         System.Console.Write(Test1(new S1(10)));
         System.Console.Write(Test1(default));
         System.Console.Write(Test1(new S1(new C())));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(new C())));
+        System.Console.Write(Test2(null));
     }
 
     static bool Test1(S1 u)
+    {
+        return u is (_, 10);
+    }   
+
+    static bool Test2(S1? u)
     {
         return u is (_, 10);
     }   
@@ -846,11 +2163,11 @@ public class C : System.Runtime.CompilerServices.ITuple
 
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
-        public void UnionMatching_10_Recursive_Deconstruct()
+        public void UnionMatching_10_Recursive_Deconstruct_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -920,6 +2237,79 @@ class Program
         }
 
         [Fact]
+        public void UnionMatching_10_Recursive_Deconstruct_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(S2<int> x) { _value = x; }
+    public S1(S2<string> x) { _value = x; }
+    public S1(S2<object> x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2<T>
+{
+    public T Value;
+
+    public void Deconstruct(out T value, out int x)
+    {
+        value = Value;
+        x = 0;
+    }
+}
+
+class A;
+class B;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(Test2(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(Test3(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u is S2<int> (10, _);
+    }   
+
+    static bool Test2(S1? u)
+    {
+        return u is S2<int> (10 or 11, _);
+    }   
+
+    static bool Test3(S1? u)
+    {
+        return u is S2<string> (""11"", _) and (['1', '1'], _);
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnionMatching_11_Type()
         {
             var src = @"
@@ -940,21 +2330,31 @@ class Program
         System.Console.Write(Test1(default));
         System.Console.Write(Test1(new S1(""11"")));
         System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(null));
     }
 
     static bool Test1(S1 u)
     {
         return u is int;
     }   
+
+    static bool Test2(S1? u)
+    {
+        return u is int;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue").VerifyDiagnostics(
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseTrueFalse").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
 
-            Assert.Equal("u is int", tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().ToString());
+            AssertEx.Equal(["u is int", "u is int"], tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Select(b => b.ToString()));
 
             verifier.VerifyIL("Program.Test1", @"
 {
@@ -968,10 +2368,32 @@ class Program
   IL_000f:  ret
 }
 ");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0021
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S1.Value.get""
+  IL_0018:  isinst     ""int""
+  IL_001d:  ldnull
+  IL_001e:  cgt.un
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
         }
 
         [Fact]
-        public void UnionMatching_12_Type()
+        public void UnionMatching_12_Type_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -1014,7 +2436,52 @@ class Program
         }
 
         [Fact]
-        public void UnionMatching_13_Declaration()
+        public void UnionMatching_12_Type_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u switch { int => true, _ => false };
+    }   
+
+    static bool Test3(S1? u)
+    {
+        return u is string and ['1', '1'];
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_13_Declaration_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -1059,7 +2526,54 @@ class Program
         }
 
         [Fact]
-        public void UnionMatching_14_Negated()
+        public void UnionMatching_13_Declaration_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u is int x;
+    }   
+
+    static bool Test2(S1? u)
+    {
+        return u is int x ? (x == 10 || x == 11) : false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrueFalse TrueFalseFalseFalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_14_Negated_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -1102,20 +2616,6 @@ class Program
         System.Console.Write(Test5(default));
         System.Console.Write(Test5(new S1(""11"")));
         System.Console.Write(Test5(new S1(0)));
-
-        System.Console.Write(' ');
-        System.Console.Write(Test6(new S1(10)));
-        System.Console.Write(Test6(new S1()));
-        System.Console.Write(Test6(null));
-        System.Console.Write(Test6(new S1(""11"")));
-        System.Console.Write(Test6(new S1(0)));
-
-        System.Console.Write(' ');
-        System.Console.Write(Test7(new S1(10)));
-        System.Console.Write(Test7(new S1()));
-        System.Console.Write(Test7(null));
-        System.Console.Write(Test7(new S1(""11"")));
-        System.Console.Write(Test7(new S1(0)));
     }
  
     static bool Test1(S1 u)
@@ -1142,20 +2642,91 @@ class Program
     {
         return u is not ({ } and int);
     }   
- 
-    static bool Test6(S1? u)
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_14_Negated_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
     {
-        return u is not ({ } and int);
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default(S1)));
+        System.Console.Write(Test4(new S1(""11"")));
+        System.Console.Write(Test4(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test5(new S1(10)));
+        System.Console.Write(Test5(default(S1)));
+        System.Console.Write(Test5(new S1(""11"")));
+        System.Console.Write(Test5(new S1(0)));
+        System.Console.Write(Test5(null));
+    }
+ 
+    static bool Test1(S1? u)
+    {
+        return u is not 10;
+    }   
+
+    static bool Test2(S1? u)
+    {
+        return u is not (10 or 11);
+    }   
+
+    static bool Test3(S1? u)
+    {
+        return u is not (""11"" and ['1', '1']);
+    }   
+
+    static bool Test4(S1? u)
+    {
+        return u is not null;
     }   
  
-    static bool Test7(S1? u)
+    static bool Test5(S1? u)
     {
-        return u is not (S1 and int);
+        return u is not ({ } and int);
     }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse FalseTrueTrueTrueFalse FalseTrueTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrueFalse FalseTrueTrueTrueFalseFalse TrueTrueFalseFalse TrueFalseTrueFalse FalseTrueTrueFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1232,7 +2803,7 @@ class Program
         {
             return -1;
         }
-
+#line 19
         return x;
     }   
 
@@ -1242,22 +2813,30 @@ class Program
         {
             return y - 1;
         }
-
+#line 29
         return y;
     }   
 
     static int Test7(S1? u)
     {
+#line 34
         if (u is not int z)
         {
             return -1;
         }
-
+#line 39
         return z;
     }   
  
     static bool Test8(S1 u)
     {
+#line 44
+        return u is not (S1 and int);
+    }   
+ 
+    static bool Test9(S1? u)
+    {
+#line 49
         return u is not (S1 and int);
     }   
 }
@@ -1272,7 +2851,7 @@ struct S1
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            // There is an implicit null check for class union types.  
+            // There is an implicit null check for class union types and for Nullable<Union>.  
             comp.VerifyDiagnostics(
                 // (14,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (u is not int x)
@@ -1283,22 +2862,28 @@ struct S1
                 // (29,16): error CS0165: Use of unassigned local variable 'y'
                 //         return y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 16),
-                // (34,22): error CS8121: An expression of type 'S1?' cannot be handled by a pattern of type 'int'.
+                // (34,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (u is not int z)
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1?", "int").WithLocation(34, 22),
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(34, 26),
+                // (39,16): error CS0165: Use of unassigned local variable 'z'
+                //         return z;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(39, 16),
 
-                // PROTOTYPE: The diagnostics is somewhat confusing in this case.
+                // PROTOTYPE: The following diagnostics is somewhat confusing in these cases.
                 //            A type cannot be handled by the pattern of the same type.
-                //            Syntactially it is not obvious that we are doing union matching.
+                //            Syntactially it is not obvious that we are doing a union matching.
 
                 // (44,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S1'.
                 //         return u is not (S1 and int);
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(44, 26)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(44, 26),
+                // (49,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S1'.
+                //         return u is not (S1 and int);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(49, 26)
                 );
         }
 
         [Fact]
-        public void UnionMatching_17_Negated()
+        public void UnionMatching_17_Negated_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -1348,12 +2933,196 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse TrueFalseTrueFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalse TrueFalseTrueFalse").VerifyDiagnostics();
 
-            // PROTOTYPE: Note the difference in behavior between S1? and C1.
-            // For S1?, 'is not null' is false only when S1? itself is null value. 
-            // For C1, 'is not null' is false when the C1?.Value is null (i.e. either the instance or it's Value in null).
-            // This behavior could be very confusing.
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_001c
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S1.Value.get""
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C1.Value.get""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_17_Negated_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1() {}
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(11)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new C1(11)));
+        System.Console.Write(Test2(new C1()));
+        System.Console.Write(Test2(new C1(""11"")));
+        System.Console.Write(Test2(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u is not (string)null;
+    }   
+
+    static bool Test2(C1 u)
+    {
+        return u is not (string)null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalse TrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_001c
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S1.Value.get""
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C1.Value.get""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_17_Negated_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1() {}
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2;
+
+class Program
+{
+    static bool Test1(S1? u)
+    {
+        return u is not (string)null;
+    }   
+
+    static bool Test2(C1 u)
+    {
+        return u is not (string)null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (27,25): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is not (string)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("S1").WithLocation(27, 25),
+                // (27,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         return u is not (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "int").WithLocation(27, 25),
+                // (27,25): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         return u is not (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(27, 25),
+                // (32,25): error CS9403: An expression of type 'C1' cannot be handled by this pattern, see additional errors at this location.
+                //         return u is not (string)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("C1").WithLocation(32, 25),
+                // (32,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         return u is not (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "int").WithLocation(32, 25),
+                // (32,25): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         return u is not (string)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(32, 25)
+                );
         }
 
         [Fact]
@@ -1379,16 +3148,29 @@ class Program
         System.Console.Write(Test2(new S1(0)));
         System.Console.Write(Test2(new S1(11)));
         System.Console.Write(Test2(new S1(""111"")));
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(10)));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(new S1(0)));
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(new S1(""111"")));
+        System.Console.Write(Test3(null));
     }
 
     static bool Test2(S1 u)
     {
         return u is 10 or ""11"";
     }   
+
+    static bool Test3(S1? u)
+    {
+        return u is 10 or ""11"";
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseFalseFalse").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseFalseFalse TrueFalseTrueFalseFalseFalseFalse").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1449,6 +3231,11 @@ class Program
         System.Console.Write(Test2(new S1(10)));
         System.Console.Write(Test2(default));
         System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(10)));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(null));
     }
 
     static string Test2(S1 u)
@@ -1460,10 +3247,20 @@ class Program
 
         return ""_"";
     }   
+
+    static string Test3(S1? u)
+    {
+        if (u is 10 and var x)
+        {
+            return x.GetType().ToString();
+        }
+
+        return ""_"";
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "System.Int32__").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.Int32__ System.Int32___").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1788,7 +3585,7 @@ TrueFalseFalseFalseFalseFalseFalseFalseFalseFalse
         }
 
         [Fact]
-        public void UnionMatching_23_Parenthesized()
+        public void UnionMatching_23_Parenthesized_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -1853,7 +3650,76 @@ class Program
         }
 
         [Fact]
-        public void UnionMatching_24_Relational()
+        public void UnionMatching_23_Parenthesized_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default(S1)));
+        System.Console.Write(Test4(new S1(""11"")));
+        System.Console.Write(Test4(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u is (10);
+    }   
+
+    static bool Test2(S1? u)
+    {
+        return u is (10 or 11);
+    }   
+
+    static bool Test3(S1? u)
+    {
+        return u is (""11"" and ['1', '1']);
+    }   
+
+    static bool Test4(S1? u)
+    {
+        return u is (null);
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_24_Relational_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -1898,6 +3764,53 @@ class Program
         }
 
         [Fact]
+        public void UnionMatching_24_Relational_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        return u is >=10;
+    }   
+
+    static bool Test2(S1? u)
+    {
+        return u is <10 or 11;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse FalseFalseFalseTrueTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnionMatching_25_List()
         {
             var src = @"
@@ -1915,6 +3828,12 @@ class Program
     static bool Test1(S1 u)
     {
 #line 14
+        return u is [10];
+    }   
+
+    static bool Test2(S1? u)
+    {
+#line 19
         return u is [10];
     }   
 }
@@ -1935,12 +3854,18 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(14, 21),
                 // (14,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 //         return u is [10];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(14, 21)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(14, 21),
+                // (19,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                //         return u is [10];
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(19, 21),
+                // (19,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                //         return u is [10];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(19, 21)
                 );
         }
 
         [Fact]
-        public void UnionMatching_26_List_Subpattern()
+        public void UnionMatching_26_List_Subpattern_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -1981,7 +3906,49 @@ class Program
         }
 
         [Fact]
-        public void UnionMatching_27_Slice_Subpattern()
+        public void UnionMatching_26_List_Subpattern_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2
+{
+    private S1? _value;
+    public S2(S1? x) {_value = x;}
+    public int Length => 2;
+    public S1? this[int i] => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2(new S1(10))));
+        System.Console.Write(Test1(new S2(default(S1))));
+        System.Console.Write(Test1(new S2(new S1(""11""))));
+        System.Console.Write(Test1(new S2(new S1(0))));
+        System.Console.Write(Test1(new S2(null)));
+    }
+
+    static bool Test1(S2 u)
+    {
+        return u is [10, _];
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_27_Slice_Subpattern_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -2023,6 +3990,49 @@ class Program
         }
 
         [Fact]
+        public void UnionMatching_27_Slice_Subpattern_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2
+{
+    private S1? _value;
+    public S2(S1? x) {_value = x;}
+    public int Length => 2;
+    public int this[int i] => 0;
+    public S1? this[System.Range r] => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2(new S1(10))));
+        System.Console.Write(Test1(new S2(default(S1))));
+        System.Console.Write(Test1(new S2(new S1(""11""))));
+        System.Console.Write(Test1(new S2(new S1(0))));
+        System.Console.Write(Test1(new S2(null)));
+    }
+
+    static bool Test1(S2 u)
+    {
+        return u is [0, ..10];
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnionMatching_28_Tuple_Deconstruction_Subpattern()
         {
             var src = @"
@@ -2043,16 +4053,27 @@ class Program
         System.Console.Write(Test1((default, -1)));
         System.Console.Write(Test1((new S1(""11""), -1)));
         System.Console.Write(Test1((new S1(0), -1)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2((new S1(10), -1)));
+        System.Console.Write(Test2((default(S1), -1)));
+        System.Console.Write(Test2((new S1(""11""), -1)));
+        System.Console.Write(Test2((new S1(0), -1)));
+        System.Console.Write(Test2((null, -1)));
     }
 
     static bool Test1((S1, int) u)
     {
         return u is (10, _);
     }   
+
+    static bool Test2((S1?, int) u)
+    {
+        return u is (10, _);
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2098,7 +4119,7 @@ class C : System.Runtime.CompilerServices.ITuple
         }
 
         [Fact]
-        public void UnionMatching_30_Deconstruction_Subpattern()
+        public void UnionMatching_30_Deconstruction_Subpattern_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -2139,7 +4160,49 @@ class C
         }
 
         [Fact]
-        public void UnionMatching_31_Property_Subpattern()
+        public void UnionMatching_30_Deconstruction_Subpattern_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C(new S1(10))));
+        System.Console.Write(Test1(new C(default(S1))));
+        System.Console.Write(Test1(new C(new S1(11))));
+        System.Console.Write(Test1(new C(new S1(""10""))));
+        System.Console.Write(Test1(new C(null)));
+    }
+
+    static bool Test1(C u)
+    {
+        return u is (10, _);
+    }   
+}
+
+class C
+{
+    private readonly S1? _value;
+    public C(S1? x) { _value = x; }
+    public void Deconstruct(out S1? a, out int b) { a = _value; b = -1; }
+}
+
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_31_Property_Subpattern_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -2180,6 +4243,48 @@ class C
         }
 
         [Fact]
+        public void UnionMatching_31_Property_Subpattern_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C(new S1(10))));
+        System.Console.Write(Test1(new C(default(S1))));
+        System.Console.Write(Test1(new C(new S1(11))));
+        System.Console.Write(Test1(new C(new S1(""10""))));
+        System.Console.Write(Test1(new C(null)));
+    }
+
+    static bool Test1(C u)
+    {
+        return u is { P: 10 };
+    }   
+}
+
+class C
+{
+    private readonly S1? _value;
+    public C(S1? x) { _value = x; }
+    public S1? P => _value;
+}
+
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnionMatching_32_Negated_Subpattern()
         {
             var src = @"
@@ -2214,7 +4319,7 @@ class Program
         }
 
         [Fact]
-        public void UnionMatching_33_SwitchLabel()
+        public void UnionMatching_33_SwitchLabel_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -2263,6 +4368,60 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_33_SwitchLabel_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(""10"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(null));
+    }
+
+    static bool Test1(S1? u)
+    {
+        switch (u)
+        {
+            case int: return true;
+            default: return false;
+        }
+    }   
+
+    static bool Test2(S1? u)
+    {
+        switch (u)
+        {
+            case 10: return true;
+            default: return false;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrueFalse TrueFalseFalseFalseFalse").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2457,6 +4616,14 @@ class Program
         System.Console.Write(Test1(new S1(11)));
         System.Console.Write(Test1(new S1(""11"")));
         System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(new S1(""10"")));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(null));
     }
 
     static int Test1(S1 u)
@@ -2469,14 +4636,25 @@ class Program
 
         return -1;
     }   
+
+    static int Test2(S1? u)
+    {
+        switch (u)
+        {
+            case 10: return 1;
+            case ""11"": return 2;
+        }
+
+        return -1;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "1-1-1-12-1").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1-1-1-12-1 1-1-1-12-1-1").VerifyDiagnostics();
         }
 
         [Fact]
-        public void UnionMatching_37_SwitchStatement()
+        public void UnionMatching_37_SwitchStatement_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -2498,12 +4676,42 @@ class Program
         System.Console.Write(Test1(new S1(11)));
         System.Console.Write(Test1(new S1(""11"")));
         System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(new S1(""10"")));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(null));
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(10)));
+        System.Console.Write(Test3(new S1(""10"")));
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(new S1(0)));
     }
 
     static int Test1(S1 u)
     {
         switch (u)
         {
+            case null: return 66;
+            case 10: goto case 44;
+            case ""11"": goto case ""55"";
+            case 44: return 44;
+            case ""55"": return 55;
+            case 11: goto case null;
+        }
+
+        return -1;
+    }   
+
+    static int Test2(S1? u)
+    {
+        switch (u)
+        {
+            case null: return 66;
             case 10: goto case 44;
             case ""11"": goto case ""55"";
             case 44: return 44;
@@ -2512,10 +4720,152 @@ class Program
 
         return -1;
     }   
+
+    static int Test3(S1? u)
+    {
+        switch (u)
+        {
+            case null: return 66;
+            case 10: goto case null;
+            case ""11"": goto case ""55"";
+            case ""55"": return 55;
+        }
+
+        return -1;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "44-1-1-155-1").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "44-1666655-1 44-166-155-166 66-1-155-1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_37_SwitchStatement_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(new S1(""10"")));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(null));
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(10)));
+        System.Console.Write(Test3(new S1(""10"")));
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(new S1(0)));
+    }
+
+    static int Test2(S1 u)
+    {
+        switch (u)
+        {
+            case null: return 66;
+            case 10: goto case 44;
+            case ""11"": goto case ""55"";
+            case 44: return 44;
+            case ""55"": return 55;
+        }
+
+        return -1;
+    }   
+
+    static int Test3(S1 u)
+    {
+        switch (u)
+        {
+            case null: return 66;
+            case 10: goto case null;
+            case ""11"": goto case ""55"";
+            case ""55"": return 55;
+        }
+
+        return -1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "44-1-155-166 66-1-155-1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_37_SwitchStatement_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(S1 x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(new S1(""10"")));
+        System.Console.Write(Test2(new S1(11)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(null));
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(10)));
+        System.Console.Write(Test3(new S1(""10"")));
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(new S1(""11"")));
+        System.Console.Write(Test3(new S1(0)));
+    }
+
+    const S1 _S1_null = null;
+    
+    static int Test2(S1 u)
+    {
+        switch (u)
+        {
+            case _S1_null: return 66;
+            case 10: goto case 44;
+            case ""11"": goto case ""55"";
+            case 44: return 44;
+            case ""55"": return 55;
+        }
+
+        return -1;
+    }   
+
+    static int Test3(S1 u)
+    {
+        switch (u)
+        {
+            case _S1_null: return 66;
+            case 10: goto case _S1_null;
+            case ""11"": goto case ""55"";
+            case ""55"": return 55;
+        }
+
+        return -1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "44-1-155-166 66-1-155-1").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2545,13 +4895,41 @@ class Program
 
         return -1;
     }   
+
+    static int Test2(S1? u)
+    {
+        switch (u)
+        {
+            case 10: return 1;
+            case ""11"": return 2;
+#line 30
+            case true: return 3;
+        }
+
+        return -1;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (18,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'bool'.
+                // (18,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //             case true: return 3;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "true").WithArguments("S1", "bool").WithLocation(18, 18)
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "true").WithArguments("S1").WithLocation(18, 18),
+                // (18,18): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //             case true: return 3;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "int").WithLocation(18, 18),
+                // (18,18): error CS0029: Cannot implicitly convert type 'bool' to 'string'
+                //             case true: return 3;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "string").WithLocation(18, 18),
+                // (30,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //             case true: return 3;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "true").WithArguments("S1").WithLocation(30, 18),
+                // (30,18): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //             case true: return 3;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "int").WithLocation(30, 18),
+                // (30,18): error CS0029: Cannot implicitly convert type 'bool' to 'string'
+                //             case true: return 3;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "string").WithLocation(30, 18)
                 );
         }
 
@@ -2581,6 +4959,18 @@ class Program
 
         return -1;
     }   
+
+    static int Test2(S1? u)
+    {
+        switch (u)
+        {
+#line 27
+            case 10: goto case true;
+            case ""11"": return 2;
+        }
+
+        return -1;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
@@ -2590,7 +4980,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(16, 13),
                 // (16,22): error CS0029: Cannot implicitly convert type 'bool' to 'S1'
                 //             case 10: goto case true;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case true;").WithArguments("bool", "S1").WithLocation(16, 22)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case true;").WithArguments("bool", "S1").WithLocation(16, 22),
+                // (27,13): error CS0163: Control cannot fall through from one case label ('case 10:') to another
+                //             case 10: goto case true;
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(27, 13),
+                // (27,22): error CS0029: Cannot implicitly convert type 'bool' to 'S1?'
+                //             case 10: goto case true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case true;").WithArguments("bool", "S1?").WithLocation(27, 22)
                 );
         }
 
@@ -2626,6 +5022,15 @@ class Program
         _ = u is C1 and C4;
         _ = u switch { C4 => 1, _ => 0 };
     } 
+
+    static void Test2(S1? u)
+    {
+#line 200
+        _ = u is C1 and C2;
+        _ = u is C1 and C3;
+        _ = u is C1 and C4;
+        _ = u switch { C4 => 1, _ => 0 };
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -2641,7 +5046,19 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(102, 25),
                 // (103,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u switch { C4 => 1, _ => 0 };
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(103, 24)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(103, 24),
+                // (200,25): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 and C2;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(200, 25),
+                // (201,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(201, 25),
+                // (202,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(202, 25),
+                // (203,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u switch { C4 => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(203, 24)
                 );
         }
 
@@ -2677,6 +5094,15 @@ class Program
         _ = u is object and byte;
         _ = u switch { byte => 1, _ => 0 };
     } 
+
+    static void Test5(S1? u)
+    {
+#line 500
+        _ = u is System.IComparable and string;
+        _ = u is string and int;
+        _ = u is object and byte;
+        _ = u switch { byte => 1, _ => 0 };
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -2689,7 +5115,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(402, 29),
                 // (403,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
                 //         _ = u switch { byte => 1, _ => 0 };
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(403, 24)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(403, 24),
+                // (501,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
+                //         _ = u is string and int;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(501, 29),
+                // (502,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
+                //         _ = u is object and byte;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(502, 29),
+                // (503,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
+                //         _ = u switch { byte => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(503, 24)
                 );
         }
 
@@ -2728,13 +5163,28 @@ class Program
                 break;  
         }
     } 
+
+    static void Test5(S1? u)
+    {
+#line 500
+        switch (u)
+        {
+            case string:
+                break;  
+            case byte:
+                break;  
+        }
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (404,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
                 //             case byte:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(404, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(404, 18),
+                // (504,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
+                //             case byte:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(504, 18)
                 );
         }
 
@@ -2760,15 +5210,29 @@ class Program
         _ = u is int;
         _ = u is string;
         _ = u is object;
+#line 400
+        _ = u is long;
+    } 
+
+    static void Test5(S1? u)
+    {
+        _ = u is System.IComparable;
+        _ = u is int;
+        _ = u is string;
+        _ = u is object;
+#line 500
         _ = u is long;
     } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (10,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
+                // (400,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
                 //         _ = u is long;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(400, 18),
+                // (500,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
+                //         _ = u is long;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(500, 18)
                 );
         }
 
@@ -2804,6 +5268,15 @@ class Program
         _ = u is C1 and C4 {};
         _ = u is C4 {};
     } 
+
+    static void Test3(S1? u)
+    {
+#line 300
+        _ = u is C1 and C2 {};
+        _ = u is C1 and C3 {};
+        _ = u is C1 and C4 {};
+        _ = u is C4 {};
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -2819,7 +5292,19 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(202, 25),
                 // (203,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C4 {};
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(203, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(203, 18),
+                // (300,25): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 and C2 {};
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2 {}").WithLocation(300, 25),
+                // (301,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and C3 {};
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(301, 25),
+                // (302,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and C4 {};
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(302, 25),
+                // (303,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C4 {};
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(303, 18)
                 );
         }
 
@@ -2854,6 +5339,14 @@ class Program
         _ = u is C1 {} and C3;
         _ = u is C1 {} and C4;
     } 
+
+    static void Test20(S1? u)
+    {
+#line 2000
+        _ = u is C1 {} and C2;
+        _ = u is C1 {} and C3;
+        _ = u is C1 {} and C4;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -2866,7 +5359,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(1001, 28),
                 // (1002,28): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C1 {} and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1002, 28)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1002, 28),
+                // (2000,28): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 {} and C2;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(2000, 28),
+                // (2001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 {} and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(2001, 28),
+                // (2002,28): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 {} and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(2002, 28)
                 );
         }
 
@@ -2902,6 +5404,15 @@ class Program
         _ = u is C1 and C4 c;
         _ = u is C4 d;
     } 
+
+    static void Test4(S1? u)
+    {
+#line 400
+        _ = u is C1 and C2 a;
+        _ = u is C1 and C3 b;
+        _ = u is C1 and C4 c;
+        _ = u is C4 d;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -2914,7 +5425,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(302, 25),
                 // (303,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C4 d;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(303, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(303, 18),
+                // (401,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and C3 b;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(401, 25),
+                // (402,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and C4 c;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(402, 25),
+                // (403,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C4 d;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(403, 18)
                 );
         }
 
@@ -2949,6 +5469,14 @@ class Program
         _ = u is C1 b and C3;
         _ = u is C1 c and C4;
     } 
+
+    static void Test10(S1? u)
+    {
+#line 950
+        _ = u is C1 a and C2;
+        _ = u is C1 b and C3;
+        _ = u is C1 c and C4;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -2961,7 +5489,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(901, 27),
                 // (902,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C1 c and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(902, 27)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(902, 27),
+                // (950,27): hidden CS9335: The pattern is redundant.
+                //         _ = u is C1 a and C2;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(950, 27),
+                // (951,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 b and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(951, 27),
+                // (952,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 c and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(952, 27)
                 );
         }
 
@@ -2995,13 +5532,23 @@ class Program
         _ = u is not C5 and C2;
         _ = u is not C5 and C4;
     } 
+
+    static void Test6(S1? u)
+    {
+#line 600
+        _ = u is not C5 and C2;
+        _ = u is not C5 and C4;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (501,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is not C5 and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(501, 29)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(501, 29),
+                // (601,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is not C5 and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(601, 29)
                 );
         }
 
@@ -3037,6 +5584,15 @@ class Program
         _ = u is C1 and not C4;
         _ = u is not C4;
     } 
+
+    static void Test8(S1? u)
+    {
+#line 800
+        _ = u is C1 and not C5;
+        _ = u is C1 and not C3;
+        _ = u is C1 and not C4;
+        _ = u is not C4;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -3049,7 +5605,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(702, 29),
                 // (703,22): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is not C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(703, 22)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(703, 22),
+                // (801,29): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and not C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(801, 29),
+                // (802,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and not C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(802, 29),
+                // (803,22): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is not C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(803, 22)
                 );
         }
 
@@ -3083,13 +5648,23 @@ class Program
         _ = u is (not C5) and C2;
         _ = u is (not C5) and C4;
     } 
+
+    static void Test7(S1? u)
+    {
+#line 700
+        _ = u is (not C5) and C2;
+        _ = u is (not C5) and C4;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (601,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is (not C5) and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(601, 31)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(601, 31),
+                // (701,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is (not C5) and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(701, 31)
                 );
         }
 
@@ -3125,6 +5700,15 @@ class Program
         _ = u is C1 and (not C4);
         _ = u is (not C4);
     } 
+
+    static void Test9(S1? u)
+    {
+#line 900
+        _ = u is C1 and (not C2);
+        _ = u is C1 and (not C3);
+        _ = u is C1 and (not C4);
+        _ = u is (not C4);
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -3137,7 +5721,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(802, 30),
                 // (803,23): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is (not C4);
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(803, 23)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(803, 23),
+                // (901,30): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 and (not C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(901, 30),
+                // (902,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is C1 and (not C4);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(902, 30),
+                // (903,23): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is (not C4);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(903, 23)
                 );
         }
 
@@ -3172,6 +5765,14 @@ class Program
         _ = u is [] and C4;
         _ = u is string and ['a'];
     } 
+
+    static void Test21(S1? u)
+    {
+#line 2100
+        _ = u is [] and C2;
+        _ = u is [] and C4;
+        _ = u is string and ['a'];
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -3190,7 +5791,22 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(1101, 18),
                 // (1101,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is [] and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1101, 25)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1101, 25),
+                // (2100,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                //         _ = u is [] and C2;
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(2100, 18),
+                // (2100,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                //         _ = u is [] and C2;
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(2100, 18),
+                // (2101,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                //         _ = u is [] and C4;
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(2101, 18),
+                // (2101,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                //         _ = u is [] and C4;
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(2101, 18),
+                // (2101,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is [] and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(2101, 25)
                 );
         }
 
@@ -3224,6 +5840,13 @@ class Program
         _ = u is var (a, b) and C2;
         _ = u is var (c, d) and C4;
     } 
+
+    static void Test2(S1? u)
+    {
+#line 200
+        _ = u is var (a, b) and C2;
+        _ = u is var (c, d) and C4;
+    } 
 }
 
 static class Extensions
@@ -3239,12 +5862,15 @@ static class Extensions
             comp.VerifyDiagnostics(
                 // (101,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is var (c, d) and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(101, 33)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(101, 33),
+                // (201,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is var (c, d) and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(201, 33)
                 );
         }
 
         [Fact]
-        public void PatternWrongType_ConstantPattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_In()
+        public void PatternWrongType_ConstantPattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_In_01()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -3279,21 +5905,111 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                // (100,25): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and "1";
-                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("S1", "string").WithLocation(100, 25),
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(100, 25),
+                // (100,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(100, 25),
+                // (100,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is {} and "1";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(100, 25),
                 // (101,25): error CS0029: Cannot implicitly convert type 'C2' to 'C1'
                 //         _ = u is C1 and (C2)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(C2)null").WithArguments("C2", "C1").WithLocation(101, 25),
                 // (102,25): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and "1";
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""1""").WithArguments("C1").WithLocation(102, 25),
-                // (103,41): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                // (103,41): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is System.IComparable and "1";
-                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("S1", "string").WithLocation(103, 41),
-                // (104,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(103, 41),
+                // (103,41): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is System.IComparable and "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(103, 41),
+                // (103,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is System.IComparable and "1";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(103, 41),
+                // (104,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is "1";
-                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("S1", "string").WithLocation(104, 18)
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(104, 18),
+                // (104,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(104, 18),
+                // (104,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is "1";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(104, 18)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_ConstantPattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_In_02()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C1 x) { _value = x; }
+    public object Value => _value;
+}
+
+class C1
+{
+    public static implicit operator C1(string c) => null;
+}
+
+class C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1? u)
+    {
+#line 100
+        _ = u is {} and ""1"";
+        _ = u is C1 and (C2)null;
+        _ = u is C1 and ""1"";
+        _ = u is System.IComparable and ""1"";
+        _ = u is ""1"";
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,25): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is {} and "1";
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(100, 25),
+                // (100,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(100, 25),
+                // (100,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is {} and "1";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(100, 25),
+                // (101,25): error CS0029: Cannot implicitly convert type 'C2' to 'C1'
+                //         _ = u is C1 and (C2)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(C2)null").WithArguments("C2", "C1").WithLocation(101, 25),
+                // (102,25): error CS9135: A constant value of type 'C1' is expected
+                //         _ = u is C1 and "1";
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""1""").WithArguments("C1").WithLocation(102, 25),
+                // (103,41): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is System.IComparable and "1";
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(103, 41),
+                // (103,41): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is System.IComparable and "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(103, 41),
+                // (103,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is System.IComparable and "1";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(103, 41),
+                // (104,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is "1";
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(104, 18),
+                // (104,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is "1";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(104, 18),
+                // (104,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is "1";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(104, 18)
                 );
         }
 
@@ -3321,6 +6037,13 @@ class Program
         _ = u is null and C2;
         _ = u is 1 and byte;
     } 
+
+    static void Test2(S1? u)
+    {
+#line 200
+        _ = u is null and C2;
+        _ = u is 1 and byte;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -3330,7 +6053,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C2").WithArguments("S1", "C2").WithLocation(100, 27),
                 // (101,24): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'byte'.
                 //         _ = u is 1 and byte;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(101, 24)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(101, 24),
+                // (200,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C2'.
+                //         _ = u is null and C2;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C2").WithArguments("S1", "C2").WithLocation(200, 27),
+                // (201,24): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'byte'.
+                //         _ = u is 1 and byte;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(201, 24)
                 );
         }
 
@@ -3356,13 +6085,35 @@ class Program
 #line 100
         _ = u is empty;
     } 
+
+    static void Test2(S1? u)
+    {
+        const string empty ="""";
+#line 200
+        _ = u is empty;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                // (100,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is empty;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "empty").WithArguments("S1", "string").WithLocation(100, 18)
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "empty").WithArguments("S1").WithLocation(100, 18),
+                // (100,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "empty").WithArguments("string", "int").WithLocation(100, 18),
+                // (100,18): error CS0029: Cannot implicitly convert type 'string' to 'byte'
+                //         _ = u is empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "empty").WithArguments("string", "byte").WithLocation(100, 18),
+                // (200,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is empty;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "empty").WithArguments("S1").WithLocation(200, 18),
+                // (200,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = u is empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "empty").WithArguments("string", "int").WithLocation(200, 18),
+                // (200,18): error CS0029: Cannot implicitly convert type 'string' to 'byte'
+                //         _ = u is empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "empty").WithArguments("string", "byte").WithLocation(200, 18)
                 );
         }
 
@@ -3392,6 +6143,17 @@ class Program
                 goto case empty;
         }   
     } 
+
+    static void Test2(S1? u)
+    {
+        const string empty ="""";
+#line 200
+        switch (u)
+        {
+            case 1:
+                goto case empty;
+        }   
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -3405,12 +6167,23 @@ class Program
 
                 // (103,17): error CS0029: Cannot implicitly convert type 'string' to 'S1'
                 //                 goto case empty;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case empty;").WithArguments("string", "S1").WithLocation(103, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case empty;").WithArguments("string", "S1").WithLocation(103, 17),
+
+                // (202,13): error CS8070: Control cannot fall out of switch from final case label ('case 1:')
+                //             case 1:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 1:").WithArguments("case 1:").WithLocation(202, 13),
+
+                // The following error is expected per language specification (https://github.com/dotnet/csharpstandard/blob/draft-v8/standard/statements.md#13104-the-goto-statement):
+                // "if the constant_expression is not implicitly convertible (§10.2) to the governing type of the nearest enclosing switch statement, a compile-time error occurs."
+
+                // (203,17): error CS0029: Cannot implicitly convert type 'string' to 'S1?'
+                //                 goto case empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case empty;").WithArguments("string", "S1?").WithLocation(203, 17)
                 );
         }
 
         [Fact]
-        public void PatternWrongType_RelationalPattern_01_BindRelationalPattern_UnionType_In()
+        public void PatternWrongType_RelationalPattern_01_BindRelationalPattern_UnionType_In_01()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -3444,18 +6217,104 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                // (100,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and > 1;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("S1", "int").WithLocation(100, 27),
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(100, 27),
+                // (100,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(100, 27),
+                // (100,27): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is {} and > 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(100, 27),
                 // (101,27): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and > 1;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("C1").WithLocation(101, 27),
-                // (102,43): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                // (102,43): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is System.IComparable and > 1;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("S1", "int").WithLocation(102, 43),
-                // (103,20): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(102, 43),
+                // (102,43): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is System.IComparable and > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(102, 43),
+                // (102,43): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is System.IComparable and > 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(102, 43),
+                // (103,20): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is > 1;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("S1", "int").WithLocation(103, 20)
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(103, 20),
+                // (103,20): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(103, 20),
+                // (103,20): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is > 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(103, 20)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_RelationalPattern_01_BindRelationalPattern_UnionType_In_02()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(string x) { _value = x; }
+    public S1(C1 x) { _value = x; }
+    public object Value => _value;
+}
+
+class C1
+{
+    public static implicit operator C1(int c) => null;
+}
+
+class C2;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1? u)
+    {
+#line 100
+        _ = u is {} and > 1;
+        _ = u is C1 and > 1;
+        _ = u is System.IComparable and > 1;
+        _ = u is > 1;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is {} and > 1;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(100, 27),
+                // (100,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(100, 27),
+                // (100,27): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is {} and > 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(100, 27),
+                // (101,27): error CS9135: A constant value of type 'C1' is expected
+                //         _ = u is C1 and > 1;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("C1").WithLocation(101, 27),
+                // (102,43): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is System.IComparable and > 1;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(102, 43),
+                // (102,43): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is System.IComparable and > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(102, 43),
+                // (102,43): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is System.IComparable and > 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(102, 43),
+                // (103,20): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is > 1;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(103, 20),
+                // (103,20): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is > 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(103, 20),
+                // (103,20): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is > 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(103, 20)
                 );
         }
 
@@ -3482,18 +6341,27 @@ class Program
 #line 100
         _ = u is > 1 and byte;
     } 
+
+    static void Test2(S1? u)
+    {
+#line 200
+        _ = u is > 1 and byte;
+    } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,26): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'byte'.
                 //         _ = u is > 1 and byte;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(100, 26)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(100, 26),
+                // (200,26): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'byte'.
+                //         _ = u is > 1 and byte;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("int", "byte").WithLocation(200, 26)
                 );
         }
 
         [Fact]
-        public void PatternWrongType_BinaryPattern_01_Disjunction_Snap_To_Previous_UnionType()
+        public void PatternWrongType_BinaryPattern_01_Disjunction_Snap_To_Previous_UnionType_01()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -3589,7 +6457,103 @@ class Program
         }
 
         [Fact]
-        public void PatternWrongType_BinaryPattern_02_Disjunction_Snap_To_Previous_UnionType()
+        public void PatternWrongType_BinaryPattern_01_Disjunction_Snap_To_Previous_UnionType_02()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1? u)
+    {
+#line 100
+        _ = u is int or string or C3;
+        _ = u is int or (string or C3);
+        _ = u is C1 or string or C3;
+        _ = u is int or C2 or C3;
+        _ = u is int or string or C1;
+        _ = u is int or (C2 or C3);
+        _ = u is int or (string or C1);
+        _ = u is (int or string) or C3;
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 18),
+                // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(100, 25),
+                // (100,35): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(100, 35),
+                // (101,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or (string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(101, 18),
+                // (101,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or (string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(101, 26),
+                // (101,36): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or (string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(101, 36),
+                // (102,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is C1 or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(102, 24),
+                // (102,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is C1 or string or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(102, 34),
+                // (103,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or C2 or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(103, 18),
+                // (103,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or C2 or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(103, 31),
+                // (104,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or string or C1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(104, 18),
+                // (104,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or string or C1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(104, 25),
+                // (105,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or (C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(105, 18),
+                // (105,32): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is int or (C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(105, 32),
+                // (106,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is int or (string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(106, 18),
+                // (106,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is int or (string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(106, 26),
+                // (107,19): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is (int or string) or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(107, 19),
+                // (107,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is (int or string) or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(107, 26),
+                // (107,37): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is (int or string) or C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(107, 37)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_02_Disjunction_Snap_To_Previous_UnionType_01()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -3609,6 +6573,102 @@ class C3;
 class Program
 {
     static void Test1(S1 u)
+    {
+#line 100
+        _ = u is {} and (int or string or C3);
+        _ = u is {} and (int or (string or C3));
+        _ = u is {} and (C1 or string or C3);
+        _ = u is {} and (int or C2 or C3);
+        _ = u is {} and (int or string or C1);
+        _ = u is {} and (int or (C2 or C3));
+        _ = u is {} and (int or (string or C1));
+        _ = u is {} and ((int or string) or C3);
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 26),
+                // (100,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(100, 33),
+                // (100,43): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(100, 43),
+                // (101,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(101, 26),
+                // (101,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(101, 34),
+                // (101,44): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(101, 44),
+                // (102,32): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (C1 or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(102, 32),
+                // (102,42): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (C1 or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(102, 42),
+                // (103,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(103, 26),
+                // (103,39): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or C2 or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(103, 39),
+                // (104,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(104, 26),
+                // (104,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or string or C1);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(104, 33),
+                // (105,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (C2 or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(105, 26),
+                // (105,40): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or (C2 or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(105, 40),
+                // (106,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (string or C1));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(106, 26),
+                // (106,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (int or (string or C1));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(106, 34),
+                // (107,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and ((int or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(107, 27),
+                // (107,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and ((int or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(107, 34),
+                // (107,45): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and ((int or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(107, 45)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_02_Disjunction_Snap_To_Previous_UnionType_02()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S1? u)
     {
 #line 100
         _ = u is {} and (int or string or C3);
@@ -3734,7 +6794,7 @@ class Program
         }
 
         [Fact]
-        public void PatternWrongType_BinaryPattern_04_Disjunction_Snap_To_Previous_UnionType()
+        public void PatternWrongType_BinaryPattern_04_Disjunction_Snap_To_Previous_UnionType_01()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -3763,6 +6823,100 @@ class C3;
 class Program
 {
     static void Test1(S0 u)
+    {
+#line 100
+        _ = u is {} and ((S1 and int) or string or C3);
+        _ = u is {} and ((S1 and int) or (string or C3));
+        _ = u is {} and (int or (S1 and C2) or C3);
+        _ = u is {} and (int or ((S1 and C2) or C3));
+        _ = u is {} and (((S1 and int) or string) or C3);
+        _ = u is {} and (S1 and int or string or C3);
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (100,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and ((S1 and int) or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(100, 34),
+                // (100,42): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and ((S1 and int) or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(100, 42),
+                // (100,52): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and ((S1 and int) or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(100, 52),
+                // (101,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and ((S1 and int) or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(101, 34),
+                // (101,43): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and ((S1 and int) or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(101, 43),
+                // (101,53): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and ((S1 and int) or (string or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(101, 53),
+                // (102,26): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or (S1 and C2) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S0", "int").WithLocation(102, 26),
+                // (102,48): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or (S1 and C2) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(102, 48),
+                // (103,26): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (int or ((S1 and C2) or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S0", "int").WithLocation(103, 26),
+                // (103,49): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (int or ((S1 and C2) or C3));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(103, 49),
+                // (104,35): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (((S1 and int) or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(104, 35),
+                // (104,43): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (((S1 and int) or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(104, 43),
+                // (104,54): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (((S1 and int) or string) or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(104, 54),
+                // (105,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
+                //         _ = u is {} and (S1 and int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(105, 33),
+                // (105,40): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'string'.
+                //         _ = u is {} and (S1 and int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S0", "string").WithLocation(105, 40),
+                // (105,50): error CS8121: An expression of type 'S0' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is {} and (S1 and int or string or C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S0", "C3").WithLocation(105, 50)
+                );
+        }
+
+        [Fact]
+        public void PatternWrongType_BinaryPattern_04_Disjunction_Snap_To_Previous_UnionType_02()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S0
+{
+    private readonly object _value;
+    public S0(byte x) { _value = x; }
+    public S0(S1 x) { _value = x; }
+    public object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value => _value;
+}
+
+class C1;
+class C2;
+class C3;
+";
+            var src2 = @"
+class Program
+{
+    static void Test1(S0? u)
     {
 #line 100
         _ = u is {} and ((S1 and int) or string or C3);
@@ -8056,6 +11210,148 @@ class Program
             CompileAndVerify(comp, expectedOutput: "RuntimeBinderException caught").VerifyDiagnostics();
         }
 
+        [Fact]
+        public void UnionConversion_50_NullableConstructorParameter()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x)
+    {
+        System.Console.Write(""int? {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        return (int?)null;
+    }   
+
+    static S1 Test2()
+    {
+        System.Console.Write(""2-"");
+        return null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int? {} 2-int? {}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""int?""
+  IL_0012:  ldloc.0
+  IL_0013:  newobj     ""S1..ctor(int?)""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldstr      ""2-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""int?""
+  IL_0012:  ldloc.0
+  IL_0013:  newobj     ""S1..ctor(int?)""
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionConversion_51_NullableConstructorParameter()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object? _value;
+    public S1(string? x)
+    {
+        System.Console.Write(""string? {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public object? Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static S1 Test1()
+    {
+        System.Console.Write(""1-"");
+        return (string?)null;
+    }   
+
+    static S1 Test2()
+    {
+        System.Console.Write(""2-"");
+        return null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-string? {} 2-string? {}").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldstr      ""1-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  newobj     ""S1..ctor(string)""
+  IL_0010:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldstr      ""2-""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ldnull
+  IL_000b:  newobj     ""S1..ctor(string)""
+  IL_0010:  ret
+}
+");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedCast_RefStruct_Explicit()
         {
@@ -10706,11 +14002,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            comp.VerifyDiagnostics(
-                // (200,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         _ = s.Value switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 21)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

@@ -7924,9 +7924,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReturnType.SpecialType: SpecialType.System_Boolean,
                             DeclaredAccessibility: Accessibility.Public,
                             RefKind: RefKind.None,
-                            Parameters: [{ RefKind: RefKind.Out, Type: var parameterType }]
+                            Parameters: [{ RefKind: RefKind.Out, Type: var parameterType }],
+                            ContainingType: { IsUnionType: true } unionType
                         } tryGetValue &&
-                        tryGetValue.ContainingType is { IsUnionType: true } unionType &&
                         (object)tryGetValue.OriginalDefinition == Binder.GetUnionTypeTryGetValueMethod(unionType, parameterType)?.OriginalDefinition && // Looking for TryGetValue with exact type match at this call site
                         Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) is { } unionValue)
                     {
@@ -8419,9 +8419,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReturnType.SpecialType: SpecialType.System_Boolean,
                         DeclaredAccessibility: Accessibility.Public,
                         RefKind: RefKind.None,
-                        ParameterCount: 1
+                        ParameterCount: 1,
+                        ContainingType: { IsUnionType: true } unionType
                     } tryGetValue &&
-                    tryGetValue.ContainingType is { IsUnionType: true } unionType &&
                     (object)tryGetValue.OriginalDefinition == Binder.GetUnionTypeTryGetValueMethod(unionType, parameter.Type)?.OriginalDefinition) // Looking for TryGetValue with exact type match at this call site
                 {
                     return true;

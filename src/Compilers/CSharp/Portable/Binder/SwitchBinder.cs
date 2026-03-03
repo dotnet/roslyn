@@ -268,14 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                if (!conversion.IsUnion)
+                if (!conversion.IsUnion && !(caseExpression.IsLiteralNull() && SwitchGoverningType.StrippedType() is NamedTypeSymbol { IsUnionType: true }))
                 {
                     caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
                 }
             }
 
             var inputType = SwitchGoverningType;
-            NamedTypeSymbol unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
+            NamedTypeSymbol unionType = null;
+            PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
             return ConvertPatternExpression(unionType, inputType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics, out _);
         }
 

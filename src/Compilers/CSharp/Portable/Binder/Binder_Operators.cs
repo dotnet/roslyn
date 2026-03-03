@@ -4824,7 +4824,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
 
             TypeSymbol inputType = operand.Type;
-            NamedTypeSymbol unionType;
+            NamedTypeSymbol unionMatchingInputType;
+            NamedTypeSymbol unionType = null;
 
             // try binding as a type, but back off to binding as an expression if that does not work.
             bool wasUnderscore = IsUnderscore(node.Right);
@@ -4845,21 +4846,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                     inputType = operand.Type;
                 }
 
-                unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, isPatternDiagnostics);
+                if (inputType is not null)
+                {
+                    unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, isPatternDiagnostics);
+                }
+                else
+                {
+                    unionMatchingInputType = null;
+                }
 
                 bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
+                var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, patternExpressionConversion: out _, out BoundExpression originalExpression);
                 if (wasExpression)
                 {
                     hasErrors |= constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
 
-                    var boundConstantPattern = new BoundConstantPattern(
-                        node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: unionType is not null, inputType: unionType ?? inputType, convertedExpression.Type ?? inputType, hasErrors)
-#pragma warning disable format
-                        { WasCompilerGenerated = true };
-#pragma warning restore format
+                    BoundConstantPattern boundConstantPattern;
+
+                    if (IsClassOrNullableValueTypeUnionNullPatternMatching(unionMatchingInputType, constantValueOpt))
+                    {
+                        // Special case of a null test for a class Union or for a Nullable<Union>.
+                        // For class its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                        // For Nullable<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
+                        // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
+
+                        // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
+                        BindExpressionForPatternContinued(originalExpression, unionType: null, inputType: unionMatchingInputType, patternExpression: node.Right, ref hasErrors, diagnostics, constantValueOpt: out _, patternExpressionConversion: out _);
+
+                        boundConstantPattern = new BoundConstantPattern(
+                            node.Right, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
+                    }
+                    else
+                    {
+
+                        boundConstantPattern = new BoundConstantPattern(
+                            node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: unionMatchingInputType is not null, inputType: unionMatchingInputType ?? inputType, convertedExpression.Type ?? inputType, hasErrors).MakeCompilerGenerated();
+                    }
+
                     return MakeIsPatternExpression(node, operand, boundConstantPattern, boundConstantPattern.IsUnionMatching, resultType, operandHasErrors, diagnostics);
                 }
 
@@ -4869,12 +4894,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
             var targetType = typeExpression.Type;
 
-            unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
-            if (unionType is not null)
+            if (inputType is not null)
+            {
+                unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            }
+            else
+            {
+                unionMatchingInputType = null;
+            }
+
+            if (unionMatchingInputType is not null)
             {
                 bool hasErrors = CheckValidPatternType(node.Right, unionType, inputType, targetType, diagnostics: diagnostics);
                 // PROTOTYPE: Add test coverage for isExplicitNotNullTest
-                var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: false, isUnionMatching: true, inputType: unionType, targetType, hasErrors);
+                var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: false, isUnionMatching: true, inputType: unionMatchingInputType, targetType, hasErrors);
                 return MakeIsPatternExpression(node, operand, pattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
             }
 
