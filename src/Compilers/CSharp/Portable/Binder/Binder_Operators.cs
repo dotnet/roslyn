@@ -4870,7 +4870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Special case of a null test for a class Union or for a Nullable<Union>.
                         // For class its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
-                        // For able<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
+                        // For Nullable<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
                         // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
 
                         // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
