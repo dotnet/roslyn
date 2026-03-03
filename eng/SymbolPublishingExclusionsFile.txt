@@ -1,2 +1,6 @@
 tools/net10.0/linux-musl-arm64/libe_sqlite3.so
+tools/net11.0/linux-musl-arm64/libe_sqlite3.so
+tools/net10.0/linux-musl-arm/libe_sqlite3.so
+tools/net11.0/linux-musl-arm/libe_sqlite3.so
 tools/net10.0/linux-musl-x64/libe_sqlite3.so
+tools/net11.0/linux-musl-x64/libe_sqlite3.so
