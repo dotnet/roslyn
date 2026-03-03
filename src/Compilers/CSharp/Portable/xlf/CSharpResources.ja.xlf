@@ -2624,7 +2624,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}' は、認識されない RefSafetyRulesAttribute バージョンを持つモジュールで定義され、'11' が必要です。</target>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -4078,165 +4078,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
-                             Visual C# Compiler のオプション
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - 出力ファイル -
--out:&lt;file&gt;                   出力ファイル名を指定します (既定値: main クラスを含むファイルの
-                              ベース名また最初のファイル)
--target:exe                   コンソール アプリケーションをビルドします (既定) (短い
-                              形式: -t:exe)
--target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               ライブラリをビルドします (短い形式: -t:library)
--target:module                別のアセンブリに追加できるモジュールを
-                              ビルドします (短い形式: -t:module)
--target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              WinMDExp が使用する、Windows ランタイムの
-                              中間ファイルをビルドします (短い形式: -t:winmdobj)
--doc:&lt;file&gt;                   生成する XML ドキュメント ファイルです
--refout:&lt;file&gt;                    生成する参照アセンブリ出力です
--platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。x86、
-                              Itanium、x64、arm、arm64、anycpu32bitpreferred、または
-                              anycpu のいずれかです。既定値は anycpu です。
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - 入力ファイル -
--recurse:&lt;wildcard&gt;               ワイルドカードの仕様に従って、
-                              現在のディレクトリとサブディレクトリ内のすべてのファイルを
-                              含めます
--reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定されたアセンブリ ファイルからの
-                              メタデータを参照します (短い形式: -r)
--reference:&lt;file list&gt;        指定されたアセンブリ ファイルからのメタデータを
-                              参照します (短い形式: -r)
--addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
--link:&lt;file list&gt;             指定された相互運用アセンブリからのメタデータを
-                              埋め込みます (短い形式: -l)
--analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
-                              (短い形式: -a)
--additionalfile:&lt;file list&gt;   コード生成に直接影響を与えない追加ファイルですが、
-                              解析ツールがエラーや警告を生成する際に使用される
-                              可能性があります。
--embed                        PDB ファイル内にすべてのソース ファイルを埋め込みます。
--embed:&lt;file list&gt;            PDB に特定のファイルを埋め込みます。
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - リソース -
--win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
--win32icon:&lt;file&gt;             出力にこのアイコンを使用します
--win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
--nowin32manifest              既定の Win32 マニフェストを含めません
--resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: -res)
--linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
-                              (短縮形：-linkres) なお、resinfo 形式は
-                              &lt;file&gt;[,&lt;string name&gt;[,public|private]] となります
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - コード生成 -
--debug[+|-]                       デバッグ情報を出力します
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              デバッグの種類を指定します ('full' は既定、
-                              'portable' はクロスプラットフォーム形式、
-                              'embedded' はターゲットの .dll または .exe に埋め込まれる
-                              クロスプラットフォーム形式です)
--optimize[+|-]                最適化を有効にします (短い形式: -o)
--deterministic                   決定論的アセンブリを生成します
-                              (モジュール バージョン GUID とタイムスタンプを含む)
--refonly                          メイン出力の代わりに参照アセンブリを生成します
--instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを
-                              生成します
--sourcelink:&lt;file&gt;                PDB に埋め込むソース リンク情報。
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                       - エラーと警告 -
--warnaserror[+|-]                 すべての警告をエラーとして報告します
--warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
-                              (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
--warn:&lt;n&gt;                     警告レベル (0 以上) を設定します (短い形式: -w)
--nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
-                              (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
--ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
-                              指定します。
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              すべてのコンパイラとアナライザーの診断をログに記録するファイルを
-                              指定します。
-                              sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
-                              両方とも SARIF バージョン 2.1.0 を意味します。
--reportanalyzer               実行時間などの追加のアナライザー情報を
-                              報告します。
--skipanalyzers[+|-]               診断アナライザーの実行をスキップします。
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       - 言語 -
--checked[+|-]                 オーバーフロー チェックを生成します
--unsafe[+|-]                  'unsafe' コードの使用を許可します
--define:&lt;symbol list&gt;             条件付きコンパイル シンボルを定義します (短い
-                              形式: -d)
--langversion:?               言語バージョンに指定できる値を表示します
--langversion:&lt;string&gt;             次のような言語バージョンを指定します
-                              `latest` (マイナー バージョンを含む最新バージョン)、
-                              `default` (`latest` と同じ)、
-                              `latestmajor` (マイナー バージョンを含む最新バージョン)、
-                              `preview` (サポートされていないプレビューの機能を含む最新バージョン)、
-                              `6` や `7.1` などの特定のバージョン
--nullable[+|-]                Null 許容コンテキスト オプションの有効または無効を指定します。
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Null 許容コンテキスト オプションの enable|disable|warnings|annotations を指定します。
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - セキュリティ -
--delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
-                              アセンブリに公開署名します
--publicsign[+|-]                  厳密な名前キーの公開部分のみを使用して
-                              アセンブリに公開署名します
--keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します
--keycontainer:&lt;string&gt;            厳密な名前のキー コンテナーを指定します
--highentropyva[+|-]               高エントロピ ASLR を有効にします
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - その他 -
-@&lt;file&gt;                       その他のオプションを、応答ファイルから読み取ります
--help                       この使用法メッセージを表示します (短い形式: -?)
--nologo                       コンパイラの著作権メッセージを表示しません
--noconfig                     CSC.RSP ファイルを自動的に含めません
--parallel[+|-]                同時にビルドします。
--version                      コンパイラのバージョン番号を表示して終了します。
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - 詳細設定 -
--baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
--checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイル チェックサムを計算するための
-                              アルゴリズムを指定します。サポートされている値:
-                              SHA1 または SHA256 (既定値)。
--codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコードページを
-                              指定します
--utf8output                   UTF-8 エンコードでコンパイラのメッセージを出力します
--main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
-                              (他のすべてのエントリ ポイントを無視します) (短い
-                              形式: -m)
--fullpaths                    コンパイラは完全修飾パスを生成します
--filealign:&lt;n&gt;                出力ファイルのセクションに使用する配置を
-                              指定します
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              コンパイラが出力するソース パス名のマッピングを
-                              指定します。
--pdb:&lt;file&gt;                   デバッグ情報のファイル名を指定します (既定値:
-                              出力ファイル名と .pdb 拡張子)
--errorendlocation             各エラーの終了位置の出力行と
-                              出力列です
--preferreduilang                  優先する出力言語名を指定します。
--nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
--sdkpath:&lt;path&gt;         標準ライブラリ アセンブリの検索に使用されるパス。
--nostdlib[+|-]                標準ライブラリ (mscorlib.dll) を参照しません
--subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
--lib:&lt;file list&gt;              参照を検索する追加のディレクトリを
-                              指定します
--errorreport:&lt;string&gt;         内部コンパイラ エラーを処理する方法を指定します:
-                              prompt、send、queue、none のいずれかです。既定値は 
-                              queue です。
--appconfig:&lt;file&gt;             アセンブリ バインド設定を含むアプリケーション
-                              構成ファイルを指定します
--moduleassemblyname:&lt;string&gt;  このモジュールが属することになるアセンブリの
-                              名前です
--modulename:&lt;string&gt;          ソース モジュールの名前を指定します
--generatedfilesout:&lt;dir&gt;      コンパイル中に生成されたファイルを指定したディレクトリに
-                              配置します。
--reportivts[+|-]                  すべての依存関係によってこのアセンブリに
-                              付与されたすべての IVT に関する情報を出力し、外部アセンブリの
-                              アクセシビリティ エラーに、発生元のアセンブリに関する注釈をつけます。
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
