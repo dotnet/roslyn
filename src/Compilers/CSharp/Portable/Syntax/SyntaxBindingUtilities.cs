@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     or UsingStatementSyntax { Expression: not null }
                     or CommonForEachStatementSyntax
                     or TryStatementSyntax
+                    or FixedStatementSyntax
                     or LockStatementSyntax;
     }
 }

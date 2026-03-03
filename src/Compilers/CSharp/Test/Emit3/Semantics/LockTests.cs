@@ -2368,6 +2368,47 @@ public class LockTests : CSharpTestBase
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80996")]
+    public void AsyncMethod_LockMemberAccess_WithAwaitInFinally()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class Holder
+            {
+                public Lock L = new();
+            }
+
+            class C
+            {
+                static async Task Main()
+                {
+                    var h = new Holder();
+
+                    if (System.Environment.TickCount < 0)
+                    {
+                        lock (h.L)
+                        {
+                        }
+                    }
+
+                    try
+                    {
+                    }
+                    finally
+                    {
+                        await Task.Yield();
+                    }
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+    }
+
     [Fact]
     public void AsyncMethod_AwaitResource()
     {

@@ -416,8 +416,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // try { ... } finally { if (local != null) local.Dispose(); }
             // or
             // nullable or await variants
+            var trySyntax = SyntaxBindingUtilities.BindsToTryStatement(resourceSyntax) ? resourceSyntax : resourceTypeSyntax;
+
             BoundStatement tryFinally = new BoundTryStatement(
-                syntax: resourceSyntax,
+                syntax: trySyntax,
                 tryBlock: tryBlock,
                 catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
                 finallyBlockOpt: BoundBlock.SynthesizedNoLocals(resourceSyntax, finallyStatement));

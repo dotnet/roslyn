@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.Block(
                     localBuilder.ToImmutableAndFree(),
                     new BoundTryStatement(
-                        _factory.Syntax,
+                        node.Syntax,
                         _factory.Block(statementBuilder.ToImmutableAndFree()),
                         ImmutableArray<BoundCatchBlock>.Empty,
                         _factory.Block(cleanup)));

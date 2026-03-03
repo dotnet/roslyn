@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expressionStatement = new BoundExpressionStatement(rewrittenArgument.Syntax, tempAssignment);
 
                 BoundStatement tryFinally = RewriteUsingStatementTryFinally(
-                    rewrittenArgument.Syntax,
+                    lockSyntax,
                     rewrittenArgument.Syntax,
                     tryBlock,
                     boundTemp,
