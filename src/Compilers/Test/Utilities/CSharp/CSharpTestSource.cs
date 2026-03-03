@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Encoding encoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
         {
+            // Normalize line endings to CRLF to ensure consistent behavior across platforms.
+            // Test source strings come from .cs file literals which have platform-dependent line endings
+            // (CRLF on Windows, LF on Linux due to git checkout normalization). PDB checksums, line numbers,
+            // and other position-dependent test assertions all assume CRLF source text.
+            text = text.ReplaceLineEndings("\r\n");
             var stringText = SourceText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
             var tree = SyntaxFactory.ParseSyntaxTree(stringText, options ?? TestOptions.RegularPreview, path);
             return tree;
