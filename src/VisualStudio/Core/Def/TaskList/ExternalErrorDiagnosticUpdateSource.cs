@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -20,6 +19,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.LanguageServices.TaskList;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -323,10 +323,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
     private sealed class InProgressState(Solution solution)
     {
-        /// <summary>
-        /// Map from project ID to all the possible analyzer diagnostic IDs that can be reported in the project.
-        /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = [];
+        private readonly VisualStudioDiagnosticIdCache _diagnosticIdCache = solution.Workspace.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
 
         public Solution Solution { get; } = solution;
 
@@ -338,24 +335,14 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 return true;
             }
 
-            if (!_allDiagnosticIdMap.TryGetValue(projectId, out var supportedIds))
+            if (_diagnosticIdCache.TryGetDiagnosticIds(projectId, out var supportedIds))
             {
-                var service = Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                if (!service.TryGetCachedDiagnosticDescriptorsPerReference(projectId, out var descriptorMap))
-                {
-                    // The cache hasn't been populated yet. We will report false because we do not know
-                    // for certain that we do not support the diagnostic id.
-                    return false;
-                }
-
-                supportedIds = _allDiagnosticIdMap.AddOrUpdate(
-                    projectId,
-                    static (projectId, descriptorMap) => [.. descriptorMap.Values.SelectMany(static descriptors => descriptors.Select(descriptor => descriptor.Id))],
-                    static (_, existing, _) => existing,
-                    descriptorMap);
+                return !supportedIds.Contains(id);
             }
 
-            return !supportedIds.Contains(id);
+            // The cache hasn't been populated yet. We will report false because we do not know
+            // for certain that we do not support the diagnostic id.
+            return false;
         }
     }
 }

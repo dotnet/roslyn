@@ -201,11 +201,13 @@ internal sealed class ProjectExternalErrorReporter(
     {
         // make sure we have error id, otherwise, we simple don't support
         // this error
-        if (bstrErrorId?.Length is null or 0)
+        if (string.IsNullOrEmpty(bstrErrorId))
         {
             if (bstrErrorId is null)
+            {
                 // record NFW to see who violates contract.
                 FatalError.ReportAndCatch(new Exception("errorId is null"));
+            }
 
             throw new NotImplementedException();
         }
