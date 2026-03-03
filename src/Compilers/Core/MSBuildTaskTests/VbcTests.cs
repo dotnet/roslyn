@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [WorkItem(47790, "https://github.com/dotnet/roslyn/issues/47790")]
         public void CheckErrorAndWarningParsing()
         {
