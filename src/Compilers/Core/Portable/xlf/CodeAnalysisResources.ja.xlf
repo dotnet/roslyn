@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="AllAnalyzersConcurrentMessage">
         <source>All analyzers have enabled concurrent execution.</source>
-        <target state="new">All analyzers have enabled concurrent execution.</target>
+        <target state="translated">すべてのアナライザーで並列実行が有効になっています。</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="needs-review-translation">属性</target>
+        <target state="translated">属性</target>
         <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
@@ -190,7 +190,7 @@
       </trans-unit>
       <trans-unit id="NonConcurrentAnalyzersHeader">
         <source>Analyzers that have not enabled concurrent execution:</source>
-        <target state="new">Analyzers that have not enabled concurrent execution:</target>
+        <target state="translated">並列実行が有効になっていないアナライザー:</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -285,7 +285,7 @@
       </trans-unit>
       <trans-unit id="SuppressorsNonConcurrentCountMessage">
         <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
-        <target state="new">NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</target>
+        <target state="translated">メモ: {0} 個の診断サプレッサーが見つかりました。診断サプレッサーは同時に実行されることはありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
@@ -315,77 +315,77 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="needs-review-translation">アセンブリ</target>
+        <target state="translated">アセンブリ</target>
         <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="needs-review-translation">クラス</target>
+        <target state="translated">クラス</target>
         <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="needs-review-translation">コンストラクター</target>
+        <target state="translated">コンストラクター</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="needs-review-translation">デリゲート</target>
+        <target state="translated">デリゲート</target>
         <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="needs-review-translation">列挙型</target>
+        <target state="translated">列挙型</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="needs-review-translation">イベント</target>
+        <target state="translated">イベント</target>
         <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="needs-review-translation">フィールド</target>
+        <target state="translated">フィールド</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="needs-review-translation">型パラメーター</target>
+        <target state="translated">型パラメーター</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="needs-review-translation">インターフェイス</target>
+        <target state="translated">インターフェイス</target>
         <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="needs-review-translation">メソッド</target>
+        <target state="translated">メソッド</target>
         <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="needs-review-translation">モジュール</target>
+        <target state="translated">モジュール</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="needs-review-translation">パラメーター</target>
+        <target state="translated">パラメーター</target>
         <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="needs-review-translation">プロパティ、インデクサー</target>
+        <target state="translated">プロパティ、インデクサー</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="needs-review-translation">戻り値</target>
+        <target state="translated">戻り値</target>
         <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="needs-review-translation">構造体</target>
+        <target state="translated">構造体</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">

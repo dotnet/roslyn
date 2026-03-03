@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">Güvenli olmayan '{0}' üyesi güvenli '{1}' üyesini uygulayamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">Güvenli olmayan '{0}' üyesi güvenli '{1}' üyesini örtük olarak uygulayamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">Güvenli olmayan '{0}' üyesi güvenli '{1}' üyesini geçersiz kılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute bu sembole uygulanamaz.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">'{0}' tanınmayan bir {1} sürümünde tanımlandı, '{2}' bekleniyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">'{0}' 'RequiresUnsafe' veya 'extern' olarak işaretlendiği için güvenli olmayan bir bağlamda kullanılmalıdır</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">'{0}' işaretçileri olduğu için güvenli olmayan bir bağlamda kullanılmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Bu işlem yalnızca güvenli olmayan bir bağlamda kullanılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">Başlatıcısı olmayan stackalloc ifadesi SkipLocalsInit içinde yalnızca güvenli olmayan bir bağlamda kullanılabilir</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">bellek güvenliği kuralları güncelleştirildi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute yalnızca güncelleştirilmiş bellek güvenliği kuralları altında geçerlidir.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute yalnızca güncelleştirilmiş bellek güvenliği kuralları altında geçerlidir.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,165 +4183,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Visual C# Compiler Options
+        <target state="translated">
+                             Visual C# Derleyicisi Seçenekleri
 
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
+                       - ÇIKIŞ DOSYALARI -
+-out:&lt;file&gt;                   Çıkış dosyası adını belirtir (varsayılan: ana sınıf veya
+                              ilk dosyayla birlikte dosyanın temel adı)
+-target:exe                   Konsol yürütülebilir dosyası oluşturur (varsayılan) (Kısa
                               form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
+-target:winexe                Windows yürütülebilir dosyası oluşturur (Kısa biçimi:
                               -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
+-target:library               Kitaplık oluşturur (Kısa biçimi: -t:library)
+-target:module                Başka bir derlemeye eklenebilir
+                              bir modül oluşturur (Kısa biçimi: -t:module)
+-target:appcontainerexe       Appcontainer yürütülebilir dosyası oluşturur (Kısa biçimi:
                               -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
+-target:winmdobj              WinMDExp kullanan Windows Çalışma Zamanı
+                              ara dosyası oluşturur (Kısa biçimi: -t:winmdobj) tarafından
+-doc:&lt;file&gt;                   oluşturulacak XML belgeleri dosyası
+-refout:&lt;file&gt;                    Oluşturulacak başvuru derlemesi çıkışı
+-platform:&lt;string&gt;                Bu kodun çalışabileceği platformları sınırlar: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred veya
+                              anycpu. Varsayılan: anycpu.
 
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB.
+                       - GİRİŞ DOSYALARI -
+-recurse:&lt;wildcard&gt;               Joker karakter belirtimlerine göre
+                              geçerli dizindeki ve alt dizinlerdeki tüm
+                              dosyaları ekler
+-reference:&lt;alias&gt;=&lt;file&gt;     Verilen diğer adı kullanan belirtilen derleme dosyasından
+                              meta verilerine başvurur (Kısa biçimi: -r)
+-reference:&lt;file list&gt;        Belirtilen derleme dosyasından
+                              başvuru meta verileri (Kısa biçimi: -r)
+-addmodule:&lt;file list&gt;        Belirtilen modülleri bu derlemeye bağlar
+-link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derleme dosyalarından
+                              meta verileri ekler (Kısa biçimi: -l)
+-analyzer:&lt;file list&gt;             Bu derlemedeki çözümleyicileri çalıştırır
+                              (Kısa biçimi: -a)
+-additionalfile:&lt;file list&gt;       Kod oluşturmayı doğrudan etkilemeyen ancak
+                              hata veya uyarı üretimi için çözümleyiciler tarafından kullanılabilen
+                              ek dosyalar.
+-embed                        Tüm kaynak dosyaları PDB’ye ekler.
+-embed:&lt;file list&gt;            Belirli dosyaları PDB'ye ekler.
 
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - KAYNAKLAR -
+-win32res:&lt;file&gt;              Win32 kaynak dosyasını (.res) belirtir
+-win32icon:&lt;file&gt;             Çıkış dosyası için bu simgeyi kullanır
+-win32manifest:&lt;file&gt;         Win32 bildirim dosyasını (.xml) belirtir
+-nowin32manifest              Varsayılan Win32 bildirimini ekler
+-resource:&lt;resinfo&gt;           Belirtilen kaynağı ekler (Kısa biçimi: -res)
+-linkresource:&lt;resinfo&gt;       Belirtilen kaynağı bu derlemeye bağlar
+                              (Kısa biçimi: -linkres) Resinfo biçimi
+                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
+                       - KOD OLUŞTURMA -
+-debug[+|-]                       Hata ayıklama bilgilerini gösterir
 -debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                              Hata ayıklama türünü belirtir ('full' varsayılandır,
+                              'portable' platformlar arası biçimdir,
+                              'embedded', platformlar arası biçimdir ve hedef
+                              .dll veya .exe dosyasına eklenir)
+-optimize[+|-]                İyileştirmeleri etkinleştirir (Kısa biçimi: -O)
+-deterministic                    Belirlenimci bir derleme üretir
+                              (modül sürümü GUID'si ve zaman damgası dahil)
+-refonly                          Ana çıkış yerine bir başvuru derlemesi üretir
+-instrument:TestCoverage          Kapsam bilgilerini toplamak için işaretlenmiş
+                              bir derleme üretir
+-sourcelink:&lt;file&gt;                PDB dosyasına eklenecek kaynak bağlantısı bilgileri.
 
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
-                              (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
-                              (use "nullable" for all nullability warnings)
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
+                       - HATALAR VE UYARILAR - 
+-warnaserror[+|-]                 Tüm uyarıları hata olarak bildirir
+-warnaserror[+|-]:&lt;warn list&gt; Belirli uyarıları hata olarak bildirir
+                              (tüm null atanabilirlik uyarıları için "nullable" kullanın)
+-warn:&lt;n&gt;                     Uyarı düzeyini ayarlar (0 veya üzeri) (Kısa biçimi: -w)
+-nowarn:&lt;warn list&gt;           Belirli uyarı iletilerini devre dışı bırakır
+                              (tüm null atanabilirlik uyarıları için "nullable" kullanın)
+-ruleset:&lt;file&gt;                   Belirli tanılamaları devre dışı bırakan bir
+                              kural kümesi dosyası belirtir.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Specify a file to log all compiler and analyzer
-                              diagnostics.
-                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                              both mean SARIF version 2.1.0.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
--skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
+                              Tüm derleyici ve çözümleyici tanılamalarının günlüğe
+                              kaydedileceği dosyayı belirtir.
+                              sarif_version:{1|2|2.1} Varsayılan olarak 1. 2 ve 2.1
+                              Her ikisi ise 2.1.0 SARIF sürümünü ifade eder.
+-reportanalyzer                   Yürütme zamanı gibi ek çözümleyici bilgilerini
+                              raporlar.
+-skipanalyzers[+|-]               Tanılama çözümleyicilerinin yürütülmesini atlar.
 
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `latest` (latest version, including minor versions),
-                              `default` (same as `latest`),
-                              `latestmajor` (latest version, excluding minor versions),
-                              `preview` (latest version, including features in unsupported preview),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
+                       - DİL - 
+-checked[+|-]                 Taşma denetimleri oluştur
+-unsafe[+|-]                  'Güvenli olmayan' koda izin ver
+-define:&lt;symbol list&gt;         Koşullu derleme sembollerini tanımlar (Kısa
+                              biçimi: -d)
+-langversion:?                Dil sürümü için izin verilen değerleri görüntüler
+-langversion:&lt;string&gt;             `latest` (ikincil sürümler dahil en son sürüm),
+                              `default` (`latest` ile aynı),
+                              `latestmajor` (ikincil sürümler hariç en son sürüm),
+                              `preview` (desteklenmeyen önizlemedeki özellikler dahil en son sürüm)
+                              veya `6` ya da `7.1` benzeri belirli sürümler
+                              gibi dil sürümünü belirtir
+-nullable[+|-]                Null atanabilir bağlam seçeneğini (enable|disable) belirtir.
 -nullable:{enable|disable|warnings|annotations}
-                              Specify nullable context option enable|disable|warnings|annotations.
+                              Null atanabilir bağlam seçeneğini (enable|disable|warnings|annotations) belirtir.
 
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
+                       - GÜVENLİK -
+-delaysign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
+                              derlemeyi gecikmeli imzalar
+-publicsign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
+                              derlemeyi genel imzalar
+-keyfile:&lt;file&gt;                   Tanımlayıcı ad anahtarı dosyasını belirtir
+-keycontainer:&lt;string&gt;            Tanımlayıcı ad anahtarı kapsayıcısını belirtir
+-highentropyva[+|-]               Yüksek entropili ASLR’yi etkinleştirir
 
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
+                       - DİĞER - 
+@&lt;file&gt;                       Daha fazla seçenek için yanıt dosyasını okur
+-help                         Bu kullanım iletisini görüntüler (Kısa biçimi: -?)
+-nologo                       Derleyici telif hakkı iletisini gizler
+-noconfig                         VBC.RSP dosyasını otomatik olarak eklemez
+-parallel[+|-]                    Eş zamanlı derleme.
+-version                          Derleyici sürüm numarasını görüntüler ve çıkar.
 
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
+                       - GELİŞMİŞ - 
+-baseaddress:&lt;address&gt;        Oluşturulacak kitaplığın temel adresi
+-checksumalgorithm:&lt;alg&gt;          PDB’de depolanan sağlama toplamı kaynak dosyasını hesaplamak için
+                              kullanılan algoritmayı belirtir. Desteklenen değerler şunlardır:
+                              SHA1, SHA256 (varsayılan), SHA384 veya SHA512.
+-codepage:&lt;n&gt;                 Kaynak açılırken kullanılacak kod sayfasını belirtir
+                              Dosyalar
+-utf8output                   UTF-8 kodlama kümesinde -utf8output Çıkış derleyicisi
+-main:&lt;type&gt;                  Giriş noktasını içeren türü belirtir
+                              (diğer tüm olası giriş noktalarını yoksay) (Kısa
+                              biçimi: -m)
+-fullpaths                    Derleyici mutlak yollar oluşturur
+-filealign:&lt;n&gt;               Çıkış dosyası bölümleri için kullanılan hizalamayı
+                              belirtir
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
--generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
-                              specified directory.
--reportivts[+|-]                    Output information on all IVTs granted to this
-                              assembly by all dependencies, and annotate foreign assembly
-                              accessibility errors with what assembly they came from.
+                              Derleyicinin oluşturduğu kaynak yol adları için
+                              eşleştirme belirtir.
+-pdb:&lt;file&gt;                   Hata ayıklama bilgileri dosya adını belirtir (varsayılan:
+                              .pdb uzantılı çıkış dosyası adı)
+-errorendlocation             Her hatanın çıkış satırı ve
+                              bitiş konumu sütunu
+-preferreduilang                  Tercih edilen çıkış dili adını belirtir.
+-nosdkpath                        Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakır.
+-sdkpath:&lt;path&gt;             Standart kitaplık derlemelerini aramak için kullanılan yol.
+-nostdlib[+|-]                Standart kitaplıklara başvurmaz (mscorlib.dll)
+-subsystemversion:&lt;string&gt;       Bu derlemenin alt sistem sürümünü belirtir
+-lib:&lt;file list&gt;              Başvurular için aranacak ek dizinleri
+                              belirtir
+-errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir:
+                              istem, gönderme, kuyruğa alma veya hiçbiri. Varsayılan:
+                              kuyruğa alma.
+-appconfig:&lt;file&gt;             Derleme bağlama ayarlarını içeren
+                              uygulama yapılandırma dosyasını belirtir
+-moduleassemblyname:&lt;string&gt;  Bu modülün bir parçası olacağı derlemenin
+                              adı
+-modulename:&lt;string&gt;          Kaynak modülün adını belirtir
+-generatedfilesout:&lt;dir&gt;      Derleme sırasında oluşturulan dosyaları
+                              belirtilen dizine yerleştirir.
+-reportivts[+|-]                  Bu derlemeye tüm bağımlılıklar tarafından verilen tüm IVT'ler hakkında çıkış bilgisi
+                              ve hangi derlemeden geldikleri dahil olmak üzere
+                              yabancı derleme erişilebilirlik hataları hakkında ek açıklamalar.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>

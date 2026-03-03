@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">El miembro no seguro ''{0}'' no puede implementar el miembro seguro '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">El miembro no seguro ''{0}'' no puede implementar implícitamente el miembro seguro ''{1}''</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">El miembro no seguro ''{0}'' no puede invalidar el miembro seguro ''{1}''</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute no se puede aplicar a este símbolo.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">''{0}'' se define en un módulo con una versión no reconocida {1}, que espera ''{2}''.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">''{0}'' debe usarse en un contexto no seguro porque está marcado como ''RequiresUnsafe'' o ''extern''</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">''{0}'' debe usarse en un contexto no seguro porque tiene punteros en su firma</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Esta operación solo se puede usar en un contexto no seguro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">La expresión stackalloc sin un inicializador dentro de SkipLocalsInit solo se puede usar en un contexto no seguro</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">reglas de seguridad de memoria actualizadas</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute solo es válido en las reglas de seguridad de memoria actualizadas.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute solo es válido en las reglas de seguridad de memoria actualizadas.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,7 +4183,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opciones de compilador de Visual C#
 
                        - ARCHIVOS DE SALIDA -
@@ -4200,40 +4200,40 @@
                               -t:appcontainerexe)
 -target:winmdobj              Compilar un archivo intermedio de Windows Runtime que
                               WinMDExp consume (forma corta: -t:winmdobj)
--doc:&lt;file&gt;                       Archivo de documentación XML que se va a generar
--refout:&lt;file&gt;                    Salida del ensamblado de referencia que se va a generar
--platform:&lt;string&gt;                Limitar en qué plataformas se puede ejecutar este código: x86,
+-doc:&lt;archivo&gt;                       Archivo de documentación XML que se va a generar
+-refout:&lt;archivo&gt;                    Salida del ensamblado de referencia que se va a generar
+-platform:&lt;cadena&gt;                Limitar en qué plataformas se puede ejecutar este código: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred o
                               anycpu. El valor predeterminado es anycpu.
 
                        - ARCHIVOS DE ENTRADA -
--recurse:&lt;wildcard&gt;               Incluir todos los archivos del directorio y
+-recurse:&lt;carácter comodín&gt;               Incluir todos los archivos del directorio y
                               y subdirectorios actuales según las especificaciones del carácter
                               comodín
--reference:&lt;alias&gt;=&lt;file&gt;     Metadatos de referencia del archivo de ensamblado especificado
+-reference:&lt;alias&gt;=&lt;archivo&gt;     Metadatos de referencia del archivo de ensamblado especificado
                               con el alias proporcionado (forma corta: -r)
-/reference:&lt;file list&gt;        Metadatos de referencia de los archivos de ensamblado
+/reference:&lt;lista de archivos&gt;        Metadatos de referencia de los archivos de ensamblado
                               especificados (Forma corta: -r)
--addmodule:&lt;file list&gt;        Vincular los módulos especificados a este ensamblado
--link:&lt;file list&gt;             Insertar metadatos de los archivos de ensamblado de la interoperabilidad
+-addmodule:&lt;lista de archivos&gt;        Vincular los módulos especificados a este ensamblado
+-link:&lt;lista de archivos&gt;             Insertar metadatos de los archivos de ensamblado de la interoperabilidad
                               especificada (Forma corta: -r)
--analyzer:&lt;file list&gt;         Ejecutar los analizadores desde este ensamblado
+-analyzer:&lt;lista de archivos&gt;         Ejecutar los analizadores desde este ensamblado
                               (Forma corta: -a)
--additionalfile:&lt;file list&gt;    Archivos adicionales que no afectan directamente a la generación de
+-additionalfile:&lt;lista de archivos&gt;    Archivos adicionales que no afectan directamente a la generación de
                               código, pero los analizadores pueden usarse para producir
                               errores o advertencias.
 -embed                        Insertar todos los archivos de código fuente en el archivo PDB.
--embed:&lt;file list&gt;            Insertar archivos específicos en el archivo PDB.
+-embed:&lt;lista de archivos&gt;            Insertar archivos específicos en el archivo PDB.
 
                        - RECURSOS -
--win32res:&lt;file&gt;              Especificar el archivo de recursos Win32 (.res)
--win32icon:&lt;file&gt;             Usar este icono para la salida
--win32manifest:&lt;file&gt;         Especificar un archivo de manifiesto win32 (.xml)
+-win32res:&lt;archivo&gt;              Especificar el archivo de recursos Win32 (.res)
+-win32icon:&lt;archivo&gt;             Usar este icono para la salida
+-win32manifest:&lt;archivo&gt;         Especificar un archivo de manifiesto win32 (.xml)
 -nowin32manifest              No incluir el manifiesto Win32 predeterminado
 -resource:&lt;resinfo&gt;           Insertar el recurso especificado (forma corta: /res)
 -linkresource:&lt;resinfo&gt;       Vincular el recurso especificado a este ensamblado
                               (Forma corta: -linkres) En la que el formato de resinfo
-                              es &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                              is &lt;archivo&gt;[,&lt;nombre de cadena&gt;[,public|private]]
 
                        - GENERACIÓN DE CÓDIGO -
 -debug[+|-]                       Emitir información de depuración
@@ -4248,18 +4248,18 @@
 -refonly                          Generar un ensamblado de referencia en lugar de la salida principal
 -instrument:TestCoverage          Producir un ensamblado instrumentado para recopilar
                               información de cobertura
--sourcelink:&lt;file&gt;                Información del vínculo de origen para insertar en el archivo PDB.
+-sourcelink:&lt;archivo&gt;                Información del vínculo de origen para insertar en el archivo PDB.
 
                        - ERRORES Y ADVERTENCIAS -
 -warnaserror[+|-]             Notificar todas las advertencias como errores
--warnaserror[+|-]:&lt;warn list&gt; Notificar advertencias específicas como errores
+-warnaserror[+|-]:&lt;lista de advertencias&gt; Notificar advertencias específicas como errores
                               (use "nullable" para todas las advertencias que acepten valores NULL)
 -warn:&lt;n&gt;                     Establecer el nivel de advertencia (0 o superior) (forma corta: -w)
 -nowarn:&lt;warn list&gt;           Deshabilitar mensajes de advertencia específicos
                               (use "nullable" para todas las advertencias que acepten valores NULL)
--ruleset:&lt;file&gt;                   Especificar un archivo de conjunto de reglas que deshabilite
+-ruleset:&lt;archivo&gt;                   Especificar un archivo de conjunto de reglas que deshabilite
                               diagnósticos específicos.
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+-errorlog:&lt;archivo&gt;[,version=&lt;sarif_version&gt;]
                               Especifique un archivo para registrar todos los diagnósticos del compilador
                               y el analizador.
                               sarif_version:{1|2|2.1} El valor predeterminado es 1.2 y 2.1
@@ -4271,15 +4271,15 @@
                        - LENGUAJE -
 -checked[+|-]                 Generar comprobaciones de desbordamiento
 -unsafe[+|-]                  Permitir código no seguro
--define:&lt;symbol list&gt;         Definir los símbolos de la compilación condicional (forma
+-define:&lt;lista de símbolos&gt;         Definir los símbolos de la compilación condicional (forma
                               corta: -d)
 -langversion:?                Muestra los valores permitidos para la versión del lenguaje
--langversion:&lt;string&gt;             Especificar la versión de lenguaje como
-                              "latest" (versión más reciente, incluidas las versiones secundarias),
-                              "default" (igual que "más reciente"),
-                              “latestmajor” (versión más reciente, incluidas las versiones secundarias),
-                              "preview" (versión más reciente, incluidas las características de la versión preliminar no admitida)
-                              o versiones específicas, como "6" o "7.1"
+-langversion:&lt;cadena&gt;             Especificar la versión de lenguaje como
+                              `latest` (versión más reciente, incluidas las versiones secundarias),
+                              `default` (igual que `latest`),
+                              `latestmajor` (versión más reciente, incluidas las versiones secundarias),
+                              `preview` (versión más reciente, incluidas las características de la versión preliminar no admitida)
+                              o versiones específicas, como `6` o `7.1`
 -nullable[+|-]                Especificar la opción de contexto que acepta valores NULL: habilitar|deshabilitar.
 -nullable:{enable|disable|warnings|annotations}
                               Especifique la opción de contexto que acepta valores NULL: enable|disable|warnings|annotations.
@@ -4289,12 +4289,12 @@
                               de la clave de nombre seguro
 -publicsign[+|-]                  Firmar públicamente el ensamblado usando solo la parte pública
                               de la clave de nombre seguro
--keyfile:&lt;file&gt;                   Especificar un archivo de clave de nombre seguro
--keycontainer:&lt;string&gt;            Especificar un contenedor de claves de nombre seguro
+-keyfile:&lt;archivo&gt;                   Especificar un archivo de clave de nombre seguro
+-keycontainer:&lt;cadena&gt;            Especificar un contenedor de claves de nombre seguro
 -highentropyva[+|-]               Habilitar ASLR de alta entropía
 
                        - VARIOS -
-@&lt;file&gt;                       Leer el archivo de respuesta para obtener más opciones
+@&lt;archivo&gt;                       Leer el archivo de respuesta para obtener más opciones
 -help                         Mostrar este mensaje de uso  (forma corta: -?)
 -nologo                       Suprimir el mensaje de copyright del compilador
 -noconfig                         No incluir automáticamente el archivo CSC.RSP
@@ -4302,14 +4302,14 @@
 -version                          Mostrar el número de versión del compilador y salir.
 
                        - AVANZADO -
--baseaddress:&lt;address&gt;        Dirección base para la biblioteca que se compilará
--checksumalgorithm:&lt;alg&gt;      Especificar el algoritmo para calcular la suma de comprobación
+-baseaddress:&lt;dirección&gt;        Dirección base para la biblioteca que se compilará
+-checksumalgorithm:&lt;alg.&gt;      Especificar el algoritmo para calcular la suma de comprobación
                               del archivo de origen almacenada en PDB. Los valores admitidos son:
-                              SHA1 o SHA256 (valor predeterminado).
+                              SHA1, SHA256 (predeterminado), SHA384 o SHA512.
 -codepage:&lt;n&gt;                 Especificar la página de códigos que se va a utilizar cuando se abren los archivos de código
                               fuente
 -utf8output                   Salida de mensajes del compilador en codificación UTF-8
--main:&lt;type&gt;                  Especificar el tipo que contiene el punto de entrada
+-main:&lt;tipo&gt;                  Especificar el tipo que contiene el punto de entrada
                               (omitir todos los demás puntos de entrada posibles) (forma
                               corta: -m)
 -fullpaths                    El compilador genera rutas de acceso completas
@@ -4318,25 +4318,25 @@
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               Especifique una asignación para los nombres de ruta de acceso de origen generados por
                               el compilador.
--pdb:&lt;file&gt;                   Especificar el nombre del archivo de información de depuración (predeterminado:
+-pdb:&lt;archivo&gt;                   Especificar el nombre del archivo de información de depuración (predeterminado:
                               nombre de archivo de salida con extensión .pdb)
 -errorendlocation             Línea de salida y columna de la ubicación final de
                               cada error
 -preferreduilang                  Especificar el nombre del idioma de salida preferido.
 -nosdkpath                        Deshabilitar la búsqueda de rutas de acceso SDK predeterminadas para los ensamblados de biblioteca estándar.
--sdkpath:&lt;path&gt;             Ruta de acceso usada para buscar ensamblados de biblioteca estándar.
+-sdkpath:&lt;ruta&gt;             Ruta de acceso usada para buscar ensamblados de biblioteca estándar.
 -nostdlib                         No hacer referencia a bibliotecas estándar (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Especificar versión del subsistema de este ensamblado
--lib:&lt;file list&gt;              Especificar directorios adicionales en los que buscar
+-subsystemversion:&lt;cadena&gt;    Especificar versión del subsistema de este ensamblado
+-lib:&lt;lista de archivos&gt;              Especificar directorios adicionales en los que buscar
                               referencias
--errorreport:&lt;string&gt;             Especificar cómo controlar los errores del compilador interno:
+-errorreport:&lt;cadena&gt;             Especificar cómo controlar los errores del compilador interno:
                               solicitar, enviar, poner en cola o ninguno. El valor predeterminado es 
                               en cola.
--appconfig:&lt;file&gt;             Especificar un archivo de configuración de la aplicación
+-appconfig:&lt;archivo&gt;             Especificar un archivo de configuración de la aplicación
                               que contiene la configuración de enlace del ensamblado
--moduleassemblyname:&lt;string&gt;  Nombre del ensamblado del que formará parte
+-moduleassemblyname:&lt;cadena&gt;  Nombre del ensamblado del que formará parte
                               este módulo
--modulename:&lt;string&gt;          Especificar el nombre del módulo de origen
+-modulename:&lt;cadena&gt;          Especificar el nombre del módulo de origen
 -generatedfilesout:&lt;dir&gt;      Colocar archivos generados durante la compilación en el
                               directorio especificado.
 -reportivts[+|-]                  Información de salida sobre todos los IVT concedidos a este

@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">Le membre non sécurisé « {0} » ne peut pas implémenter le membre sécurisé « {1} »</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">Un membre non sécurisé « {0} » ne peut pas implémenter implicitement un membre sécurisé « {1} »</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">Le membre non sécurisé « {0} » ne peut pas remplacer le membre approuvé « {1} »</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute ne peut pas être appliqué à ce symbole.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">« {0} » est défini dans un module dont la version n’est pas reconnue {1} et attend « {2} ».</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">« {0} » doit être utilisé dans un contexte non sécurisé, car il est marqué comme « RequiresUnsafe » ou « extern »</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">« {0} » doit être utilisé dans un contexte non sécurisé, car sa signature contient des pointeurs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Cette opération ne peut être utilisée que dans un contexte non sécurisé</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">Une expression stackalloc sans initialiseur dans SkipLocalsInit ne peut être utilisée que dans un contexte non sécurisé</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">règles mises à jour de sécurité de la mémoire</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute est valide uniquement dans le cadre des règles de sécurité mémoire mises à jour.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute est valide uniquement dans le cadre des règles de sécurité mémoire mises à jour.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,7 +4183,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Options du Compilateur Visual C#
 
                        - FICHIERS DE SORTIE -
@@ -4295,7 +4295,7 @@
 
                        - DIVERS -
 @&lt;file&gt;                       Lire le fichier de réponse pour plus d’options
--help                         Afficher ce message d’utilisation (forme courte : - ?)
+-help                         Afficher ce message d’utilisation (forme courte : -?)
 -nologo                       Supprimer le message de droits d’auteur du compilateur
 -noconfig                     Ne pas inclure automatiquement le fichier CSC.RSP
 -parallel[+|-]                Build simultané.
@@ -4305,7 +4305,7 @@
 -baseaddress:&lt;address&gt;        Adresse de base de la bibliothèque à générer
 -checksumalgorithm:&lt;alg&gt;      Spécifier l’algorithme pour calculer la somme de contrôle du fichier
                               source stocké dans la PDB. Les valeurs prises en charge sont :
-                              SHA1 ou SHA256 (par défaut).
+                              SHA1, SHA256 (par défaut), SHA384, ou SHA512.
 -codepage:&lt;n&gt;                 Spécifier la page de code à utiliser lors de l’ouverture des fichiers
                               source
 -utf8output                   Sortir les messages du compilateur au codage UTF-8
@@ -4330,7 +4330,7 @@
 -lib:&lt;file list&gt;              Spécifier des répertoires supplémentaires dans lesquels rechercher
                               des références
 -errorreport:&lt;string&gt;         Spécifier comment gérer les erreurs internes du compilateur :
-                              prompt, send, queue, ou none. La valeur par défaut est
+                              invite, envoie, file d’attente ou aucun. La valeur par défaut est
                               file d’attente.
 -appconfig:&lt;file&gt;             Spécifier un fichier de configuration de l’application
                               contenant les paramètres de liaison d’assembly

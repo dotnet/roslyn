@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">Niezabezpieczony element członkowski „{0}” nie może zaimplementować zabezpieczonego elementu członkowskiego „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">Niezabezpieczony element członkowski „{0}” nie może niejawnie zaimplementować zabezpieczonego elementu członkowskiego „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">Niezabezpieczony element członkowski „{0}” nie może przesłonić zabezpieczonego elementu członkowskiego „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">Nie można zastosować atrybutu RequiresUnsafeAttribute do tego symbolu.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">Atrybut „{0}” jest zdefiniowany w module z nierozpoznaną wersją {1}, ponieważ oczekiwano „{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">Atrybut „{0}” musi być używany w niezabezpieczonym kontekście, ponieważ jest oznaczony jako „RequiresUnsafe” lub „extern”</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">Atrybut „{0}” musi być używany w niezabezpieczonym kontekście, ponieważ ma wskaźniki w sygnaturze</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Ta operacja może być używana tylko w niezabezpieczonym kontekście</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">wyrażenie stackalloc bez inicjatora wewnątrz elementu SkipLocalsInit może być używane tylko w niezabezpieczonym kontekście</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">zaktualizowano reguły zabezpieczeń pamięci</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">Atrybut RequiresUnsafeAttribute jest prawidłowy tylko w ramach zaktualizowanych reguł zabezpieczeń pamięci.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">Atrybut RequiresUnsafeAttribute jest prawidłowy tylko w ramach zaktualizowanych reguł zabezpieczeń pamięci.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,7 +4183,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opcje kompilatora języka Visual C#
 
                        - PLIKI WYJŚCIOWE - 
@@ -4233,7 +4233,7 @@
 -resource:&lt;resinfo&gt;           Osadzanie określonego zasobu (skrócona postać: -res)
 -linkresource:&lt;resinfo&gt;       Łączenie określonego zasobu z tym zestawem
                               (skrócona postać: -linkres) Gdzie format resinfo
-                              jest &lt;file&gt;[,&lt;name&gt;[,public|private]]
+                              to &lt;file&gt;[,&lt;name&gt;[,public|private]]
 
                        - GENEROWANIE KODU -
 -debug[+|-]                       Emitowanie informacji o debugowaniu
@@ -4275,11 +4275,11 @@
                               postać: -d)
 -langversion:?                Wyświetlanie dozwolone wartości dla wersji językowej
 -langversion:&lt;string&gt;             Określanie wersji języka, na przykład
-                              „latest” (najnowsza wersja, w tym wersje pomocnicze),
-                              „default” (tak samo jak „latest”),
-                              „latestmajor” (najnowsza wersja, z wyjątkiem wersji pomocniczych),
-                              „preview” (najnowsza wersja, w tym funkcje w nieobsługiwanym wersji zapoznawczej),
-                              lub dokładnych wersji, takich jak „6” lub „7.1”
+                              `latest` (najnowsza wersja, w tym wersje pomocnicze),
+                              `default` (tak samo jak `latest`),
+                              `latestmajor` (najnowsza wersja, z wyjątkiem wersji pomocniczych),
+                              `preview` (najnowsza wersja, w tym funkcje w nieobsługiwanym wersji zapoznawczej),
+                              lub dokładnych wersji, takich jak `6` lub `7.1`
 -nullable[+|-]                Określanie włączenia|wyłączenia opcji kontekstu dopuszczania wartości null.
 -nullable:{enable|disable|warnings|annotations}
                               Określanie opcji kontekstu dopuszczania wartości null enable|disable|warnings|annotations.
@@ -4305,7 +4305,7 @@
 -baseaddress:&lt;address&gt;        Adres podstawowy dla bibiloteki, która ma być utworzona
 -checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania pliku źródłowego
                               pliku źródłowego przechowywanego w pliku PDB. Obsługiwane wartości to:
-                              SHA1 lub SHA256 (wartość domyślna).
+                              SHA1, SHA256 (domyślne), SHA384 lub SHA512.
 -codepage:&lt;n&gt;                 Określanie strony kodowej do używania podczas otwierania plików
                               źródłowych
 -utf8output                   Komunikaty kompilatora danych wyjściowych w kodowaniu UTF-8
@@ -4330,7 +4330,7 @@
 -lib:&lt;file list&gt;              Określanie dodatkowych katalogów do wyszukania
                               odwołań
 -errorreport:&lt;string&gt;             Określanie sposobu obsługi wewnętrznych błędów kompilatora:
-                              monit, wysyłanie, kolejka lub brak. Wartością domyślną jest
+                              monit, wysyłanie, kolejka lub brak. Wartością domyślną to
                               kolejka.
 -appconfig:&lt;file&gt;             Określanie pliku konfiguracji aplikacji
                               zawierającego ustawienia powiązania zestawu
