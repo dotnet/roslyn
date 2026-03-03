@@ -350,7 +350,7 @@ dotnet_diagnostic.cs0169.severity = garbage");
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(
+            AssertEx.Equal(
 $@"warning InvalidSeverityInAnalyzerConfig: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
@@ -6009,12 +6009,12 @@ class A                                                 ^
         System.Console.WriteLine(""Hello World!"");     ^
 }} | {s_CSharpCompilerExecutable} /nologo /t:exe -"
     .Replace(Environment.NewLine, string.Empty), workingDirectory: tempDir) :
-                ProcessUtilities.Run("/usr/bin/env", $@"sh -c ""echo  \
+                ProcessUtilities.Run("/usr/bin/env", ($@"sh -c ""echo  \
 class A                                                               \
 {{                                                                    \
     public static void Main\(\) =\>                                   \
         System.Console.WriteLine\(\\\""Hello World\!\\\""\)\;         \
-}} | {s_CSharpCompilerExecutable} /nologo /t:exe -""", workingDirectory: tempDir,
+}} | {s_CSharpCompilerExecutable} /nologo /t:exe -""").ReplaceLineEndings("\n"), workingDirectory: tempDir,
                     // we are testing shell's piped/redirected stdin behavior explicitly
                     // instead of using Process.StandardInput.Write(), so we set
                     // redirectStandardInput to true, which implies that isatty of child
@@ -6026,7 +6026,7 @@ class A                                                               \
 
             string output = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                 ProcessUtilities.RunAndGetOutput("cmd.exe", $@"/C ""{s_DotnetCscRun} -.exe""", expectedRetCode: 0, startFolder: tempDir) :
-                ProcessUtilities.RunAndGetOutput("sh", $@"-c ""{s_DotnetCscRun} -.exe""", expectedRetCode: 0, startFolder: tempDir);
+                ProcessUtilities.RunAndGetOutput("sh", ($@"-c ""{s_DotnetCscRun} -.exe""").ReplaceLineEndings("\n"), expectedRetCode: 0, startFolder: tempDir);
 
             Assert.Equal("Hello World!", output.Trim());
         }
@@ -6044,11 +6044,11 @@ class A                                                 ^
     public A Get() =^^^> default;                       ^
 }} | {s_CSharpCompilerExecutable} /nologo /t:library /out:{name} -"
     .Replace(Environment.NewLine, string.Empty), workingDirectory: tempDir) :
-                ProcessUtilities.Run("/usr/bin/env", $@"sh -c ""echo  \
+                ProcessUtilities.Run("/usr/bin/env", ($@"sh -c ""echo  \
 class A                                                               \
 {{                                                                    \
     public A Get\(\) =\> default\;                                    \
-}} | {s_CSharpCompilerExecutable} /nologo /t:library /out:{name} -""", workingDirectory: tempDir,
+}} | {s_CSharpCompilerExecutable} /nologo /t:library /out:{name} -""").ReplaceLineEndings("\n"), workingDirectory: tempDir,
                     // we are testing shell's piped/redirected stdin behavior explicitly
                     // instead of using Process.StandardInput.Write(), so we set
                     // redirectStandardInput to true, which implies that isatty of child
@@ -7028,7 +7028,7 @@ class C
 
             var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(-[\\w\\d]+)*", "version A.B.C-d");
             patched = ReplaceCommitHash(patched);
-            Assert.Equal(@"
+            AssertEx.Equal(@"
 Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
                 patched);
@@ -8626,7 +8626,7 @@ public class Test
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", "/warn:3", "/warnaserror", source.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
-            Assert.Equal(
+            AssertEx.Equal(
 $@"{fileName}(12,20): error CS1522: Empty switch block
 {fileName}(15,9): error CS0162: Unreachable code detected
 {fileName}(5,17): error CS0169: The field 'Test.x' is never used", outWriter.ToString().Trim());
@@ -9259,7 +9259,7 @@ public class C { }
     </members>
 </doc>
 ";
-            Assert.Equal(expected.Trim(), actual.Trim());
+            AssertEx.Equal(expected.Trim(), actual.Trim());
 
             System.IO.File.Delete(xmlPath);
             System.IO.File.Delete(sourcePath);
@@ -11889,7 +11889,7 @@ public class C
         </member>
     </members>
 </doc>";
-            Assert.Equal(expectedDoc, content.Trim());
+            AssertEx.Equal(expectedDoc, content.Trim());
 
             var output = ProcessUtilities.RunAndGetOutput(exe, startFolder: dir.Path);
             Assert.Equal("Hello", output.Trim());
@@ -12016,7 +12016,7 @@ class C
         </member>
     </members>
 </doc>";
-            Assert.Equal(expectedDoc, content.Trim());
+            AssertEx.Equal(expectedDoc, content.Trim());
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);

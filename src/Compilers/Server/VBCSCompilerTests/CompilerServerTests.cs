@@ -339,7 +339,7 @@ End Module")
                 shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
+            AssertEx.Equal(@"test.vb(1) : error BC30037: Character is not valid.
 
 ?
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
@@ -362,7 +362,7 @@ End Module")
                 redirectEncoding: UTF8Encoding,
                 shouldRunOnServer: false);
 
-            Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
+            AssertEx.Equal(@"test.vb(1) : error BC30037: Character is not valid.
 
 ♕
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
@@ -1144,7 +1144,7 @@ End Module
                 _tempDirectory,
                 redirectEncoding: Encoding.ASCII);
 
-            Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
+            AssertEx.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
 
 ?
 ~
@@ -1193,7 +1193,7 @@ End Module
                 _tempDirectory,
                 redirectEncoding: UTF8Encoding);
 
-            Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
+            AssertEx.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
 
 ♕
 ~
@@ -1302,7 +1302,7 @@ static void Main(string[] args)
                 _tempDirectory,
                 redirectEncoding: UTF8Encoding);
 
-            Assert.Equal(@"src.vb(1) : error BC30037: Character is not valid.
+            AssertEx.Equal(@"src.vb(1) : error BC30037: Character is not valid.
 
 ♕
 ~", result.Output.Trim().Replace(srcFile, "src.vb"));
