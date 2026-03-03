@@ -51,7 +51,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
     public void DebugInfo_NativePdb()
         => DebugInfoCore(DebugInformationFormat.Pdb, useSymReader: true);
 
-    private void DebugInfoCore(DebugInformationFormat format, bool useSymReader)
+    private static void DebugInfoCore(DebugInformationFormat format, bool useSymReader)
     {
         var source = """
 
