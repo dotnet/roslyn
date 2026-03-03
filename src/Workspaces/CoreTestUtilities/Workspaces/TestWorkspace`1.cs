@@ -337,8 +337,10 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         {
             case ApplyChangesKind.AddDocument:
             case ApplyChangesKind.RemoveDocument:
-            case ApplyChangesKind.RemoveProject:
                 return KindSupportsAddRemoveDocument();
+
+            case ApplyChangesKind.RemoveProject:
+                return KindSupportsRemoveProject();
 
             case ApplyChangesKind.AddAdditionalDocument:
             case ApplyChangesKind.RemoveAdditionalDocument:
@@ -366,6 +368,15 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     }
 
     private bool KindSupportsAddRemoveDocument()
+        => _workspaceKind switch
+        {
+            WorkspaceKind.MiscellaneousFiles => false,
+            WorkspaceKind.Interactive => false,
+            WorkspaceKind.SemanticSearch => false,
+            _ => true
+        };
+
+    private bool KindSupportsRemoveProject()
         => _workspaceKind switch
         {
             WorkspaceKind.MiscellaneousFiles => false,
