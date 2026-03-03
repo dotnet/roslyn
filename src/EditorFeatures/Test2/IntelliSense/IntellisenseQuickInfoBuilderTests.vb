@@ -1282,7 +1282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         ' Consider displaying unions as `union MyUnion` instead of `struct MyUnion` and with a separate classification type
         ' Consider listing case types in QuickInfo tooltip for unions
         <WpfFact>
-        Public Async Function QuickInfoForUnions() As Task
+        Public Async Function QuickInfoForUnions_01() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -1295,6 +1295,92 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 {
                                     Test$$Union x = default;
                                 }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ValueTypeInternal)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "struct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "TestUnion", navigationAction:=Sub() Return, "TestUnion"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
+        <WpfFact>
+        Public Async Function QuickInfoForUnions_02() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <Document>
+                            [System.Runtime.CompilerServices.Union]
+                            class TestUnion { }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    Test$$Union x = default;
+                                }
+                            }
+
+                            namespace System.Runtime.CompilerServices
+                            {
+                                public class UnionAttribute : System.Attribute { }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ClassInternal)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "class"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "TestUnion", navigationAction:=Sub() Return, "TestUnion"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
+        <WpfFact>
+        Public Async Function QuickInfoForUnions_03() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <Document>
+                            [System.Runtime.CompilerServices.Union]
+                            struct TestUnion { }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    Test$$Union x = default;
+                                }
+                            }
+
+                            namespace System.Runtime.CompilerServices
+                            {
+                                public class UnionAttribute : System.Attribute { }
                             }
                         </Document>
                     </Project>
