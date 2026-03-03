@@ -309,17 +309,17 @@
       </trans-unit>
       <trans-unit id="cmdidLogWorkspaceStructure|ButtonText">
         <source>Log Roslyn Workspace Structure</source>
-        <target state="new">Log Roslyn Workspace Structure</target>
+        <target state="translated">Protokolovat strukturu pracovního prostoru Roslyn</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidLogWorkspaceStructure|CommandName">
         <source>LogRoslynWorkspaceStructure</source>
-        <target state="new">LogRoslynWorkspaceStructure</target>
+        <target state="translated">LogRoslynWorkspaceStructure</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidLogWorkspaceStructure|LocCanonicalName">
         <source>Project.LogRoslynWorkspaceStructure</source>
-        <target state="new">Project.LogRoslynWorkspaceStructure</target>
+        <target state="translated">Project.LogRoslynWorkspaceStructure</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">

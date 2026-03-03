@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -7,6 +7,7 @@ using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -90,7 +91,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: LengthCheck pass (false positive)")]
     public bool SameLength_LengthCheck_Pass()
-        => _sameLengthIndex.GetTestAccessor().LengthCheckProbablyMatches("XyzWvq");
+        => _sameLengthIndex.GetTestAccessor().LengthCheckPasses("XyzWvq");
 
     /// <summary>
     /// "XyzWvq" (length 6) against varied-length symbols → length check may or may not pass
@@ -98,7 +99,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "VariedLen: LengthCheck pass")]
     public bool VariedLength_LengthCheck_Pass()
-        => _variedLengthIndex.GetTestAccessor().LengthCheckProbablyMatches("XyzWvq");
+        => _variedLengthIndex.GetTestAccessor().LengthCheckPasses("XyzWvq");
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Bigram count check: provides strong filtering even for same-length symbols
@@ -112,7 +113,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: BigramCheck reject (true negative!)")]
     public bool SameLength_BigramCheck_Reject()
-        => _sameLengthIndex.GetTestAccessor().BigramCountCheckProbablyMatches("XyzWvq");
+        => _sameLengthIndex.GetTestAccessor().BigramCountCheckPasses("XyzWvq");
 
     /// <summary>
     /// "AabBcd" (length 6) against same-length index → bigram check passes because these
@@ -120,7 +121,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: BigramCheck pass (true positive)")]
     public bool SameLength_BigramCheck_Pass()
-        => _sameLengthIndex.GetTestAccessor().BigramCountCheckProbablyMatches("AabBcd");
+        => _sameLengthIndex.GetTestAccessor().BigramCountCheckPasses("AabBcd");
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Combined: CouldContainNavigateToMatch with fuzzy result
@@ -133,7 +134,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: Combined reject (bigram saves)")]
     public bool SameLength_Combined_Reject()
-        => _sameLengthIndex.CouldContainNavigateToMatch("XyzWvq", null, out _);
+        => _sameLengthIndex.CouldContainNavigateToMatch("XyzWvq", null) != PatternMatcherKind.None;
 
     /// <summary>
     /// Pattern "AabBxx": hump check passes (A,B stored), length check passes, bigram check
@@ -141,7 +142,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: Combined pass")]
     public bool SameLength_Combined_Pass()
-        => _sameLengthIndex.CouldContainNavigateToMatch("AabBxx", null, out _);
+        => _sameLengthIndex.CouldContainNavigateToMatch("AabBxx", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Longer patterns: bigram filtering gets stronger
@@ -152,14 +153,14 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: BigramCheck reject len=8")]
     public bool SameLength_BigramCheck_Reject_Len8()
-        => _sameLengthIndex.GetTestAccessor().BigramCountCheckProbablyMatches("XyzWvqRs");
+        => _sameLengthIndex.GetTestAccessor().BigramCountCheckPasses("XyzWvqRs");
 
     /// <summary>
     /// Length 10 pattern (k=2, min_shared=5): needs ≥ 5 of 9 bigrams. Very selective.
     /// </summary>
     [Benchmark(Description = "VariedLen: BigramCheck reject len=10")]
     public bool VariedLength_BigramCheck_Reject_Len10()
-        => _variedLengthIndex.GetTestAccessor().BigramCountCheckProbablyMatches("XyzWvqRsTu");
+        => _variedLengthIndex.GetTestAccessor().BigramCountCheckPasses("XyzWvqRsTu");
 
     // ═══════════════════════════════════════════════════════════════════════════
 

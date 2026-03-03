@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
                     if (conversion.Method is not null)
                     {
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, conversion.Method, syntax);
                         ReportUseSite(conversion.Method, diagnostics, syntax.Location);
                     }
 
@@ -468,6 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(elementField is { });
 
                     diagnostics.ReportUseSite(elementField, syntax);
+                    AssertNotUnsafeMemberAccess(elementField); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
 
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {
@@ -1569,6 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, collectionBuilderMethod, syntax);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
             Debug.Assert(!collectionBuilderMethod.IsExtensionBlockMember());
@@ -1701,6 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = memberResolutionResult.Member;
 
                 binder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
                 ImmutableSegmentedDictionary<string, Symbol> requiredMembers = GetMembersRequiringInitialization(method);
@@ -1950,6 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else if (addMethods.Length == 1)
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
+                                    addMethodBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, addMethods[0], syntax);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
                                     Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }
@@ -2893,10 +2898,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.StackAllocToPointerType:
-                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics);
+                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     stackAllocType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
+                    // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
+                    // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
+                    // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
+                    if (boundStackAlloc.InitializerOpt is null &&
+                        ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
+                    {
+                        ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
+                    }
+
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
                     break;
@@ -3526,7 +3540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if ((selectedMethod.HasParameterContainingPointerType() || selectedMethod.ReturnType.ContainsPointerOrFunctionPointer())
-                && ReportUnsafeIfNotAllowed(syntax, diagnostics))
+                && ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Legacy))
             {
                 return true;
             }
@@ -3537,6 +3551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, selectedMethod, syntax);
             ReportDiagnosticsIfDisallowedExtension(diagnostics, selectedMethod, syntax);
 
             // No use site errors, but there could be use site warnings.

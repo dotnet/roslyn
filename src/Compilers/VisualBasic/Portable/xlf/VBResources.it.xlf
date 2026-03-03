@@ -391,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opzioni del compilatore Visual Basic
+        <target state="translated">                  Opzioni del compilatore Visual Basic
 
                                   - FILE DI OUTPUT -
 -out:&lt;file&gt;                       Specifica il nome del file di output.
@@ -467,7 +467,7 @@
                                   Consente di specificare un file in cui registrare tutte le diagnostiche del
                                   compilatore e dell'analizzatore in formato SARIF.
                                   sarif_version:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
-                                  si riferiscono entrambi a SARIF versione 2.1.0.
+                                  e si riferiscono entrambi a SARIF versione 2.1.0.
 -reportanalyzer                   Restituisce informazioni aggiuntive dell'analizzatore, ad
                                   esempio il tempo di esecuzione.
 -skipanalyzers[+|-]               Ignora l'esecuzione degli analizzatore diagnostici.
@@ -481,9 +481,9 @@
                                   import_list:namespace,...
 -langversion:?                    Visualizza i valori consentiti per la versione del linguaggio
 -langversion:&lt;string&gt;             Consente di specificare la versione del linguaggio, ad esempio
-                                  'default' (ultima versione principale) o
-                                  'latest' (ultima versione che include versioni secondarie)
-                                  o versioni specifiche come '14' o '15.3'
+                                  `default` (ultima versione principale) o
+                                  `latest` (ultima versione che include versioni secondarie)
+                                  o versioni specifiche come `14` o `15.3`
 -optionexplicit[+|-]              Richiede la dichiarazione esplicita delle variabili.
 -optioninfer[+|-]                 Consente l'inferenza del tipo delle variabili.
 -rootnamespace:&lt;string&gt;           Consente di specificare lo spazio dei nomi radice per tutti i tipi
@@ -509,11 +509,11 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum
                                   del file di origine archiviato nel file PDB. I valori supportati sono:
-                                  SHA1 o SHA256 (impostazione predefinita).
+                                  SHA1, SHA256 (valore predefinito), SHA384 e SHA512.
 -codepage:&lt;number&gt;                Consente di specificare la tabella codici da usare all'apertura dei file
                                   di origine.
 -delaysign[+|-]                   Ritarda la firma dell'assembly usando solo la parte pubblica della
-                                  della chiave con nome sicuro.
+                                  chiave con nome sicuro.
 -publicsign[+|-]                  Firma pubblicamente l'assembly usando solo la parte pubblica
                                   della chiave con nome sicuro.
 -errorreport:&lt;string&gt;             Consente di specificare come gestire gli errori interni del compilatore.
@@ -527,7 +527,7 @@
 -keycontainer:&lt;string&gt;            Consente di specificare un contenitore di chiavi con nome sicuro.
 -keyfile:&lt;file&gt;                   Consente di specificare un file di chiave con nome sicuro.
 -libpath:&lt;path_list&gt;              Elenco di directory in cui cercare
-                                  riferimenti ai metadati. (Delimitato da punto e virgola).
+                                  riferimenti ai metadati. (Delimitato da punto e virgola.)
 -main:&lt;class&gt;                     Consente di specificare la classe o il modulo che contiene
                                   Sub Main. Può essere anche una classe che
                                   eredita da System.Windows.Forms.Form.

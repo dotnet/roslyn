@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParamsArrayInLambdaOnly = 9100,
         ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
-        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
+        ERR_UnrecognizedAttributeVersion = 9103,
         // ERR_BadSpecialByRefUsing = 9104,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9105,
@@ -2462,6 +2462,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionArgumentsMustBeEmpty = 9357,
         ERR_CollectionRefLikeElementType = 9358,
         ERR_BadCollectionArgumentsArgCount = 9359,
+
+        ERR_UnsafeOperation = 9360,
+        ERR_UnsafeUninitializedStackAlloc = 9361,
+        ERR_UnsafeMemberOperation = 9362,
+        ERR_UnsafeMemberOperationCompat = 9363,
+        ERR_CallerUnsafeOverridingSafe = 9364,
+        ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
+        ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
+        ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
+        WRN_RequiresUnsafeAttributeLegacyRules = 9368,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

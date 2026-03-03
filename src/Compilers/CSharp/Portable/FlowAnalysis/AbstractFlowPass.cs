@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Visit(node);
         }
 
+        [DebuggerStepThrough]
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return false; // just let the original exception bubble up.

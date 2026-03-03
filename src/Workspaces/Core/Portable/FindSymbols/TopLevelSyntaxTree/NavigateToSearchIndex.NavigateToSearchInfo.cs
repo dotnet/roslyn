@@ -210,11 +210,8 @@ internal sealed partial class NavigateToSearchIndex
                 // Record symbol name length in the bitset for fuzzy-match pre-filtering.
                 lengthBitset |= 1UL << Math.Min(name.Length, MaxSymbolNameLengthBitIndex);
 
-                // Lowercase the name into the provided buffer for hump-prefix and trigram storage.
                 name.ToLowerInvariant(loweredName);
 
-                // Break the name into character-parts and store hump-initial data.
-                // For "GooBar" -> parts ["Goo", "Bar"] -> hump initials G, B.
                 using var charParts = TemporaryArray<TextSpan>.Empty;
                 StringBreaker.AddCharacterParts(name, ref charParts.AsRef());
 
@@ -296,6 +293,70 @@ internal sealed partial class NavigateToSearchIndex
             }
         }
 
+        /// <summary>
+        /// Stores individual hump-initial characters (uppercased) and all ordered pairs of
+        /// hump-initial characters. For "GooBarQuux" (humps G, B, Q): stores "G", "B", "Q",
+        /// "GB", "GQ", "BQ". Storing all pairs (not just adjacent) enables non-contiguous
+        /// CamelCase matching like "GQ" matching "GooBarQuux" by skipping "Bar".
+        /// </summary>
+        private static void AddHumpData(string name, in TemporaryArray<TextSpan> charParts, HashSet<string> humpStrings)
+        {
+            foreach (var part in charParts)
+                AddToSet(humpStrings, [char.ToUpperInvariant(name[part.Start])]);
+
+            for (var i = 0; i < charParts.Count; i++)
+            {
+                var ci = char.ToUpperInvariant(name[charParts[i].Start]);
+                for (var j = i + 1; j < charParts.Count; j++)
+                {
+                    var cj = char.ToUpperInvariant(name[charParts[j].Start]);
+                    AddToSet(humpStrings, [ci, cj]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stores lowercased prefixes of each character-part (hump). For "GooBar" with parts
+        /// "Goo", "Bar": stores "g", "go", "goo", "b", "ba", "bar". Used by the all-lowercase
+        /// DP to check whether a pattern can be split into segments that each match a hump prefix.
+        /// </summary>
+        private static void AddHumpPrefixData(in TemporaryArray<TextSpan> charParts, ReadOnlySpan<char> loweredName, HashSet<string> humpPrefixStrings)
+        {
+            foreach (var part in charParts)
+            {
+                for (var prefixLen = 1; prefixLen <= part.Length; prefixLen++)
+                    AddToSet(humpPrefixStrings, loweredName.Slice(part.Start, prefixLen));
+            }
+        }
+
+        /// <summary>
+        /// Stores lowercased trigrams (3-character sliding windows) of each word-part.
+        /// For "Readline": stores "rea", "ead", "adl", "dli", "lin", "ine".
+        /// </summary>
+        private static void AddTrigramData(string name, ReadOnlySpan<char> loweredName, HashSet<string> trigramStrings)
+        {
+            using var wordParts = TemporaryArray<TextSpan>.Empty;
+            StringBreaker.AddWordParts(name, ref wordParts.AsRef());
+
+            foreach (var part in wordParts)
+            {
+                if (part.Length < 3)
+                    continue;
+
+                for (var i = 0; i + 3 <= part.Length; i++)
+                    AddToSet(trigramStrings, loweredName.Slice(part.Start + i, 3));
+            }
+        }
+
+        private static void AddToSet(HashSet<string> set, ReadOnlySpan<char> value)
+        {
+#if NET9_0_OR_GREATER
+            set.GetAlternateLookup<ReadOnlySpan<char>>().Add(value);
+#else
+            set.Add(value.ToString());
+#endif
+        }
+
         private static void AddContainerData(string fullyQualifiedContainerName, HashSet<char> containerChars)
         {
             if (string.IsNullOrEmpty(fullyQualifiedContainerName))
@@ -312,28 +373,32 @@ internal sealed partial class NavigateToSearchIndex
         }
 
         /// <summary>
-        /// Returns <see langword="true"/> if this document probably contains at least one symbol whose
-        /// name matches <paramref name="patternName"/> and (if specified) whose container matches
-        /// <paramref name="patternContainer"/>. Returns <see langword="false"/> if the document
-        /// definitely does not contain such a symbol (modulo intentionally unsupported match kinds like
+        /// Returns a <see cref="PatternMatcherKind"/> flags value indicating which matching strategies
+        /// are worth attempting on this document's symbols. Returns <see cref="PatternMatcherKind.None"/>
+        /// if the document definitely does not contain a symbol matching <paramref name="patternName"/>
+        /// (modulo intentionally unsupported match kinds like
         /// <see cref="PatternMatching.PatternMatchKind.NonLowercaseSubstring"/>).
-        /// <para/>
-        /// When returning <see langword="true"/>, <paramref name="allowFuzzyMatching"/> indicates whether the caller
-        /// should enable fuzzy matching as a fallback after non-fuzzy checks.
         /// </summary>
-        public bool ProbablyContainsMatch(string patternName, string? patternContainer, out bool allowFuzzyMatching)
+        public PatternMatcherKind CouldContainNavigateToMatch(string patternName, string? patternContainer)
         {
-            var nonFuzzyPasses = NonFuzzyCheckPasses(patternName);
+            var result = PatternMatcherKind.None;
+
+            if (NonFuzzyCheckPasses(patternName))
+                result |= PatternMatcherKind.Standard;
 
             // Fuzzy matching requires BOTH: (1) a symbol of compatible length exists in the document,
             // AND (2) enough of the pattern's bigrams are present. The length check is cheap and fast;
             // the bigram check uses the q-gram count lemma to filter more precisely for longer patterns.
-            allowFuzzyMatching = LengthCheckPasses(patternName) && BigramCountCheckPasses(patternName);
+            if (LengthCheckPasses(patternName) && BigramCountCheckPasses(patternName))
+                result |= PatternMatcherKind.Fuzzy;
 
-            if (!nonFuzzyPasses && !allowFuzzyMatching)
-                return false;
+            if (result == PatternMatcherKind.None)
+                return PatternMatcherKind.None;
 
-            return patternContainer == null || ContainerProbablyMatches(patternContainer);
+            if (patternContainer != null && !ContainerCheckPasses(patternContainer))
+                return PatternMatcherKind.None;
+
+            return result;
         }
 
         /// <summary>
@@ -346,11 +411,6 @@ internal sealed partial class NavigateToSearchIndex
         /// </summary>
         private bool NonFuzzyCheckPasses(ReadOnlySpan<char> pattern)
         {
-            // Strip leading non-letter/digit characters upfront (e.g., "@static" → "static")
-            // to avoid a wasted hump/trigram pass on the raw pattern when it has a junk prefix.
-            while (pattern.Length > 0 && !char.IsLetterOrDigit(pattern[0]))
-                pattern = pattern[1..];
-
             if (pattern.Length == 0)
                 return false;
 
@@ -379,6 +439,19 @@ internal sealed partial class NavigateToSearchIndex
 
         private bool HumpOrTrigramCheckPasses(ReadOnlySpan<char> pattern)
         {
+            // Strip leading and trailing non-word characters from each sub-word (e.g., "@static" →
+            // "static", "[class]" → "class") to match how PatternMatcher.PatternSegment extracts
+            // sub-words. Done here so that each segment after space/asterisk splitting is cleaned
+            // independently (e.g., "[class] [structure]" → "class", "structure").
+            while (pattern.Length > 0 && !PatternMatcher.IsWordChar(pattern[0]))
+                pattern = pattern[1..];
+
+            while (pattern.Length > 0 && !PatternMatcher.IsWordChar(pattern[^1]))
+                pattern = pattern[..^1];
+
+            if (pattern.Length == 0)
+                return false;
+
             var isAllLowercase = IsAllLowercase(pattern);
 
             // Note: this order is relevant.  The trigram check can often return faster than the hump check
@@ -400,7 +473,7 @@ internal sealed partial class NavigateToSearchIndex
         /// For an <b>all-lowercase</b> pattern like <c>"goo"</c>, we cannot determine hump boundaries,
         /// so we fall back to checking just the first character uppercased: 'G' ∈ set → <see langword="true"/>.
         /// </summary>
-        public bool ContainerProbablyMatches(ReadOnlySpan<char> patternContainer)
+        public bool ContainerCheckPasses(ReadOnlySpan<char> patternContainer)
         {
             if (_containerCharSet == null || patternContainer.Length == 0)
                 return false;
@@ -604,8 +677,8 @@ internal sealed partial class NavigateToSearchIndex
         /// <summary>
         /// Checks if any symbol name length in the document is close enough to the pattern length
         /// for a fuzzy match to be possible. The allowed delta is determined by
-        /// <see cref="WordSimilarityChecker.GetThreshold(int)"/>: ±1 for patterns of length 3–4,
-        /// ±2 for length 5+. Patterns shorter than <see cref="WordSimilarityChecker.MinFuzzyLength"/>
+        /// <see cref="WordSimilarityChecker.GetThreshold(int)"/>: ±1 for patterns of length 3–5,
+        /// ±2 for length 6+. Patterns shorter than <see cref="WordSimilarityChecker.MinFuzzyLength"/>
         /// are rejected outright because <see cref="WordSimilarityChecker.AreSimilar(string, out double)"/>
         /// disables fuzzy matching for them.
         /// </summary>
@@ -656,7 +729,7 @@ internal sealed partial class NavigateToSearchIndex
         /// <list type="bullet">
         /// <item>Length 3: k=1, min_shared = 3−1−2 = 0 → cannot filter (always returns true)</item>
         /// <item>Length 4: k=1, min_shared = 4−1−2 = 1 → need ≥ 1 of 3 bigrams</item>
-        /// <item>Length 5: k=2, min_shared = 5−1−4 = 0 → cannot filter (always returns true)</item>
+        /// <item>Length 5: k=1, min_shared = 5−1−2 = 2 → need ≥ 2 of 4 bigrams</item>
         /// <item>Length 6: k=2, min_shared = 6−1−4 = 1 → need ≥ 1 of 5 bigrams</item>
         /// <item>Length 7: k=2, min_shared = 7−1−4 = 2 → need ≥ 2 of 6 bigrams</item>
         /// <item>Length 8+: increasingly strong filtering</item>
@@ -680,9 +753,12 @@ internal sealed partial class NavigateToSearchIndex
                         + FuzzyBigramCharIndex(char.ToLowerInvariant(pattern[i + 1]));
                 if ((_fuzzyBigramBitset[idx >> 6] & (1UL << (idx & 63))) != 0)
                     count++;
+
+                if (count >= minShared)
+                    return true;
             }
 
-            return count >= minShared;
+            return false;
         }
 
         private static bool ContainsChar(FrozenSet<string> set, char c)
