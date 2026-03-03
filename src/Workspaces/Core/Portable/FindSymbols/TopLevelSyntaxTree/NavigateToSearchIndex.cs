@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -29,13 +29,12 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
     }
 
     /// <summary>
-    /// Returns <see langword="true"/> if this document probably contains at least one symbol whose
-    /// name matches <paramref name="patternName"/> and (if specified) whose container matches
-    /// <paramref name="patternContainer"/>. Used by NavigateTo to skip documents early.
-    /// <paramref name="allowFuzzyMatching"/> indicates which matching modes are worth attempting.
+    /// Returns the <see cref="PatternMatcherKind"/> flags indicating which matching strategies are
+    /// worth attempting for this document. Returns <see cref="PatternMatcherKind.None"/> if the
+    /// document can be skipped entirely. Used by NavigateTo to skip documents early.
     /// </summary>
-    internal bool CouldContainNavigateToMatch(string patternName, string? patternContainer, out bool allowFuzzyMatching)
-        => _navigateToSearchInfo.ProbablyContainsMatch(patternName, patternContainer, out allowFuzzyMatching);
+    internal PatternMatcherKind CouldContainNavigateToMatch(string patternName, string? patternContainer)
+        => _navigateToSearchInfo.CouldContainNavigateToMatch(patternName, patternContainer);
 
     public static ValueTask<NavigateToSearchIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
@@ -60,17 +59,20 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
 
     internal readonly struct TestAccessor(NavigateToSearchIndex index)
     {
-        public bool HumpCheckProbablyMatches(string patternName)
+        public bool HumpCheckPasses(string patternName)
             => index._navigateToSearchInfo.HumpCheckPasses(patternName);
 
-        public bool TrigramCheckProbablyMatches(string patternName)
+        public bool TrigramCheckPasses(string patternName)
             => index._navigateToSearchInfo.TrigramCheckPasses(patternName);
 
-        public bool LengthCheckProbablyMatches(string patternName)
+        public bool LengthCheckPasses(string patternName)
             => index._navigateToSearchInfo.LengthCheckPasses(patternName);
 
-        public bool ContainerCheckProbablyMatches(string patternContainer)
-            => index._navigateToSearchInfo.ContainerProbablyMatches(patternContainer);
+        public bool BigramCountCheckPasses(string patternName)
+            => index._navigateToSearchInfo.BigramCountCheckPasses(patternName);
+
+        public bool ContainerCheckPasses(string patternContainer)
+            => index._navigateToSearchInfo.ContainerCheckPasses(patternContainer);
 
         public static NavigateToSearchIndex CreateIndex(ImmutableArray<DeclaredSymbolInfo> infos)
         {

@@ -140,7 +140,8 @@ internal sealed partial class DocumentOutlineViewModel
         cancellationToken.ThrowIfCancellationRequested();
 
         using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var filteredDocumentSymbols);
-        using var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false, allowFuzzyMatching: true);
+        using var patternMatcher = PatternMatcher.CreatePatternMatcher(
+            pattern, includeMatchedSpans: false, PatternMatcherKind.Standard | PatternMatcherKind.Fuzzy);
 
         foreach (var documentSymbol in documentSymbolData)
         {
@@ -151,7 +152,6 @@ internal sealed partial class DocumentOutlineViewModel
 
         return filteredDocumentSymbols.ToImmutableAndClear();
 
-        // Returns true if the name of one of the tree nodes results in a pattern match.
         static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

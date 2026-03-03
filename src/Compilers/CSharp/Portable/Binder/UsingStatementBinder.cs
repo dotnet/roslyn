@@ -249,6 +249,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (hasAwait)
                     {
                         awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                        if (awaitableType is not null) AssertNotUnsafeMemberAccess(awaitableType);
+                    }
+                    else
+                    {
+                        var disposeMethod = originalBinder.Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                        if (disposeMethod != null)
+                        {
+                            originalBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, syntax);
+                        }
                     }
 
                     return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);

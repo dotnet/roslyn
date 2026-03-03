@@ -293,13 +293,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryGetDisposeMethod(SyntaxNode forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, out MethodSymbol disposeMethod)
         {
-            if (enumeratorInfo.IsAsync)
+            return TryGetDisposeMethod(_compilation, forEachSyntax, enumeratorInfo.IsAsync, _diagnostics, out disposeMethod);
+        }
+
+        internal static bool TryGetDisposeMethod(CSharpCompilation compilation, SyntaxNode syntax, bool isAsync, BindingDiagnosticBag diagnostics, out MethodSymbol disposeMethod)
+        {
+            if (isAsync)
             {
-                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, _diagnostics, syntax: forEachSyntax);
+                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, diagnostics, syntax: syntax);
                 return (object)disposeMethod != null;
             }
 
-            return Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod);
+            return Binder.TryGetSpecialTypeMember(compilation, SpecialMember.System_IDisposable__Dispose, syntax, diagnostics, out disposeMethod);
         }
 
         /// <summary>
@@ -351,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                containingMember: _factory.CurrentFunction,
                                                containingType: _factory.CurrentType,
                                                location: enumeratorInfo.Location);
+            // Unsafe member access diagnostics reported during binding.
 
             if (implementsInterface || !(enumeratorInfo.PatternDisposeInfo is null))
             {

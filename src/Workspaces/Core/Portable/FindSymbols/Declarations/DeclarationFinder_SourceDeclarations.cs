@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -213,7 +213,7 @@ internal static partial class DeclarationFinder
         // If we don't have a dot in the pattern, just make a pattern matcher for the entire
         // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
         // the dot.
-        using var nameMatcher = PatternMatcher.CreatePatternMatcher(namePart, includeMatchedSpans: false, allowFuzzyMatching: false);
+        using var nameMatcher = PatternMatcher.CreatePatternMatcher(namePart, includeMatchedSpans: false);
         using var query = SearchQuery.CreateCustom(nameMatcher.Matches);
 
         var symbolAndProjectIds = await searchAsync(query).ConfigureAwait(false);

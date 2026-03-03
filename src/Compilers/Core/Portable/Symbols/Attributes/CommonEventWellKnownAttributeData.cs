@@ -11,6 +11,22 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class CommonEventWellKnownAttributeData : WellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
+        private bool _hasRequiresUnsafeAttribute;
+        public bool HasRequiresUnsafeAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasRequiresUnsafeAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasRequiresUnsafeAttribute = value;
+                SetDataStored();
+            }
+        }
+
         private bool _hasSpecialNameAttribute;
         public bool HasSpecialNameAttribute
         {

@@ -2339,6 +2339,39 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             sourceCodeKind: SourceCodeKind.Regular);
 
     [Fact]
+    public Task TestMethodThroughExtensionProperty()
+        => TestAsync("""
+            public enum Foo
+            {
+                Bar
+            }
+
+            public class Description(Foo foo)
+            {
+                public void Baz(int a, string b)
+                {
+                }
+            }
+
+            public static class FooEx
+            {
+                extension(Foo foo)
+                {
+                    public Description Description => new(foo);
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    [|Foo.Bar.Description.Baz($$
+                |]}
+            }
+            """, [new SignatureHelpTestItem("void Description.Baz(int a, string b)", currentParameterIndex: 0)],
+            sourceCodeKind: SourceCodeKind.Regular);
+
+    [Fact]
     public Task TestLightweightOverloadResolution2()
         => TestAsync(
             """

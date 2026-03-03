@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -43,6 +44,9 @@ namespace Roslyn.Test.Utilities;
 public abstract partial class AbstractLanguageServerProtocolTests
 {
     protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
+
+    private protected static DocumentUri CreateAbsoluteDocumentUri(string suffix)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath(suffix));
 
     private protected readonly AbstractLspLogger TestOutputLspLogger;
     protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)

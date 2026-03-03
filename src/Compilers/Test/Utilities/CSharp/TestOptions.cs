@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key1, value).Add(key2, value));
         }
 
+        public static CSharpCompilationOptions AddSpecificDiagnosticOptions(this CSharpCompilationOptions options, string key, ReportDiagnostic value)
+        {
+            return options.WithSpecificDiagnosticOptions(options.SpecificDiagnosticOptions.Add(key, value));
+        }
+
         /// <summary>
         /// Create <see cref="CSharpCompilationOptions"/> with the maximum warning level.
         /// </summary>

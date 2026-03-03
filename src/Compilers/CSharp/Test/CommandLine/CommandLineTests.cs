@@ -1722,6 +1722,9 @@ class C
             // - [ ] replace all references to C# "Next" (such as `TestOptions.RegularNext` or `LanguageVersionFacts.CSharpNext`) with the new version and fix failing tests
             // - [ ] update _MaxAvailableLangVersion cap (a relevant test should break when new version is introduced)
             // - [ ] update the "UpgradeProject" codefixer
+            // - [ ] Remove the `ExperimentalUrl` section from any entries for language features being shipped in Syntax.xml and OperationInterfaces.xml, and rerun the generator
+            // - [ ] Search the codebase for references tied to issues linked from Syntax.xml and OperationInterfaces.xml, and remove suppressions or attributes added for those issues
+            // - [ ] Search for any remaining uses of `Experimental` on APIs and remove if the feature is being shipped in stable form
             // - [ ] test VS insertion and deal with breaking changes. (note: the runtime repo uses "preview" so breaks are resolved sooner)
             //
             // Other repos also need updates:
@@ -5829,6 +5832,16 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:sha256", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
+
+            parsedArgs = DefaultParse(["/checksumAlgorithm:sHa384", "a.cs"], WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha384, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
+
+            parsedArgs = DefaultParse(["/checksumAlgorithm:sha512", "a.cs"], WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha512, parsedArgs.ChecksumAlgorithm);
             Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);

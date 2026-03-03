@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="AllAnalyzersConcurrentMessage">
         <source>All analyzers have enabled concurrent execution.</source>
-        <target state="new">All analyzers have enabled concurrent execution.</target>
+        <target state="translated">Для всех анализаторов включено параллельное выполнение.</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
@@ -15,7 +15,7 @@
       <trans-unit id="Attribute">
         <source>attribute</source>
         <target state="translated">атрибут</target>
-        <note />
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -190,7 +190,7 @@
       </trans-unit>
       <trans-unit id="NonConcurrentAnalyzersHeader">
         <source>Analyzers that have not enabled concurrent execution:</source>
-        <target state="new">Analyzers that have not enabled concurrent execution:</target>
+        <target state="translated">Анализаторы, для которых не включено параллельное выполнение:</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -285,7 +285,7 @@
       </trans-unit>
       <trans-unit id="SuppressorsNonConcurrentCountMessage">
         <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
-        <target state="new">NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</target>
+        <target state="translated">ПРИМЕЧАНИЕ. Обнаружены средства подавления диагностики: {0}. Средства подавления диагностики никогда не выполняются одновременно.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
@@ -321,7 +321,7 @@
       <trans-unit id="Class1">
         <source>class</source>
         <target state="translated">класс</target>
-        <note />
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
@@ -331,7 +331,7 @@
       <trans-unit id="Delegate1">
         <source>delegate</source>
         <target state="translated">делегат</target>
-        <note />
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
@@ -341,7 +341,7 @@
       <trans-unit id="Event1">
         <source>event</source>
         <target state="translated">событие</target>
-        <note />
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
@@ -356,7 +356,7 @@
       <trans-unit id="Interface1">
         <source>interface</source>
         <target state="translated">интерфейс</target>
-        <note />
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
@@ -381,7 +381,7 @@
       <trans-unit id="Return1">
         <source>return</source>
         <target state="translated">возврат</target>
-        <note />
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
