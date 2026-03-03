@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetInferredReturnType(RefKind refKind, TypeWithAnnotations inferredReturnType)
         {
             Debug.Assert(inferredReturnType.HasType);
-            Debug.Assert(_returnType.Type.IsErrorType());
+            Debug.Assert((object)_returnType.Type == ReturnTypeIsBeingInferred);
             Debug.Assert(refKind != RefKind.RefReadOnly);
 
             var runtimeAsyncEnabledDuringInference = IsAsync && _binder.Compilation.IsRuntimeAsyncEnabledIn(this);

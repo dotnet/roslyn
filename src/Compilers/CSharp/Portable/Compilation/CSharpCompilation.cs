@@ -356,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
+            Debug.Assert(method.IsDefinition);
 
             var runtimeAsyncEnabledInMethod = symbol switch
             {
