@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">O membro não seguro "{0}" não pode implementar o membro seguro "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">O membro não seguro "{0}" não pode implementar implicitamente o membro seguro "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">O membro não seguro "{0}" não pode substituir o membro seguro "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute não pode ser aplicado a este símbolo.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">"{0}" está definido em um módulo com uma versão não {1} reconhecida, esperando "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">"{0}" deve ser usado em um contexto não seguro porque está marcado como "RequiresUnsafe" ou "extern"</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">"{0}" deve ser usado em um contexto não seguro porque tem ponteiros em sua assinatura</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Esta operação só pode ser usada em um contexto não seguro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">A expressão stackalloc sem um inicializador dentro de SkipLocalsInit só pode ser usada em um contexto não seguro</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">regras de segurança de memória atualizadas</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute só é válido de acordo com as regras de segurança de memória atualizadas.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute só é válido de acordo com as regras de segurança de memória atualizadas.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,7 +4183,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opções do Compilador do Visual C#
 
                        - ARQUIVOS DE SAÍDA -
@@ -4237,7 +4237,7 @@
 
                        - GERAÇÃO DE CÓDIGO -
 -debug[+|-]                   Emitir informações de depuração
--debug:{full|pdbonly|portable|embedded}
+-debug:{full|pdscriptly|portable|embedded}
                               Especificar o tipo de depuração ("full" é padrão,
                               "portable" é um formato de multiplataforma,
                               "embedded" é um formato de multiplataforma inserido
@@ -4305,7 +4305,7 @@
 -baseaddress:&lt;address&gt;        Endereço base da biblioteca a ser criada
 -checksumalgorithm:&lt;alg&gt;      Especificar o algoritmo para calcular a soma de verificação do arquivo de origem
                               soma de verificação armazenada no PDB. Os valores suportados são:
-                              SHA1 ou SHA256 (padrão).
+                              SHA1, SHA256 (padrão), SHA384 ou SHA512.
 -codepage:&lt;n&gt;                  Especificar a página de código a ser usada ao abrir os arquivos do
                               código-fonte
 -utf8output                   Mensagens do compilador de saída na codificação UTF-8
@@ -4323,7 +4323,7 @@
 -errorendlocation             Linha de saída e coluna do local final de
                               cada erro
 -preferreduilang              Especificar o nome do idioma de saída preferido.
--nosdkpath                    Desabilitar a pesquisa do caminho padrão do SDK nos conjuntos de bibliotecas padrão.
+-nosdkpath                    Desabilite a pesquisa do caminho padrão do SDK nos conjuntos de bibliotecas padrão.
 -sdkpath:&lt;path&gt;         Caminho usado para pesquisar assemblies de biblioteca padrão.
 -nostdlib[+|-]                Não referenciar à biblioteca padrão (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Especificar a versão do subsistema deste assembly

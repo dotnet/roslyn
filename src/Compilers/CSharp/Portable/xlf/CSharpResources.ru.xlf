@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">Небезопасный элемент "{0}" не может реализовывать безопасный элемент "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">Небезопасный элемент "{0}" не может неявно реализовывать безопасный элемент "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">Небезопасный элемент "{0}" не может переопределять безопасный элемент "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute невозможно применить к этому символу.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2689,27 +2689,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">"{0}" определен в модуле с нераспознанной версией {1}, ожидается "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как он помечен как RequiresUnsafe или extern</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как в его сигнатуре есть указатели</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Эту операцию можно использовать только в небезопасном контексте</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">Выражение stackalloc без инициализатора внутри SkipLocalsInit можно использовать только в небезопасном контексте</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3094,7 +3094,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">обновленные правила обеспечения безопасности памяти</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3884,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,7 +4183,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Параметры компилятора Visual C# 
 
                        - ВЫХОДНЫЕ ФАЙЛЫ - 
@@ -4206,7 +4206,7 @@
                               Itanium, x64, arm, arm64, anycpu32bitpreferred или
                               anycpu. По умолчанию используется anycpu.
 
-                       - ВХОДНЫЕ ФАЙЛЫ - 
+                       - ВХОДНЫЕ ФАЙЛЫ -
 --recurse:&lt;подстановочный знак&gt;           Включить все файлы в текущем каталоге и
                               вложенных каталогах в соответствии с подстановочными
                               знаками
@@ -4304,8 +4304,8 @@
                        - РАСШИРЕННЫЕ ПАРАМЕТРЫ - 
 -baseaddress:&lt;адрес&gt;        Базовый адрес для создаваемой библиотеки
 -checksumalgorithm:&lt;алгоритм&gt;      Указать алгоритм вычисления контрольной суммы исходного файла,
-                              хранящегося в PDB. Поддерживаемые значения:
-                              SHA1 или SHA256 (по умолчанию). 
+                              исходного файла, хранящегося в PDB. Поддерживаемые значения:
+                              SHA1, SHA256 (по умолчанию), SHA384 или SHA512.
 -codepage:&lt;n&gt;                 Указать кодовую страницу для использования при открытии исходных
                               файлов
 -utf8output                   Выводить сообщения компилятора в кодировке UTF-8
@@ -4322,7 +4322,7 @@
                               имя выходного файла с расширением .pdb)
 -errorendlocation             Строка вывода и столбец конечного расположения
                               каждой ошибки
--preferreduilang              Указать предпочитаемое имя языка вывода. 
+-preferreduilang              Указать предпочитаемое имя языка вывода.
 -nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию. 
 -sdkpath:&lt;путь&gt;         Путь, используемый для поиска стандартных сборок библиотек.
 -nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll)
@@ -4330,7 +4330,7 @@
 -lib:&lt;список файлов&gt;              Указать дополнительные каталоги для поиска
                               ссылок 
 -errorreport:&lt;строка&gt;         Указать, как обрабатывать внутренние ошибки компилятора:
-                              prompt (выводить запрос), send (отправлять), queue (ставить в очередь) или none (не выполнять никаких действий). Значение по умолчанию:
+                              prompt, send, queue или none. Значение по умолчанию:
                               queue.
 -appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
                               содержащий параметры привязки сборки 
