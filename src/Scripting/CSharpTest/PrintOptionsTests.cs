@@ -7,6 +7,7 @@
 using System;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests

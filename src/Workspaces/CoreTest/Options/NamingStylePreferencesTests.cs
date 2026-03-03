@@ -7,6 +7,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle;
