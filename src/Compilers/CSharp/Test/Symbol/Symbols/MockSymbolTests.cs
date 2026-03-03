@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   .Replace("Assembly: Assem1", "Assembly: Assem1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
   .Replace("Assembly: Assem3", "Assembly: Assem3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
 
-            Assert.Equal(expected, DumpSymbol(merged));
+            AssertEx.Equal(expected, DumpSymbol(merged));
 
             NamespaceSymbol merged2 = MergedNamespaceSymbol.Create(new NamespaceExtent(new MockAssemblySymbol("Merged2")), null,
                                                                   new NamespaceSymbol[] { root1 }.AsImmutable());

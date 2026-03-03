@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -55,22 +55,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var symbol = widgetClass.GetMembers(symbolName).Single();
             Assert.Equal(documentationId, symbol.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: false));
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>
@@ -117,22 +117,22 @@ class Widget
 
             var symbol = widgetClass.GetMembers(symbolName).Single();
             Assert.Equal(documentationId, symbol.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: false));
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+            AssertEx.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>

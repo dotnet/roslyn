@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var staticConstructorSymbol = _widgetClass.GetMembers(WellKnownMemberNames.StaticConstructorName).Single();
             Assert.Equal("M:Acme.Widget.#cctor", staticConstructorSymbol.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Acme.Widget.#cctor"">
     <summary>Static Constructor</summary>
 </member>
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var constructorSymbol = _widgetClass.InstanceConstructors.Single(c => !c.IsStatic && c.Parameters.Length == 0);
             Assert.Equal("M:Acme.Widget.#ctor", constructorSymbol.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Acme.Widget.#ctor"">
     <summary>Instance Constructor</summary> 
 </member>
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var parameterizedConstructorSymbol = _widgetClass.InstanceConstructors.Single(c => !c.IsStatic && c.Parameters.Length == 1);
             Assert.Equal("M:Acme.Widget.#ctor(System.String)", parameterizedConstructorSymbol.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Acme.Widget.#ctor(System.String)"">
     <summary>
     Parameterized Constructor
