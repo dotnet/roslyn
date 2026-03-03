@@ -363,17 +363,3 @@ static string GetUnixTypePipeName(string pipeName)
     // Unix-type pipes are actually writing to a file
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
 }
-
-static async Task WaitForClientProcessExitAsync(int clientProcessId, ILogger logger)
-{
-    try
-    {
-        using var clientProcess = Process.GetProcessById(clientProcessId);
-        await clientProcess.WaitForExitAsync();
-    }
-    catch (ArgumentException)
-    {
-        // The process has already exited or was never running.
-        logger.LogWarning("Client process {clientProcessId} is not running", clientProcessId);
-    }
-}
