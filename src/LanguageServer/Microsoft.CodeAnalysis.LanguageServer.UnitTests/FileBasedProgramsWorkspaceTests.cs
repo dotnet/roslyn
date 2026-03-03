@@ -174,6 +174,30 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     }
 
     [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_EntryPointClosed(bool mutatingLspWorkspace)
+    {
+        // Show that a file-based program project is unloaded when the entry point file is closed.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
+        await testLspServer.OpenDocumentAsync(looseFileUri, """
+            #:sdk Microsoft.Net.Sdk
+            Console.WriteLine("Hello World!");
+            """).ConfigureAwait(false);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
+
+        await testLspServer.CloseDocumentAsync(looseFileUri);
+
+        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Null(workspace);
+        Assert.Null(document);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestLooseFilesInCanonicalProject(bool mutatingLspWorkspace)
     {
         // Create a server that supports LSP misc files and verify no misc files present.

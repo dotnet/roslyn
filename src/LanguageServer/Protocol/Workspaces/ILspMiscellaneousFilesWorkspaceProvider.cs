@@ -22,6 +22,11 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
     bool ManagesWorkspace(Workspace workspace);
 
+    /// <summary>
+    /// Gets or adds a document to the appropriate workspace potentially based on the document's contents.
+    /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.
+    /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
+    /// </summary>
     ValueTask<(TextDocument document, bool alreadyExists)?> GetOrAddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo, CancellationToken cancellationToken);
 
     /// <summary>

@@ -169,6 +169,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // 5. Is `enableFileBasedProgramsWhenAmbiguous` enabled? (default: `false` in release, `true` in prerelease)
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to heuristic detection
+
+        // Note: Option 'EnableFileBasedProgramsWhenAmbiguous' is confusingly named.
+        // What it actually controls is whether to show semantic errors in miscellaneous files with top-level statements and no #: directives.
         if (!GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
         {
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
@@ -216,10 +219,17 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         async ValueTask<TextDocument> BeginLoadingFileBasedAppAsync()
         {
             Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
+            var documentFilePath = GetDocumentFilePath(documentUri);
+            Contract.ThrowIfFalse(languageInformation.LanguageName == LanguageNames.CSharp && !MiscellaneousFileUtilities.IsScriptFile(languageInformation, documentFilePath));
             // Note: for simplicity, the file-based app projects are always put in the host workspace, even when in the primordial state.
-            var primordialDoc = AddPrimordialDocument(_workspaceFactory.HostProjectFactory, GetDocumentFilePath(documentUri), documentInfo.SourceText, languageInformation);
-            Contract.ThrowIfNull(primordialDoc.FilePath);
-            await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, _workspaceFactory.HostProjectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild: true);
+            var workspace = _workspaceFactory.HostWorkspace;
+            var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms: true);
+            _workspaceFactory.HostProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
+            var id = projectInfo.Documents.Single().Id;
+            var primordialDoc = workspace.CurrentSolution.GetRequiredDocument(id);
+            await BeginLoadingProjectWithPrimordialAsync(documentFilePath, _workspaceFactory.HostProjectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild: true);
             return primordialDoc;
         }
 
@@ -264,34 +274,16 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    private TextDocument AddPrimordialDocument(ProjectSystemProjectFactory projectFactory, string documentFilePath, SourceText documentText, LanguageInformation languageInformation)
-    {
-        var workspace = projectFactory.Workspace;
-        var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
-        var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
-        var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
-
-        projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
-
-        // https://github.com/dotnet/roslyn/pull/78267
-        // Work around an issue where opening a Razor file in the misc workspace causes a crash.
-        if (languageInformation.LanguageName == LanguageInfoProvider.RazorLanguageName)
-        {
-            var docId = projectInfo.AdditionalDocuments.Single().Id;
-            return workspace.CurrentSolution.GetRequiredAdditionalDocument(docId);
-        }
-
-        var id = projectInfo.Documents.Single().Id;
-        return workspace.CurrentSolution.GetRequiredDocument(id);
-    }
-
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
-        // Note: we intentionally do not unload file-based apps in this path.
-        // See 'TryLoadProjectInMSBuildHostAsync'
         var documentPath = GetDocumentFilePath(uri);
-        return await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
+        // First try to remove from the canonical misc files loader if it was created
+        var removedFromCanonical = await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
+        if (removedFromCanonical)
+            return true;
+
+        // Fall back to the file-based programs logic
+        return await TryUnloadProjectAsync(documentPath);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
