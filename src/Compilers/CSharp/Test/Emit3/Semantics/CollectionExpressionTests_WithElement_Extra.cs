@@ -8197,6 +8197,38 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77784")]
+    public void ParamsCycle_MultipleConstructors_ClassContext()
+    {
+        string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public MyCollection() { _list = new(); }
+                    public MyCollection(params MyCollection<T> other) { _list = new(other); }
+                    public void Add(T t) { _list.Add(t); }
+                }
+
+                class C
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = [with(1)];
+                        foreach (var item in c)
+                            Console.Write(item);
+                    }
+                }
+                """;
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ParamsCycle_PrivateParameterlessConstructor()
     {
         string sourceA = """
