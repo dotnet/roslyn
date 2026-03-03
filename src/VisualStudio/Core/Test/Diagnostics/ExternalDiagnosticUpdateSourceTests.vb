@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <WpfFact>
-        Public Async Function TestExternalDiagnostics_UnsupportedIdTrueIfBuildNotStarted() As Task
+        Public Sub TestExternalDiagnostics_UnsupportedIdTrueIfBuildNotStarted()
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
                 Dim listener = workspace.GetService(Of AsynchronousOperationListenerProvider)()
                 Dim diagnosticWaiter = listener.GetWaiter(FeatureAttribute.DiagnosticService)
@@ -89,7 +89,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "CA1002"))
                 End Using
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         Public Async Function TestExternalDiagnosticsReported() As Task
