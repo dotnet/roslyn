@@ -19905,7 +19905,7 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation([unionSrc, UnionAttributeSource, consumer], options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource, consumer], options: TestOptions.DebugExe);
             var s1 = comp1.GetTypeByMetadataName("S1");
             Assert.True(s1.IsUnionType);
             Assert.False(s1.IsRecordStruct);
@@ -19974,6 +19974,7 @@ class Program
             verifier.VerifyTypeIL("S1", @"
 .class public sequential ansi sealed beforefieldinit S1
     extends [netstandard]System.ValueType
+    implements System.Runtime.CompilerServices.IUnion
 {
     .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
         01 00 02 00 00
@@ -19984,6 +19985,10 @@ class Program
     .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
         01 00 00 00
     )
+    .interfaceimpl type System.Runtime.CompilerServices.IUnion
+        .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+            01 00 00 00 00
+        )
     // Fields
     .field private initonly object '<Value>k__BackingField'
     .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -19993,7 +19998,7 @@ class Program
         01 00 00 00 00 00 00 00
     )
     // Methods
-    .method public hidebysig specialname 
+    .method public final hidebysig specialname newslot virtual 
         instance object get_Value () cil managed 
     {
         .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
@@ -20077,14 +20082,14 @@ namespace System.Runtime.CompilerServices
             var ref1 = CreateCompilation(unionAttributeSource).EmitToImageReference();
             var ref2 = CreateCompilation(unionAttributeSource).EmitToImageReference();
 
-            var comp3 = CreateCompilation([unionSrc], references: [ref1, ref2]);
+            var comp3 = CreateCompilation([unionSrc, IUnionSource], references: [ref1, ref2]);
             comp3.VerifyEmitDiagnostics(
                 // (100,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
                 // union S1(bool, int)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(100, 7)
                 );
 
-            var comp4 = CreateCompilation(["extern alias ref1; [ref1::System.Runtime.CompilerServices.Union]" + unionSrc], references: [ref1.WithAliases(["ref1"]), ref2.WithAliases(["ref2"])]);
+            var comp4 = CreateCompilation(["extern alias ref1; [ref1::System.Runtime.CompilerServices.Union]" + unionSrc, IUnionSource], references: [ref1.WithAliases(["ref1"]), ref2.WithAliases(["ref2"])]);
             verifier = CompileAndVerify(
                 comp4,
                 symbolValidator: (m) =>
@@ -20099,7 +20104,7 @@ namespace System.Runtime.CompilerServices
             var comp5 = CreateCompilation(consumer, references: [verifier.GetImageReference()], options: TestOptions.DebugExe);
             CompileAndVerify(comp5, expectedOutput: "13245").VerifyDiagnostics();
 
-            var comp6 = CreateCompilation(["[System.Runtime.CompilerServices.Union]" + unionSrc, UnionAttributeSource], references: [ref1.WithAliases(["ref1"]), ref2.WithAliases(["ref2"])]);
+            var comp6 = CreateCompilation(["[System.Runtime.CompilerServices.Union]" + unionSrc, UnionAttributeSource, IUnionSource], references: [ref1.WithAliases(["ref1"]), ref2.WithAliases(["ref2"])]);
             verifier = CompileAndVerify(
                 comp6,
                 symbolValidator: (m) =>
@@ -20131,7 +20136,7 @@ union S1(int, long)
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.VerifyEmitDiagnostics(
                 // (200,9): error CS8863: Only a single partial type declaration may have a parameter list
                 // union S1(int, long)
@@ -20154,7 +20159,7 @@ partial union S1
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.VerifyEmitDiagnostics();
 
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
@@ -20173,7 +20178,7 @@ partial union S1(int, bool)
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.VerifyEmitDiagnostics();
 
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
@@ -20192,7 +20197,7 @@ partial union S1(int, bool)
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS0261: Partial declarations of 'S1' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces
                 // partial union S1(int, bool)
@@ -20212,7 +20217,7 @@ partial record S1
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.VerifyEmitDiagnostics(
                 // (6,16): error CS0261: Partial declarations of 'S1' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces
                 // partial record S1
@@ -20228,7 +20233,7 @@ static union S1(int, bool)
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.VerifyEmitDiagnostics(
                 // (2,14): error CS0106: The modifier 'static' is not valid for this item
                 // static union S1(int, bool)
@@ -20245,7 +20250,7 @@ union S1(int, int)
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
             // PROTOTYPE: Consider reporting a more informative error.
             comp.VerifyEmitDiagnostics(
@@ -20264,7 +20269,7 @@ union S1(int, __arglist)
 {
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.VerifyEmitDiagnostics(
                 // (100,15): error CS1669: __arglist is not valid in this context
                 // union S1(int, __arglist)
@@ -20279,7 +20284,7 @@ union S1(int, __arglist)
 #line 100
 union S1;
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
             comp.VerifyEmitDiagnostics(
                 // (100,7): error CS9401: A union declaration must specify at least one case type.
@@ -20298,7 +20303,7 @@ union S1;
 #line 100
 union S1();
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
             // PROTOTYPE: Consider reorting a more informative error. Perhaps something like: "A union declaration must specify at least one case type." 
             comp.VerifyEmitDiagnostics(
@@ -20321,7 +20326,7 @@ union S1(int, bool)
 }
 ";
 
-            var comp = CreateCompilation(unionSrc);
+            var comp = CreateCompilation([unionSrc, IUnionSource]);
             comp.VerifyEmitDiagnostics(
                 // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
                 // union S1(int, bool)
@@ -20342,7 +20347,7 @@ union S1(
 #nullable restore
 );
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
             VerifyCaseTypes(comp, "S1", ["System.String"]);
 
@@ -20361,7 +20366,7 @@ union S1(
             var src = @"
 union S1<T>(T);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             Assert.True(comp.GetTypeByMetadataName("S1`1").IsUnionType);
             VerifyCaseTypes(comp, "S1`1", ["T"]);
 
@@ -20375,7 +20380,7 @@ union S1<T>(T);
 #line 100
 union S1(System.ArgIterator, int);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
             VerifyCaseTypes(comp, "S1", ["System.ArgIterator", "System.Int32"]);
 
@@ -20417,7 +20422,7 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([src, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: @"
 S1
 S1
@@ -20453,7 +20458,7 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([src, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "1").VerifyDiagnostics();
         }
 
@@ -20464,7 +20469,7 @@ class Program
 #line 100
 union S1(System.Nullable<string>);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
             VerifyCaseTypes(comp, "S1", ["System.String"]);
 
@@ -20485,13 +20490,19 @@ union S1(System.Nullable<string>);
 #line 100
 union S1(int);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
             comp.MakeTypeMissing(SpecialType.System_Object);
 
             comp.VerifyEmitDiagnostics(
                 // (100,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // union S1(int);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Object").WithLocation(100, 7)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Object").WithLocation(100, 7),
+                // (100,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // union S1(int);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Object").WithLocation(100, 7),
+                // (100000,9): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         object? Value { get; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(100000, 9)
                 );
         }
 
@@ -20514,7 +20525,7 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([src, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: @"123").VerifyDiagnostics();
         }
 
@@ -20537,8 +20548,238 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation([src, UnionAttributeSource], options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([src, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: @"123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionDeclaration_22_IUnion_Missing()
+        {
+            var unionSrc = @"
+#line 2
+union S1(int, bool)
+{
+}
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource]);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.IUnion' is not defined or imported
+                // union S1(int, bool)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(2, 7)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
+        public void UnionDeclaration_22_IUnion_InBaseInterfaces()
+        {
+            var unionSrc = @"
+union S1(int, bool) : System.Runtime.CompilerServices.IUnion
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(10));
+        System.Console.Write(Test(11));
+        System.Console.Write(Test(true));
+        System.Console.Write(Test(false));
+        System.Console.Write(Test(default));
+    }
+
+    static int Test(S1 u)
+    {
+        return ((System.Runtime.CompilerServices.IUnion)u).Value switch
+        {
+            10 => 1,
+            true => 2,
+            int => 3,
+            bool => 4,
+            _ => 5
+        };
+    }   
+}
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, symbolValidator: checkInterfaces, sourceSymbolValidator: checkInterfaces, expectedOutput: "13245").VerifyDiagnostics();
+
+            void checkInterfaces(ModuleSymbol m)
+            {
+                var s1 = m.GlobalNamespace.GetTypeMember("S1");
+                Assert.Equal("System.Runtime.CompilerServices.IUnion", s1.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void UnionDeclaration_23_IUnion()
+        {
+            var unionSrc = @"
+union S1(int, bool)
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(10));
+        System.Console.Write(Test(11));
+        System.Console.Write(Test(true));
+        System.Console.Write(Test(false));
+        System.Console.Write(Test(default));
+    }
+
+    static int Test(S1 u)
+    {
+        return ((System.Runtime.CompilerServices.IUnion)u).Value switch
+        {
+            10 => 1,
+            true => 2,
+            int => 3,
+            bool => 4,
+            _ => 5
+        };
+    }   
+}
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, symbolValidator: checkInterfaces, sourceSymbolValidator: checkInterfaces, expectedOutput: "13245").VerifyDiagnostics();
+
+            void checkInterfaces(ModuleSymbol m)
+            {
+                var s1 = m.GlobalNamespace.GetTypeMember("S1");
+                Assert.Equal("System.Runtime.CompilerServices.IUnion", s1.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void UnionDeclaration_24_IUnion_ValueNullabilityMismatch()
+        {
+            var unionSrc = @"
+union S1(int, bool)
+{
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+#nullable enable
+        object Value { get; }
+#nullable disable
+    }
+}
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource]);
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionDeclaration_25_IUnion_ValueMissing()
+        {
+            var unionSrc = @"
+union S1(int, bool)
+{
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource]);
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionDeclaration_26_IUnion_UnexpectedMember()
+        {
+            var unionSrc = @"
+union S1(int, bool)
+{
+}
+
+union S2(int, bool)
+{
+    public void M() { }
+}
+
+union S3(int, bool)
+{
+    void System.Runtime.CompilerServices.IUnion.M() { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+        void M();
+    }
+}
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0535: 'S1' does not implement interface member 'IUnion.M()'
+                // union S1(int, bool)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "S1").WithArguments("S1", "System.Runtime.CompilerServices.IUnion.M()").WithLocation(2, 7)
+                );
+        }
+
+        [Fact]
+        public void UnionDeclaration_27_IUnion()
+        {
+            var unionSrc = @"
+union S1(int, bool) : I1
+{
+}
+
+interface I1 : System.Runtime.CompilerServices.IUnion;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(10));
+        System.Console.Write(Test(11));
+        System.Console.Write(Test(true));
+        System.Console.Write(Test(false));
+        System.Console.Write(Test(default));
+    }
+
+    static int Test(S1 u)
+    {
+        return ((System.Runtime.CompilerServices.IUnion)u).Value switch
+        {
+            10 => 1,
+            true => 2,
+            int => 3,
+            bool => 4,
+            _ => 5
+        };
+    }   
+}
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, symbolValidator: checkInterfaces, sourceSymbolValidator: checkInterfaces, expectedOutput: "13245").VerifyDiagnostics();
+
+            void checkInterfaces(ModuleSymbol m)
+            {
+                var s1 = m.GlobalNamespace.GetTypeMember("S1");
+                AssertEx.SequenceEqual(["I1", "System.Runtime.CompilerServices.IUnion"], s1.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            }
         }
     }
 }
