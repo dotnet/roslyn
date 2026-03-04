@@ -1242,6 +1242,16 @@
         <target state="translated">O campo de elemento da matriz em linha não pode ser declarado como obrigatório, somente leitura, volátil ou como um buffer de tamanho fixo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="new">Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="new">Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">"{0}": não é possível declarar membros de instância em um bloco de extensão com um parâmetro de receptor sem nome</target>
@@ -2685,6 +2695,11 @@
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">Lista de parâmetros inesperada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="new">A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">

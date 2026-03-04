@@ -965,6 +965,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsUnionDeclaration
+        {
+            get
+            {
+                return this.declaration.Declarations[0].Kind is DeclarationKind.Union;
+            }
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get
@@ -1953,6 +1961,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Verify ExtensionAttribute is available.
                 SourceOrdinaryMethodSymbol.CheckExtensionAttributeAvailability(DeclaringCompilation, location, diagnostics);
+            }
+
+            if (IsUnionDeclaration)
+            {
+                var fields = this.GetFieldsToEmit();
+                foreach (var field in fields)
+                {
+                    if (!field.IsStatic && field.AssociatedSymbol is not SynthesizedUnionValuePropertySymbol)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InstanceFieldInUnion, field.GetFirstLocation());
+                    }
+                }
+
+                foreach (var ctor in InstanceConstructors)
+                {
+                    if (ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
+                    }
+                }
             }
 
             return;
