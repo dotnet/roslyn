@@ -298,15 +298,11 @@ internal static partial class RoslynInsertionTool
                 retainBuild = true;
             }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-#pragma warning disable CS0612 // Type or member is obsolete
             // ************* Ensure the build is retained on the servers *************
-            if (Options.RetainInsertedBuild && retainBuild && !buildToInsert.KeepForever.GetValueOrDefault())
+            if (Options.RetainInsertedBuild && retainBuild)
             {
                 await RetainComponentBuild(buildToInsert);
             }
-#pragma warning restore CS0612 // Type or member is obsolete
-#pragma warning restore CS0618 // Type or member is obsolete
 
             // ************* Bail out if there are no changes ************************
             if (allChanges.Count == 0 && options.CherryPick.IsDefaultOrEmpty)
