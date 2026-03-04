@@ -125,15 +125,44 @@ internal static partial class RoslynInsertionTool
             cancellationToken: cancellationToken);
     }
 
-    [Obsolete]
     public static async Task RetainComponentBuild(Build buildToInsert)
     {
         var buildClient = ComponentBuildConnection.BuildClient;
 
         LogInformation("Marking inserted build for retention.");
-        buildToInsert.KeepForever = true;
 
-        await buildClient.UpdateBuildAsync(buildToInsert);
+        // Find the lease for our build.
+        var leases = await buildClient.GetRetentionLeasesForBuildAsync(buildToInsert.Project.Name, buildToInsert.Id);
+
+        // A retention lease valid for more than 100 years (36500 days) will display as retaining the build "forever".
+        // See https://learn.microsoft.com/en-us/rest/api/azure/devops/build/leases/update?view=azure-devops-rest-7.1#request-body
+
+        // Are there any leases which are close enough to 100 years that we can consider the build already being retained forever.
+        var retainedForever = leases.FirstOrDefault(lease => lease.ValidUntil > buildToInsert.StartTime?.AddYears(99));
+        if (retainedForever != null)
+        {
+            LogInformation($"Build {buildToInsert.BuildNumber} is already being retained.");
+            return;
+        }
+
+        var newLease = new NewRetentionLease
+        {
+            DaysValid = 36501,
+            DefinitionId = buildToInsert.Definition.Id,
+            OwnerId = Options.VisualStudioRepoAzdoUsername,
+            ProtectPipeline = true,
+            RunId = buildToInsert.Id,
+        };
+
+        var result = await buildClient.AddRetentionLeasesAsync([newLease], buildToInsert.Project.Name);
+        if (result.Count > 0)
+        {
+            LogInformation($"Build {buildToInsert.BuildNumber} is now being retained.");
+            return;
+        }
+
+        LogError($"Failed to retain build {buildToInsert.BuildNumber}. No leases were added.");
+        throw new Exception($"Failed to retain build {buildToInsert.BuildNumber}.");
     }
 
     private static async Task<IEnumerable<Build>> GetComponentBuildsAsync(BuildHttpClient buildClient, List<BuildDefinitionReference> definitions, CancellationToken cancellationToken, BuildResult? resultFilter = null)

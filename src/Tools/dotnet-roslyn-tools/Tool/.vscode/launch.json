@@ -122,7 +122,8 @@
         "main",
         "--component-build-queue",
         "dotnet-roslyn-official",
-        "--create-draft-pr"
+        "--create-draft-pr",
+        "--retain-inserted-build"
       ],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
