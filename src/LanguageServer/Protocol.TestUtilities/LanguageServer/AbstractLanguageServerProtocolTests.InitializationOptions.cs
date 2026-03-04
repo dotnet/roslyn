@@ -31,5 +31,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
         internal IEnumerable<DiagnosticAnalyzer>? AdditionalAnalyzers { get; init; } = null;
         internal IJsonRpcMessageFormatter? ClientMessageFormatter { get; init; } = null;
         internal ParseOptions? ParseOptions { get; init; } = null;
+        internal LSP.WorkspaceFolder[]? WorkspaceFolders { get; init; } = null;
     }
 }

@@ -195,6 +195,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
+        // 8. Is the file included in a `.csproj` cone?
+        // - Yes → Classify as Miscellaneous File With Standard References (wait for project to load)
+        // - No → Classify as Miscellaneous File With Standard References and Semantic Errors
+        var csprojInConeChecker = _lspServices.GetRequiredService<CsprojInConeChecker>();
+        if (filePath is { } && csprojInConeChecker.IsContainedInCsprojCone(filePath))
+        {
+            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+        }
+
         return LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
     }
 
