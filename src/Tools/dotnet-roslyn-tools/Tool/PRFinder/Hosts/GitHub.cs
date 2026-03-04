@@ -1,11 +1,10 @@
-﻿// Licensed to the.NET Foundation under one or more agreements.
+// Licensed to the.NET Foundation under one or more agreements.
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Utilities;
 
@@ -37,18 +36,21 @@ internal partial class GitHub : IRepositoryHost
         => $"{_repoUrl}/compare/{startRef}...{endRef}?w=1";
 
     public string GetPullRequestUrl(string prNumber)
-        => $"{_repoUrl}/pull/{prNumber}";
+        => GetPullRequestUrl(_repoUrl, prNumber);
 
-    public bool ShouldSkip(Commit commit, ref bool mergePRFound)
+    public static string GetPullRequestUrl(string repoUrl, string prNumber)
+        => $"{repoUrl}/pull/{prNumber}";
+
+    public bool ShouldSkip(GitCommit commit, ref bool mergePRFound)
     {
         // Once we've found a Merge PR we can exclude commits not committed by GitHub since Merge and Squash commits are committed by GitHub
-        if (commit.Committer.Name != "GitHub" && mergePRFound)
+        if (commit.Committer != "GitHub" && mergePRFound)
         {
             return true;
         }
 
         // Exclude commits from bots
-        if (commit.Author.Name is "dotnet-maestro[bot]"
+        if (commit.Author is "dotnet-maestro[bot]"
             or "dotnet-policy-service[bot]"
             or "dotnet-bot")
         {
@@ -74,7 +76,7 @@ internal partial class GitHub : IRepositoryHost
         return false;
     }
 
-    public async Task<MergeInfo?> TryParseMergeInfoAsync(Commit commit)
+    public async Task<MergeInfo?> TryParseMergeInfoAsync(GitCommit commit)
     {
         var match = IsGitHubMergePRCommit().Match(commit.MessageShort);
         if (match.Success)

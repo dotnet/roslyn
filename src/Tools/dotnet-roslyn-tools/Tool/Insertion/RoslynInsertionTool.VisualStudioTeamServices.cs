@@ -4,16 +4,16 @@
 
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net.Http.Headers;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Policy.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.RoslynTools.PRFinder.Hosts;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.VisualStudio.Services.WebApi;
 using Newtonsoft.Json;
 using Task = System.Threading.Tasks.Task;
+using GitCommit = Microsoft.RoslynTools.PRFinder.GitCommit;
 
 namespace Microsoft.RoslynTools.Insertion;
 
@@ -624,7 +624,7 @@ internal static partial class RoslynInsertionTool
         return (result, $"//github.com/{repoId}/compare/{fromSHA}...{toSHA}?w=1");
     }
 
-    internal static string AppendChangesToDescription(string prDescription, Build oldBuild, List<GitCommit> changes)
+    internal static async Task<string> AppendChangesToDescriptionAsync(string prDescription, Build oldBuild, List<PRFinder.GitCommit> changes)
     {
         const int HardLimit = 4000; // Azure DevOps limitation
 
@@ -639,14 +639,24 @@ internal static partial class RoslynInsertionTool
             ? Options.ComponentGitHubRepoName
             : oldBuild.Repository.Id; // e.g. dotnet/roslyn when GitHub, 7b863b8d-8cc3-431d-b06b-7136cc32bbe6 when AzDO
 
-        if (oldBuild.Repository.Type == "GitHub" || !string.IsNullOrEmpty(Options.ComponentGitHubRepoName))
+        if (Options.Product?.TryGetHost(Connections, Logger, out var host) != true)
         {
-            AppendGitHubChangesToDescription(changes, description, repoId);
+            if (oldBuild.Repository.Type == "GitHub" || !string.IsNullOrEmpty(Options.ComponentGitHubRepoName))
+            {
+                host = new GitHub($"//github.com/{repoId}", Connections, Logger);
+            }
+            else if (oldBuild.Repository.Type == "TfsGit")
+            {
+                host = new PRFinder.Hosts.Azure(oldBuild.Repository.Url.AbsoluteUri);
+            }
+            else
+            {
+                return prDescription;
+            }
         }
-        else if (oldBuild.Repository.Type == "TfsGit")
-        {
-            AppendAzDOChangesToDescription(oldBuild, changes, description);
-        }
+
+        var formatter = new PRFinder.Formatters.DefaultFormatter();
+        await PRFinder.PRFinder.AppendChangesToDescriptionAsync(changes, host!, formatter, [], description);
 
         var result = description.ToString();
         if (result.Length > HardLimit)
@@ -683,207 +693,6 @@ internal static partial class RoslynInsertionTool
         return LimitMessage;
     }
 
-    private static readonly Regex s_isAzDOReleaseFlowCommit = new(@"^Merged PR \d+: Merging .* to ");
-    private static readonly Regex s_isAzDOMergePRCommit = new(@"^Merged PR (\d+):");
-    public static string GetAzDOPullRequestUrl(string repoURL, string prNumber)
-        => $"{repoURL}/pullrequest/{prNumber}";
-
-    private static void AppendAzDOChangesToDescription(Build oldBuild, List<GitCommit> changes, StringBuilder description)
-    {
-        var repoURL = oldBuild.Repository.Url.AbsoluteUri;
-
-        var commitHeaderAdded = false;
-        var mergePRHeaderAdded = false;
-        var mergePRFound = false;
-
-        // This needs to be updated with heuristics for determining merge commits which represent PRs being merged.
-        foreach (var commit in changes)
-        {
-            // Exclude arcade dependency updates
-            if (commit.Author == "DotNet Bot")
-            {
-                mergePRFound = true;
-                continue;
-            }
-
-            // Exclude OneLoc localization PRs
-            if (commit.Author == "Project Collection Build Service (devdiv)")
-            {
-                mergePRFound = true;
-                continue;
-            }
-
-            // Exclude merge commits from auto code-flow PRs (e.g. main to Dev17)
-            if (s_isAzDOReleaseFlowCommit.Match(commit.Message).Success)
-            {
-                mergePRFound = true;
-                continue;
-            }
-
-            // Merge PR Messages are in the form "Merged PR 320820: Resolving encoding issue on test summary pane, using UTF8 now\n\nAdded a StreamWriterWrapper to resolve encoding issue"
-            var comment = commit.Message.Split('\n')[0];
-            var prNumber = string.Empty;
-
-            var match = s_isAzDOMergePRCommit.Match(commit.Message);
-            if (match.Success)
-            {
-                prNumber = match.Groups[1].Value;
-                mergePRFound = true;
-            }
-            else
-            {
-                // Todo: Determine if there is a format for AzDO squash merges that preserves the PR #
-            }
-
-            // We will print commit comments until we find the first merge PR
-            if (!match.Success && mergePRFound)
-            {
-                continue;
-            }
-
-            string prLink;
-
-            if (match.Success)
-            {
-                if (commitHeaderAdded && !mergePRHeaderAdded)
-                {
-                    mergePRHeaderAdded = true;
-                    description.AppendLine("### Merged PRs:");
-                }
-
-                prLink = $@"- [{comment}]({GetAzDOPullRequestUrl(repoURL, prNumber)})";
-            }
-            else
-            {
-                if (!commitHeaderAdded)
-                {
-                    commitHeaderAdded = true;
-                    description.AppendLine("### Commits since last PR:");
-                }
-
-                var shortSHA = commit.CommitId[..7];
-                prLink = $@"- [{comment} ({shortSHA})]({commit.RemoteUrl})";
-            }
-
-            description.AppendLine(prLink);
-        }
-    }
-
-    private static readonly Regex s_isGitHubReleaseFlowCommit = new(@"^Merge pull request #\d+ from dotnet/merges/");
-    private static readonly Regex s_isGitHubMergePRCommit = new(@"^Merge pull request #(\d+) from");
-    private static readonly Regex s_isGitHubSquashedPRCommit = new(@"\(#(\d+)\)(?:\n|$)");
     public static string GetGitHubPullRequestUrl(string repoURL, string prNumber)
-        => $"{repoURL}/pull/{prNumber}";
-
-    private static void AppendGitHubChangesToDescription(List<GitCommit> changes, StringBuilder description, string repoId)
-    {
-        var repoURL = $"//github.com/{repoId}";
-
-        var commitHeaderAdded = false;
-        var mergePRHeaderAdded = false;
-        var mergePRFound = false;
-
-        foreach (var commit in changes)
-        {
-            // Once we've found a Merge PR we can exclude commits not committed by GitHub since Merge and Squash commits are committed by GitHub
-            if (commit.Committer != "GitHub" && mergePRFound)
-            {
-                continue;
-            }
-
-            // Exclude arcade dependency updates
-            if (commit.Author == "dotnet-maestro[bot]")
-            {
-                mergePRFound = true;
-                continue;
-            }
-
-            // Exclude merge commits from auto code-flow PRs (e.g. merges/main-to-main-vs-deps)
-            if (s_isGitHubReleaseFlowCommit.Match(commit.Message).Success)
-            {
-                mergePRFound = true;
-                continue;
-            }
-
-            var comment = string.Empty;
-            var prNumber = string.Empty;
-
-            var match = s_isGitHubMergePRCommit.Match(commit.Message);
-            if (match.Success)
-            {
-                prNumber = match.Groups[1].Value;
-
-                // Merge PR Messages are in the form "Merge pull request #39526 from mavasani/GetValueUsageInfoAssert\n\nFix an assert in IOperationExtension.GetValueUsageInfo"
-                // Try and extract the 3rd line since it is the useful part of the message, otherwise take the first line.
-                var lines = commit.Message.Split('\n');
-                comment = lines.Length > 2
-                    ? $"{lines[2]} ({prNumber})"
-                    : lines[0];
-            }
-            else
-            {
-                match = s_isGitHubSquashedPRCommit.Match(commit.Message);
-                if (match.Success)
-                {
-                    prNumber = match.Groups[1].Value;
-
-                    // Squash PR Messages are in the form "Nullable annotate TypeCompilationState and MessageID (#39449)"
-                    // Take the 1st line since it should be descriptive.
-                    comment = commit.Message.Split('\n')[0];
-                }
-            }
-
-            // We will print commit comments until we find the first merge PR
-            if (!match.Success && mergePRFound)
-            {
-                continue;
-            }
-
-            string prLink;
-
-            if (match.Success)
-            {
-                if (commitHeaderAdded && !mergePRHeaderAdded)
-                {
-                    mergePRHeaderAdded = true;
-                    description.AppendLine("### Merged PRs:");
-                }
-
-                mergePRFound = true;
-
-                // Replace "#{prNumber}" with "{prNumber}" so that AzDO won't linkify it
-                comment = comment.Replace($"#{prNumber}", prNumber);
-
-                prLink = $@"- [{comment}]({GetGitHubPullRequestUrl(repoURL, prNumber)})";
-            }
-            else
-            {
-                if (!commitHeaderAdded)
-                {
-                    commitHeaderAdded = true;
-                    description.AppendLine("### Commits since last PR:");
-                }
-
-                var fullSHA = commit.CommitId;
-                var shortSHA = fullSHA[..7];
-
-                // Take the 1st line since it should be descriptive.
-                comment = $"{commit.Message.Split('\n')[0]} ({shortSHA})";
-
-                prLink = $@"- [{comment}]({repoURL}/commit/{fullSHA})";
-            }
-
-            description.AppendLine(prLink);
-        }
-    }
-
-    internal struct GitCommit
-    {
-        public string Author { get; set; }
-        public string Committer { get; set; }
-        public DateTime CommitDate { get; set; }
-        public string Message { get; set; }
-        public string CommitId { get; set; }
-        public string RemoteUrl { get; set; }
-    }
+        => PRFinder.Hosts.GitHub.GetPullRequestUrl(repoURL, prNumber);
 }

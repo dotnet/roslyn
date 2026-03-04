@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.RoslynTools.Products;
 
 namespace Microsoft.RoslynTools.Insertion;
 
@@ -29,7 +30,6 @@ internal sealed record RoslynInsertionToolOptions(
     bool CreateDraftPr,
     ImmutableArray<string> SkipCoreXTPackages)
 {
-
     public string VisualStudioBranchName { get; init; } = string.Empty;
     public string DevDivAzdoToken { get; init; } = string.Empty;
     public string ComponentBuildAzdoUsername { get; init; } = string.Empty;
@@ -55,6 +55,8 @@ internal sealed record RoslynInsertionToolOptions(
 
     public string ComponentBuildProjectNameOrFallback
         => ComponentBuildProjectName ?? VisualStudioRepoProjectName;
+
+    public IProduct? Product => Products.Product.GetProductByName(InsertionName);
 
     public bool Valid
     {
