@@ -306,15 +306,4 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             ActualBuildHostKind = buildHostKind,
         };
     }
-
-    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        Dictionary<string, ProjectLoadState> loadedProjects,
-        string projectPath,
-        ProjectLoadState.Primordial projectState,
-        CancellationToken cancellationToken)
-    {
-        await projectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
-            workspace => workspace.OnProjectRemoved(projectState.PrimordialProjectId),
-            cancellationToken);
-    }
 }

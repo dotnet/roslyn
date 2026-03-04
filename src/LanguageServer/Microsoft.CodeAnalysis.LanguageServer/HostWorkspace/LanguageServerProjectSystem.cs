@@ -98,13 +98,4 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
             ActualBuildHostKind = actualBuildHostKind
         };
     }
-
-    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        Dictionary<string, ProjectLoadState> loadedProjects,
-        string projectPath,
-        ProjectLoadState.Primordial projectState,
-        CancellationToken cancellationToken)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
 }

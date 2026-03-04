@@ -286,19 +286,6 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         };
     }
 
-    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        Dictionary<string, ProjectLoadState> loadedProjects,
-        string canonicalProjectPath,
-        ProjectLoadState.Primordial canonicalProjectState,
-        CancellationToken cancellationToken)
-    {
-        // This loader should only do a design time build on the canonical project
-        Contract.ThrowIfFalse(canonicalProjectPath == _canonicalDocumentPath.Value);
-        await canonicalProjectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
-            workspace.OnProjectRemoved(canonicalProjectState.PrimordialProjectId),
-            cancellationToken);
-    }
-
     /// <summary>
     /// Creates a new project based on the canonical project with a new document added.
     /// This should only be called when the canonical project is in the FullyLoaded state.

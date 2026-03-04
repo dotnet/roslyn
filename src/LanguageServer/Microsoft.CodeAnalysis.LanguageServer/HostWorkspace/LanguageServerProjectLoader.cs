@@ -217,16 +217,6 @@ internal abstract class LanguageServerProjectLoader
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Called after a design time build when transitioning from <see cref="ProjectLoadState.Primordial"/> to  <see cref="ProjectLoadState.LoadedTargets"/>.
-    /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
-    /// </summary>
-    protected abstract ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        Dictionary<string, ProjectLoadState> loadedProjects,
-        string projectPath,
-        ProjectLoadState.Primordial projectState,
-        CancellationToken cancellationToken);
-
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
@@ -333,8 +323,9 @@ internal abstract class LanguageServerProjectLoader
 
                 if (currentLoadState is ProjectLoadState.Primordial primordial)
                 {
-                    // Transition from primordial to loaded state
-                    await TransitionPrimordialProjectToLoaded_NoLockAsync(_loadedProjects, projectPath, primordial, cancellationToken);
+                    await primordial.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
+                        workspace => workspace.OnProjectRemoved(primordial.PrimordialProjectId),
+                        cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
