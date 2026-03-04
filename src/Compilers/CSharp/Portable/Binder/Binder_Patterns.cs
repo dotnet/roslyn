@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inputType.IsUnionMatchingInputType(out var unionTypeOverride))
             {
-                // PROTOTYPE: Check feature availability
+                MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node);
 
                 var originalInputType = (NamedTypeSymbol)inputType;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);

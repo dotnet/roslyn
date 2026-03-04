@@ -974,6 +974,31 @@ class Program
   IL_002d:  ret
 }
 ");
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (47,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(47, 21),
+                // (52,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10 or 11;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(52, 21),
+                // (52,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10 or 11;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(52, 27),
+                // (57,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is "11" and ['1', '1'];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(57, 21),
+                // (62,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(62, 21),
+                // (67,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(67, 21)
+                );
         }
 
         [Fact]
@@ -1964,6 +1989,32 @@ class Program
                 //         return u is S2<object> { Value: not A or B };
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
                 );
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (58,50): warning CS9336: The pattern is redundant.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (44,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> { Value: 10 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 }").WithArguments("unions").WithLocation(44, 21),
+                // (49,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> { Value: 10 or 11 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 or 11 }").WithArguments("unions").WithLocation(49, 21),
+                // (54,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<string> { Value: "11" } and { Value: ['1', '1'] };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> { Value: ""11"" }").WithArguments("unions").WithLocation(54, 21),
+                // (58,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<object> { Value: not A or B }").WithArguments("unions").WithLocation(58, 21),
+                // (58,50): warning CS9336: The pattern is redundant.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
+                );
         }
 
         [Fact]
@@ -2037,6 +2088,32 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (58,50): warning CS9336: The pattern is redundant.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (58,50): warning CS9336: The pattern is redundant.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (47,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> { Value: 10 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 }").WithArguments("unions").WithLocation(47, 21),
+                // (52,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> { Value: 10 or 11 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 or 11 }").WithArguments("unions").WithLocation(52, 21),
+                // (57,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<string> { Value: "11" } and { Value: ['1', '1'] };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> { Value: ""11"" }").WithArguments("unions").WithLocation(57, 21),
+                // (58,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<object> { Value: not A or B };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<object> { Value: not A or B }").WithArguments("unions").WithLocation(58, 21),
                 // (58,50): warning CS9336: The pattern is redundant.
                 //         return u is S2<object> { Value: not A or B };
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
@@ -2164,6 +2241,19 @@ public class C : System.Runtime.CompilerServices.ITuple
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (27,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_, 10)").WithArguments("unions").WithLocation(27, 21),
+                // (32,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_, 10)").WithArguments("unions").WithLocation(32, 21)
+                );
         }
 
         [Fact]
@@ -2234,6 +2324,22 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (50,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> (10, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10, _)").WithArguments("unions").WithLocation(50, 21),
+                // (55,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> (10 or 11, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10 or 11, _)").WithArguments("unions").WithLocation(55, 21),
+                // (60,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<string> ("11", _) and (['1', '1'], _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> (""11"", _)").WithArguments("unions").WithLocation(60, 21)
+                );
         }
 
         [Fact]
@@ -2307,6 +2413,22 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (53,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> (10, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10, _)").WithArguments("unions").WithLocation(53, 21),
+                // (58,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<int> (10 or 11, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10 or 11, _)").WithArguments("unions").WithLocation(58, 21),
+                // (63,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is S2<string> ("11", _) and (['1', '1'], _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> (""11"", _)").WithArguments("unions").WithLocation(63, 21)
+                );
         }
 
         [Fact]
@@ -2390,6 +2512,18 @@ class Program
   IL_0022:  ret
 }
 ");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseTrueFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (29,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is int;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is int").WithArguments("unions").WithLocation(29, 16),
+                // (34,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is int;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is int").WithArguments("unions").WithLocation(34, 16)
+                );
         }
 
         [Fact]
@@ -2433,6 +2567,19 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (28,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u switch { int => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(28, 27),
+                // (33,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is string and ['1', '1'];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "string").WithArguments("unions").WithLocation(33, 21)
+                );
         }
 
         [Fact]
@@ -2478,6 +2625,19 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (30,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u switch { int => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(30, 27),
+                // (35,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is string and ['1', '1'];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "string").WithArguments("unions").WithLocation(35, 21)
+                );
         }
 
         [Fact]
@@ -2523,6 +2683,19 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalseTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalseTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (30,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is int x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(30, 21),
+                // (35,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is int x ? (x == 10 || x == 11) : false;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(35, 21)
+                );
         }
 
         [Fact]
@@ -2570,6 +2743,19 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrueFalse TrueFalseFalseFalseTrueFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrueFalse TrueFalseFalseFalseTrueFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (32,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is int x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(32, 21),
+                // (37,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is int x ? (x == 10 || x == 11) : false;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(37, 21)
+                );
         }
 
         [Fact]
@@ -2646,6 +2832,28 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (46,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not 10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not 10").WithArguments("unions").WithLocation(46, 21),
+                // (51,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not (10 or 11);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not (10 or 11)").WithArguments("unions").WithLocation(51, 21),
+                // (56,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not ("11" and ['1', '1']);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"not (""11"" and ['1', '1'])").WithArguments("unions").WithLocation(56, 21),
+                // (61,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not null").WithArguments("unions").WithLocation(61, 21),
+                // (66,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not ({ } and int);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not ({ } and int)").WithArguments("unions").WithLocation(66, 21)
+                );
         }
 
         [Fact]
@@ -2727,6 +2935,28 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrueFalse FalseTrueTrueTrueFalseFalse TrueTrueFalseFalse TrueFalseTrueFalse FalseTrueTrueFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrueFalse FalseTrueTrueTrueFalseFalse TrueTrueFalseFalse TrueFalseTrueFalse FalseTrueTrueFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (51,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not 10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not 10").WithArguments("unions").WithLocation(51, 21),
+                // (56,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not (10 or 11);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not (10 or 11)").WithArguments("unions").WithLocation(56, 21),
+                // (61,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not ("11" and ['1', '1']);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"not (""11"" and ['1', '1'])").WithArguments("unions").WithLocation(61, 21),
+                // (66,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not null").WithArguments("unions").WithLocation(66, 21),
+                // (71,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not ({ } and int);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not ({ } and int)").WithArguments("unions").WithLocation(71, 21)
+                );
         }
 
         [Fact]
@@ -3171,6 +3401,25 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseFalseFalse TrueFalseTrueFalseFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseFalseFalse TrueFalseTrueFalseFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (33,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10 or "11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(33, 21),
+                // (33,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10 or "11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(33, 27),
+                // (38,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10 or "11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(38, 21),
+                // (38,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is 10 or "11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(38, 27)
+                );
         }
 
         [Fact]
@@ -3261,6 +3510,19 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "System.Int32__ System.Int32___").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "System.Int32__ System.Int32___").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (27,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         if (u is 10 and var x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(27, 18),
+                // (37,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         if (u is 10 and var x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(37, 18)
+                );
         }
 
         [Fact]
@@ -3647,6 +3909,28 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (40,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(10)").WithArguments("unions").WithLocation(40, 21),
+                // (45,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10 or 11);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(45, 22),
+                // (45,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10 or 11);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(45, 28),
+                // (50,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is ("11" and ['1', '1']);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(50, 22),
+                // (55,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (null);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null)").WithArguments("unions").WithLocation(55, 21)
+                );
         }
 
         [Fact]
@@ -3716,6 +4000,28 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (44,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(10)").WithArguments("unions").WithLocation(44, 21),
+                // (49,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10 or 11);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(49, 22),
+                // (49,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10 or 11);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(49, 28),
+                // (54,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is ("11" and ['1', '1']);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(54, 22),
+                // (59,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (null);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null)").WithArguments("unions").WithLocation(59, 21)
+                );
         }
 
         [Fact]
@@ -3761,6 +4067,22 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (30,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is >=10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">=10").WithArguments("unions").WithLocation(30, 21),
+                // (35,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is <10 or 11;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<10").WithArguments("unions").WithLocation(35, 21),
+                // (35,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is <10 or 11;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(35, 28)
+                );
         }
 
         [Fact]
@@ -3808,6 +4130,22 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse FalseFalseFalseTrueTrueFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse FalseFalseFalseTrueTrueFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (32,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is >=10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">=10").WithArguments("unions").WithLocation(32, 21),
+                // (37,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is <10 or 11;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<10").WithArguments("unions").WithLocation(37, 21),
+                // (37,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is <10 or 11;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(37, 28)
+                );
         }
 
         [Fact]
@@ -3903,6 +4241,16 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (31,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is [10, _];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(31, 22)
+                );
         }
 
         [Fact]
@@ -3987,6 +4335,16 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (32,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is [0, ..10];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(32, 27)
+                );
         }
 
         [Fact]
@@ -4074,6 +4432,19 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (29,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(29, 22),
+                // (34,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(34, 22)
+                );
         }
 
         [Fact]
@@ -4116,6 +4487,16 @@ class C : System.Runtime.CompilerServices.ITuple
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (23,29): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (S1 and 10, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(23, 29)
+                );
         }
 
         [Fact]
@@ -4157,6 +4538,16 @@ class C
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (23,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is (10, _);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(23, 22)
+                );
         }
 
         [Fact]
@@ -4240,6 +4631,16 @@ class C
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (23,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { P: 10 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(23, 26)
+                );
         }
 
         [Fact]
@@ -4316,6 +4717,16 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseTrueTrueTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "FalseTrueTrueTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (24,33): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is not (S1 and 10);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(24, 33)
+                );
         }
 
         [Fact]
@@ -4651,6 +5062,25 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1-1-1-12-1 1-1-1-12-1-1").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "1-1-1-12-1 1-1-1-12-1-1").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (35,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case 10: return 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(35, 18),
+                // (36,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case "11": return 2;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(36, 18),
+                // (46,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case 10: return 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(46, 18),
+                // (47,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case "11": return 2;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(47, 18)
+                );
         }
 
         [Fact]
@@ -8225,6 +8655,22 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
   IL_0014:  ret
 }
 ");
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (37,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         /*<bind>*/ return 10; /*</bind>*/
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(37, 27),
+                // (55,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(55, 16),
+                // (61,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return "11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(61, 16)
+                );
         }
 
         [Fact]
@@ -8521,6 +8967,22 @@ IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(Syste
   IL_0014:  ret
 }
 ");
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (37,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return /*<bind>*/ (S1)10 /*</bind>*/;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(S1)10").WithArguments("unions").WithLocation(37, 27),
+                // (55,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return (S1)null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(S1)null").WithArguments("unions").WithLocation(55, 16),
+                // (61,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return (S1)"11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(S1)""11""").WithArguments("unions").WithLocation(61, 16)
+                );
         }
 
         [Fact]

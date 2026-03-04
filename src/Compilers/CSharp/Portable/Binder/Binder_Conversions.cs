@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.IsUnion)
                 {
-                    // PROTOTYPE: Check language version
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnions, diagnostics);
                 }
                 else if (conversion.IsInlineArray)
                 {
