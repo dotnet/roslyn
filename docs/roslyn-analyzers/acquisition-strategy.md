@@ -71,7 +71,7 @@ This model works but has downsides:
 
 ## Future direction: ship analyzers in the .NET SDK
 
-The long-term goal is to ship these analyzer packages **in the .NET SDK**.
+The long-term goal is to ship these analyzer packages **in the .NET SDK**. Currently Roslyn ships their CodeStyle analyzers in the SDK. Consumers opt-in to using them via the `EnforceCodeStyleInBuild` property.
 
 ### Why this is better
 
