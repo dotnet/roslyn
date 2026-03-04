@@ -52,7 +52,7 @@ parameters:
 steps:
   - checkout: none
 
-  - script: dotnet tool install Microsoft.RoslynTools --global --prerelease --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+  - script: dotnet tool install Microsoft.RoslynTools --global --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
     displayName: 'Install roslyn-tools'
 
   - powershell: |
