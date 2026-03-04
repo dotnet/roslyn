@@ -52,7 +52,7 @@ parameters:
 steps:
   - checkout: none
 
-  - script: dotnet tool install Microsoft.RoslynTools --global --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+  - script: dotnet tool install Microsoft.RoslynTools --tool-path .tools --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
     displayName: 'Install roslyn-tools'
 
   - powershell: |
@@ -211,7 +211,7 @@ steps:
         $arguments += "--cherry-pick", $cherryPick
       }
 
-      & roslyn-tools @arguments
+      & ./.tools/roslyn-tools @arguments
     displayName: 'Create VS Insertion PR'
     env:
       DevDivToken: ${{ parameters.devDivAzdoToken }}
