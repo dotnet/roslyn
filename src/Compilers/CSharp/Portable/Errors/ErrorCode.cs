@@ -2478,6 +2478,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnionDeclarationNeedsCaseTypes = 9401,
         ERR_NoImplicitConversionToObject = 9402,
         ERR_UnionMatchingWrongPattern = 9403,
+        ERR_InstanceFieldInUnion = 9404,
+        ERR_InstanceCtorWithOneParameterInUnion = 9405,
+        ERR_UnionConstructorCallsDefaultConstructor = 9406,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

@@ -8291,4 +8291,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnionMatchingWrongPattern" xml:space="preserve">
     <value>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</value>
   </data>
+  <data name="ERR_InstanceFieldInUnion" xml:space="preserve">
+    <value>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</value>
+  </data>
+  <data name="ERR_InstanceCtorWithOneParameterInUnion" xml:space="preserve">
+    <value>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</value>
+  </data>
+  <data name="ERR_UnionConstructorCallsDefaultConstructor" xml:space="preserve">
+    <value>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</value>
+  </data>
 </root>

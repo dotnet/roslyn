@@ -1473,7 +1473,7 @@ next:;
         {
             get
             {
-                return this.declaration.Declarations[0].Kind is DeclarationKind.Union || HasUnionAttribute;
+                return IsUnionDeclaration || HasUnionAttribute;
             }
         }
 
@@ -1855,7 +1855,7 @@ next:;
 
         private bool ShouldApplyUnionAttribute()
         {
-            return this.declaration.Declarations[0].Kind is DeclarationKind.Union && !HasUnionAttribute;
+            return IsUnionDeclaration && !HasUnionAttribute;
         }
 
         protected override void AfterMembersChecks(BindingDiagnosticBag diagnostics)
