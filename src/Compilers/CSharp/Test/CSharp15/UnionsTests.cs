@@ -8655,6 +8655,22 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
   IL_0014:  ret
 }
 ");
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (37,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         /*<bind>*/ return 10; /*</bind>*/
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(37, 27),
+                // (55,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(55, 16),
+                // (61,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return "11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(61, 16)
+                );
         }
 
         [Fact]
@@ -8951,6 +8967,22 @@ IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(Syste
   IL_0014:  ret
 }
 ");
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (37,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return /*<bind>*/ (S1)10 /*</bind>*/;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(S1)10").WithArguments("unions").WithLocation(37, 27),
+                // (55,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return (S1)null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(S1)null").WithArguments("unions").WithLocation(55, 16),
+                // (61,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return (S1)"11";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(S1)""11""").WithArguments("unions").WithLocation(61, 16)
+                );
         }
 
         [Fact]
