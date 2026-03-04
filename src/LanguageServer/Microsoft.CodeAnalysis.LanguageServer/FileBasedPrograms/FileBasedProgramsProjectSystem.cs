@@ -124,7 +124,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         var documentKind = await ClassifyDocumentAsync(documentUri, documentInfo.SourceText, languageInformation, cancellationToken);
         _logger.LogDebug("Classified '{documentUri}' as '{documentKind}'", documentUri, documentKind);
-        UpdateHasAllInformationIfNeeded(documentUri, documentKind);
         return await GetOrLoadDocumentCoreAsync(documentUri, documentKind, documentInfo, languageInformation, cancellationToken);
     }
 
@@ -209,7 +208,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             or LooseDocumentKind.MiscellaneousFileWithStandardReferences
             or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
         {
-            return await GetOrLoadMiscFileAsync();
+            return await _canonicalMiscFilesLoader.GetOrAddMiscellaneousDocumentAsync(
+                documentUri, GetDocumentFilePath(documentUri), documentInfo.SourceText, documentKind, languageInformation, cancellationToken);
         }
         else
         {
@@ -231,46 +231,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             var primordialDoc = workspace.CurrentSolution.GetRequiredDocument(id);
             await BeginLoadingProjectWithPrimordialAsync(documentFilePath, _workspaceFactory.HostProjectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild: true);
             return primordialDoc;
-        }
-
-        async ValueTask<(TextDocument document, bool alreadyExists)> GetOrLoadMiscFileAsync()
-        {
-            Contract.ThrowIfFalse(documentKind is LooseDocumentKind.MiscellaneousFileWithNoReferences
-                or LooseDocumentKind.MiscellaneousFileWithStandardReferences
-                or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors);
-            var documents = await _workspaceFactory.MiscellaneousFilesWorkspace.CurrentSolution.GetTextDocumentsAsync(documentUri, cancellationToken).ConfigureAwait(false);
-            var miscDoc = documents.SingleOrDefault();
-            if (miscDoc is { })
-                return (miscDoc, alreadyExists: true);
-
-            var newDoc = await _canonicalMiscFilesLoader.AddMiscellaneousDocumentAsync(GetDocumentFilePath(documentUri), documentInfo.SourceText, documentKind, languageInformation, cancellationToken);
-            return (newDoc, alreadyExists: false);
-        }
-    }
-
-    private void UpdateHasAllInformationIfNeeded(DocumentUri documentUri, LooseDocumentKind documentKind)
-    {
-        var filePath = GetDocumentFilePath(documentUri);
-        if (documentKind is LooseDocumentKind.FileBasedApp or LooseDocumentKind.MiscellaneousFileWithNoReferences)
-        {
-            // Nothing to do.
-        }
-        else if (documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferences
-            or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
-        {
-            // If the misc files project has references, ensure HasAllInformation is up to date
-            var newHasAllInformation = documentKind == LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
-            var miscDocument = _workspaceFactory.MiscellaneousFilesWorkspace.CurrentSolution.GetTextDocuments(documentUri).SingleOrDefault();
-            if (miscDocument is { Project: { MetadataReferences: not [] } miscProject }
-                && miscProject.State.HasAllInformation != newHasAllInformation)
-            {
-                _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(
-                    workspace => workspace.OnHasAllInformationChanged(miscProject.Id, newHasAllInformation));
-            }
-        }
-        else
-        {
-            throw ExceptionUtilities.UnexpectedValue(documentKind);
         }
     }
 

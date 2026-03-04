@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
@@ -67,7 +68,77 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         });
     }
 
-    public async ValueTask<TextDocument> AddMiscellaneousDocumentAsync(string documentPath, SourceText documentText, LooseDocumentKind documentKind, LanguageInformation languageInformation, CancellationToken cancellationToken)
+    private bool IsForkedCanonicalDocument(TextDocument document)
+    {
+        return document.Project.Documents.Contains(document => PathUtilities.Comparer.Equals(document.FilePath, _canonicalDocumentPath.Value));
+    }
+
+    private async ValueTask<TextDocument> TransitionToCanonicalForkedIfNeededAsync(
+        string documentPath, TextDocument existingDocument, SourceText documentText, LooseDocumentKind documentKind, CancellationToken cancellationToken)
+    {
+        // Nothing to do in the following cases:
+        // - Document is classified as MiscellaneousFileWithNoReferences
+        // - Document is already in a forked canonical project
+        // - Canonical project is not loaded yet
+        if (documentKind == LooseDocumentKind.MiscellaneousFileWithNoReferences
+            || IsForkedCanonicalDocument(existingDocument)
+            || GetCanonicalProject() is not { } canonicalProject)
+        {
+            return existingDocument;
+        }
+
+        return await ExecuteUnderGateAsync(async loadedProjects =>
+        {
+            await TryUnloadProject_NoLockAsync(documentPath);
+            return await AddForkedCanonicalProject_NoLockAsync(
+                canonicalProject, loadedProjects, documentPath, documentText, hasAllInformation: documentKind == LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors, cancellationToken);
+        }, cancellationToken);
+    }
+
+    private TextDocument UpdateHasAllInformationIfNeeded(DocumentUri documentUri, TextDocument existingDocument, LooseDocumentKind documentKind)
+    {
+        if (documentKind is LooseDocumentKind.MiscellaneousFileWithNoReferences)
+        {
+            return existingDocument;
+        }
+
+        if (documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferences
+            or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
+        {
+            // Ensure the HasAllInformation of a forked canonical document is up to date
+            var newHasAllInformation = documentKind == LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
+            if (IsForkedCanonicalDocument(existingDocument)
+                && existingDocument.Project.State.HasAllInformation != newHasAllInformation)
+            {
+                _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(
+                    workspace => workspace.OnHasAllInformationChanged(existingDocument.Project.Id, newHasAllInformation));
+                return _workspaceFactory.MiscellaneousFilesWorkspace.CurrentSolution.GetTextDocuments(documentUri).OfType<Document>().Single();
+            }
+
+            return existingDocument;
+        }
+
+        throw ExceptionUtilities.UnexpectedValue(documentKind);
+    }
+
+    public async ValueTask<(TextDocument document, bool alreadyExists)> GetOrAddMiscellaneousDocumentAsync(
+        DocumentUri documentUri, string documentPath, SourceText documentText, LooseDocumentKind documentKind, LanguageInformation languageInformation, CancellationToken cancellationToken)
+    {
+        var documents = await _workspaceFactory.MiscellaneousFilesWorkspace.CurrentSolution.GetTextDocumentsAsync(documentUri, cancellationToken).ConfigureAwait(false);
+        var miscDoc = documents.SingleOrDefault();
+        if (miscDoc is { })
+        {
+            miscDoc = await TransitionToCanonicalForkedIfNeededAsync(documentPath, miscDoc, documentText, documentKind, cancellationToken);
+            miscDoc = UpdateHasAllInformationIfNeeded(documentUri, miscDoc, documentKind);
+            return (miscDoc, alreadyExists: true);
+        }
+
+        var newDoc = await AddMiscellaneousDocumentAsync(documentPath, documentText, documentKind, languageInformation, cancellationToken);
+        return (newDoc, alreadyExists: false);
+    }
+
+    private async ValueTask<TextDocument> AddMiscellaneousDocumentAsync(
+        string documentPath, SourceText documentText, LooseDocumentKind documentKind, LanguageInformation languageInformation, CancellationToken cancellationToken)
     {
         return await ExecuteUnderGateAsync(async loadedProjects =>
         {
@@ -84,8 +155,10 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 Contract.ThrowIfFalse(canonicalLoadState is ProjectLoadState.Primordial or ProjectLoadState.LoadedTargets(LoadedProjectTargets: [_]));
                 if (canonicalLoadState is ProjectLoadState.LoadedTargets)
                 {
+                    var canonicalProject = GetCanonicalProject();
+                    Contract.ThrowIfNull(canonicalProject);
                     var hasAllInformation = documentKind == LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
-                    return await AddForkedCanonicalProject_NoLockAsync(loadedProjects, documentPath, documentText, hasAllInformation, cancellationToken);
+                    return await AddForkedCanonicalProject_NoLockAsync(canonicalProject, loadedProjects, documentPath, documentText, hasAllInformation, cancellationToken);
                 }
             }
             else
@@ -98,7 +171,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         }, cancellationToken);
     }
 
-    private async ValueTask<TextDocument> AddForkedCanonicalProject_NoLockAsync(Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SourceText documentText, bool hasAllInformation, CancellationToken cancellationToken)
+    private async ValueTask<TextDocument> AddForkedCanonicalProject_NoLockAsync(Project canonicalProject, Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SourceText documentText, bool hasAllInformation, CancellationToken cancellationToken)
     {
         var newProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{documentPath}'");
         var newDocumentInfo = DocumentInfo.Create(
@@ -107,7 +180,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
 
-        var forkedProjectInfo = await GetForkedProjectInfoAsync(GetRequiredCanonicalProject(), newDocumentInfo, hasAllInformation, cancellationToken);
+        var forkedProjectInfo = await GetForkedProjectInfoAsync(canonicalProject, newDocumentInfo, hasAllInformation, cancellationToken);
 
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
@@ -221,21 +294,6 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     {
         // This loader should only do a design time build on the canonical project
         Contract.ThrowIfFalse(canonicalProjectPath == _canonicalDocumentPath.Value);
-
-        var entriesToReplace = loadedProjects
-            .Where(entry => entry.Key != canonicalProjectPath && entry.Value is ProjectLoadState.Primordial)
-            .ToArray();
-
-        // Unload all primordial projects.
-        // When new requests come in for those projects, we will create the appropriate kind of project,
-        // based on its classification
-        foreach (var (projectPath, projectLoadState) in entriesToReplace)
-        {
-            var wasUnloaded = await TryUnloadProject_NoLockAsync(projectPath);
-            Contract.ThrowIfFalse(wasUnloaded);
-        }
-
-        // Now remove the primordial canonical project
         await canonicalProjectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
             workspace.OnProjectRemoved(canonicalProjectState.PrimordialProjectId),
             cancellationToken);
@@ -284,11 +342,11 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 filePath: documentPath);
     }
 
-    private Project GetRequiredCanonicalProject()
+    private Project? GetCanonicalProject()
     {
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
         var project = miscWorkspace.CurrentSolution.Projects
-            .Single(p => PathUtilities.Comparer.Equals(p.FilePath, _canonicalDocumentPath.Value));
+            .SingleOrDefault(p => PathUtilities.Comparer.Equals(p.FilePath, _canonicalDocumentPath.Value));
 
         return project;
     }
