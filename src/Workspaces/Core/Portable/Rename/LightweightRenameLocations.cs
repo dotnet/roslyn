@@ -63,7 +63,7 @@ internal sealed partial class LightweightRenameLocations
             Options,
             Locations,
             implicitLocations,
-            referencedSymbols);
+            referencedSymbols!);
     }
 
     /// <summary>
