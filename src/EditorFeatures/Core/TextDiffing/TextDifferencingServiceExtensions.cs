@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
-using static System.Net.Mime.MediaTypeNames;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 
@@ -24,16 +24,16 @@ internal static class TextDifferencingServiceExtensions
             // If either source text has an associated snapshot, then we can utilize that 
             // snapshot to compute the diff.  This allows us to avoid allocating strings
             // for the diffing process, which can be expensive for large files.
-            oldTextSnapshot ??= CreateTextSnapshot(oldText, bufferFactoryService);
-            newTextSnapshot ??= CreateTextSnapshot(newText, bufferFactoryService);
+            oldTextSnapshot ??= CreateTextSnapshot(oldText, bufferFactoryService, newTextSnapshot!.ContentType);
+            newTextSnapshot ??= CreateTextSnapshot(newText, bufferFactoryService, oldTextSnapshot!.ContentType);
 
             return diffService.DiffSnapshotSpans(oldTextSnapshot.GetFullSpan(), newTextSnapshot.GetFullSpan(), options);
 
-            static ITextSnapshot CreateTextSnapshot(SourceText text, ITextBufferFactoryService bufferFactoryService)
+            static ITextSnapshot CreateTextSnapshot(SourceText text, ITextBufferFactoryService bufferFactoryService, IContentType contentType)
             {
                 // Unable to find an existing snapshot for the given SourceText. Create a temporary one to aid in diff computation.
                 var reader = new SourceTextReader(text);
-                var buffer = bufferFactoryService.CreateTextBuffer(reader, bufferFactoryService.InertContentType);
+                var buffer = bufferFactoryService.CreateTextBuffer(reader, contentType);
 
                 return buffer.CurrentSnapshot;
             }
@@ -43,16 +43,10 @@ internal static class TextDifferencingServiceExtensions
         return diffService.DiffStrings(oldText.ToString(), newText.ToString(), options);
     }
 
-    private sealed class SourceTextReader : TextReader
+    private sealed class SourceTextReader(SourceText sourceText) : TextReader
     {
-        private readonly SourceText _sourceText;
-        private int _position;
-
-        public SourceTextReader(SourceText sourceText)
-        {
-            _sourceText = sourceText;
-            _position = 0;
-        }
+        private readonly SourceText _sourceText = sourceText;
+        private int _position = 0;
 
         public override int Peek()
         {
