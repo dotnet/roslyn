@@ -189,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             localsMap.Free();
 
             _generateMethodBody = generateMethodBody;
+            IsRuntimeAsyncEnabledInMethod = sourceMethod.IsRuntimeAsyncEnabledInMethod;
 
             ImmutableArray<LocalSymbol> remapLocalsForBinding(
                 ImmutableArray<LocalSymbol> sourceLocalsForBinding,
@@ -776,6 +777,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsNullableAnalysisEnabled() => false;
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        // https://github.com/dotnet/roslyn/issues/79793 - test ENC
+        internal override ThreeState IsRuntimeAsyncEnabledInMethod { get; }
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {
