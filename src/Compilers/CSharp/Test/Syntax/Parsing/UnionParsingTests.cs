@@ -367,6 +367,14 @@ ref union U1(E1);
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        var comp = CreateCompilation([src, "struct E1;", UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularPreview);
+        comp.VerifyDiagnostics(
+            // (1,11): error CS0106: The modifier 'ref' is not valid for this item
+            // ref union U1(E1);
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "U1").WithArguments("ref").WithLocation(1, 11)
+            );
+
     }
 
     [Theory, CombinatorialData]

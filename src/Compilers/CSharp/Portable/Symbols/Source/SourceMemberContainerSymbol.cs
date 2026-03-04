@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                         allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
 
-                        if (!this.IsRecordStruct)
+                        if (!this.IsRecordStruct && !this.IsUnionDeclaration)
                         {
                             allowedModifiers |= DeclarationModifiers.Ref;
                         }
