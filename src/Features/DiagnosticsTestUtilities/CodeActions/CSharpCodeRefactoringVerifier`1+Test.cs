@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 
 #if !CODE_STYLE
-using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -63,10 +63,10 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         internal OptionsCollection Options => _sharedState.Options;
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string TestCode { set => base.TestCode = value; }
+        public new string TestCode { set => base.TestCode = value.Replace("\r\n", Environment.NewLine); }
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string FixedCode { set => base.FixedCode = value; }
+        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", Environment.NewLine); }
 
         /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
         public string? EditorConfig

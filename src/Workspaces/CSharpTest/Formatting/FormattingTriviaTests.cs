@@ -1655,7 +1655,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
             {
                 string s;
             }
-            """;
+            """.ReplaceLineEndings();
         var tree = SyntaxFactory.ParseCompilationUnit(code);
         var newLine = Environment.NewLine;
 
@@ -1685,7 +1685,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
             {
             	string s;
             }
-            """, actual);
+            """.ReplaceLineEndings(), actual);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39351")]

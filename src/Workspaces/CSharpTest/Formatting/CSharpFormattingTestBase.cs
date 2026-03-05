@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Formatting;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
 
@@ -24,6 +25,7 @@ public class CSharpFormattingTestBase : FormattingTestBase
         bool testWithTransformation = true,
         ParseOptions? parseOptions = null)
     {
+        code = code.ReplaceLineEndings();
         return AssertFormatAsync(code, code, [new TextSpan(0, code.Length)], changedOptionSet, testWithTransformation, parseOptions);
     }
 
@@ -34,6 +36,8 @@ public class CSharpFormattingTestBase : FormattingTestBase
         bool testWithTransformation = true,
         ParseOptions? parseOptions = null)
     {
+        code = code.ReplaceLineEndings();
+        expected = expected.ReplaceLineEndings();
         return AssertFormatAsync(expected, code, [new TextSpan(0, code.Length)], changedOptionSet, testWithTransformation, parseOptions);
     }
 

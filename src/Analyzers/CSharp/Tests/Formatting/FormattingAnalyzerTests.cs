@@ -18,6 +18,16 @@ using Verify = CSharpCodeFixVerifier<CodeStyle.CSharpFormattingAnalyzer, CodeSty
 [Trait(Traits.Feature, Traits.Features.Formatting)]
 public sealed class FormattingAnalyzerTests
 {
+    // Raw string literals preserve the source file's line endings at runtime. When the file's
+    // line endings don't match Environment.NewLine (e.g., WSL accessing Windows-checkout files),
+    // the formatter produces different line endings, causing diagnostic span mismatches.
+    // These helpers normalize line endings to Environment.NewLine before verification.
+    private static Task VerifyCodeFixAsync(string source, string fixedSource)
+        => Verify.VerifyCodeFixAsync(source.ReplaceLineEndings(), fixedSource.ReplaceLineEndings());
+
+    private static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        => Verify.VerifyAnalyzerAsync(source.ReplaceLineEndings(), expected);
+
     [Fact]
     public async Task TrailingWhitespace()
     {
@@ -29,12 +39,12 @@ public sealed class FormattingAnalyzerTests
             "class X" + Environment.NewLine +
             "{" + Environment.NewLine +
             "}" + Environment.NewLine;
-        await Verify.VerifyCodeFixAsync(testCode, expected);
+        await VerifyCodeFixAsync(testCode, expected);
     }
 
     [Fact]
     public Task TestMissingSpace()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class TypeName
             {
                 void Method()
@@ -54,7 +64,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestAlreadyFormatted()
-        => Verify.VerifyAnalyzerAsync("""
+        => VerifyAnalyzerAsync("""
             class MyClass
             {
                 void MyMethod()
@@ -65,7 +75,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestNeedsIndentation()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
               $$void MyMethod()
@@ -83,7 +93,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestNeedsIndentationButSuppressed()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
               $$void MyMethod1()
@@ -121,7 +131,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestWhitespaceBetweenMethods1()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
                 void MyMethod1()
@@ -147,7 +157,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestWhitespaceBetweenMethods2()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
                 void MyMethod1()
@@ -173,7 +183,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestWhitespaceBetweenMethods3()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
                 void MyMethod1()
@@ -199,7 +209,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestOverIndentation()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
                 [|    |]void MyMethod()
@@ -225,14 +235,14 @@ public sealed class FormattingAnalyzerTests
                 int Property1$${$$get;$$set;$$}
                 int Property2$${$$get;$$}
             }
-            """,
+            """.ReplaceLineEndings(),
             FixedCode = """
             class MyClass
             {
                 int Property1 { get; set; }
                 int Property2 { get; }
             }
-            """,
+            """.ReplaceLineEndings(),
 
             // Each application of a single code fix covers all diagnostics on the same line. In total, two lines
             // require changes so the number of incremental iterations is exactly 2.
@@ -247,14 +257,14 @@ public sealed class FormattingAnalyzerTests
                 void MyMethod()[| |]{
                 }
             }
-            """;
+            """.ReplaceLineEndings();
         var fixedCode = """
             class MyClass {
                 void MyMethod()
                 {
                 }
             }
-            """;
+            """.ReplaceLineEndings();
         await new Verify.Test
         {
             TestState =
@@ -296,12 +306,12 @@ public sealed class FormattingAnalyzerTests
             #endif
             }
             """;
-        await Verify.VerifyCodeFixAsync(testCode, testCode);
+        await VerifyCodeFixAsync(testCode, testCode);
     }
 
     [Fact]
     public Task TestRegion2()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
             #if true
@@ -351,7 +361,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestRegion3()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
             #if true
@@ -393,7 +403,7 @@ public sealed class FormattingAnalyzerTests
 
     [Fact]
     public Task TestRegion4()
-        => Verify.VerifyCodeFixAsync("""
+        => VerifyCodeFixAsync("""
             class MyClass
             {
             #if true

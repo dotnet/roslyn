@@ -104,7 +104,7 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
             }
 
             public class SomeAttribute : System.Attribute { }
-            """;
+            """.ReplaceLineEndings();
 
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
@@ -125,7 +125,7 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
             }
 
             public class SomeAttribute : System.Attribute { }
-            """;
+            """.ReplaceLineEndings();
 
         var formatted = Formatter.Format(newRoot, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
         Assert.Equal(expected, formatted);
@@ -185,6 +185,6 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
 
                 string MyProperty => "42";
             }
-            """, newCompilation.ToFullString());
+            """.ReplaceLineEndings(), newCompilation.ToFullString());
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
@@ -33,7 +34,7 @@ public sealed class FormattingTreeEditTests : CSharpFormattingTestBase
             {
                 void M(int? p) { }
             }
-            """;
+            """.ReplaceLineEndings();
         var document = GetDocument(code);
         var g = SyntaxGenerator.GetGenerator(document);
         var root = await document.GetSyntaxRootAsync();
@@ -50,7 +51,7 @@ public sealed class FormattingTreeEditTests : CSharpFormattingTestBase
             {
                 void M([MyAttr] int? p) { }
             }
-            """, result1.ToFullString());
+            """.ReplaceLineEndings(), result1.ToFullString());
 
         // verify change doesn't affect how attributes appear before other kinds of declarations
         var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -64,6 +65,6 @@ public sealed class FormattingTreeEditTests : CSharpFormattingTestBase
                 [MyAttr]
                 void M(int? p) { }
             }
-            """, result2.ToFullString());
+            """.ReplaceLineEndings(), result2.ToFullString());
     }
 }

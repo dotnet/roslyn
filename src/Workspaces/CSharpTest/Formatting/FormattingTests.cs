@@ -5166,7 +5166,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     c = value;
                 }
             }
-            """, newProperty.ToFullString());
+            """.ReplaceLineEndings(), newProperty.ToFullString());
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
@@ -9899,6 +9899,9 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
     private Task AssertFormatBodyAsync(string expected, string input)
     {
+        expected = expected.ReplaceLineEndings();
+        input = input.ReplaceLineEndings();
+
         static string transform(string s)
         {
             var lines = s.Split([Environment.NewLine], StringSplitOptions.None);

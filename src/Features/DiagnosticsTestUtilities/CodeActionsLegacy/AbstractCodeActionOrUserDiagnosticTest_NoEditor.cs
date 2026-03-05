@@ -438,6 +438,9 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         string expectedMarkup,
         TestParameters parameters)
     {
+        initialMarkup = initialMarkup.ReplaceLineEndings();
+        expectedMarkup = expectedMarkup.ReplaceLineEndings();
+
         MarkupTestFile.GetSpans(
             initialMarkup,
             out var initialMarkupWithoutSpans, out var initialSpanMap,
