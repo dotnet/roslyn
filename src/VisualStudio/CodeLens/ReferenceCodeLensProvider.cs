@@ -67,13 +67,14 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
     {
         if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
         {
-            // we allow all reference points. 
-            // engine will call this for all points our roslyn code lens (reference) tagger tagged.
-            return SpecializedTasks.True;
+            return IsSupportedCodeElement(descriptor.Kind) ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
         return SpecializedTasks.False;
     }
+
+    // The Visual Studio CodeLens tagger currently only supports tagging those code elements
+    private static bool IsSupportedCodeElement(CodeElementKinds kinds) => kinds is CodeElementKinds.Type or CodeElementKinds.Property or CodeElementKinds.Method;
 
     public Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
