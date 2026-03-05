@@ -3,7 +3,6 @@
 #nullable enable
 using System.Reflection;
 
-
 namespace TestProject.First
 {
     /// <summary>
