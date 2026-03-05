@@ -1274,7 +1274,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (100,21): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is (string)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("S1").WithLocation(100, 21),
                 // (100,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -1283,7 +1283,7 @@ class Program
                 // (100,21): error CS0029: Cannot implicitly convert type 'string' to 'C2'
                 //         return u is (string)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(100, 21),
-                // (200,21): error CS9403: An expression of type 'C1' cannot be handled by this pattern, see additional errors at this location.
+                // (200,21): error CS9372: An expression of type 'C1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is (string)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("C1").WithLocation(200, 21),
                 // (200,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -1292,7 +1292,7 @@ class Program
                 // (200,21): error CS0029: Cannot implicitly convert type 'string' to 'C2'
                 //         return u is (string)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(200, 21),
-                // (300,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (300,21): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is (string)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("S1").WithLocation(300, 21),
                 // (300,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -1310,7 +1310,7 @@ class Program
                 // (700,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //         return u is (object)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(700, 21),
-                // (800,21): error CS9403: An expression of type 'S2' cannot be handled by this pattern, see additional errors at this location.
+                // (800,21): error CS9372: An expression of type 'S2' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is (object)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(object)null").WithArguments("S2").WithLocation(800, 21),
                 // (800,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1461,7 +1461,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (17,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (17,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u switch { _object_null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(17, 27),
                 // (17,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1470,7 +1470,7 @@ class Program
                 // (17,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //         return u switch { _object_null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(17, 27),
-                // (22,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (22,21): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is _object_null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(22, 21),
                 // (22,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1479,7 +1479,7 @@ class Program
                 // (22,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //         return u is _object_null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "_object_null").WithArguments("object", "string").WithLocation(22, 21),
-                // (29,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (29,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //             case _object_null: return true;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(29, 18),
                 // (29,18): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1620,7 +1620,7 @@ class Program
                 // (18,27): error CS9135: A constant value of type 'S1' is expected
                 //         return u switch { _string_null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(18, 27),
-                // (23,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (23,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u switch { _object_null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(23, 27),
                 // (23,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1632,7 +1632,7 @@ class Program
                 // (28,21): error CS9135: A constant value of type 'S1' is expected
                 //         return u is _string_null;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(28, 21),
-                // (33,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (33,21): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is _object_null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(33, 21),
                 // (33,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1644,7 +1644,7 @@ class Program
                 // (40,18): error CS9135: A constant value of type 'S1' is expected
                 //             case _string_null: return true;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(40, 18),
-                // (50,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (50,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //             case _object_null: return true;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(50, 18),
                 // (50,18): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1881,7 +1881,7 @@ class Program
                 // (18,27): error CS9135: A constant value of type 'S1' is expected
                 //         return u switch { _string_null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(18, 27),
-                // (23,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (23,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u switch { _object_null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(23, 27),
                 // (23,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1893,7 +1893,7 @@ class Program
                 // (28,21): error CS9135: A constant value of type 'S1' is expected
                 //         return u is _string_null;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(28, 21),
-                // (33,21): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (33,21): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is _object_null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(33, 21),
                 // (33,21): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -1905,7 +1905,7 @@ class Program
                 // (40,18): error CS9135: A constant value of type 'S1' is expected
                 //             case _string_null: return true;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_string_null").WithArguments("S1").WithLocation(40, 18),
-                // (50,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (50,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //             case _object_null: return true;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "_object_null").WithArguments("S1").WithLocation(50, 18),
                 // (50,18): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -3334,7 +3334,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (27,25): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (27,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is not (string)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("S1").WithLocation(27, 25),
                 // (27,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -3343,7 +3343,7 @@ class Program
                 // (27,25): error CS0029: Cannot implicitly convert type 'string' to 'C2'
                 //         return u is not (string)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "C2").WithLocation(27, 25),
-                // (32,25): error CS9403: An expression of type 'C1' cannot be handled by this pattern, see additional errors at this location.
+                // (32,25): error CS9372: An expression of type 'C1' cannot be handled by this pattern, see additional errors at this location.
                 //         return u is not (string)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(string)null").WithArguments("C1").WithLocation(32, 25),
                 // (32,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -5341,7 +5341,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (18,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (18,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //             case true: return 3;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "true").WithArguments("S1").WithLocation(18, 18),
                 // (18,18): error CS0029: Cannot implicitly convert type 'bool' to 'int'
@@ -5350,7 +5350,7 @@ class Program
                 // (18,18): error CS0029: Cannot implicitly convert type 'bool' to 'string'
                 //             case true: return 3;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "string").WithLocation(18, 18),
-                // (30,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (30,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //             case true: return 3;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "true").WithArguments("S1").WithLocation(30, 18),
                 // (30,18): error CS0029: Cannot implicitly convert type 'bool' to 'int'
@@ -6334,7 +6334,7 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,25): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (100,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(100, 25),
                 // (100,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
@@ -6349,7 +6349,7 @@ class Program
                 // (102,25): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and "1";
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""1""").WithArguments("C1").WithLocation(102, 25),
-                // (103,41): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (103,41): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is System.IComparable and "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(103, 41),
                 // (103,41): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
@@ -6358,7 +6358,7 @@ class Program
                 // (103,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is System.IComparable and "1";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(103, 41),
-                // (104,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (104,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(104, 18),
                 // (104,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
@@ -6406,7 +6406,7 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,25): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (100,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(100, 25),
                 // (100,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
@@ -6421,7 +6421,7 @@ class Program
                 // (102,25): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and "1";
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""1""").WithArguments("C1").WithLocation(102, 25),
-                // (103,41): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (103,41): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is System.IComparable and "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(103, 41),
                 // (103,41): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
@@ -6430,7 +6430,7 @@ class Program
                 // (103,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is System.IComparable and "1";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(103, 41),
-                // (104,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (104,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(104, 18),
                 // (104,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
@@ -6525,7 +6525,7 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (100,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is empty;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "empty").WithArguments("S1").WithLocation(100, 18),
                 // (100,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -6534,7 +6534,7 @@ class Program
                 // (100,18): error CS0029: Cannot implicitly convert type 'string' to 'byte'
                 //         _ = u is empty;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "empty").WithArguments("string", "byte").WithLocation(100, 18),
-                // (200,18): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (200,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is empty;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "empty").WithArguments("S1").WithLocation(200, 18),
                 // (200,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -6646,7 +6646,7 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (100,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(100, 27),
                 // (100,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
@@ -6658,7 +6658,7 @@ class Program
                 // (101,27): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and > 1;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("C1").WithLocation(101, 27),
-                // (102,43): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (102,43): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is System.IComparable and > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(102, 43),
                 // (102,43): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
@@ -6667,7 +6667,7 @@ class Program
                 // (102,43): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         _ = u is System.IComparable and > 1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(102, 43),
-                // (103,20): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (103,20): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(103, 20),
                 // (103,20): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
@@ -6714,7 +6714,7 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,27): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (100,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(100, 27),
                 // (100,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
@@ -6726,7 +6726,7 @@ class Program
                 // (101,27): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and > 1;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("C1").WithLocation(101, 27),
-                // (102,43): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (102,43): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is System.IComparable and > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(102, 43),
                 // (102,43): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
@@ -6735,7 +6735,7 @@ class Program
                 // (102,43): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         _ = u is System.IComparable and > 1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(102, 43),
-                // (103,20): error CS9403: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (103,20): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(103, 20),
                 // (103,20): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
@@ -10126,7 +10126,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (13,22): error CS9400: An expression tree may not contain a union conversion.
+                // (13,22): error CS9369: An expression tree may not contain a union conversion.
                 //         return () => x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUnionConversion, "x").WithLocation(13, 22)
                 );
@@ -24038,7 +24038,7 @@ union S1;
             var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
             comp.VerifyEmitDiagnostics(
-                // (100,7): error CS9401: A union declaration must specify at least one case type.
+                // (100,7): error CS9370: A union declaration must specify at least one case type.
                 // union S1;
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "S1").WithLocation(100, 7)
                 );
@@ -24136,7 +24136,7 @@ union S1(System.ArgIterator, int);
             VerifyCaseTypes(comp, "S1", ["System.ArgIterator", "System.Int32"]);
 
             comp.VerifyEmitDiagnostics(
-                // (100,10): error CS9402: Cannot convert type 'ArgIterator' to 'object' via an implicit reference or boxing conversion
+                // (100,10): error CS9371: Cannot convert type 'ArgIterator' to 'object' via an implicit reference or boxing conversion
                 // union S1(System.ArgIterator, int);
                 Diagnostic(ErrorCode.ERR_NoImplicitConversionToObject, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(100, 10)
                 );
@@ -24225,7 +24225,7 @@ union S1(System.Nullable<string>);
             VerifyCaseTypes(comp, "S1", ["System.String"]);
 
             comp.VerifyEmitDiagnostics(
-                // (100,10): error CS9402: Cannot convert type 'string?' to 'object' via an implicit reference or boxing conversion
+                // (100,10): error CS9371: Cannot convert type 'string?' to 'object' via an implicit reference or boxing conversion
                 // union S1(System.Nullable<string>);
                 Diagnostic(ErrorCode.ERR_NoImplicitConversionToObject, "System.Nullable<string>").WithArguments("string?").WithLocation(100, 10),
                 // (100,10): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
@@ -24551,7 +24551,7 @@ union S2(int, bool)
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
-                // (5,9): error CS9404: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
+                // (5,9): error CS9373: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
                 //     int F1;
                 Diagnostic(ErrorCode.ERR_InstanceFieldInUnion, "F1").WithLocation(5, 9)
                 );
@@ -24604,19 +24604,19 @@ union S7(int, bool)
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
-                // (9,9): error CS9404: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
+                // (9,9): error CS9373: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
                 //     int P2 { get; }
                 Diagnostic(ErrorCode.ERR_InstanceFieldInUnion, "P2").WithLocation(9, 9),
-                // (14,9): error CS9404: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
+                // (14,9): error CS9373: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
                 //     int P3 { set {field = value;} }
                 Diagnostic(ErrorCode.ERR_InstanceFieldInUnion, "P3").WithLocation(14, 9),
-                // (19,9): error CS9404: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
+                // (19,9): error CS9373: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
                 //     int P4 { get; set;}
                 Diagnostic(ErrorCode.ERR_InstanceFieldInUnion, "P4").WithLocation(19, 9),
-                // (24,9): error CS9404: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
+                // (24,9): error CS9373: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
                 //     int P5 { get => field; set {field = value;}}
                 Diagnostic(ErrorCode.ERR_InstanceFieldInUnion, "P5").WithLocation(24, 9),
-                // (34,12): error CS9404: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
+                // (34,12): error CS9373: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
                 //     int I1.P0 { get; set; }
                 Diagnostic(ErrorCode.ERR_InstanceFieldInUnion, "P0").WithLocation(34, 12)
                 );
@@ -24656,7 +24656,7 @@ union S4(int, bool)
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
-                // (11,25): error CS9404: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
+                // (11,25): error CS9373: Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.
                 //     event System.Action E2;
                 Diagnostic(ErrorCode.ERR_InstanceFieldInUnion, "E2").WithLocation(11, 25),
                 // (19,23): error CS0535: 'S3' does not implement interface member 'I1.E0.add'
@@ -24720,19 +24720,19 @@ union S7(int, bool)
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
-                // (4,5): error CS9405: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                // (4,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
                 //     S1(string x)
                 Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S1").WithLocation(4, 5),
-                // (10,5): error CS9405: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                // (10,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
                 //     S2(ref string x)
                 Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S2").WithLocation(10, 5),
-                // (16,5): error CS9405: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                // (16,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
                 //     S3(in string x)
                 Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S3").WithLocation(16, 5),
-                // (22,5): error CS9405: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                // (22,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
                 //     S4(ref readonly string x)
                 Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S4").WithLocation(22, 5),
-                // (28,5): error CS9405: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                // (28,5): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
                 //     S5(out string x)
                 Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S5").WithLocation(28, 5)
                 );
@@ -24817,22 +24817,22 @@ union S13(int, bool)
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
-                // (4,5): error CS9406: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                // (4,5): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
                 //     S6(int x, bool y)
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S6").WithLocation(4, 5),
-                // (10,12): error CS9406: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                // (10,12): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
                 //     public S7()
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S7").WithLocation(10, 12),
-                // (16,5): error CS9406: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                // (16,5): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
                 //     S8(int x, bool y)
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S8").WithLocation(16, 5),
-                // (30,12): error CS9406: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                // (30,12): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
                 //     public S9()
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S9").WithLocation(30, 12),
-                // (36,5): error CS9406: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                // (36,5): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
                 //     S10(int x, bool y)
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S10").WithLocation(36, 5),
-                // (53,7): error CS9406: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                // (53,7): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
                 //     : this()
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "this").WithLocation(53, 7)
                 );
