@@ -9,3 +9,7 @@ Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnaly
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?
+
+[RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
+[RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool
