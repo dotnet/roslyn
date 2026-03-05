@@ -1575,7 +1575,7 @@ raise_E
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotOnMonoCore))>
+        <ConditionalFact(GetType(NotOnMonoCore), GetType(IsEnglishLocal))>
         Public Sub Event_TypeChange()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -2260,7 +2260,7 @@ End Module</file>
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotOnMonoCore))>
+        <ConditionalFact(GetType(NotOnMonoCore), GetType(IsEnglishLocal))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
         Public Sub Property_TypeChange()
             Dim common = "
@@ -6217,7 +6217,7 @@ _Lambda$__1-1
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotOnMonoCore))>
+        <ConditionalFact(GetType(NotOnMonoCore), GetType(IsEnglishLocal))>
         Public Sub Method_Delete_WithLambda()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -6450,7 +6450,7 @@ _Lambda$__1#2-0#2
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotOnMonoCore))>
+        <ConditionalFact(GetType(NotOnMonoCore), GetType(IsEnglishLocal))>
         Public Sub Method_Delete_WithLambda_AddedMethod()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -6567,7 +6567,7 @@ _Lambda$__1#1-0#1
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotOnMonoCore))>
+        <ConditionalFact(GetType(NotOnMonoCore), GetType(IsEnglishLocal))>
         Public Sub Method_Delete_WithLambda_MultipleGenerations()
             Dim common = "
 Imports System
