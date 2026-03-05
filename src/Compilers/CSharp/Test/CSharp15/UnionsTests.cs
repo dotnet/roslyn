@@ -3099,7 +3099,7 @@ struct S1
                 //         return z;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(39, 16),
 
-                // PROTOTYPE: The following diagnostics is somewhat confusing in these cases.
+                // https://github.com/dotnet/roslyn/issues/82636: The following diagnostics is somewhat confusing in these cases.
                 //            A type cannot be handled by the pattern of the same type.
                 //            Syntactially it is not obvious that we are doing a union matching.
 
@@ -4185,7 +4185,7 @@ static class Extensions
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            // PROTOTYPE: It looks like list pattern cannot work with union types.
+
             comp.VerifyDiagnostics(
                 // (14,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
                 //         return u is [10];
@@ -4949,7 +4949,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE: Confirm that a type parameter is never a union type, even when constrained to one.
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1<T>(T)", @"
@@ -12385,8 +12384,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
 
-            // PROTOTYPE: Confirm that post-condition attributes aren't respected for the purpose of default nullability of a Union instance.
-            //            We respect them for constructor invocations and conversions  
             comp.VerifyDiagnostics(
                 // (200,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, bool => 3 };
@@ -13770,7 +13767,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
 
-            // PROTOTYPE: This is another case of behavior consistent with explicit property patterns. See below
+            // https://github.com/dotnet/roslyn/issues/82636: This is another case of behavior consistent with explicit property patterns. See below
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -14061,7 +14058,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
 
-            // PROTOTYPE: This is another case of behavior consistent with explicit property patterns. See below
+            // https://github.com/dotnet/roslyn/issues/82636: This is another case of behavior consistent with explicit property patterns. See below
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -15460,10 +15457,10 @@ struct S1
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalse").VerifyDiagnostics();
 
-            // PROTOTYPE: The IL would be shorter without HasValue, but, I guess, we expect
-            //            non-boxing pattern to be fully implemented if HasValue is present.
-            //            The scenario is somewhat pathological as well, no actual need to have 'not null'
-            //            pattern in the code.
+            // The IL would be shorter without HasValue, but, I guess, we expect
+            // non-boxing pattern to be fully implemented if HasValue is present.
+            // The scenario is somewhat pathological as well, no actual need to have 'not null'
+            // pattern in the code.
             verifier.VerifyIL("S1.Test2", @"
 {
   // Code size       37 (0x25)
@@ -15560,7 +15557,7 @@ class C1
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
     public object Value => _value;
-    public bool HasValue => throw null; // PROTOTYPE: Inheritance isn't handled yet
+    public bool HasValue => throw null; // https://github.com/dotnet/roslyn/issues/82636: Inheritance isn't handled yet
 }
 
 [System.Runtime.CompilerServices.Union]
@@ -15596,7 +15593,7 @@ class Program
             var src = @"
 class C0
 {
-    public bool HasValue => throw null; // PROTOTYPE: Inheritance isn't handled yet
+    public bool HasValue => throw null; // https://github.com/dotnet/roslyn/issues/82636: Inheritance isn't handled yet
 }
 
 [System.Runtime.CompilerServices.Union]
@@ -24006,7 +24003,7 @@ union S1(int, int)
 ";
             var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
-            // PROTOTYPE: Consider reporting a more informative error.
+            // https://github.com/dotnet/roslyn/issues/82636: Consider reporting a more informative error.
             comp.VerifyEmitDiagnostics(
                 // (100,15): error CS0111: Type 'S1' already defines a member called 'S1' with the same parameter types
                 // union S1(int, int)
@@ -24059,7 +24056,7 @@ union S1();
 ";
             var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
-            // PROTOTYPE: Consider reorting a more informative error. Perhaps something like: "A union declaration must specify at least one case type." 
+            // https://github.com/dotnet/roslyn/issues/82636: Consider repoting a more informative error. Perhaps something like: "A union declaration must specify at least one case type." 
             comp.VerifyEmitDiagnostics(
                 // (100,10): error CS1031: Type expected
                 // union S1();
@@ -24805,6 +24802,17 @@ union S12(int, bool)
     : this()
     {}
 }
+
+union S13(int, bool)
+{
+    S13(int x, bool y)
+    : this("""", y)
+    {}
+
+    S13(string x, bool y)
+    : this(y)
+    {}
+}
 ";
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
@@ -24832,5 +24840,5 @@ union S12(int, bool)
     }
 }
 
-// PROTOTYPE: Test conversions from 'new()' and other target-typed constructs
-// PROTOTYPE: Ensure we test nullable state resulting from a struct union type nullary (no-argument) constructor invocation.
+// https://github.com/dotnet/roslyn/issues/82636: Test conversions from 'new()' and other target-typed constructs
+// https://github.com/dotnet/roslyn/issues/82636: Ensure we test nullable state resulting from a struct union type nullary (no-argument) constructor invocation.

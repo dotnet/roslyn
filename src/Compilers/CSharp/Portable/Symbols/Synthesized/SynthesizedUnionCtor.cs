@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Add a sequence point at the end of the constructor, so that a breakpoint placed on the case type 
             // can be hit whenever a new instance of the union for that case type is created.
             Debug.Assert(F.Syntax is TypeDeclarationSyntax);
-            statements.Add(new BoundSequencePointWithSpan(F.Syntax, statementOpt: null, Locations[0].SourceSpan)); // PROTOTYPE: Add test coverage and verify debugging experience.
+            statements.Add(new BoundSequencePointWithSpan(F.Syntax, statementOpt: null, Locations[0].SourceSpan)); // https://github.com/dotnet/roslyn/issues/82636: Add test coverage and verify debugging experience.
         }
 
         public static bool IsValidParameterTypeConversion(Conversion c)

@@ -4906,7 +4906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (unionMatchingInputType is not null)
             {
                 bool hasErrors = CheckValidPatternType(node.Right, unionType, inputType, targetType, diagnostics: diagnostics);
-                // PROTOTYPE: Add test coverage for isExplicitNotNullTest
+                // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for isExplicitNotNullTest
                 var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: false, isUnionMatching: true, inputType: unionMatchingInputType, targetType, hasErrors);
                 return MakeIsPatternExpression(node, operand, pattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
             }

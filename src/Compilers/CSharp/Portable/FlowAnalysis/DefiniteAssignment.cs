@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // user-defined conversion. Therefore the IntPtr ConversionKind is included
                         // here.
                         if (boundConversion.ConversionKind.IsUserDefinedConversion() ||
-                            boundConversion.ConversionKind.IsUnionConversion() || // PROTOTYPE: Add coverage
+                            boundConversion.ConversionKind.IsUnionConversion() || // https://github.com/dotnet/roslyn/issues/82636: Add coverage
                             boundConversion.ConversionKind == ConversionKind.IntPtr)
                         {
                             return true;
