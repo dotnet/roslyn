@@ -418,7 +418,7 @@ internal static partial class RoslynInsertionTool
                             : "No source changes since previous insertion";
 
                         prDescriptionMarkdown += nl + "---" + nl + diffDescription + nl;
-                        prDescriptionMarkdown = AppendChangesToDescription(prDescriptionMarkdown, oldBuild ?? buildToInsert, changes);
+                        prDescriptionMarkdown = await AppendChangesToDescriptionAsync(prDescriptionMarkdown, oldBuild ?? buildToInsert, changes);
                     }
                 }
                 catch (Exception e)

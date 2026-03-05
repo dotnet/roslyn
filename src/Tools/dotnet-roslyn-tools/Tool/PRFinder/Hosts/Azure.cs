@@ -3,7 +3,6 @@
 // See the License.txt file in the project root for more information.
 
 using System.Text.RegularExpressions;
-using LibGit2Sharp;
 
 namespace Microsoft.RoslynTools.PRFinder.Hosts;
 
@@ -21,17 +20,17 @@ public partial class Azure(string repoUrl) : IRepositoryHost
     public string GetPullRequestUrl(string prNumber)
         => $"{_repoUrl}/pullrequest/{prNumber}";
 
-    public bool ShouldSkip(Commit commit, ref bool mergePRFound)
+    public bool ShouldSkip(GitCommit commit, ref bool mergePRFound)
     {
         // Exclude arcade dependency updates
-        if (commit.Author.Name == "DotNet Bot")
+        if (commit.Author == "DotNet Bot")
         {
             mergePRFound = true;
             return true;
         }
 
         // Exclude OneLoc localization PRs
-        if (commit.Author.Name == "Project Collection Build Service (devdiv)")
+        if (commit.Author == "Project Collection Build Service (devdiv)")
         {
             mergePRFound = true;
             return true;
@@ -47,13 +46,13 @@ public partial class Azure(string repoUrl) : IRepositoryHost
         return false;
     }
 
-    public Task<MergeInfo?> TryParseMergeInfoAsync(Commit commit)
+    public Task<MergeInfo?> TryParseMergeInfoAsync(GitCommit commit)
     {
         var match = IsAzDOMergePRCommit().Match(commit.Message);
         if (match.Success)
         {
             // Merge PR Messages are in the form "Merged PR 320820: Resolving encoding issue on test summary pane, using UTF8 now\n\nAdded a StreamWriterWrapper to resolve encoding issue"
-            return Task.FromResult<MergeInfo?>(new(match.Groups[1].Value, commit.Message));
+            return Task.FromResult<MergeInfo?>(new(match.Groups[1].Value, commit.MessageShort));
         }
         else
         {

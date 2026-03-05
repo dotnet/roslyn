@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.PRFinder.Hosts;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 
@@ -97,9 +98,6 @@ internal class PRFinder
             return 1;
         }
 
-        var product = Product.GetProductByRepoUrl(repoUrl);
-        var isGitHubMirror = product is not null && product.InternalRepoBaseUrl is not null && product.IsGitHubRepo();
-
         var isGitHub = repoUrl.Contains("github.com");
         var isAzure = repoUrl.Contains("azure.com");
         if (!isGitHub && !isAzure)
@@ -110,9 +108,19 @@ internal class PRFinder
 
         builder ??= new();
 
-        IRepositoryHost host = isGitHub || isGitHubMirror
-            ? new Hosts.GitHub(product?.RepoHttpBaseUrl ?? repoUrl, connections, logger)
-            : new Hosts.Azure(repoUrl);
+        IRepositoryHost? host;
+        var product = Product.GetProductByRepoUrl(repoUrl);
+        if (product is null)
+        {
+            host = isGitHub
+                ? new Hosts.GitHub(repoUrl, connections, logger)
+                : new Hosts.Azure(repoUrl);
+        }
+        else if (!product.TryGetHost(connections, logger, out host))
+        {
+            logger.LogError("Remote '{RemoteName}' has an unsupported repository URL '{RemoteUrl}'.", remote.Name, remote.Url);
+            return 1;
+        }
 
         var formatter = format switch
         {
@@ -132,17 +140,48 @@ internal class PRFinder
         var commitsForPath = path is not null
             ? repo.Commits.QueryBy(path, commitFilter).Select(e => e.Commit.Sha).ToHashSet()
             : null;
-        var commitLog = repo.Commits.QueryBy(commitFilter);
 
         logger.LogDebug("{Header}", formatter.FormatChangesHeader(startRef, host.GetCommitUrl(startRef), endRef, host.GetCommitUrl(endRef), path));
 
         RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(startRef, endRef)), builder);
 
+        // Filter commits by path before converting to GitCommit
+        var commitLog = repo.Commits.QueryBy(commitFilter);
+        var filteredCommits = commitsForPath is not null
+            ? commitLog.Where(c => IsCommitForPath(c, commitsForPath))
+            : commitLog;
+
+        var gitCommits = filteredCommits.Select(commit => new GitCommit
+        {
+            Author = commit.Author.Name,
+            Committer = commit.Committer.Name,
+            Message = commit.Message,
+            CommitId = commit.Sha,
+        }).ToList();
+
+        await AppendChangesToDescriptionAsync(gitCommits, host, formatter, labels, builder);
+
+        logger.LogInformation("{Builder}", builder);
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Core method that formats a list of <see cref="GitCommit"/> changes into a description using
+    /// the provided <see cref="IRepositoryHost"/> and <see cref="IPRLogFormatter"/>.
+    /// </summary>
+    public static async Task AppendChangesToDescriptionAsync(
+        List<GitCommit> commits,
+        IRepositoryHost host,
+        IPRLogFormatter formatter,
+        string[] labels,
+        StringBuilder builder)
+    {
         var commitHeaderAdded = false;
         var mergePRHeaderAdded = false;
         var mergePRFound = false;
 
-        foreach (var commit in commitLog)
+        foreach (var commit in commits)
         {
             if (host.ShouldSkip(commit, ref mergePRFound))
             {
@@ -153,12 +192,6 @@ internal class PRFinder
 
             // We will print commit comments until we find the first merge PR
             if (mergeInfo is null && mergePRFound)
-            {
-                continue;
-            }
-
-            // We need to ensure the commit is for the path if one is provided
-            if (commitsForPath is not null && !IsCommitForPath(commit, commitsForPath))
             {
                 continue;
             }
@@ -190,7 +223,7 @@ internal class PRFinder
                     RecordLine(formatter.GetCommitSectionHeader(), builder);
                 }
 
-                var fullSHA = commit.Sha;
+                var fullSHA = commit.CommitId;
                 var shortSHA = fullSHA[..7];
 
                 prLink = formatter.FormatCommitListItem(commit.MessageShort, shortSHA, host.GetCommitUrl(fullSHA));
@@ -198,10 +231,6 @@ internal class PRFinder
 
             RecordLine(prLink, builder);
         }
-
-        logger.LogInformation("{Builder}", builder);
-
-        return 0;
     }
 
     private static void RecordLine(string line, StringBuilder? builder)
