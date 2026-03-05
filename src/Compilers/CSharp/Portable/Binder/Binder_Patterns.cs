@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            // PROTOTYPE: Not dealing with inheritance for now.
+            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
             //            The inherited property might not be a definition, therefore the name of the function should probably change
             PropertySymbol? valueProperty = null;
             foreach (var m in inputUnionType.OriginalDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
@@ -67,15 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, inputUnionType, WellKnownMemberNames.ValuePropertyName)); // PROTOTYPE: Cover this code path
+                useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, inputUnionType, WellKnownMemberNames.ValuePropertyName)); // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
             }
 
             return valueProperty;
 
             static bool hasUnionValueSignature(PropertySymbol property)
             {
-                // PROTOTYPE: Cover individual conditions with tests
-                // PROTOTYPE: Cover scenaros with a setter present
+                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
+                // https://github.com/dotnet/roslyn/issues/82636: Cover scenaros with a setter present
                 return property is
                 {
                     IsStatic: false,
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsUnionTypeValueProperty(NamedTypeSymbol unionType, Symbol symbol)
         {
-            // PROTOTYPE: Deal with inheritance?
+            // https://github.com/dotnet/roslyn/issues/82636: Deal with inheritance?
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return Binder.GetUnionTypeValuePropertyOriginalDefinition(unionType, ref useSiteInfo) == (object)symbol.OriginalDefinition;
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             PropertySymbol? valueProperty = null;
 
-            // PROTOTYPE: Not dealing with inheritance for now.
+            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
             foreach (var m in inputUnionType.OriginalDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
             {
                 if (m is PropertySymbol prop && hasHasValueSignature(prop))
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (valueProperty is null || valueProperty.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
             {
-                return null; // PROTOTYPE: Cover this code path
+                return null; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
             }
 
             return valueProperty;
 
             static bool hasHasValueSignature(PropertySymbol property)
             {
-                // PROTOTYPE: Cover individual conditions with tests
+                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
                 return property is
                 {
                     IsStatic: false,
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            // PROTOTYPE: Not dealing with inheritance for now.
+            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
             NamedTypeSymbol unionDefinition = inputUnionType.OriginalDefinition;
             ImmutableArray<TypeSymbol> caseTypes = unionDefinition.UnionCaseTypes;
 
@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (m is MethodSymbol method && isTryGetValueSignature(method))
                 {
                     var candidate = method.AsMember(inputUnionType);
-                    if (candidate.Parameters[0].Type.Equals(type, TypeCompareKind.AllIgnoreOptions) && // PROTOTYPE: Allow conversions per spec
-                        caseTypes.Contains(method.Parameters[0].Type, Symbols.SymbolEqualityComparer.AllIgnoreOptions)) // PROTOTYPE: Optimize this check?
+                    if (candidate.Parameters[0].Type.Equals(type, TypeCompareKind.AllIgnoreOptions) && // https://github.com/dotnet/roslyn/issues/82636: Allow conversions per spec
+                        caseTypes.Contains(method.Parameters[0].Type, Symbols.SymbolEqualityComparer.AllIgnoreOptions)) // https://github.com/dotnet/roslyn/issues/82636: Optimize this check?
                     {
                         if (method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
                         {
-                            continue; // PROTOTYPE: Cover this code path
+                            continue; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
                         }
 
                         return candidate;
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isTryGetValueSignature(MethodSymbol method)
             {
-                // PROTOTYPE: Cover individual conditions with tests
+                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
                 return method is
                 {
                     IsStatic: false,
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)
         {
-            // PROTOTYPE: Deal with inheritance?
+            // https://github.com/dotnet/roslyn/issues/82636: Deal with inheritance?
             return (object)property.OriginalDefinition == Binder.GetUnionTypeHasValuePropertyOriginalDefinition(unionType);
         }
 
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
                 var boundType = (BoundTypeExpression)convertedExpression;
-                bool isExplicitNotNullTest = !hasUnionMatching && boundType.Type.SpecialType == SpecialType.System_Object; // PROTOTYPE: Add test coverage
+                bool isExplicitNotNullTest = !hasUnionMatching && boundType.Type.SpecialType == SpecialType.System_Object; // https://github.com/dotnet/roslyn/issues/82636: Add test coverage
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, boundType.Type, hasErrors);
             }
         }
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
             if (inputType.ContainsTypeParameter())
             {
-                // PROTOTYPE: Make sure code in this block makes sense for union matching.
+                // https://github.com/dotnet/roslyn/issues/82636: Make sure code in this block makes sense for union matching.
                 convertedExpression = expression;
                 // If the expression does not have a constant value, an error will be reported in the caller
                 if (!hasErrors && expression.ConstantValueOpt is object)
@@ -1730,8 +1730,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DiscardDesignation:
                     {
                         hasUnionMatching = false;
-                        // PROTOTYPE: Add test coverage for a Union type
-                        // PROTOTYPE: Add test coverage for 'unionType' not changing
+                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for a Union type
+                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for 'unionType' not changing
                         return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(node.Parent is { });
 
                         hasUnionMatching = false;
-                        // PROTOTYPE: Add test coverage for 'unionType' not changing
+                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for 'unionType' not changing
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
                             boundOperandType, isVar: true, variableSymbol, variableAccess,

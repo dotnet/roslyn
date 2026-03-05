@@ -4858,7 +4858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                         }
 
-                        // PROTOTYPE: Complain for anything but a type syntax in the parameter syntax
+                        // https://github.com/dotnet/roslyn/issues/82636: Complain for anything but a type syntax in the parameter syntax
 
                         Debug.Assert(parameterSyntax.Type != null);
                         typesBuilder.Add(parameterSyntax.Type);

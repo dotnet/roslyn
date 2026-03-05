@@ -2723,7 +2723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_NoNewAbstract, syntax.Location, analysis.Operator.ContainingType);
             }
 
-            // PROTOTYPE: Any other validations to perform? Perhaps we should simply bind object creation, drop the node, but keep diagnostics.
+            // https://github.com/dotnet/roslyn/issues/82636: Any other validations to perform? Perhaps we should simply bind object creation, drop the node, but keep diagnostics.
 
             var unionConversion = new BoundConversion(
                     syntax,

@@ -1888,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case ConversionKind.Union:
                     {
-                        // PROTOTYPE: Confirm
+                        // https://github.com/dotnet/roslyn/issues/82636: Confirm
                         throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                     }
                 case ConversionKind.IntPtr:

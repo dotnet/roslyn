@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (node is StructDeclarationSyntax { RawKind: (int)SyntaxKind.UnionDeclaration })
             {
-                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers; // PROTOTYPE: Add test coverage
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers; // https://github.com/dotnet/roslyn/issues/82636: Add test coverage
             }
 
             var memberNames = GetNonTypeMemberNames(
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (node.Kind() is SyntaxKind.UnionDeclaration)
             {
-                MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation()); // PROTOTYPE: Add test coverage, manual tree creation is needed
+                MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation()); // https://github.com/dotnet/roslyn/issues/82636: Add test coverage, manual tree creation is needed
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
-                case SyntaxKind.UnionDeclaration: // PROTOTYPE: Add test coverage
+                case SyntaxKind.UnionDeclaration: // https://github.com/dotnet/roslyn/issues/82636: Add test coverage
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:

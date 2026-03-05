@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
 
-                        // PROTOTYPE: Is there an advantage to use TryGetValue here? 
+                        // https://github.com/dotnet/roslyn/issues/82636: Is there an advantage to use TryGetValue here? 
                         BoundDagTemp input = PrepareForUnionValuePropertyMatching(ref inputInfo, builder);
                         var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
                         outputInfo = (TestInputOutputInfo)evaluation.MakeResultTemp();
@@ -2177,7 +2177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (testKind)
             {
                 case UnionTestKind.NonNullTest:
-                    // PROTOTYPE: Tests do not observe significance of this path
+                    // https://github.com/dotnet/roslyn/issues/82636: Tests do not observe significance of this path
                     switch (otherKind)
                     {
                         case UnionTestKind.NullTest:
@@ -2226,7 +2226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (otherKind)
                     {
                         case UnionTestKind.NonNullTest:
-                            // PROTOTYPE: Tests do not observe significance of this path
+                            // https://github.com/dotnet/roslyn/issues/82636: Tests do not observe significance of this path
                             // v == null --> !(v != null)
                             trueTestPermitsTrueOther = false;
                             // !(v == null) --> v != null
@@ -2237,7 +2237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             trueTestPermitsTrueOther = false;
                             break;
                         case UnionTestKind.NullTest:
-                            // PROTOTYPE: Tests do not observe significance of this path
+                            // https://github.com/dotnet/roslyn/issues/82636: Tests do not observe significance of this path
                             // v == null --> v == null
                             trueTestImpliesTrueOther = true;
                             // !(v == null) --> !(v == null)
@@ -2275,7 +2275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (hasValueSense)
                     {
-                        return UnionTestKind.NonNullTest; // PROTOTYPE: Cover this code path
+                        return UnionTestKind.NonNullTest; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
                     }
                     else
                     {
