@@ -48,6 +48,7 @@ parameters:
 
   - name: cherryPick
     type: string
+    default: ''
 
 steps:
   - checkout: none
@@ -70,6 +71,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
       Write-Host "##vso[task.setvariable variable=Template.DropPath]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.CherryPick]$('')"
 
       Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
       Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($insertionData.vsBranch)"
@@ -145,6 +147,12 @@ steps:
         Write-Host "##vso[task.setvariable variable=Template.DropPath]$Env:DropPath"
       }
 
+      if ("" -ne $Env:CherryPick -and "(default)" -ne $Env:CherryPick)
+      {
+        Write-Host "Setting CherryPick to $Env:CherryPick"
+        Write-Host "##vso[task.setvariable variable=Template.CherryPick]$Env:CherryPick"
+      }
+
     displayName: Set Variables from Input Parameters
     env:
       CreateDraftPR: ${{ parameters.createDraftPR }}
@@ -154,6 +162,7 @@ steps:
       VSBranchName: ${{ parameters.vsBranchName }}
       ComponentBuildProjectName: ${{ parameters.componentBuildProjectName }}
       DropPath: ${{ parameters.dropPath }}
+      CherryPick: ${{ parameters.cherryPick }}
 
   # Now that everything is set, actually perform the insertion.
   - powershell: |
@@ -205,7 +214,7 @@ steps:
         $arguments += "--title-suffix", $titleSuffix
       }
 
-      $cherryPick = "${{ parameters.cherryPick }}"
+      $cherryPick = "$(Template.CherryPick)"
       if ($cherryPick -ne "")
       {
         $arguments += "--cherry-pick", $cherryPick

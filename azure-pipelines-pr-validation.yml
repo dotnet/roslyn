@@ -151,7 +151,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - task: Powershell@2
           name: SetOriginalBuildNumber
           displayName: Setting OriginalBuildNumber variable
