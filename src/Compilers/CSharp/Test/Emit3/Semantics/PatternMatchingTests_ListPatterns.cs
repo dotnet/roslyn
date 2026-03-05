@@ -1006,9 +1006,15 @@ class X
             // (6,18): error CS0656: Missing compiler required member 'System.Array.Length'
             //         _ = a is [0];
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Array", "Length").WithLocation(6, 18),
+            // (6,18): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
+            //         _ = a is [0];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[0]").WithArguments("int[]").WithLocation(6, 18),
             // (7,18): error CS0656: Missing compiler required member 'System.Array.Length'
             //         _ = a is [.._];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.._]").WithArguments("System.Array", "Length").WithLocation(7, 18));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.._]").WithArguments("System.Array", "Length").WithLocation(7, 18),
+            // (7,18): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
+            //         _ = a is [.._];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.._]").WithArguments("int[]").WithLocation(7, 18));
     }
 
     [Fact]
