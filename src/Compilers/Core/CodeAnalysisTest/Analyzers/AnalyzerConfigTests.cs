@@ -57,6 +57,227 @@ my_prop = my_val
             Assert.Equal("/bogus", config.NormalizedDirectory);
         }
 
+        [Theory]
+        [InlineData(@"a=b=", "", "a", "b=")]
+        [InlineData(@"b=b=#", "", "b", "b=")]
+        [InlineData(@"c=b=#c", "", "c", "b=")]
+        [InlineData(@"d=b=##", "", "d", "b=")]
+        [InlineData(@"e=b=#c#", "", "e", "b=")]
+        [InlineData(@"f=b=;", "", "f", "b=")]
+        [InlineData(@"g=b=;c", "", "g", "b=")]
+        [InlineData(@"h=b=;;", "", "h", "b=")]
+        [InlineData(@"i=b=;c;", "", "i", "b=")]
+        [InlineData(@"j=b=#;", "", "j", "b=")]
+        [InlineData(@"k=b=;#", "", "k", "b=")]
+        [InlineData(@"l=b=c", "", "l", "b=c")]
+        [InlineData(@"m=b=c#", "", "m", "b=c")]
+        [InlineData(@"n=b=c#d", "", "n", "b=c")]
+        [InlineData(@"o=b=c##", "", "o", "b=c")]
+        [InlineData(@"p=b=c#d#", "", "p", "b=c")]
+        [InlineData(@"q=b=c;", "", "q", "b=c")]
+        [InlineData(@"r=b=c;d", "", "r", "b=c")]
+        [InlineData(@"s=b=c;;", "", "s", "b=c")]
+        [InlineData(@"t=b=c;d;", "", "t", "b=c")]
+        [InlineData(@"u=b=c#;", "", "u", "b=c")]
+        [InlineData(@"v=b=c;#", "", "v", "b=c")]
+        [InlineData(@"w=b:", "", "w", "b:")]
+        [InlineData(@"x=b:#", "", "x", "b:")]
+        [InlineData(@"y=b:#c", "", "y", "b:")]
+        [InlineData(@"z=b:##", "", "z", "b:")]
+        [InlineData(@"0=b:#c#", "", "0", "b:")]
+        [InlineData(@"1=b:;", "", "1", "b:")]
+        [InlineData(@"2=b:;c", "", "2", "b:")]
+        [InlineData(@"3=b:;;", "", "3", "b:")]
+        [InlineData(@"4=b:;c;", "", "4", "b:")]
+        [InlineData(@"5=b:#;", "", "5", "b:")]
+        [InlineData(@"6=b:;#", "", "6", "b:")]
+        [InlineData(@"7=b:c", "", "7", "b:c")]
+        [InlineData(@"8=b:c#", "", "8", "b:c")]
+        [InlineData(@"9=b:c#d", "", "9", "b:c")]
+        [InlineData(@"aa=b:c##", "", "aa", "b:c")]
+        [InlineData(@"ab=b:c#d#", "", "ab", "b:c")]
+        [InlineData(@"ac=b:c;", "", "ac", "b:c")]
+        [InlineData(@"ad=b:c;d", "", "ad", "b:c")]
+        [InlineData(@"ae=b:c;;", "", "ae", "b:c")]
+        [InlineData(@"af=b:c;d;", "", "af", "b:c")]
+        [InlineData(@"ag=b:c#;", "", "ag", "b:c")]
+        [InlineData(@"ah=b:c;#", "", "ah", "b:c")]
+        [InlineData(@"ai:b=", "", "ai", "b=")]
+        [InlineData(@"aj:b=#", "", "aj", "b=")]
+        [InlineData(@"ak:b=#c", "", "ak", "b=")]
+        [InlineData(@"al:b=##", "", "al", "b=")]
+        [InlineData(@"am:b=#c#", "", "am", "b=")]
+        [InlineData(@"an:b=;", "", "an", "b=")]
+        [InlineData(@"ao:b=;c", "", "ao", "b=")]
+        [InlineData(@"ap:b=;;", "", "ap", "b=")]
+        [InlineData(@"aq:b=;c;", "", "aq", "b=")]
+        [InlineData(@"ar:b=#;", "", "ar", "b=")]
+        [InlineData(@"as:b=;#", "", "as", "b=")]
+        [InlineData(@"at:b=c", "", "at", "b=c")]
+        [InlineData(@"au:b=c#", "", "au", "b=c")]
+        [InlineData(@"av:b=c#d", "", "av", "b=c")]
+        [InlineData(@"aw:b=c##", "", "aw", "b=c")]
+        [InlineData(@"ax:b=c#d#", "", "ax", "b=c")]
+        [InlineData(@"ay:b=c;", "", "ay", "b=c")]
+        [InlineData(@"az:b=c;d", "", "az", "b=c")]
+        [InlineData(@"a0:b=c;;", "", "a0", "b=c")]
+        [InlineData(@"a1:b=c;d;", "", "a1", "b=c")]
+        [InlineData(@"a2:b=c#;", "", "a2", "b=c")]
+        [InlineData(@"a3:b=c;#", "", "a3", "b=c")]
+        [InlineData(@"a4:b:", "", "a4", "b:")]
+        [InlineData(@"a5:b:#", "", "a5", "b:")]
+        [InlineData(@"a6:b:#c", "", "a6", "b:")]
+        [InlineData(@"a7:b:##", "", "a7", "b:")]
+        [InlineData(@"a8:b:#c#", "", "a8", "b:")]
+        [InlineData(@"a9:b:;", "", "a9", "b:")]
+        [InlineData(@"ba:b:;c", "", "ba", "b:")]
+        [InlineData(@"ca:b:;;", "", "ca", "b:")]
+        [InlineData(@"da:b:;c;", "", "da", "b:")]
+        [InlineData(@"ea:b:#;", "", "ea", "b:")]
+        [InlineData(@"fa:b:;#", "", "fa", "b:")]
+        [InlineData(@"ga:b:c", "", "ga", "b:c")]
+        [InlineData(@"ha:b:c#", "", "ha", "b:c")]
+        [InlineData(@"ia:b:c#d", "", "ia", "b:c")]
+        [InlineData(@"ja:b:c##", "", "ja", "b:c")]
+        [InlineData(@"ka:b:c#d#", "", "ka", "b:c")]
+        [InlineData(@"la:b:c;", "", "la", "b:c")]
+        [InlineData(@"ma:b:c;d", "", "ma", "b:c")]
+        [InlineData(@"na:b:c;;", "", "na", "b:c")]
+        [InlineData(@"oa:b:c;d;", "", "oa", "b:c")]
+        [InlineData(@"pa:b:c#;", "", "pa", "b:c")]
+        [InlineData(@"qa:b:c;#", "", "qa", "b:c")]
+        public void KeysWithValueImpersonatingKeysCase(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
+            => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
+
+        [Theory]
+        [InlineData(@"[mykey]=", "", "", "")]
+        [InlineData(@"[mykey=]=", "", "", "")]
+        [InlineData(@"[mykey1]=[any#thing]", "", "", "")]
+        [InlineData(@"[mykey2]=[anything]", "mykey2]=[anything", "", "")]
+        public void GlobsImpersonationCase(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
+            => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
+
+        [Theory]
+        [InlineData(@"[*.cs]", "*.cs", "", "")]
+        [InlineData(@"", "", "", "")]
+        [InlineData(@"=", "", "", "")]
+        [InlineData(@"a", "", "", "")]
+        [InlineData(@"a#", "", "", "")]
+        [InlineData(@"a#b", "", "", "")]
+        [InlineData(@"a##", "", "", "")]
+        [InlineData(@"a#b#", "", "", "")]
+        [InlineData(@"a;", "", "", "")]
+        [InlineData(@"a;b", "", "", "")]
+        [InlineData(@"a;;", "", "", "")]
+        [InlineData(@"a;b;", "", "", "")]
+        [InlineData(@"a#;", "", "", "")]
+        [InlineData(@"a;#", "", "", "")]
+        [InlineData(@"a ", "", "", "")]
+        [InlineData(@" a", "", "", "")]
+        [InlineData(@" a ", "", "", "")]
+        [InlineData(@"Valid lines below", "", "", "")]
+        public void NonKeyCase(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
+            => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
+
+        [Theory]
+        [InlineData(@"a=", "", "a", "")]
+        [InlineData(@"b=#", "", "b", "")]
+        [InlineData(@"c=#b", "", "c", "")]
+        [InlineData(@"d=##", "", "d", "")]
+        [InlineData(@"e=#b#", "", "e", "")]
+        [InlineData(@"f=;", "", "f", "")]
+        [InlineData(@"g=;b", "", "g", "")]
+        [InlineData(@"h=;;", "", "h", "")]
+        [InlineData(@"i=;b;", "", "i", "")]
+        [InlineData(@"j=#;", "", "j", "")]
+        [InlineData(@"k=;#", "", "k", "")]
+        [InlineData(@"l =", "", "l", "")]
+        [InlineData(@" m=", "", "m", "")]
+        [InlineData(@" n =", "", "n", "")]
+        [InlineData(@"o:", "", "o", "")]
+        [InlineData(@"p:#", "", "p", "")]
+        [InlineData(@"q:#b", "", "q", "")]
+        [InlineData(@"r:##", "", "r", "")]
+        [InlineData(@"s:#b#", "", "s", "")]
+        [InlineData(@"t:;", "", "t", "")]
+        [InlineData(@"u:;b", "", "u", "")]
+        [InlineData(@"v:;;", "", "v", "")]
+        [InlineData(@"w:;b;", "", "w", "")]
+        [InlineData(@"x:#;", "", "x", "")]
+        [InlineData(@"y:;#", "", "y", "")]
+        [InlineData(@"z :", "", "z", "")]
+        [InlineData(@" 0:", "", "0", "")]
+        [InlineData(@" 1 :", "", "1", "")]
+        public void KeysWithoutValueCase(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
+            => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
+
+        [Theory]
+        [InlineData(@"a=b", "", "a", "b")]
+        [InlineData(@"b=b#", "", "b", "b")]
+        [InlineData(@"c=b#c", "", "c", "b")]
+        [InlineData(@"d=b##", "", "d", "b")]
+        [InlineData(@"e=b#c#", "", "e", "b")]
+        [InlineData(@"f=b;", "", "f", "b")]
+        [InlineData(@"g=b;c", "", "g", "b")]
+        [InlineData(@"h=b;;", "", "h", "b")]
+        [InlineData(@"i=b;c;", "", "i", "b")]
+        [InlineData(@"j=b#;", "", "j", "b")]
+        [InlineData(@"k=b;#", "", "k", "b")]
+        [InlineData(@"l:b", "", "l", "b")]
+        [InlineData(@"m:b#", "", "m", "b")]
+        [InlineData(@"n:b#c", "", "n", "b")]
+        [InlineData(@"o:b##", "", "o", "b")]
+        [InlineData(@"p:b#c#", "", "p", "b")]
+        [InlineData(@"q:b;", "", "q", "b")]
+        [InlineData(@"r:b;c", "", "r", "b")]
+        [InlineData(@"s:b;;", "", "s", "b")]
+        [InlineData(@"t:b;c;", "", "t", "b")]
+        [InlineData(@"u:b#;", "", "u", "b")]
+        [InlineData(@"v:b;#", "", "v", "b")]
+        public void KeysWithSimpleValueCase(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
+            => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
+
+        [Theory]
+        [InlineData(@"a =:", "", "a", ":")]
+        [InlineData(@"b:=", "", "b", "=")]
+        [InlineData(@"c=:=", "", "c", ":=")]
+        [InlineData(@"d:=:", "", "d", "=:")]
+        [InlineData(@".", "", "", "")]
+        [InlineData(@".=", "", ".", "")]
+        [InlineData(@"-", "", "", "")]
+        [InlineData(@"-=", "", "-", "")]
+        [InlineData(@"_", "", "", "")]
+        [InlineData(@"_=", "", "_", "")]
+        [InlineData(@"e.", "", "", "")]
+        [InlineData(@"f.=", "", "f.", "")]
+        [InlineData(@".g=", "", ".g", "")]
+        [InlineData(@".-", "", "", "")]
+        [InlineData(@".-=", "", ".-", "")]
+        [InlineData(@"-.", "", "", "")]
+        [InlineData(@"-.=", "", "-.", "")]
+        [InlineData(@"-_", "", "", "")]
+        [InlineData(@"-_= ", "", "-_", "")]
+        [InlineData(@"_-", "", "", "")]
+        [InlineData(@"_-= ", "", "_-", "")]
+        [InlineData(@"h ", "", "", "")]
+        [InlineData(@"i .", "", "", "")]
+        [InlineData(@"j .=", "", "j .", "")]
+        [InlineData(@". k", "", "", "")]
+        [InlineData(@". l=", "", ". l", "")]
+        [InlineData(@"m  =", "", "m", "")]
+        [InlineData(@"  n=", "", "n", "")]
+        [InlineData(@"  o  =", "", "o", "")]
+        [InlineData(@"p=b c", "", "p", "b c")]
+        [InlineData(@"q=b c#d", "", "q", "b c")]
+        [InlineData(@"r=b c#d;e", "", "r", "b c")]
+        [InlineData(@"s b=c", "", "s b", "c")]
+        [InlineData(@" t . b = c # d ; e", "", "t . b", "c")]
+        [InlineData(@"dotnet_analyzer_diagnostic.category-Minor Code Smell.severity = suggestion", "", "dotnet_analyzer_diagnostic.category-minor code smell.severity", "suggestion")]
+        [InlineData(@"dotnet_analyzer_diagnostic.category-Minor\x2020Code\x2020Smell.severity = error", "", "", "")]
+        [InlineData(@"dotnet_analyzer_diagnostic.category-Minor Code Smell.severity\ = error", "", "", "")]
+        public void LimitTestCase(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
+            => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
+
         [Fact]
         [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void ConfigWithEscapedValues()
@@ -256,17 +477,39 @@ my_prop2 = my_val");
                 properties);
         }
 
-        [Fact]
-        public void SpacesInProperties()
+        [Theory]
+        [InlineData(@"my prop1 = my_val1", "", "my prop1", "my_val1")]
+        [InlineData(@"my_prop2 = my val2", "", "my_prop2", "my val2")]
+        public void SpacesInProperties(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
+            => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
+
+        private static void Evaluate_InlineData_NamedSections_And_Properties(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
         {
-            var config = ParseConfigFile(@"
-my prop1 = my_val1
-my_prop2 = my val2");
+            var config = ParseConfigFile(text);
+
+            var namedSections = config.NamedSections;
+            if (!string.IsNullOrEmpty(expectedNamedSectionName))
+            {
+                Assert.Equal(1, namedSections.Length);
+                Assert.Equal(expectedNamedSectionName, namedSections[0].Name);
+            }
+            else
+            {
+                // when no named section expected, ensure none are produced
+                Assert.Equal(0, namedSections.Length);
+            }
 
             var properties = config.GlobalSection.Properties;
-            AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_prop2", "my val2") },
-                properties);
+            if (!string.IsNullOrEmpty(expectedKey))
+            {
+                Assert.Equal(1, properties.Count);
+                Assert.True(properties.TryGetValue(expectedKey, out var val));
+                Assert.Equal(expectedValue, val);
+            }
+            else
+            {
+                Assert.Equal(0, properties.Count);
+            }
         }
 
         [Fact]
@@ -301,8 +544,10 @@ my_key2 = my:val");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my", "key1 = my_val"),
-                        KeyValuePair.Create("my_key2", "my:val")},
+                [
+                    KeyValuePair.Create("my", "key1 = my_val"),
+                    KeyValuePair.Create("my_key2", "my:val")
+                ],
                 properties);
         }
 
