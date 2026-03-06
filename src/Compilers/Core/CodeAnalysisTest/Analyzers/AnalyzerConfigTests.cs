@@ -275,6 +275,9 @@ my_prop = my_val
         [InlineData(@"dotnet_analyzer_diagnostic.category-Minor Code Smell.severity = suggestion", "", "dotnet_analyzer_diagnostic.category-minor code smell.severity", "suggestion")]
         [InlineData(@"dotnet_analyzer_diagnostic.category-Minor\x2020Code\x2020Smell.severity = error", "", "", "")]
         [InlineData(@"dotnet_analyzer_diagnostic.category-Minor Code Smell.severity\ = error", "", "", "")]
+        [InlineData(@"goo.bar baz.quux ztesch.blah = ... :)", "", "goo.bar baz.quux ztesch.blah", "... :)")]
+        [InlineData(@" This.  is  _a_  multi-part  key  =  and  that  IS  a  multipart  value  #  with a comment at teh end", "", "this.  is  _a_  multi-part  key", "and  that  IS  a  multipart  value")]
+        [InlineData(@"#  This.  is  _a_  COMMENTED multi-part  key  =  and  that  WOULD  be  a  multipart  value  #  with a comment at hte end", "", "", "")]
         public void LimitTestCase(string text, string expectedNamedSectionName, string expectedKey, string expectedValue)
             => Evaluate_InlineData_NamedSections_And_Properties(text, expectedNamedSectionName, expectedKey, expectedValue);
 
