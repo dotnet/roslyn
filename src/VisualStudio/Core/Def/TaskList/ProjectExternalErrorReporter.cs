@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -199,27 +200,21 @@ internal sealed class ProjectExternalErrorReporter(
         int iEndColumn,
         string bstrFileName)
     {
+
         // make sure we have error id, otherwise, we simple don't support
         // this error
-        if (string.IsNullOrEmpty(bstrErrorId))
+        if (bstrErrorId == null)
         {
-            if (bstrErrorId is null)
-            {
-                // record NFW to see who violates contract.
-                FatalError.ReportAndCatch(new Exception("errorId is null"));
-            }
-
-            throw new NotImplementedException();
+            // record NFW to see who violates contract.
+            FatalError.ReportAndCatch(new Exception("errorId is null"));
+            return;
         }
 
-        if (!bstrErrorId.StartsWith(_errorCodePrefix) &&
-            DiagnosticProvider.IsUnsupportedDiagnosticId(_projectId, bstrErrorId))
-        {
-            throw new NotImplementedException();
-        }
+        if (!bstrErrorId.StartsWith(_errorCodePrefix))
+            return;
 
         if ((iEndLine >= 0 && iEndColumn >= 0) &&
-            ((iEndLine < iStartLine) ||
+           ((iEndLine < iStartLine) ||
             (iEndLine == iStartLine && iEndColumn < iStartColumn)))
         {
             throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
