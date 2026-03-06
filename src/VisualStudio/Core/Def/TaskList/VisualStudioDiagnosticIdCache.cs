@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -127,12 +126,12 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
                 continue;
             }
 
-            var descriptorMap = await _analyzerService.GetDiagnosticDescriptorsPerReferenceAsync(
+            var list = await _analyzerService.GetAllDiagnosticIdsAsync(
                 project.Solution,
                 project.Id,
                 cancellationToken).ConfigureAwait(false);
 
-            _projectIdToDiagnosticIdsCache[project.Id] = [.. descriptorMap.Values.SelectMany(static descriptors => descriptors.Select(descriptor => descriptor.Id))];
+            _projectIdToDiagnosticIdsCache[project.Id] = list;
         }
     }
 

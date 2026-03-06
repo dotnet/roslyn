@@ -75,6 +75,27 @@ internal sealed class HostDiagnosticAnalyzers
     public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> GetOrCreateHostDiagnosticAnalyzersPerReference(string language)
         => _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
 
+    /// <summary>
+    /// Returns all the DiagnosticIds producible by the referenced DiagnosticAnalyzers.
+    /// </summary>
+    public ImmutableHashSet<string> GetAllDiagnosticIds(
+        DiagnosticAnalyzerInfoCache infoCache,
+        Project? project)
+    {
+        var descriptorsPerReference = GetDiagnosticDescriptorsPerReference(infoCache, project);
+
+        var builder = ImmutableHashSet.CreateBuilder<string>();
+        foreach (var descriptors in descriptorsPerReference.Values)
+        {
+            foreach (var descriptor in descriptors)
+            {
+                builder.Add(descriptor.Id);
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+
     public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(
         DiagnosticAnalyzerInfoCache infoCache,
         Project? project)
