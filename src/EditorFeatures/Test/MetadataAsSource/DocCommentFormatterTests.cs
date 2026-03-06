@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -27,8 +28,8 @@ public sealed class DocCommentFormatterTests
     {
         var docComment = DocumentationComment.FromXmlFragment(docCommentXmlFragment);
 
-        var csharpFormattedComment = string.Join("\r\n", AbstractMetadataAsSourceService.DocCommentFormatter.Format(_csharpService, docComment));
-        var vbFormattedComment = string.Join("\r\n", AbstractMetadataAsSourceService.DocCommentFormatter.Format(_vbService, docComment));
+        var csharpFormattedComment = string.Join(Environment.NewLine, AbstractMetadataAsSourceService.DocCommentFormatter.Format(_csharpService, docComment));
+        var vbFormattedComment = string.Join(Environment.NewLine, AbstractMetadataAsSourceService.DocCommentFormatter.Format(_vbService, docComment));
 
         Assert.Equal(expectedCSharp, csharpFormattedComment);
         Assert.Equal(expectedVB, vbFormattedComment);
