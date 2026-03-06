@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Dim x = 1]@8",
-                "Insert [x = 1]@12",
-                "Insert [x]@12")
+                "Insert [Dim x = 1]@9",
+                "Insert [x = 1]@13",
+                "Insert [x]@13")
         End Sub
 
         <Fact>
@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [x = F(1)]@12 -> [x = F(3)]@12",
-                "Update [y = G(2)]@22 -> [y = G(4)]@22")
+                "Update [x = F(1)]@13 -> [x = F(3)]@13",
+                "Update [y = G(2)]@23 -> [y = G(4)]@23")
         End Sub
 
         <Fact>
@@ -42,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [ReDim Preserve a(F(Function() 1), 10, 20)]@8 -> [ReDim a(F(Function() 2), 1, 2)]@8",
-                "Update [a(F(Function() 1), 10, 20)]@23 -> [a(F(Function() 2), 1, 2)]@14",
-                "Update [Function() 1]@27 -> [Function() 2]@18")
+                "Update [ReDim Preserve a(F(Function() 1), 10, 20)]@9 -> [ReDim a(F(Function() 2), 1, 2)]@9",
+                "Update [a(F(Function() 1), 10, 20)]@24 -> [a(F(Function() 2), 1, 2)]@15",
+                "Update [Function() 1]@28 -> [Function() 2]@19")
         End Sub
 
         <Fact>
@@ -76,18 +76,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Function() 1]@14 -> [Function() 100]@14",
-                "Update [Function() 2]@37 -> [Function() 200]@39",
-                "Update [Function() 3]@60 -> [Function() 300]@64",
-                "Update [Function() 4]@83 -> [Function() 400]@89",
-                "Update [Function() 5]@106 -> [Function() 500]@114",
-                "Update [Function() 6]@129 -> [Function() 600]@139",
-                "Update [Function() 7]@152 -> [Function() 700]@164",
-                "Update [Function() 8]@176 -> [Function() 800]@190",
-                "Update [Function() 9]@200 -> [Function() 900]@216",
-                "Update [Function() 10]@223 -> [Function() 1000]@241",
-                "Update [Function() 11]@249 -> [Function() 1100]@269",
-                "Update [Function() ""a""]@272 -> [Function() ""b""]@294")
+                "Update [Function() 1]@15 -> [Function() 100]@15",
+                "Update [Function() 2]@38 -> [Function() 200]@40",
+                "Update [Function() 3]@61 -> [Function() 300]@65",
+                "Update [Function() 4]@84 -> [Function() 400]@90",
+                "Update [Function() 5]@107 -> [Function() 500]@115",
+                "Update [Function() 6]@130 -> [Function() 600]@140",
+                "Update [Function() 7]@153 -> [Function() 700]@165",
+                "Update [Function() 8]@177 -> [Function() 800]@191",
+                "Update [Function() 9]@201 -> [Function() 900]@217",
+                "Update [Function() 10]@224 -> [Function() 1000]@242",
+                "Update [Function() 11]@250 -> [Function() 1100]@270",
+                "Update [Function() ""a""]@273 -> [Function() ""b""]@295")
         End Sub
 
         <Fact>
@@ -97,8 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [RemoveHandler e, Function(f) f]@38 -> @8",
-                "Update [Function(f) f]@55 -> [Function(f) (f + 1)]@25")
+                "Reorder [RemoveHandler e, Function(f) f]@39 -> @9",
+                "Update [Function(f) f]@56 -> [Function(f) (f + 1)]@26")
         End Sub
 
         <Fact>
@@ -108,8 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Call F(Function(a) a)]@8 -> [F(Function(a) (a + 1))]@8",
-                "Update [Function(a) a]@15 -> [Function(a) (a + 1)]@10")
+                "Update [Call F(Function(a) a)]@9 -> [F(Function(a) (a + 1))]@9",
+                "Update [Function(a) a]@16 -> [Function(a) (a + 1)]@11")
         End Sub
 
         <Fact>
@@ -119,8 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Function(b) b]@40 -> @16",
-                "Move [Function(a) a]@16 -> @40")
+                "Move [Function(b) b]@41 -> @17",
+                "Move [Function(a) a]@17 -> @41")
         End Sub
 
         <Fact>
@@ -130,11 +130,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [On Error GoTo label1]@48 -> @8",
-                "Update [On Error GoTo label1]@48 -> [On Error GoTo -1]@8",
-                "Update [On Error GoTo ErrorHandler]@8 -> [On Error GoTo 0]@27",
-                "Update [label1:]@72 -> [label2:]@57",
-                "Update [Resume Next]@80 -> [Resume]@65")
+                "Reorder [On Error GoTo label1]@49 -> @9",
+                "Update [On Error GoTo label1]@49 -> [On Error GoTo -1]@9",
+                "Update [On Error GoTo ErrorHandler]@9 -> [On Error GoTo 0]@28",
+                "Update [label1:]@73 -> [label2:]@58",
+                "Update [Resume Next]@81 -> [Resume]@66")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75231")>
@@ -148,7 +148,7 @@ Dim a = <x>Text2</x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x>Text1</x>]@14 -> [a = <x>Text2</x>]@14")
+                "Update [a = <x>Text1</x>]@15 -> [a = <x>Text2</x>]@15")
         End Sub
 
         <Fact>
@@ -162,7 +162,7 @@ Dim a = <y>Text</y>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x>Text</x>]@14 -> [a = <y>Text</y>]@14")
+                "Update [a = <x>Text</x>]@15 -> [a = <y>Text</y>]@15")
         End Sub
 
         <Fact>
@@ -204,7 +204,7 @@ Dim a = <x><![CDATA[Text2]]></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x><![CDATA[Text1]]></x>]@14 -> [a = <x><![CDATA[Text2]]></x>]@14")
+                "Update [a = <x><![CDATA[Text1]]></x>]@15 -> [a = <x><![CDATA[Text2]]></x>]@15")
         End Sub
 
         <Fact>
@@ -218,7 +218,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x><!--Text1--></x>]@14 -> [a = <x><!--Text2--></x>]@14")
+                "Update [a = <x><!--Text1--></x>]@15 -> [a = <x><!--Text2--></x>]@15")
         End Sub
 
 #End Region
@@ -235,9 +235,9 @@ Dim a = <x><!--Text2--></x>
 
             Dim edits = GetMethodEdits(src1, src2)
             edits.VerifyEdits(
-                "Reorder [Select Case b : Case 2 : g() : End Select]@52 -> @8",
-                "Move [f()]@33 -> @33",
-                "Move [g()]@77 -> @77")
+                "Reorder [Select Case b : Case 2 : g() : End Select]@53 -> @9",
+                "Move [f()]@34 -> @34",
+                "Move [g()]@78 -> @78")
         End Sub
 
         <Fact>
@@ -247,7 +247,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [Case 2, 3, 4 : g()]@47 -> @27")
+                "Reorder [Case 2, 3, 4 : g()]@48 -> @28")
         End Sub
 
         <Fact>
@@ -257,7 +257,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [1]@32 -> [2]@32")
+                "Update [1]@33 -> [2]@33")
         End Sub
 
 #End Region
@@ -271,12 +271,12 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Try : x += 1 : Catch : End Try]@8",
-                "Insert [Try]@8",
-                "Move [x += 1]@8 -> @14",
-                "Insert [Catch]@23",
-                "Insert [End Try]@31",
-                "Insert [Catch]@23")
+                "Insert [Try : x += 1 : Catch : End Try]@9",
+                "Insert [Try]@9",
+                "Move [x += 1]@9 -> @15",
+                "Insert [Catch]@24",
+                "Insert [End Try]@32",
+                "Insert [Catch]@24")
         End Sub
 
         <Fact>
@@ -286,12 +286,12 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [x += 1]@14 -> @8",
-                "Delete [Try : x += 1 : Catch : End Try]@8",
-                "Delete [Try]@8",
-                "Delete [Catch]@23",
-                "Delete [Catch]@23",
-                "Delete [End Try]@31")
+                "Move [x += 1]@15 -> @9",
+                "Delete [Try : x += 1 : Catch : End Try]@9",
+                "Delete [Try]@9",
+                "Delete [Catch]@24",
+                "Delete [Catch]@24",
+                "Delete [End Try]@32")
         End Sub
 
         <Fact>
@@ -301,7 +301,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [Try : y += 1 : Catch :::  End Try]@42 -> @8")
+                "Reorder [Try : y += 1 : Catch :::  End Try]@43 -> @9")
         End Sub
 
         <Fact>
@@ -311,8 +311,8 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [Finally]@30",
-                "Delete [Finally]@30")
+                "Delete [Finally]@31",
+                "Delete [Finally]@31")
         End Sub
 
         <Fact>
@@ -322,8 +322,8 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Finally]@30",
-                "Insert [Finally]@30")
+                "Insert [Finally]@31",
+                "Insert [Finally]@31")
         End Sub
 
         <Fact>
@@ -333,7 +333,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Catch e As Exception]@14 -> [Catch e As IOException]@14")
+                "Update [Catch e As Exception]@15 -> [Catch e As IOException]@15")
         End Sub
 
         <Fact>
@@ -363,8 +363,8 @@ Dim a = <x><!--Text2--></x>
 
             Dim edits = GetMethodEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Catch e As IOException]@14",
-                "Insert [Catch e As IOException]@14")
+                "Insert [Catch e As IOException]@15",
+                "Insert [Catch e As IOException]@15")
         End Sub
 
         <Fact>
@@ -394,7 +394,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [x += 1]@29 -> [y += 1]@29")
+                "Update [x += 1]@30 -> [y += 1]@30")
         End Sub
 
         <Fact>
@@ -404,8 +404,8 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [Catch e As Exception]@39",
-                "Delete [Catch e As Exception]@39")
+                "Delete [Catch e As Exception]@40",
+                "Delete [Catch e As Exception]@40")
         End Sub
 
         <Fact>
@@ -415,7 +415,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [Catch e As Exception]@39 -> @14")
+                "Reorder [Catch e As Exception]@40 -> @15")
         End Sub
 
         <Fact>
@@ -429,10 +429,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Catch e As E]@84",
-                "Insert [Catch e As E]@84",
-                "Delete [Catch e As E]@23",
-                "Delete [Catch e As E]@23")
+                "Insert [Catch e As E]@85",
+                "Insert [Catch e As E]@85",
+                "Delete [Catch e As E]@24",
+                "Delete [Catch e As E]@24")
         End Sub
 
         <Fact>
@@ -442,8 +442,8 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [Catch e As E2]@30",
-                "Delete [Catch e As E2]@30")
+                "Delete [Catch e As E2]@31",
+                "Delete [Catch e As E2]@31")
         End Sub
 #End Region
 
@@ -455,10 +455,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [With a : F(.x) : End With]@8",
-                "Insert [With a]@8",
-                "Insert [F(.x)]@17",
-                "Insert [End With]@25")
+                "Insert [With a : F(.x) : End With]@9",
+                "Insert [With a]@9",
+                "Insert [F(.x)]@18",
+                "Insert [End With]@26")
         End Sub
 
         <Fact>
@@ -468,10 +468,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [With a : F(.x) : End With]@8",
-                "Delete [With a]@8",
-                "Delete [F(.x)]@17",
-                "Delete [End With]@25")
+                "Delete [With a : F(.x) : End With]@9",
+                "Delete [With a]@9",
+                "Delete [F(.x)]@18",
+                "Delete [End With]@26")
         End Sub
 
         <Fact>
@@ -481,7 +481,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [With a : F(.y) : End With]@38 -> @8")
+                "Reorder [With a : F(.y) : End With]@39 -> @9")
         End Sub
 #End Region
 
@@ -493,10 +493,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Using c : Using b : Goo() : End Using : End Using]@18",
-                "Insert [Using c]@18",
-                "Move [Using b : Goo() : End Using]@18 -> @28",
-                "Insert [End Using]@58")
+                "Insert [Using c : Using b : Goo() : End Using : End Using]@19",
+                "Insert [Using c]@19",
+                "Move [Using b : Goo() : End Using]@19 -> @29",
+                "Insert [End Using]@59")
         End Sub
 
         <Fact>
@@ -506,10 +506,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo()]@18 -> @8",
-                "Delete [Using a : Goo() : End Using]@8",
-                "Delete [Using a]@8",
-                "Delete [End Using]@26")
+                "Move [Goo()]@19 -> @9",
+                "Delete [Using a : Goo() : End Using]@9",
+                "Delete [Using a]@9",
+                "Delete [End Using]@27")
         End Sub
 
         <Fact>
@@ -519,10 +519,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Using a : Goo() : End Using]@8",
-                "Insert [Using a]@8",
-                "Move [Goo()]@8 -> @18",
-                "Insert [End Using]@26")
+                "Insert [Using a : Goo() : End Using]@9",
+                "Insert [Using a]@9",
+                "Move [Goo()]@9 -> @19",
+                "Insert [End Using]@27")
         End Sub
 #End Region
 
@@ -534,10 +534,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [SyncLock c : SyncLock b : Goo() : End SyncLock : End SyncLock]@21",
-                "Insert [SyncLock c]@21",
-                "Move [SyncLock b : Goo() : End SyncLock]@21 -> @34",
-                "Insert [End SyncLock]@70")
+                "Insert [SyncLock c : SyncLock b : Goo() : End SyncLock : End SyncLock]@22",
+                "Insert [SyncLock c]@22",
+                "Move [SyncLock b : Goo() : End SyncLock]@22 -> @35",
+                "Insert [End SyncLock]@71")
         End Sub
 
         <Fact>
@@ -547,10 +547,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo()]@21 -> @8",
-                "Delete [SyncLock a : Goo() : End SyncLock]@8",
-                "Delete [SyncLock a]@8",
-                "Delete [End SyncLock]@29")
+                "Move [Goo()]@22 -> @9",
+                "Delete [SyncLock a : Goo() : End SyncLock]@9",
+                "Delete [SyncLock a]@9",
+                "Delete [End SyncLock]@30")
         End Sub
 
         <Fact>
@@ -560,10 +560,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [SyncLock a : Goo() : End SyncLock]@8",
-                "Insert [SyncLock a]@8",
-                "Move [Goo()]@8 -> @21",
-                "Insert [End SyncLock]@29")
+                "Insert [SyncLock a : Goo() : End SyncLock]@9",
+                "Insert [SyncLock a]@9",
+                "Move [Goo()]@9 -> @22",
+                "Insert [End SyncLock]@30")
         End Sub
 #End Region
 
@@ -575,10 +575,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For Each c In g : For Each b In f : Goo() : Next : Next]@26",
-                "Insert [For Each c In g]@26",
-                "Move [For Each b In f : Goo() : Next]@26 -> @44",
-                "Insert [Next]@77")
+                "Insert [For Each c In g : For Each b In f : Goo() : Next : Next]@27",
+                "Insert [For Each c In g]@27",
+                "Move [For Each b In f : Goo() : Next]@27 -> @45",
+                "Insert [Next]@78")
 
             Dim actual = ToMatchingPairs(edits.Match)
             Dim expected = New MatchingPairs From
@@ -608,9 +608,9 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [For Each b In f : Goo() : Next]@26 -> @8",
-                "Move [For Each a In e : For Each b In f : Goo() : Next : Next]@8 -> @26",
-                "Move [Goo()]@44 -> @44")
+                "Move [For Each b In f : Goo() : Next]@27 -> @9",
+                "Move [For Each a In e : For Each b In f : Goo() : Next : Next]@9 -> @27",
+                "Move [Goo()]@45 -> @45")
 
             Dim actual = ToMatchingPairs(edits.Match)
             Dim expected = New MatchingPairs From
@@ -636,10 +636,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo()]@26 -> @8",
-                "Delete [For Each a In b : Goo() : Next]@8",
-                "Delete [For Each a In b]@8",
-                "Delete [Next]@34")
+                "Move [Goo()]@27 -> @9",
+                "Delete [For Each a In b : Goo() : Next]@9",
+                "Delete [For Each a In b]@9",
+                "Delete [Next]@35")
         End Sub
 
         <Fact>
@@ -649,10 +649,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For Each a In b : Goo() : Next]@8",
-                "Insert [For Each a In b]@8",
-                "Move [Goo()]@8 -> @26",
-                "Insert [Next]@34")
+                "Insert [For Each a In b : Goo() : Next]@9",
+                "Insert [For Each a In b]@9",
+                "Move [Goo()]@9 -> @27",
+                "Insert [Next]@35")
         End Sub
 #End Region
 
@@ -664,10 +664,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For b = 0 To 10 : For a = 0 To 20 : Goo() : Next : Next]@26",
-                "Insert [For b = 0 To 10]@26",
-                "Move [For a = 0 To 20 : Goo() : Next]@26 -> @44",
-                "Insert [Next]@77")
+                "Insert [For b = 0 To 10 : For a = 0 To 20 : Goo() : Next : Next]@27",
+                "Insert [For b = 0 To 10]@27",
+                "Move [For a = 0 To 20 : Goo() : Next]@27 -> @45",
+                "Insert [Next]@78")
         End Sub
 
         <Fact>
@@ -677,13 +677,13 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For b = 0 To 10 Step 4 : For a = 0 To 20 Step 5 : Goo() : Next : Next]@33",
-                "Update [Step 1]@24 -> [Step 2]@24",
-                "Insert [For b = 0 To 10 Step 4]@33",
-                "Move [For a = 0 To 20 : Goo() : Next]@33 -> @58",
-                "Insert [Next]@98",
-                "Insert [Step 4]@49",
-                "Insert [Step 5]@74")
+                "Insert [For b = 0 To 10 Step 4 : For a = 0 To 20 Step 5 : Goo() : Next : Next]@34",
+                "Update [Step 1]@25 -> [Step 2]@25",
+                "Insert [For b = 0 To 10 Step 4]@34",
+                "Move [For a = 0 To 20 : Goo() : Next]@34 -> @59",
+                "Insert [Next]@99",
+                "Insert [Step 4]@50",
+                "Insert [Step 5]@75")
         End Sub
 
         <Fact>
@@ -693,10 +693,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo()]@26 -> @8",
-                "Delete [For a = 0 To 10 : Goo() : Next]@8",
-                "Delete [For a = 0 To 10]@8",
-                "Delete [Next]@34")
+                "Move [Goo()]@27 -> @9",
+                "Delete [For a = 0 To 10 : Goo() : Next]@9",
+                "Delete [For a = 0 To 10]@9",
+                "Delete [Next]@35")
         End Sub
 
         <Fact>
@@ -706,7 +706,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [Step 1]@24")
+                "Delete [Step 1]@25")
         End Sub
 
         <Fact>
@@ -716,7 +716,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Step 1]@24")
+                "Insert [Step 1]@25")
         End Sub
 
         <Fact>
@@ -726,10 +726,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For a = 0 To 10 : Goo() : Next]@8",
-                "Insert [For a = 0 To 10]@8",
-                "Move [Goo()]@8 -> @26",
-                "Insert [Next]@34")
+                "Insert [For a = 0 To 10 : Goo() : Next]@9",
+                "Insert [For a = 0 To 10]@9",
+                "Move [Goo()]@9 -> @27",
+                "Insert [Next]@35")
         End Sub
 #End Region
 
@@ -741,10 +741,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [While c : While b : Goo() : End While : End While]@18",
-                "Insert [While c]@18",
-                "Move [While b : Goo() : End While]@18 -> @28",
-                "Insert [End While]@58")
+                "Insert [While c : While b : Goo() : End While : End While]@19",
+                "Insert [While c]@19",
+                "Move [While b : Goo() : End While]@19 -> @29",
+                "Insert [End While]@59")
         End Sub
 
         <Fact>
@@ -754,18 +754,18 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [While a : While b : Goo() : End While : End While]@8 -> [Do While a : While c : Do Until b : Goo() : Loop : End While : Loop]@8",
-                "Update [While a]@8 -> [Do While a]@8",
-                "Insert [While c : Do Until b : Goo() : Loop : End While]@21",
-                "Update [End While]@48 -> [Loop]@71",
-                "Insert [While a]@11",
-                "Insert [While c]@21",
-                "Update [While b : Goo() : End While]@18 -> [Do Until b : Goo() : Loop]@31",
-                "Move [While b : Goo() : End While]@18 -> @31",
-                "Insert [End While]@59",
-                "Update [While b]@18 -> [Do Until b]@31",
-                "Update [End While]@36 -> [Loop]@52",
-                "Insert [Until b]@34")
+                "Update [While a : While b : Goo() : End While : End While]@9 -> [Do While a : While c : Do Until b : Goo() : Loop : End While : Loop]@9",
+                "Update [While a]@9 -> [Do While a]@9",
+                "Insert [While c : Do Until b : Goo() : Loop : End While]@22",
+                "Update [End While]@49 -> [Loop]@72",
+                "Insert [While a]@12",
+                "Insert [While c]@22",
+                "Update [While b : Goo() : End While]@19 -> [Do Until b : Goo() : Loop]@32",
+                "Move [While b : Goo() : End While]@19 -> @32",
+                "Insert [End While]@60",
+                "Update [While b]@19 -> [Do Until b]@32",
+                "Update [End While]@37 -> [Loop]@53",
+                "Insert [Until b]@35")
         End Sub
 
         <Fact>
@@ -775,10 +775,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo()]@18 -> @8",
-                "Delete [While a : Goo() : End While]@8",
-                "Delete [While a]@8",
-                "Delete [End While]@26")
+                "Move [Goo()]@19 -> @9",
+                "Delete [While a : Goo() : End While]@9",
+                "Delete [While a]@9",
+                "Delete [End While]@27")
         End Sub
 
         <Fact>
@@ -788,10 +788,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [While a : Goo() : End While]@8",
-                "Insert [While a]@8",
-                "Move [Goo()]@8 -> @18",
-                "Insert [End While]@26")
+                "Insert [While a : Goo() : End While]@9",
+                "Insert [While a]@9",
+                "Move [Goo()]@9 -> @19",
+                "Insert [End While]@27")
         End Sub
 
         <Fact>
@@ -801,10 +801,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Do : Do : Goo() : Loop While b : Loop]@13",
-                "Insert [Do]@13",
-                "Move [Do : Goo() : Loop While b]@13 -> @18",
-                "Insert [Loop]@46")
+                "Insert [Do : Do : Goo() : Loop While b : Loop]@14",
+                "Insert [Do]@14",
+                "Move [Do : Goo() : Loop While b]@14 -> @19",
+                "Insert [Loop]@47")
         End Sub
 
         <Fact>
@@ -814,10 +814,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo()]@13 -> @8",
-                "Delete [Do : Goo() : Loop]@8",
-                "Delete [Do]@8",
-                "Delete [Loop]@21")
+                "Move [Goo()]@14 -> @9",
+                "Delete [Do : Goo() : Loop]@9",
+                "Delete [Do]@9",
+                "Delete [Loop]@22")
         End Sub
 
         <Fact>
@@ -827,10 +827,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Do : Goo() : Loop]@8",
-                "Insert [Do]@8",
-                "Move [Goo()]@8 -> @13",
-                "Insert [Loop]@21")
+                "Insert [Do : Goo() : Loop]@9",
+                "Insert [Do]@9",
+                "Move [Goo()]@9 -> @14",
+                "Insert [Loop]@22")
         End Sub
 #End Region
 
@@ -842,7 +842,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [If x = 1]@20 -> [If x = 2]@20")
+                "Update [If x = 1]@21 -> [If x = 2]@21")
         End Sub
 
         <Fact>
@@ -852,7 +852,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [If x = 1 Then x += 1]@20 -> [If x = 2 Then x += 1]@20")
+                "Update [If x = 1 Then x += 1]@21 -> [If x = 2 Then x += 1]@21")
         End Sub
 
         <Fact>
@@ -862,9 +862,9 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [If x = 1 : x += 1 : End If]@20 -> [If x = 2 Then x += 1]@20",
-                "Delete [If x = 1]@20",
-                "Delete [End If]@40")
+                "Update [If x = 1 : x += 1 : End If]@21 -> [If x = 2 Then x += 1]@21",
+                "Delete [If x = 1]@21",
+                "Delete [End If]@41")
         End Sub
 
         <Fact>
@@ -874,9 +874,9 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Else : y += 1]@28",
-                "Insert [Else]@28",
-                "Insert [y += 1]@35")
+                "Insert [Else : y += 1]@29",
+                "Insert [Else]@29",
+                "Insert [y += 1]@36")
         End Sub
 
         <Fact>
@@ -886,11 +886,11 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [ElseIf x = 2 : y += 1]@28",
-                "Insert [ElseIf x = 2]@28",
-                "Move [y += 1]@35 -> @43",
-                "Delete [Else : y += 1]@28",
-                "Delete [Else]@28")
+                "Insert [ElseIf x = 2 : y += 1]@29",
+                "Insert [ElseIf x = 2]@29",
+                "Move [y += 1]@36 -> @44",
+                "Delete [Else : y += 1]@29",
+                "Delete [Else]@29")
         End Sub
 
         <Fact>
@@ -900,10 +900,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [If c : If b : Goo() : End If : End If]@15",
-                "Insert [If c]@15",
-                "Move [If b : Goo() : End If]@15 -> @22",
-                "Insert [End If]@46")
+                "Insert [If c : If b : Goo() : End If : End If]@16",
+                "Insert [If c]@16",
+                "Move [If b : Goo() : End If]@16 -> @23",
+                "Insert [End If]@47")
         End Sub
 
         <Fact>
@@ -913,10 +913,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo()]@15 -> @8",
-                "Delete [If a : Goo() : End If]@8",
-                "Delete [If a]@8",
-                "Delete [End If]@23")
+                "Move [Goo()]@16 -> @9",
+                "Delete [If a : Goo() : End If]@9",
+                "Delete [If a]@9",
+                "Delete [End If]@24")
         End Sub
 
         <Fact>
@@ -926,10 +926,10 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [If a : Goo() : End If]@8",
-                "Insert [If a]@8",
-                "Move [Goo()]@8 -> @15",
-                "Insert [End If]@23")
+                "Insert [If a : Goo() : End If]@9",
+                "Insert [If a]@9",
+                "Move [Goo()]@9 -> @16",
+                "Insert [End If]@24")
         End Sub
 
         <Fact>
@@ -939,9 +939,9 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo(  )]@31 -> @24",
-                "Delete [Else : Goo(  )]@24",
-                "Delete [Else]@24")
+                "Move [Goo(  )]@32 -> @25",
+                "Delete [Else : Goo(  )]@25",
+                "Delete [Else]@25")
         End Sub
 
         <Fact>
@@ -951,9 +951,9 @@ Dim a = <x><!--Text2--></x>
 
             Dim edits = GetMethodEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Else : Goo(  )]@24",
-                "Insert [Else]@24",
-                "Move [Goo(  )]@33 -> @31")
+                "Insert [Else : Goo(  )]@25",
+                "Insert [Else]@25",
+                "Move [Goo(  )]@34 -> @32")
         End Sub
 
         <Fact>
@@ -963,9 +963,9 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Goo(  )]@35 -> @33",
-                "Delete [ElseIf b : Goo(  )]@24",
-                "Delete [ElseIf b]@24")
+                "Move [Goo(  )]@36 -> @34",
+                "Delete [ElseIf b : Goo(  )]@25",
+                "Delete [ElseIf b]@25")
         End Sub
 
         <Fact>
@@ -975,9 +975,9 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Else If b : Goo(  )]@24",
-                "Insert [Else If b]@24",
-                "Move [Goo(  )]@24 -> @36")
+                "Insert [Else If b : Goo(  )]@25",
+                "Insert [Else If b]@25",
+                "Move [Goo(  )]@25 -> @37")
         End Sub
 #End Region
 
@@ -989,8 +989,8 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Function(a) a]@16 -> [Sub(a) a]@16",
-                "Update [Function(b) b]@35 -> [Function(b) (b + 1)]@30")
+                "Update [Function(a) a]@17 -> [Sub(a) a]@17",
+                "Update [Function(b) b]@36 -> [Function(b) (b + 1)]@31")
         End Sub
 
         <Fact>
@@ -1000,8 +1000,8 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [Function(b) b]@25 -> @10",
-                "Update [Function(a) a]@10 -> [Function(a)(a+1)]@25")
+                "Reorder [Function(b) b]@26 -> @11",
+                "Update [Function(a) a]@11 -> [Function(a)(a+1)]@26")
         End Sub
 
         <Fact>
@@ -1011,11 +1011,11 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [While F(Function(a) a) : End While]@8 -> [Do : Loop While F(Function(a) a)]@8",
-                "Update [While F(Function(a) a)]@8 -> [Do]@8",
-                "Update [End While]@33 -> [Loop While F(Function(a) a)]@13",
-                "Insert [While F(Function(a) a)]@18",
-                "Move [Function(a) a]@16 -> @26")
+                "Update [While F(Function(a) a) : End While]@9 -> [Do : Loop While F(Function(a) a)]@9",
+                "Update [While F(Function(a) a)]@9 -> [Do]@9",
+                "Update [End While]@34 -> [Loop While F(Function(a) a)]@14",
+                "Insert [While F(Function(a) a)]@19",
+                "Move [Function(a) a]@17 -> @27")
         End Sub
 
         <Fact>
@@ -4860,8 +4860,8 @@ End Class
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a In b]@15 -> [a In c]@15",
-                "Update [c]@29 -> [c + 1]@29")
+                "Update [a In b]@16 -> [a In c]@16",
+                "Update [c]@30 -> [c + 1]@30")
         End Sub
 
         <Fact>
@@ -4871,10 +4871,10 @@ End Class
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a + c]@41 -> [c + 1]@29",
-                "Delete [From c In d]@22",
-                "Delete [c In d]@27",
-                "Delete [c]@27")
+                "Update [a + c]@42 -> [c + 1]@30",
+                "Delete [From c In d]@23",
+                "Delete [c In d]@28",
+                "Delete [c]@28")
         End Sub
 
         <Fact>
@@ -4884,10 +4884,10 @@ End Class
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a]@28 -> [z]@28",
-                "Update [a.x]@33 -> [z.y]@33",
-                "Update [g]@42 -> [h]@42",
-                "Update [g]@51 -> [h]@51")
+                "Update [a]@29 -> [z]@29",
+                "Update [a.x]@34 -> [z.y]@34",
+                "Update [g]@43 -> [h]@43",
+                "Update [g]@52 -> [h]@52")
         End Sub
 
         <Fact>
@@ -4897,7 +4897,7 @@ End Class
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [a.c Ascending]@52 -> @36")
+                "Reorder [a.c Ascending]@53 -> @37")
         End Sub
 
         <Fact>
@@ -4930,15 +4930,15 @@ End Class
             expected.AssertEqual(actual)
 
             edits.VerifyEdits(
-                "Update [a1 In b1]@15 -> [a2 In b2]@15",
-                "Update [c1 In d1]@35 -> [c2 In d2]@35",
-                "Update [e1 Equals f1]@47 -> [e2 Equals f2]@47",
-                "Update [g1]@65 -> [g2]@65",
-                "Update [h1]@77 -> [h2]@77",
-                "Update [Sum(f1)]@82 -> [Sum(f2)]@82",
-                "Update [g1]@97 -> [g2]@97",
-                "Update [a1]@15 -> [a2]@15",
-                "Update [c1]@35 -> [c2]@35")
+                "Update [a1 In b1]@16 -> [a2 In b2]@16",
+                "Update [c1 In d1]@36 -> [c2 In d2]@36",
+                "Update [e1 Equals f1]@48 -> [e2 Equals f2]@48",
+                "Update [g1]@66 -> [g2]@66",
+                "Update [h1]@78 -> [h2]@78",
+                "Update [Sum(f1)]@83 -> [Sum(f2)]@83",
+                "Update [g1]@98 -> [g2]@98",
+                "Update [a1]@16 -> [a2]@16",
+                "Update [c1]@36 -> [c2]@36")
         End Sub
 
         <Fact>
@@ -5394,8 +5394,8 @@ Yield 4
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
-                "Update [Yield 1]@50 -> [Yield 3]@50",
-                "Update [Yield 2]@58 -> [Yield 4]@58")
+                "Update [Yield 1]@52 -> [Yield 3]@52",
+                "Update [Yield 2]@60 -> [Yield 4]@60")
 
         End Sub
 
@@ -5412,8 +5412,8 @@ Yield 4
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
-                "Update [Yield 1]@50 -> [Yield 3]@50",
-                "Update [Yield 2]@58 -> [Yield 4]@58")
+                "Update [Yield 1]@52 -> [Yield 3]@52",
+                "Update [Yield 2]@60 -> [Yield 4]@60")
         End Sub
 
         <Fact>
@@ -5430,7 +5430,7 @@ Yield 3
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
-                "Insert [Yield 3]@66")
+                "Insert [Yield 3]@70")
         End Sub
 
         <Fact>
@@ -5447,7 +5447,7 @@ Yield 2
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
-                "Delete [Yield 3]@66")
+                "Delete [Yield 3]@70")
         End Sub
 
         <Fact>
@@ -5520,8 +5520,8 @@ Await F(4)
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
-                "Update [Await F(1)]@40 -> [Await F(3)]@40",
-                "Update [Await F(2)]@51 -> [Await F(4)]@51")
+                "Update [Await F(1)]@42 -> [Await F(3)]@42",
+                "Update [Await F(2)]@53 -> [Await F(4)]@53")
         End Sub
 
         <Fact>
@@ -5536,8 +5536,8 @@ Await F(3)"
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
-                "Insert [G(1, G(Await F(2)))]@53",
-                "Insert [Await F(2)]@60")
+                "Insert [G(1, G(Await F(2)))]@54",
+                "Insert [Await F(2)]@61")
         End Sub
 
         <Fact>
@@ -5552,8 +5552,8 @@ Await F(3)"
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
-                "Delete [G(1, G(Await F(2)))]@53",
-                "Delete [Await F(2)]@60")
+                "Delete [G(1, G(Await F(2)))]@54",
+                "Delete [Await F(2)]@61")
         End Sub
 
         <Fact>

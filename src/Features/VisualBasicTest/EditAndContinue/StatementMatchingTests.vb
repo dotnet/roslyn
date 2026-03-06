@@ -1428,7 +1428,7 @@ End Try
             Dim src2 = "Dim a = ""Hello2"""
             Dim edits = GetMethodEdits(src1, src2)
 
-            edits.VerifyEdits("Update [a = ""Hello1""]@12 -> [a = ""Hello2""]@12")
+            edits.VerifyEdits("Update [a = ""Hello1""]@13 -> [a = ""Hello2""]@13")
         End Sub
 
         <Fact>
@@ -1437,7 +1437,7 @@ End Try
             Dim src2 = "Dim a = $""Hello2"""
             Dim edits = GetMethodEdits(src1, src2)
 
-            edits.VerifyEdits("Update [a = $""Hello1""]@12 -> [a = $""Hello2""]@12")
+            edits.VerifyEdits("Update [a = $""Hello1""]@13 -> [a = $""Hello2""]@13")
         End Sub
 
         <Fact>
@@ -1446,7 +1446,7 @@ End Try
             Dim src2 = "Dim a = $""Hello{124}"""
             Dim edits = GetMethodEdits(src1, src2)
 
-            edits.VerifyEdits("Update [a = $""Hello{123}""]@12 -> [a = $""Hello{124}""]@12")
+            edits.VerifyEdits("Update [a = $""Hello{123}""]@13 -> [a = $""Hello{124}""]@13")
         End Sub
 
         <Fact>
@@ -1455,7 +1455,7 @@ End Try
             Dim src2 = "Dim a = $""Hello{123:N2}"""
             Dim edits = GetMethodEdits(src1, src2)
 
-            edits.VerifyEdits("Update [a = $""Hello{123:N1}""]@12 -> [a = $""Hello{123:N2}""]@12")
+            edits.VerifyEdits("Update [a = $""Hello{123:N1}""]@13 -> [a = $""Hello{123:N2}""]@13")
         End Sub
 
         <Fact>
