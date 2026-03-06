@@ -76,7 +76,7 @@ public abstract class FormattingTestBase
     {
         var newRootNode = Formatter.Format(root, spans, services, options, rules: default, CancellationToken.None);
 
-        Assert.Equal(expected, newRootNode.ToFullString());
+        AssertEx.Equal(expected, newRootNode.ToFullString());
 
         // test doesn't use parsing option. add one if needed later
         var newRootNodeFromString = ParseCompilation(expected, parseOptions);
@@ -135,6 +135,6 @@ public abstract class FormattingTestBase
     protected static void AssertResult(string expected, SourceText sourceText, IList<TextChange> result)
     {
         var actual = sourceText.WithChanges(result).ToString();
-        AssertEx.EqualOrDiff(expected, actual);
+        AssertEx.EqualOrDiff(expected.ReplaceLineEndings(), actual.ReplaceLineEndings());
     }
 }

@@ -39,7 +39,7 @@ public abstract class AbstractXmlTagCompletionTests
         commandHandler.ExecuteCommand(args, nextHandler, TestCommandExecutionContext.Create());
         MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
-        Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+        AssertEx.Equal(expectedCode, view.TextSnapshot.GetText());
 
         var caretPosition = view.Caret.Position.BufferPosition.Position;
         Assert.True(expectedPosition == caretPosition,

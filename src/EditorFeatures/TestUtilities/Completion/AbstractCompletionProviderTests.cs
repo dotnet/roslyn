@@ -654,7 +654,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         var selectionSpan = commit.NewSelection ?? textView.Selection.StreamSelectionSpan.SnapshotSpan.Span.ToTextSpan();
         var caretPosition = commit.NewPosition ?? textView.Caret.Position.BufferPosition.Position;
 
-        AssertEx.EqualOrDiff(actualExpectedCode, actualCodeAfterCommit);
+        AssertEx.EqualOrDiff(actualExpectedCode.ReplaceLineEndings(), actualCodeAfterCommit.ReplaceLineEndings());
 
         if (expectedSelectionSpan != null)
             Assert.Equal(expectedSelectionSpan, selectionSpan);
@@ -695,7 +695,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
         var caretPosition = textView.Caret.Position.BufferPosition.Position;
 
-        Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
+        AssertEx.Equal(actualExpectedCode, actualCodeAfterCommit);
         Assert.Equal(expectedCaretPosition, caretPosition);
     }
 

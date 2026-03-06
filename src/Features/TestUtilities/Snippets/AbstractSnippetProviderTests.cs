@@ -80,7 +80,7 @@ public abstract class AbstractSnippetProviderTests
         var documentTextAfterSnippet = documentSourceText.WithChanges(snippetChange.TextChanges);
 
         TestFileMarkupParser.GetPositionAndSpans(markupAfterCommit, out markupAfterCommit, out int finalCaretPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> placeholderLocations);
-        Assert.Equal(markupAfterCommit, documentTextAfterSnippet.ToString());
+        AssertEx.Equal(markupAfterCommit, documentTextAfterSnippet.ToString());
 
         var placeholderLocationsArray = new ImmutableArray<TextSpan>[placeholderLocations.Count];
         var snippetPlaceholders = snippetChange.Placeholders;
