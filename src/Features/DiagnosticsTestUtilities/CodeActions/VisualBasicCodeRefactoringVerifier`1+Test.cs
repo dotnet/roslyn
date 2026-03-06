@@ -51,6 +51,10 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
             _sharedState = new SharedVerifierState(this, DefaultFileExt);
         }
 
+        public new string TestCode { set => base.TestCode = value.Replace("\r\n", Environment.NewLine); }
+
+        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", Environment.NewLine); }
+
         /// <summary>
         /// Gets or sets the language version to use for the test. The default value is
         /// <see cref="LanguageVersion.VisualBasic16"/>.
