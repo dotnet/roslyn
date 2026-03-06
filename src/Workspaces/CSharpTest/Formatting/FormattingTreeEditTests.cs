@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -46,7 +46,7 @@ public sealed class FormattingTreeEditTests : CSharpFormattingTestBase
 
         var result1 = Formatter.Format(root1, document.Project.Solution.Services, options, CancellationToken.None);
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             public class C
             {
                 void M([MyAttr] int? p) { }
@@ -59,7 +59,7 @@ public sealed class FormattingTreeEditTests : CSharpFormattingTestBase
         var root2 = root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr")));
         var result2 = Formatter.Format(root2, document.Project.Solution.Services, options, CancellationToken.None);
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             public class C
             {
                 [MyAttr]

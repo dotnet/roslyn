@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -329,7 +329,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var textToInsert = $"""Console.WriteLine("Hello World!");{Environment.NewLine}""";
         await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
         var (workspace, canonicalDocumentTwo) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
-        Assert.Equal("""
+        AssertEx.Equal("""
             Console.WriteLine("Hello World!");
             class C { }
             """,
@@ -634,7 +634,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var fileBasedProject = fileBasedDocumentOne.Project;
         Assert.Same(miscFilesWorkspace, fileBasedProject.Solution.Workspace);
         Assert.NotEqual(canonicalDocumentOne.Project.Id, fileBasedProject.Id);
-        Assert.Equal("""
+        AssertEx.Equal("""
             #!/usr/bin/env dotnet
             Console.WriteLine("Hello World!");
             """,

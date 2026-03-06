@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -287,7 +287,7 @@ public sealed class StructureTaggerTests
                 Assert.Equal(collapseRegionsWhenCollapsingToDefinitions, regionTag.IsImplementation);
                 Assert.Equal(11, GetCollapsedHintLineCount(regionTag));
                 Assert.Equal(PredefinedStructureTagTypes.Nonstructural, regionTag.Type);
-                Assert.Equal("""
+                AssertEx.Equal("""
                     #Region "MyRegion"
                     """, GetHeaderText(regionTag));
             },
