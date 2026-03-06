@@ -63,7 +63,7 @@ public sealed class FixInterpolatedVerbatimStringCommandHandlerTests
 
         MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out var expectedSpans);
 
-        Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
+        AssertEx.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
         Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
 
         var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);

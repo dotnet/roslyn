@@ -63,7 +63,7 @@ public abstract class ExtractMethodBase
         if (expected == "")
             Assert.True(false, subjectBuffer.CurrentSnapshot.GetText());
 
-        Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
+        AssertEx.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
     }
 
     protected static async Task NotSupported_ExtractMethodAsync(

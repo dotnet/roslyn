@@ -122,7 +122,7 @@ public sealed class CSharpCommentSelectionTests
         var textBuffer = doc.GetTextBuffer();
         commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());
 
-        Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText());
+        AssertEx.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText());
     }
 
     private static void SetupSelection(IWpfTextView textView, IEnumerable<Span> spans)
