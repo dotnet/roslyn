@@ -588,7 +588,7 @@ class C
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal("""
+        AssertEx.Equal("""
             ```csharp
             interface System.Collections.Generic.IDictionary<TKey, TValue>
             ```

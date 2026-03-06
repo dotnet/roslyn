@@ -121,7 +121,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
 
         var documentText = await document.GetTextAsync();
         var actualText = ApplyTextEdits(edits, documentText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace ConsoleApp1
             {
                 class Program

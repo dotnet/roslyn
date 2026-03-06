@@ -118,7 +118,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             public override void M()
                 {
                     throw new System.NotImplementedException();
@@ -167,7 +167,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             public override void M()
                 {
                     throw new System.NotImplementedException();$0
@@ -198,7 +198,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         var (textEdit, _, _) = await CompletionResultFactory.GenerateComplexTextEditAsync(
             document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, insertNewPositionPlaceholder: true, CancellationToken.None).ConfigureAwait(false);
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             public override void M()
                 {
                     throw new System.NotImplementedException();
@@ -264,7 +264,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         var results = await RunResolveCompletionItemAsync(
             testLspServer,
             clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal("""
+        AssertEx.Equal("""
             ```csharp
             void A.AMethod(int i)
             ```
@@ -326,7 +326,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         var results = await RunResolveCompletionItemAsync(
             testLspServer,
             clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal("""
+        AssertEx.Equal("""
             void A.AMethod(int i)
             A cref A.AMethod(int)
             strong text

@@ -51,7 +51,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
 
             document = testLspServer.GetTrackedTexts().Single();
-            Assert.Equal("""
+            AssertEx.Equal("""
                 class A
                 {
                     void M()
@@ -210,7 +210,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal("""
+            AssertEx.Equal("""
                 class A
                 {
                     void M()
@@ -281,7 +281,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal("""
+            AssertEx.Equal("""
             class A
             {
                 void M()
@@ -316,7 +316,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal("""
+            AssertEx.Equal("""
             class A
             {
                 void M()
@@ -350,7 +350,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal("""
+            AssertEx.Equal("""
             class A
             {
                 void M()
@@ -429,7 +429,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
             AssertEx.NotNull(document);
-            Assert.Equal("""
+            AssertEx.Equal("""
             class A
             {
                 void M()

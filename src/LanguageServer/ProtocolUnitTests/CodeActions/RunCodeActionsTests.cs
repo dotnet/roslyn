@@ -48,7 +48,7 @@ public sealed class RunCodeActionsTests : AbstractLanguageServerProtocolTests
 
         var documentForB = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single(doc => doc.Name.Equals("B.cs", StringComparison.OrdinalIgnoreCase));
         var textForB = await documentForB.GetTextAsync();
-        Assert.Equal("""
+        AssertEx.Equal("""
             partial class A
             {
                 class B
