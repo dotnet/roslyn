@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.RpcContracts.DiagnosticManagement
 Imports Roslyn.Test.Utilities
@@ -50,12 +51,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
-                Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
+                Dim diagnosticCache = vsWorkspace.Services.GetRequiredService(Of VisualStudioDiagnosticIdCache)()
 
+                Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
                     Dim project = workspace.CurrentSolution.Projects.First()
 
-                    source.OnSolutionBuildStarted()
+                    diagnosticCache.RegisterProject(project.Id)
                     Await diagnosticWaiter.ExpeditedWaitAsync()
+
+                    source.OnSolutionBuildStarted()
                     Await errorListWaiter.ExpeditedWaitAsync()
 
                     Assert.False(source.IsUnsupportedDiagnosticId(project.Id, "ID1"))
