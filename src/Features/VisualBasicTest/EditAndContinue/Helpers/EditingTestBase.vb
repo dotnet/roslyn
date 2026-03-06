@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -193,12 +194,14 @@ End Namespace
 
         Private Shared Function ParseSource(markedSource As String, Optional documentIndex As Integer = 0) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(
-                SourceMarkers.Clear(markedSource),
+                SourceMarkers.Clear(markedSource).NormalizePlatformLineEndings(vbCrLf),
                 VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
                 path:=GetDocumentFilePath(documentIndex))
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScriptDescription
+            src1 = src1.NormalizePlatformLineEndings(vbCrLf)
+            src2 = src2.NormalizePlatformLineEndings(vbCrLf)
             Dim tree1 = ParseSource(src1, documentIndex)
             Dim tree2 = ParseSource(src2, documentIndex)
 
@@ -217,13 +220,15 @@ End Namespace
         End Function
 
         Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional methodKind As MethodKind = MethodKind.Regular) As EditScriptDescription
+            src1 = src1.NormalizePlatformLineEndings(vbCrLf)
+            src2 = src2.NormalizePlatformLineEndings(vbCrLf)
             Dim match = GetMethodMatch(src1, src2, methodKind)
             Return New EditScriptDescription(src1, src2, match.GetTreeEdits())
         End Function
 
         Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional methodKind As MethodKind = MethodKind.Regular) As Match(Of SyntaxNode)
-            Dim m1 = MakeMethodBody(src1, methodKind)
-            Dim m2 = MakeMethodBody(src2, methodKind)
+            Dim m1 = MakeMethodBody(src1.NormalizePlatformLineEndings(vbCrLf), methodKind)
+            Dim m2 = MakeMethodBody(src2.NormalizePlatformLineEndings(vbCrLf), methodKind)
 
             Dim match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
 

@@ -277,7 +277,7 @@ namespace Goo.Bar
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -287,7 +287,7 @@ namespace Goo.Bar
     </members>
 </doc>
 ",
-                Encoding.UTF8.GetString(xmlDocBytes).ReplaceLineEndings("\r\n"));
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -323,7 +323,7 @@ namespace Goo.Bar
             emitResult.Diagnostics.Verify();
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
                 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -333,7 +333,7 @@ namespace Goo.Bar
     </members>
 </doc>
 ",
-                Encoding.UTF8.GetString(xmlDocBytes).ReplaceLineEndings("\r\n"));
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -376,7 +376,7 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -387,7 +387,7 @@ namespace Goo.Bar
     </members>
 </doc>
 ",
-                Encoding.UTF8.GetString(xmlDocBytes).ReplaceLineEndings("\r\n"));
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -430,7 +430,7 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -443,7 +443,7 @@ namespace Goo.Bar
     </members>
 </doc>
 ",
-                Encoding.UTF8.GetString(xmlDocBytes).ReplaceLineEndings("\r\n"));
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -483,7 +483,7 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -496,7 +496,7 @@ namespace Goo.Bar
     </members>
 </doc>
 ",
-                Encoding.UTF8.GetString(xmlDocBytes).ReplaceLineEndings("\r\n"));
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -532,7 +532,7 @@ namespace Goo.Bar
             emitResult.Diagnostics.Verify();
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
                 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -545,7 +545,7 @@ namespace Goo.Bar
     </members>
 </doc>
 ",
-                Encoding.UTF8.GetString(xmlDocBytes).ReplaceLineEndings("\r\n"));
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]

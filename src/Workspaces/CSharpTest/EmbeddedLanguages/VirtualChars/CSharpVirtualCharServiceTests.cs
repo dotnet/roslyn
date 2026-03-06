@@ -21,7 +21,7 @@ public sealed class CSharpVirtualCharServiceTests
     private static IEnumerable<SyntaxToken>? GetStringTokens(
         string text, bool allowFailure, ParseOptions? options = null)
     {
-        var statement = _statementPrefix + text;
+        var statement = (_statementPrefix + text).NormalizePlatformLineEndings("\r\n");
         var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement, options: options);
         var expression = parsedStatement.Declaration.Variables[0].Initializer!.Value;
 
