@@ -8856,8 +8856,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // 2. resolve methods
-                MethodGroupResolution methodResult = binder.ResolveExtensionMethods(expression, left, typeArgumentsWithAnnotations, returnType, returnRefKind,
-                    lookupResult.Symbols, lookupResult.Kind, analyzedArguments, ref actualMethodArguments, ref useSiteInfo, options, in callingConvention, diagnostics);
+                MethodGroupResolution methodResult = binder.ResolveExtensionMethods(left, typeArgumentsWithAnnotations, returnType, returnRefKind, lookupResult.Symbols,
+                    lookupResult.Kind, analyzedArguments, ref actualMethodArguments, ref useSiteInfo, options, in callingConvention, diagnostics);
 
                 // 3. resolve properties
                 Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
@@ -8998,7 +8998,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private MethodGroupResolution ResolveExtensionMethods<TSymbol>(
-            SyntaxNode expression,
             BoundExpression left,
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             TypeSymbol? returnType,
@@ -11262,9 +11261,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isExtension)
             {
                 var resolution = ResolveExtensionMethods(
-                    syntax, receiver, typeArgumentsWithAnnotations: default, returnType: null, returnRefKind: default,
-                    methods, LookupResultKind.Viable, analyzedArguments, ref actualExtensionArguments, ref useSiteInfo,
-                    OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter, callingConvention: default, diagnostics);
+                    receiver, typeArgumentsWithAnnotations: default, returnType: null, returnRefKind: default, candidates: methods,
+                    resultKind: LookupResultKind.Viable, analyzedArguments: analyzedArguments, actualMethodArguments: ref actualExtensionArguments, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter,
+                    callingConvention: default, diagnostics: diagnostics);
 
                 foundApplicable = resolution.HasAnyApplicableMethod;
 
