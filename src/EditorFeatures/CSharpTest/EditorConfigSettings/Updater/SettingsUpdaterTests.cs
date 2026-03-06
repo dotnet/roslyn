@@ -318,7 +318,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
         analyzerSetting.ChangeSeverity(ReportDiagnostic.Error);
         var updates = await updater.GetChangedEditorConfigAsync(default);
         var update = AssertEx.Single(updates);
-        Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity = error", update.NewText);
+        Assert.Equal($"[*.cs]{Environment.NewLine}dotnet_diagnostic.{id}.severity = error", update.NewText);
     }
 
     [Fact]
@@ -341,7 +341,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
         setting.ChangeSeverity(ReportDiagnostic.Error);
         var updates = await updater.GetChangedEditorConfigAsync(default);
         var update = AssertEx.Single(updates);
-        Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);
+        Assert.Equal($"[*.cs]{Environment.NewLine}csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);
         value = "false:error";
 
         var solution = workspace.CurrentSolution;
@@ -354,7 +354,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
         setting.ChangeValue(0);
         updates = await updater.GetChangedEditorConfigAsync(default);
         update = AssertEx.Single(updates);
-        Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:error", update.NewText);
+        Assert.Equal($"[*.cs]{Environment.NewLine}csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:error", update.NewText);
     }
 
     [Fact]
@@ -374,7 +374,7 @@ public sealed partial class SettingsUpdaterTests : TestBase
         setting.SetValue(false);
         var updates = await updater.GetChangedEditorConfigAsync(default);
         var update = AssertEx.Single(updates);
-        Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else = false", update.NewText);
+        Assert.Equal($"[*.cs]{Environment.NewLine}csharp_new_line_before_else = false", update.NewText);
     }
 
     [Fact]
