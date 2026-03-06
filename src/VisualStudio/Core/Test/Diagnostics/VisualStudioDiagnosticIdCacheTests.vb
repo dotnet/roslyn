@@ -34,8 +34,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.False(service.TryGetDiagnosticIds(project.Id, Nothing))
 
+                service.RegisterProject(project.Id)
                 ' Waiting for DiagnosticService to process should populate the cache.
-                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
+                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 Dim diagnosticIds As ImmutableHashSet(Of String) = Nothing
                 Assert.True(service.TryGetDiagnosticIds(project.Id, diagnosticIds))
@@ -59,8 +60,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 project = workspace.CurrentSolution.Projects.Single()
                 Dim service = workspace.Services.GetRequiredService(Of VisualStudioDiagnosticIdCache)()
+                service.RegisterProject(project.Id)
 
-                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
+                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 Dim initialDiagnosticIds As ImmutableHashSet(Of String) = Nothing
                 Assert.True(service.TryGetDiagnosticIds(project.Id, initialDiagnosticIds))
@@ -99,8 +101,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 project = workspace.CurrentSolution.Projects.Single()
                 Dim projectId = project.Id
                 Dim service = workspace.Services.GetRequiredService(Of VisualStudioDiagnosticIdCache)()
+                service.RegisterProject(projectId)
 
-                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
+                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 Assert.True(service.TryGetDiagnosticIds(projectId, Nothing))
 
@@ -110,6 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
 
                 Assert.False(service.TryGetDiagnosticIds(projectId, Nothing))
+                Assert.Equal(0, service.GetTestAccessor().RegisteredProjectCount)
             End Using
         End Function
 

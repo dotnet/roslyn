@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList;
 
@@ -40,7 +41,9 @@ internal sealed class VisualStudioDiagnosticIdCacheFactory(
 
 internal class VisualStudioDiagnosticIdCache : IWorkspaceService
 {
-    // This dictionary maps ProjectIds to a descriptor list.
+    /// <summary>
+    /// This dictionary maps ProjectIds to a set of DiagnosticIds.
+    /// </summary>
     private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _projectIdToDiagnosticIdsCache = [];
     private readonly AsyncBatchingWorkQueue<ProjectId> _projectDescriptorRefreshQueue;
 
@@ -65,11 +68,14 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
             cancellationToken: threadingContext.DisposalToken);
 
         _workspace.RegisterWorkspaceChangedHandler(WorkspaceChanged);
+    }
 
-        foreach (var projectId in _workspace.CurrentSolution.ProjectIds)
-        {
-            _projectDescriptorRefreshQueue.AddWork(projectId);
-        }
+    /// <summary>
+    /// We will only cache diagnostic ids for projects which have been registered by the <see cref="AbstractLegacyProject"/>.
+    /// </summary>
+    public void RegisterProject(ProjectId projectId)
+    {
+        _projectDescriptorRefreshQueue.AddWork(projectId);
     }
 
     public bool TryGetDiagnosticIds(ProjectId projectId, [NotNullWhen(returnValue: true)] out ImmutableHashSet<string>? diagnosticIds)
@@ -77,27 +83,33 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
 
     private void WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
-        var workspaceChanges = e.NewSolution.GetChanges(e.OldSolution);
-
-        foreach (var addedProject in workspaceChanges.GetAddedProjects())
+        if (_projectIdToDiagnosticIdsCache.IsEmpty)
         {
-            _projectDescriptorRefreshQueue.AddWork(addedProject.Id);
+            return;
         }
+
+        var workspaceChanges = e.NewSolution.GetChanges(e.OldSolution);
 
         foreach (var removedProject in workspaceChanges.GetRemovedProjects())
         {
-            _projectDescriptorRefreshQueue.AddWork(removedProject.Id);
+            if (_projectIdToDiagnosticIdsCache.ContainsKey(removedProject.Id))
+            {
+                _projectDescriptorRefreshQueue.AddWork(removedProject.Id);
+            }
         }
 
         foreach (var projectChange in workspaceChanges.GetProjectChanges())
         {
-            var oldProject = projectChange.OldProject;
-            var newProject = projectChange.NewProject;
-
-            var analyzersChanged = !oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
-            if (analyzersChanged)
+            if (_projectIdToDiagnosticIdsCache.ContainsKey(projectChange.ProjectId))
             {
-                _projectDescriptorRefreshQueue.AddWork(projectChange.NewProject.Id);
+                var oldProject = projectChange.OldProject;
+                var newProject = projectChange.NewProject;
+
+                var analyzersChanged = !oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
+                if (analyzersChanged)
+                {
+                    _projectDescriptorRefreshQueue.AddWork(projectChange.NewProject.Id);
+                }
             }
         }
     }
@@ -122,5 +134,12 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
 
             _projectIdToDiagnosticIdsCache[project.Id] = [.. descriptorMap.Values.SelectMany(static descriptors => descriptors.Select(descriptor => descriptor.Id))];
         }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(VisualStudioDiagnosticIdCache diagnosticCache)
+    {
+        public int RegisteredProjectCount => diagnosticCache._projectIdToDiagnosticIdsCache.Count;
     }
 }
