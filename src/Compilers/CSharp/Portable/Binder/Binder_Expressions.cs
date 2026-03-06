@@ -9081,6 +9081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualMethodArguments, methodGroup.ResultKind, diagnostics.ToReadOnly());
         }
 
+        // The caller is responsible for freeing the result
         private OverloadResolutionResult<PropertySymbol> ResolveExtensionProperties(
             BoundExpression receiver,
             ArrayBuilder<PropertySymbol> properties,
@@ -9143,6 +9144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Tries to bind an extension indexer (real or implicit Index/Range pattern via extensions).
         /// Walks extension scopes: tries real extension indexer first, then implicit pattern per scope.
+        /// Returns true if found applicable candidates (an implicit indexer is considered applicable when
+        /// we have an applicable Length/Count and an applicable this[int]/Slice(int, int)).
         /// </summary>
         private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? extensionIndexerAccess)
@@ -9279,15 +9282,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(receiver.Type is not null);
 
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiver.IsEquivalentToThisReference, receiver.Type).MakeCompilerGenerated();
 
                 PropertySymbol? lengthOrCountProperty;
-                BoundExpression? indexerOrSliceAccess = null;
                 var implicitIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
                 bool foundApplicableLengthOrCount = tryLookupExtensionLengthOrCount(syntax, receiverPlaceholder, binder, scope,
                     ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty, ref useSiteInfo, implicitIndexerDiagnostics);
 
+                BoundExpression? indexerOrSliceAccess = null;
                 bool foundApplicableIndexerOrSlice = foundApplicableLengthOrCount
                     && TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope,
                         ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,

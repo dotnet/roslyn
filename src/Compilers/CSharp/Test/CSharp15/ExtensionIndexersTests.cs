@@ -4996,6 +4996,106 @@ namespace Outer
     }
 
     [Fact]
+    public void ImplicitIndexIndexer_74()
+    {
+        // Use-site diagnostic for extension Length + extension this[int] + extension Slice(int, int)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(object o)
+    {
+        public Missing Length => throw null;
+        public int this[int i] => throw null;
+        public object Slice(int i, int j) => throw null;
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => 3;
+            public int this[System.Index i] { get { System.Console.Write($"{i}, "); return 0; } }
+            public object this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o[^1];
+_ = o[..];
+""";
+        var comp = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1, 0..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_75()
+    {
+        // Use-site diagnostic for instance Length + extension this[int] + extension Slice(int, int)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public class C
+{
+    public Missing Length => throw null;
+}
+
+public static class E1
+{
+    extension(C c)
+    {
+        public int this[int i] => throw null;
+        public object Slice(int i, int j) => throw null;
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[System.Index i] { get { System.Console.Write($"{i}, "); return 0; } }
+            public object this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var c = new C();
+_ = c[^1];
+_ = c[..];
+""";
+        var comp = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1, 0..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ImplicitRangeIndexer_01()
     {
         // instance implicit indexer (instance scope) takes precedence over extension this[Range] (extension scope)
