@@ -2579,6 +2579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
                 or ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget
                 or ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules
+                or ErrorCode.ERR_UnsafeConstructorConstraint
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

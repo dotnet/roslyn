@@ -2692,6 +2692,11 @@
         <target state="translated">'{0}'은(는) 인식할 수 없는 {1} 버전의 모듈에 정의되어 있으며, '{2}' 버전을 기대합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
         <target state="translated">'{0}'은(는) 'RequiresUnsafe' 또는 'extern'으로 표시되어 있어 안전하지 않은 컨텍스트에서 사용해야 합니다.</target>

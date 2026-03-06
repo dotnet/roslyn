@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     else
                                     {
                                         declarationBinder.ReportDiagnosticsIfObsolete(diagnostics, importedType, usingDirective.NamespaceOrType, hasBaseReceiver: false);
-                                        Binder.AssertNotUnsafeMemberAccess(importedType);
+                                        declarationBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, importedType, usingDirective.NamespaceOrType, forceCheckConstraints: true);
 
                                         getOrCreateUsingsBuilder(ref usings, globalUsingNamespacesOrTypes).Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective, directiveDiagnostics.DependenciesBag.ToImmutableArray()));
                                     }
@@ -1005,8 +1005,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         alias.Alias.CheckConstraints(diagnostics);
 
+                        Debug.Assert(alias.UsingDirective != null);
+
+                        if (alias.UsingDirective.UnsafeKeyword == default &&
+                            alias.Alias.Target is { } immediateTarget &&
+                            diagnostics.DiagnosticBag is { } bag &&
+                            alias.Alias.TryGetFirstLocation() is { } location)
+                        {
+                            compilation.GetBinder(alias.UsingDirective).ReportDiagnosticsIfUnsafeMemberAccess(bag, immediateTarget, location, forceCheckConstraints: true);
+                        }
+
                         semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);
-                        recordImportDependencies(alias.UsingDirective!, target);
+                        recordImportDependencies(alias.UsingDirective, target);
                     }
                 }
 
