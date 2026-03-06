@@ -85,6 +85,17 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - VSIX deployment targets multiple architectures - ensure platform-specific assets are handled
 - ServiceHub components require special deployment considerations for .NET Core vs Framework
 
+## Copilot CLI LSP Integration
+
+GitHub Copilot CLI supports a C# language server for enhanced code intelligence (go-to-definition, find references, hover, etc.).
+
+Install the plugin:
+1. launch `agency copilot` (see https://aka.ms/agency),
+2. register the marketplace with `/plugin marketplace add agency-microsoft/playground` (see https://github.com/agency-microsoft/playground),
+3. run `/plugin install csharp-tools@agency-playground`.
+
+After installation, the LSP server status appears on startup. Test it by asking Copilot CLI to perform a code intelligence operation such as "find the definition of `RoslynLanguageServer`".
+
 ## Essential Files for Context
 
 - `docs/wiki/Roslyn-Overview.md` - Architecture deep-dive
