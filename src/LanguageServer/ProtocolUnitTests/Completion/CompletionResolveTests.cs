@@ -387,7 +387,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
+        AssertEx.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
 
         var editRange = testLspServer.GetLocations("editRange").Single().Range;
         Assert.Equal(editRange, results.TextEdit.Value.First.Range);
