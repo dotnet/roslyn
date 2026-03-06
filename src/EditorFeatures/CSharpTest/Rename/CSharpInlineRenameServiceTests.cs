@@ -44,7 +44,7 @@ public sealed class CSharpInlineRenameServiceTests
                 var (keyFromX, valueFromX) = elementFromX;
                 var (keyFromY, valueFromY) = elementFromY;
 
-                if (keyFromX != keyFromY || !valueFromX.SequenceEqual(valueFromY))
+                if (keyFromX != keyFromY || !valueFromX.Select(v => (v.filePath, content: v.content.ReplaceLineEndings())).SequenceEqual(valueFromY.Select(v => (v.filePath, content: v.content.ReplaceLineEndings()))))
                     return false;
             }
 
