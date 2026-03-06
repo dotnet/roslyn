@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, formattingOptions, CancellationToken.None)
 
                 Dim newRoot = Await formattedDocument.GetSyntaxRootAsync()
-                Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
+                AssertEx.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
             End Using
         End Function
 

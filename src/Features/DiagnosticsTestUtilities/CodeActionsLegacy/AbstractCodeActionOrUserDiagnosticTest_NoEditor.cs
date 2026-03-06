@@ -620,7 +620,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         }
         else
         {
-            AssertEx.EqualOrDiff(expectedText, actualText);
+            AssertEx.EqualOrDiff(expectedText.ReplaceLineEndings(), actualText.ReplaceLineEndings());
         }
 
         TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
@@ -733,7 +733,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             }
             else
             {
-                AssertEx.EqualOrDiff(expected, actual);
+                AssertEx.EqualOrDiff(expected.ReplaceLineEndings(), actual.ReplaceLineEndings());
             }
         }
     }

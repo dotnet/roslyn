@@ -45,7 +45,7 @@ public sealed class NamingStyleParserTests
     [Fact]
     public void TestParseRoslynEditorConfig()
     {
-        var editorconfig = SourceText.From(RoslynEditorConfigText);
+        var editorconfig = SourceText.From(RoslynEditorConfigText.ReplaceLineEndings("\r\n"));
         var namingStyles = Parse(editorconfig, null);
 
         var namingStyleSection = Assert.Single(namingStyles.Sections);
