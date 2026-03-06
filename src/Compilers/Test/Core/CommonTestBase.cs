@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static string WithWindowsLineBreaks(string source)
-            => source.ReplaceLineEndings("\r\n");
+            => source.NormalizePlatformLineEndings("\r\n");
 
         #endregion
 

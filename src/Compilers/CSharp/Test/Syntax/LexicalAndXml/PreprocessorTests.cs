@@ -90,12 +90,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private CompilationUnitSyntax Parse(string text, CSharpParseOptions options)
         {
+            text = text.NormalizePlatformLineEndings("\r\n");
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
         }
 
         private SyntaxTree ParseTree(string text, params string[] defines)
         {
+            text = text.NormalizePlatformLineEndings("\r\n");
             var options = this.GetOptions(SourceCodeKind.Regular, defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
@@ -104,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestRoundTripping(CompilationUnitSyntax node, string text, bool disallowErrors = true)
         {
             Assert.NotNull(node);
+            text = text.NormalizePlatformLineEndings("\r\n");
             var fullText = node.ToFullString();
             Assert.Equal(text, fullText);
 

@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 Delta: Gamma: Beta: Test B
 ";
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
 
                 Assert.Equal(expected, actual);
             });
@@ -388,7 +388,7 @@ Delta: Gamma: Beta: Test B
                     writeMethod.Invoke(b, new object[] { sb, "Test B" });
                     var actual = sb.ToString();
                     Assert.Equal(@"Delta: Gamma: Beta: Test B
-", actual.ReplaceLineEndings("\r\n"));
+", actual);
                 }
             });
         }
@@ -550,7 +550,7 @@ Delta: Gamma: Beta: Test B
                 var writeMethod = b.GetType().GetMethod("Write")!;
                 writeMethod.Invoke(b, new object[] { sb, "Test G" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
@@ -582,7 +582,7 @@ Delta: Gamma: Beta: Test B
                 var writeMethod = b.GetType().GetMethod("Write")!;
                 writeMethod.Invoke(b, new object[] { sb, "Test G" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
@@ -698,7 +698,7 @@ Delta: Gamma: Beta: Test B
                 var writeMethod = b.GetType().GetMethod("Write")!;
                 writeMethod.Invoke(b, new object[] { sb, "Test G" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
@@ -711,7 +711,7 @@ Delta: Gamma: Beta: Test B
         }
 
         /// <summary>
-        /// This is very similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory2"/> except
+        /// This is very similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory2"/> except 
         /// that we ensure the code does not prefer a dependency in the same directory if it's 
         /// unregistered
         /// </summary>
@@ -736,7 +736,7 @@ Delta: Gamma: Beta: Test B
                 var writeMethod = b.GetType().GetMethod("Write")!;
                 writeMethod.Invoke(b, new object[] { sb, "Test G" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
@@ -798,7 +798,7 @@ Delta: Gamma: Beta: Test B
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
 
 #if NET
                 var alcs = loader.GetDirectoryLoadContextsSnapshot();
@@ -851,7 +851,7 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr || state is AnalyzerTestKind.ShadowLoad)
                 {
                     // In .NET Core we have _full_ control over assembly loading and can prevent implicit
@@ -918,7 +918,7 @@ Delta: Epsilon: Test E
                     testFixture.Delta2,
                     testFixture.Epsilon);
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(
 @"Delta.2: Epsilon: Test E
 ",
@@ -993,7 +993,7 @@ Delta: Epsilon: Test E
                 Assert.Equal(
                     @"Delta.2: Epsilon: Test E
 ",
-                    sb.ToString().ReplaceLineEndings("\r\n"));
+                    sb.ToString());
 
                 if (ExecutionConditionUtil.IsCoreClr || state is AnalyzerTestKind.ShadowLoad)
                 {
@@ -1054,7 +1054,7 @@ Delta: Epsilon: Test E
                     delta1File,
                     epsilonFile);
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(
     @"Delta: Epsilon: Test E
 ",
@@ -1105,7 +1105,7 @@ Delta: Epsilon: Test E
                     ("Epsilon", "0.0.0.0", testFixture.Epsilon));
 #endif
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr)
                 {
                     Assert.Equal(
@@ -1145,7 +1145,7 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 var eWrite = e.GetType().GetMethod("Write")!;
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 eWrite.Invoke(e, new object[] { sb, "Test E" });
                 Assert.Equal(
     @"Delta: Gamma: Test G
@@ -1324,7 +1324,7 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
 
                 Assert.Equal(
     @"Delta.2: Gamma: Test G
@@ -1354,7 +1354,7 @@ Delta.2: Epsilon: Test E
                 var delta2Instance = delta2Assembly.CreateInstance("Delta.D")!;
                 delta2Instance.GetType().GetMethod("Write")!.Invoke(delta2Instance, new object[] { sb, "Test D2" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
 
                 Assert.Equal(
     @"Delta: Test D1
@@ -1493,7 +1493,7 @@ Delta.2: Test D2
                 var d = delta.CreateInstance("Delta.D");
                 d!.GetType().GetMethod("Write")!.Invoke(d, new object[] { sb, "Test D" });
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(
     @"Delta: Test D
 ",
@@ -1535,7 +1535,7 @@ Delta.2: Test D2
                     File.Delete(gammaFile);
                 }
 
-                var actual = sb.ToString().ReplaceLineEndings("\r\n");
+                var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
             });
