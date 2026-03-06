@@ -39166,4 +39166,312 @@ _ = new object().Property;
             // _ = new object().Property;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("object", "Property").WithLocation(14, 18));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_01()
+    {
+        // extension(Missing).Property
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public int Length => 1;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o.Length;
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => 1;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o.Length;
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.Length").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_02()
+    {
+        // static extension(Missing).Property
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing)
+    {
+        public static int Property => 1;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+_ = object.Property;
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object)
+        {
+            public static int Property => 1;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (3,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = object.Property;
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "object.Property").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 5));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_03()
+    {
+        // extension(Missing).M()
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public void M() { }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M();
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public void M() { }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M(42);
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_04()
+    {
+        // extension(object).M(Missing)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(object o)
+    {
+        public void M(Missing m) { }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M(42);
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public void M(int i) { }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M(42);
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_05()
+    {
+        // static extension(Missing).M()
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+object.M();
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object)
+        {
+            public static void M() { }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (3,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "object.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void UseSite_06()
+    {
+        // M(this object, Missing)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    public static void M(this object o, Missing m) { }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M(42);
+
+namespace Outer
+{
+    public static class E2
+    {
+        public static void M(this object o, int i) { }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M(42);
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void UseSite_07()
+    {
+        // M(this Missing)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    public static void M(this Missing m) { }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M();
+
+namespace Outer
+{
+    public static class E2
+    {
+        public static void M(this int i) { }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
 }

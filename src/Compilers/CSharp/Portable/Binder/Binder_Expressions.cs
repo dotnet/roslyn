@@ -8856,7 +8856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // 2. resolve methods
                 MethodGroupResolution methodResult = binder.ResolveExtensionMethods(expression, left, typeArgumentsWithAnnotations, returnType, returnRefKind,
-                    lookupResult.Symbols, lookupResult.Kind, analyzedArguments, ref actualMethodArguments, options, in callingConvention, diagnostics);
+                    lookupResult.Symbols, lookupResult.Kind, analyzedArguments, ref actualMethodArguments, ref useSiteInfo, options, in callingConvention, diagnostics);
 
                 // 3. resolve properties
                 Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
@@ -9006,6 +9006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             AnalyzedArguments? analyzedArguments,
             ref AnalyzedArguments? actualMethodArguments,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             OverloadResolution.Options options,
             in CallingConventionInfo callingConvention,
             BindingDiagnosticBag diagnostics)
@@ -9062,20 +9063,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.MethodInvocationOverloadResolution(
                 methods: methodGroup.Methods,
                 typeArguments: methodGroup.TypeArguments,
                 receiver: methodGroup.Receiver,
                 arguments: actualMethodArguments,
                 result: overloadResolutionResult,
-                ref overloadResolutionUseSiteInfo,
+                ref useSiteInfo,
                 options: options | OverloadResolution.Options.IsExtensionMethodResolution,
                 returnRefKind: returnRefKind,
                 returnType: returnType,
                 in callingConvention);
-
-            diagnostics.Add(expression, overloadResolutionUseSiteInfo);
 
             // Note: the MethodGroupResolution instance is responsible for freeing the method group,
             //   the overload resolution result and the arguments
@@ -11234,11 +11232,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool foundApplicable;
             if (isExtension)
             {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 var resolution = ResolveExtensionMethods(
                     syntax, receiver, typeArgumentsWithAnnotations: default, returnType: null, returnRefKind: default,
-                    methods, LookupResultKind.Viable, analyzedArguments, ref actualExtensionArguments,
+                    methods, LookupResultKind.Viable, analyzedArguments, ref actualExtensionArguments, ref useSiteInfo,
                     OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter, callingConvention: default, diagnostics);
 
+                diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE review use-site info handling as part of implicit indexers
                 foundApplicable = resolution.HasAnyApplicableMethod;
 
                 sliceAccess = BindMethodGroupInvocationCore(syntax, syntax, methodName, boundMethodGroup, analyzedArguments,
