@@ -976,7 +976,7 @@ public sealed partial class CodeGenerationTests
                     var simplified = Simplifier.ReduceAsync(this.Document, Simplifier.Annotation, simplifierOptions, CancellationToken.None).Result;
                     var actual = Formatter.FormatAsync(simplified, Formatter.Annotation, formattingOptions, CancellationToken.None).Result.GetSyntaxRootAsync().Result.ToFullString();
 
-                    Assert.Equal(_expected, actual);
+                    AssertEx.Equal(_expected, actual);
                 }
             }
             finally

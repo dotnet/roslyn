@@ -759,7 +759,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             text = text.WithChanges(textChange);
         }
 
-        Assert.Equal(expectedCodeAfterCommit, text.ToString());
+        AssertEx.Equal(expectedCodeAfterCommit, text.ToString());
     }
 
     protected async Task VerifyItemInEditorBrowsableContextsAsync(
