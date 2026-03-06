@@ -5408,7 +5408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
                 var conversion = @this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: @this.CheckOverflowAtRuntime, ref useSiteInfo);
                 Debug.Assert(conversion.IsValid);
-                diagnostics.Add(syntax.Expression, useSiteInfo);
                 var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
 
                 BoundExpression? lengthOrCount;
@@ -5419,10 +5418,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(length > 0);
                     lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
                 }
-                else if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics)) // PROTOTYPE should extension Length/Count count?
+                else if (!@this.TryBindNonExtensionLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, ref useSiteInfo, diagnostics)) // PROTOTYPE should extension Length/Count count?
                 {
                     lengthOrCount = null;
                 }
+
+                diagnostics.Add(syntax.Expression, useSiteInfo);
 
                 return new BoundCollectionExpressionSpreadElement(
                     syntax,
@@ -9143,7 +9144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Tries to bind an extension indexer (real or implicit Index/Range pattern via extensions).
         /// Walks extension scopes: tries real extension indexer first, then implicit pattern per scope.
         /// </summary>
-        private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? extensionIndexerAccess)
+        private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? extensionIndexerAccess)
         {
             Debug.Assert(left is not null);
 
@@ -9166,7 +9168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             extensionIndexerAccess = tryBindExtensionIndexer(syntax, left, analyzedArguments, lookupResult,
                 ref analyzedIntIndexerOrSliceArguments, ref intIndexerOrSliceArgumentPlaceholders,
                 ref actualExtensionArguments, ref actualExtensionLengthOrCountArguments, ref actualExtensionIntIndexerOrSliceArguments,
-                diagnostics);
+                ref useSiteInfo, diagnostics);
 
             lookupResult.Free();
             analyzedIntIndexerOrSliceArguments?.Free();
@@ -9186,6 +9188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref AnalyzedArguments? actualExtensionArguments,
                 ref AnalyzedArguments? actualExtensionLengthOrCountArguments,
                 ref AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics)
             {
                 foreach (var scope in new ExtensionScopes(this))
@@ -9194,13 +9197,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (tryBindExtensionIndexersInScope(
                         syntax, left, lookupResult, analyzedArguments, ref actualExtensionArguments,
-                        binder: this, scope: scope, diagnostics: diagnostics, out BoundExpression? extensionIndexerAccess))
+                        binder: this, scope: scope, ref useSiteInfo, diagnostics: diagnostics, out BoundExpression? extensionIndexerAccess))
                     {
                         return extensionIndexerAccess;
                     }
 
                     if (tryBindExtensionImplicitIndexerInScope(
-                        syntax, left, analyzedArguments, binder: this, scope, diagnostics,
+                        syntax, left, analyzedArguments, binder: this, scope, ref useSiteInfo, diagnostics,
                         ref analyzedIntIndexerOrSliceArguments, ref intIndexerOrSliceArgumentPlaceholders,
                         ref actualExtensionLengthOrCountArguments, ref actualExtensionIntIndexerOrSliceArguments,
                         out BoundExpression? extensionImplicitIndexerAccess))
@@ -9221,6 +9224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref AnalyzedArguments? actualArguments,
                 Binder binder,
                 ExtensionScope scope,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics,
                 out BoundExpression? extensionIndexerAccess)
             {
@@ -9228,13 +9232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lookupResult.IsClear);
 
                 // 1. gather candidates
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-
                 scope.Binder.LookupExtensionBlockIndexersInSingleBinder(
                     lookupResult, WellKnownMemberNames.Indexer, arity: 0, LookupOptions.Default,
                     originalBinder: binder, useSiteInfo: ref useSiteInfo);
-
-                diagnostics.Add(syntax, useSiteInfo);
 
                 if (!lookupResult.IsMultiViable || lookupResult.Symbols.All(s => s is not PropertySymbol { IsIndexer: true }))
                 {
@@ -9252,7 +9252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return TryBindExtensionIndexerCandidates(syntax, receiver, properties, analyzedArguments, ref actualArguments, binder, diagnostics, out extensionIndexerAccess);
+                return TryBindExtensionIndexerCandidates(syntax, receiver, properties, analyzedArguments, ref actualArguments, binder, ref useSiteInfo, diagnostics, out extensionIndexerAccess);
             }
 
             // returns true if we should stop searching in further scopes
@@ -9262,6 +9262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AnalyzedArguments arguments,
                 Binder binder,
                 ExtensionScope scope,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics,
                 ref AnalyzedArguments? analyzedIntIndexerOrSliceArguments,
                 ref ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
@@ -9282,30 +9283,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 PropertySymbol? lengthOrCountProperty;
                 BoundExpression? indexerOrSliceAccess = null;
+                var implicitIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
                 bool foundApplicableLengthOrCount = tryLookupExtensionLengthOrCount(syntax, receiverPlaceholder, binder, scope,
-                    ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty, diagnostics);
+                    ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty, ref useSiteInfo, implicitIndexerDiagnostics);
 
                 bool foundApplicableIndexerOrSlice = foundApplicableLengthOrCount
                     && TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope,
                         ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
-                        out indexerOrSliceAccess, ref argumentPlaceholders, diagnostics);
+                        out indexerOrSliceAccess, ref argumentPlaceholders, ref useSiteInfo, implicitIndexerDiagnostics);
 
                 if (lengthOrCountProperty is not null && indexerOrSliceAccess is not null)
                 {
                     diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
                     Debug.Assert(lengthOrCountProperty.ContainingType.ExtensionParameter is not null);
-                    var lengthOrCountAccess = binder.GetExtensionMemberAccess(syntax, receiver, lengthOrCountProperty, diagnostics).MakeCompilerGenerated();
-                    lengthOrCountAccess = binder.CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
+                    var lengthOrCountAccess = binder.GetExtensionMemberAccess(syntax, receiver, lengthOrCountProperty, implicitIndexerDiagnostics).MakeCompilerGenerated();
+                    lengthOrCountAccess = binder.CheckValue(lengthOrCountAccess, BindValueKind.RValue, implicitIndexerDiagnostics);
 
                     Debug.Assert(!argumentPlaceholders.IsDefault);
                     indexerAccess = binder.MakeImplicitIndexerAccess(syntax, receiver, arguments, receiverPlaceholder,
-                        lengthOrCountAccess, indexerOrSliceAccess, argumentPlaceholders, argKind, diagnostics);
+                        lengthOrCountAccess, indexerOrSliceAccess, argumentPlaceholders, argKind, implicitIndexerDiagnostics);
                 }
                 else
                 {
                     indexerAccess = null;
                 }
+
+                if (foundApplicableLengthOrCount && foundApplicableIndexerOrSlice)
+                {
+                    diagnostics.AddRange(implicitIndexerDiagnostics);
+                }
+
+                implicitIndexerDiagnostics.Free();
 
                 // We consider this scope to have an applicable implicit indexer if we found applicable candidates for both parts (the Length/Count and the this[int]/Slice).
                 // If only one parts or no parts are applicable, we'll continue searching further scopes.
@@ -9321,10 +9330,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExtensionScope scope,
                 ref AnalyzedArguments? actualExtensionLengthOrCountArguments,
                 [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(receiver.Type is not null);
-                var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 var candidates = ArrayBuilder<Symbol>.GetInstance();
                 var lookupOptions = LookupOptions.MustBeInstance;
                 int arity = 0;
@@ -9357,13 +9366,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 candidates.Free();
-                diagnostics.Add(syntax, useSiteInfo);
 
                 // Length takes precedence over Count
-                bool foundApplicable = tryResolveLengthOrCount(receiver, lengthCandidates, binder, diagnostics, syntax, ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty);
+                bool foundApplicable = tryResolveLengthOrCount(receiver, lengthCandidates, binder, ref useSiteInfo, ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty);
                 if (!foundApplicable)
                 {
-                    foundApplicable = tryResolveLengthOrCount(receiver, countCandidates, binder, diagnostics, syntax, ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty);
+                    foundApplicable = tryResolveLengthOrCount(receiver, countCandidates, binder, ref useSiteInfo, ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty);
                 }
 
                 lengthCandidates?.Free();
@@ -9373,8 +9381,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Returns true if any applicable candidates
-            static bool tryResolveLengthOrCount(BoundExpression receiver, ArrayBuilder<PropertySymbol>? properties, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax,
-                ref AnalyzedArguments? actualArguments, out PropertySymbol? property)
+            static bool tryResolveLengthOrCount(BoundExpression receiver, ArrayBuilder<PropertySymbol>? properties, Binder binder,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref AnalyzedArguments? actualArguments, out PropertySymbol? property)
             {
                 if (properties is null)
                 {
@@ -9382,10 +9390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 var result = binder.ResolveExtensionProperties(receiver, properties, analyzedArguments: null, ref actualArguments, ref useSiteInfo);
-
-                diagnostics.Add(syntax, useSiteInfo);
 
                 property = result.Succeeded ? result.BestResult.Member : null;
                 bool foundApplicable = result.HasAnyApplicableMember;
@@ -9407,6 +9412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments,
             out BoundExpression? indexerOrSliceAccess,
             ref ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver.Type is not null);
@@ -9415,13 +9421,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return tryBindUnderlyingIndexerAccessInScope(syntax, receiver, binder, scope, ref analyzedIntIndexerOrSliceArguments,
                     ref actualExtensionIntIndexerOrSliceArguments, out indexerOrSliceAccess,
-                    ref argumentPlaceholders, diagnostics);
+                    ref argumentPlaceholders, ref useSiteInfo, diagnostics);
             }
 
             Debug.Assert(argKind is IndexOrRangeArgKind.Range);
             return tryBindUnderlyingSliceAccessInScope(syntax, receiver, binder, scope, ref analyzedIntIndexerOrSliceArguments,
                 ref actualExtensionIntIndexerOrSliceArguments, out indexerOrSliceAccess,
-                ref argumentPlaceholders, diagnostics);
+                ref argumentPlaceholders, ref useSiteInfo, diagnostics);
 
             // Returns true if any applicable candidates
             // The caller is responsible to free analyzedArguments and actualExtensionArguments
@@ -9434,10 +9440,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref AnalyzedArguments? actualExtensionArguments,
                 out BoundExpression? indexerAccess,
                 ref ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(receiver.Type is not null);
-                var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 var lookupOptions = LookupOptions.MustBeInstance;
                 int arity = 0;
                 ArrayBuilder<PropertySymbol>? filteredCandidates = null;
@@ -9472,7 +9478,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult.Free();
                 }
 
-                diagnostics.Add(syntax, useSiteInfo);
                 if (filteredCandidates is null || filteredCandidates.Count == 0)
                 {
                     filteredCandidates?.Free();
@@ -9490,13 +9495,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (scope.HasValue)
                 {
-                    return TryBindExtensionIndexerCandidates(syntax, receiver, filteredCandidates, analyzedArguments, ref actualExtensionArguments, binder, diagnostics, out indexerAccess);
+                    return TryBindExtensionIndexerCandidates(syntax, receiver, filteredCandidates, analyzedArguments, ref actualExtensionArguments, binder, ref useSiteInfo, diagnostics, out indexerAccess);
                 }
                 else
                 {
-                    var bindingUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                    indexerAccess = binder.BindIndexerOrIndexedPropertyAccess(syntax, receiver, filteredCandidates, analyzedArguments, out bool foundApplicable, ref bindingUseSiteInfo, diagnostics).MakeCompilerGenerated();
-                    diagnostics.Add(syntax, bindingUseSiteInfo);
+                    indexerAccess = binder.BindIndexerOrIndexedPropertyAccess(syntax, receiver, filteredCandidates, analyzedArguments, out bool foundApplicable, ref useSiteInfo, diagnostics).MakeCompilerGenerated();
                     return foundApplicable;
                 }
             }
@@ -9512,6 +9515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref AnalyzedArguments? actualExtensionArguments,
                 [NotNullWhen(true)] out BoundExpression? sliceAccess,
                 ref ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics)
             {
                 if (receiver.Type.SpecialType == SpecialType.System_String && !scope.HasValue)
@@ -9523,7 +9527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var methods = ArrayBuilder<MethodSymbol>.GetInstance(1);
                         methods.Add(substring);
 
-                        binder.BindSliceCall(syntax, receiver, methods, isExtension: false, diagnostics,
+                        binder.BindSliceCall(syntax, receiver, methods, isExtension: false, ref useSiteInfo, diagnostics,
                             ref analyzedArguments, ref actualExtensionArguments, out sliceAccess, out argumentPlaceholders);
 
                         methods.Free();
@@ -9535,7 +9539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lookupOptions = LookupOptions.MustBeInstance | LookupOptions.AllMethodsOnArityZero;
                 int arity = 0;
                 ArrayBuilder<MethodSymbol>? filteredCandidates = null;
-                var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
                 // Look for `T Slice(int, int)` indexer
                 if (scope.HasValue)
@@ -9568,8 +9571,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult.Free();
                 }
 
-                diagnostics.Add(syntax, useSiteInfo);
-
                 if (filteredCandidates is null || filteredCandidates.Count == 0)
                 {
                     filteredCandidates?.Free();
@@ -9577,7 +9578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                bool foundApplicable = binder.BindSliceCall(syntax, receiver, filteredCandidates, isExtension: scope.HasValue, diagnostics,
+                bool foundApplicable = binder.BindSliceCall(syntax, receiver, filteredCandidates, isExtension: scope.HasValue, ref useSiteInfo, diagnostics,
                     ref analyzedArguments, ref actualExtensionArguments, out sliceAccess, out argumentPlaceholders);
 
                 filteredCandidates.Free();
@@ -9627,13 +9628,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             ref AnalyzedArguments? actualArguments,
             Binder binder,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             BindingDiagnosticBag diagnostics,
             out BoundExpression? extensionIndexerAccess)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
             OverloadResolutionResult<PropertySymbol> result = binder.ResolveExtensionProperties(receiver, properties, analyzedArguments, ref actualArguments, ref useSiteInfo);
             properties.Free();
-            diagnostics.Add(syntax, useSiteInfo);
 
             if (!result.Succeeded)
             {
@@ -10754,11 +10754,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+#nullable enable
         private BoundExpression BindIndexerAccess(SyntaxNode node, BoundExpression expr, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
-            Debug.Assert((object)expr.Type != null);
+            Debug.Assert((object?)expr.Type != null);
             Debug.Assert(analyzedArguments != null);
 
             LookupResult lookupResult = LookupResult.GetInstance();
@@ -10767,9 +10768,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: lookupOptions);
 
             // Store, rather than return, so that we can release resources.
-            BoundExpression indexerAccessExpression = null;
-            BindingDiagnosticBag instanceRealIndexerDiagnostics = null;
-            bool foundApplicable = false;
+            BoundExpression? indexerAccessExpression = null;
+            BindingDiagnosticBag? instanceRealIndexerDiagnostics = null;
+            bool foundApplicableRealInstanceIndexer = false;
             if (lookupResult.IsMultiViable)
             {
                 ArrayBuilder<PropertySymbol> indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
@@ -10780,21 +10781,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 instanceRealIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, out foundApplicable, ref useSiteInfo, instanceRealIndexerDiagnostics);
+                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, out foundApplicableRealInstanceIndexer, ref useSiteInfo, instanceRealIndexerDiagnostics);
                 indexerGroup.Free();
             }
 
-            diagnostics.Add(node, useSiteInfo);
-
-            BoundExpression fallbackIndexerAccess = null;
-            if (!foundApplicable)
+            BoundExpression? fallbackIndexerAccess = null;
+            bool foundApplicableImplicitIndexer = false;
+            bool foundApplicableExtensionIndexer = false;
+            if (!foundApplicableRealInstanceIndexer)
             {
-                if (TryBindNonExtensionImplicitIndexer(node, expr, analyzedArguments, diagnostics, out fallbackIndexerAccess)
-                    || TryBindExtensionIndexer(node, expr, analyzedArguments, diagnostics, out fallbackIndexerAccess))
+                var instanceImplicitIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                foundApplicableImplicitIndexer = TryBindNonExtensionImplicitIndexer(node, expr, analyzedArguments, ref useSiteInfo, instanceImplicitIndexerDiagnostics, out fallbackIndexerAccess);
+                if (foundApplicableImplicitIndexer)
                 {
-                    foundApplicable = true;
+                    foundApplicableRealInstanceIndexer = true;
                     indexerAccessExpression = fallbackIndexerAccess;
+                    diagnostics.AddRange(instanceImplicitIndexerDiagnostics);
                 }
+                else
+                {
+                    var extensionIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                    foundApplicableExtensionIndexer = TryBindExtensionIndexer(node, expr, analyzedArguments, ref useSiteInfo, extensionIndexerDiagnostics, out fallbackIndexerAccess);
+                    if (foundApplicableExtensionIndexer)
+                    {
+                        foundApplicableRealInstanceIndexer = true;
+                        indexerAccessExpression = fallbackIndexerAccess;
+                        diagnostics.AddRange(extensionIndexerDiagnostics);
+                    }
+
+                    extensionIndexerDiagnostics.Free();
+                }
+
+                instanceImplicitIndexerDiagnostics.Free();
             }
 
             if (fallbackIndexerAccess is null)
@@ -10802,14 +10820,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.AddRange(instanceRealIndexerDiagnostics);
             }
 
+            instanceRealIndexerDiagnostics?.Free();
+
             if (indexerAccessExpression is null)
             {
                 indexerAccessExpression = BadIndexerExpression(node, expr, analyzedArguments, lookupResult.Error, diagnostics);
             }
 
+            diagnostics.Add(node, useSiteInfo);
+
             lookupResult.Free();
             return indexerAccessExpression;
         }
+#nullable disable
 
         private static readonly Func<PropertySymbol, bool> s_isIndexedPropertyWithNonOptionalArguments = property =>
             {
@@ -11068,6 +11091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression receiver,
             AnalyzedArguments arguments,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             BindingDiagnosticBag diagnostics,
             [NotNullWhen(true)] out BoundExpression? implicitIndexerAccess)
         {
@@ -11088,7 +11112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
             ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders = default;
             if (TryBindNonExtensionImplicitIndexerParts(syntax, receiverPlaceholder, argKind,
-                out BoundExpression? lengthOrCountAccess, out BoundExpression? indexerOrSliceAccess, ref intIndexerOrSliceArgumentPlaceholders, diagnostics))
+                out BoundExpression? lengthOrCountAccess, out BoundExpression? indexerOrSliceAccess, ref intIndexerOrSliceArgumentPlaceholders, ref useSiteInfo, diagnostics))
             {
                 implicitIndexerAccess = MakeImplicitIndexerAccess(syntax, receiver, arguments, receiverPlaceholder,
                     lengthOrCountAccess, indexerOrSliceAccess, intIndexerOrSliceArgumentPlaceholders, argKind, diagnostics);
@@ -11163,6 +11187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out BoundExpression? lengthOrCountAccess,
             [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
             ref ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             BindingDiagnosticBag diagnostics)
         {
             // SPEC:
@@ -11178,13 +11203,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(argKind != IndexOrRangeArgKind.None);
             indexerOrSliceAccess = null;
 
-            if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics))
+            if (TryBindNonExtensionLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, ref useSiteInfo, diagnostics))
             {
                 AnalyzedArguments? analyzedIntIndexerOrSliceArguments = null;
                 AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments = null;
 
                 TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder: this, scope: null,
-                    ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments, out indexerOrSliceAccess, ref argumentPlaceholders, diagnostics);
+                    ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments, out indexerOrSliceAccess, ref argumentPlaceholders, ref useSiteInfo, diagnostics);
 
                 Debug.Assert(actualExtensionIntIndexerOrSliceArguments is null);
                 analyzedIntIndexerOrSliceArguments?.Free();
@@ -11205,6 +11230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver,
             ArrayBuilder<MethodSymbol> methods,
             bool isExtension,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             BindingDiagnosticBag diagnostics,
             [NotNull] ref AnalyzedArguments? analyzedArguments,
             ref AnalyzedArguments? actualExtensionArguments,
@@ -11232,13 +11258,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool foundApplicable;
             if (isExtension)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 var resolution = ResolveExtensionMethods(
                     syntax, receiver, typeArgumentsWithAnnotations: default, returnType: null, returnRefKind: default,
                     methods, LookupResultKind.Viable, analyzedArguments, ref actualExtensionArguments, ref useSiteInfo,
                     OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter, callingConvention: default, diagnostics);
 
-                diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE review use-site info handling as part of implicit indexers
                 foundApplicable = resolution.HasAnyApplicableMethod;
 
                 sliceAccess = BindMethodGroupInvocationCore(syntax, syntax, methodName, boundMethodGroup, analyzedArguments,
@@ -11291,18 +11315,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None };
         }
 
-        private bool TryBindLengthOrCount(
+        private bool TryBindNonExtensionLengthOrCount(
             SyntaxNode syntax,
             BoundValuePlaceholderBase receiverPlaceholder,
             out BoundExpression lengthOrCountAccess,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             BindingDiagnosticBag diagnostics)
         {
             var lookupResult = LookupResult.GetInstance();
 
             Debug.Assert(receiverPlaceholder.Type is not null);
-            if (TryLookupLengthOrCount(syntax, receiverPlaceholder.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
+            if (tryLookupLengthOrCount(syntax, receiverPlaceholder.Type, lookupResult, binder: this, out var lengthOrCountProperty, ref useSiteInfo, diagnostics))
             {
-                diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
+                lengthOrCountProperty.AddUseSiteInfo(ref useSiteInfo);
                 lengthOrCountAccess = BindPropertyAccess(syntax, receiverPlaceholder, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
                 lengthOrCountAccess = CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
 
@@ -11314,43 +11339,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             lookupResult.Free();
 
             return false;
-        }
 
-        private bool TryLookupLengthOrCount(
-            SyntaxNode syntax,
-            TypeSymbol receiverType,
-            LookupResult lookupResult,
-            [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
-            BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(lookupResult.IsClear);
-            if (tryLookupLengthOrCount(syntax, WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty, diagnostics) ||
-                tryLookupLengthOrCount(syntax, WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty, diagnostics))
+            static bool tryLookupLengthOrCount(
+                SyntaxNode syntax,
+                TypeSymbol receiverType,
+                LookupResult lookupResult,
+                Binder binder,
+                [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                BindingDiagnosticBag diagnostics)
             {
-                return true;
+                Debug.Assert(lookupResult.IsClear);
+                if (tryLookupProperty(syntax, receiverType, lookupResult, WellKnownMemberNames.LengthPropertyName, binder, out lengthOrCountProperty, ref useSiteInfo, diagnostics) ||
+                    tryLookupProperty(syntax, receiverType, lookupResult, WellKnownMemberNames.CountPropertyName, binder, out lengthOrCountProperty, ref useSiteInfo, diagnostics))
+                {
+                    return true;
+                }
+
+                return false;
             }
 
-            return false;
-
-            bool tryLookupLengthOrCount(SyntaxNode syntax, string propertyName, [NotNullWhen(true)] out PropertySymbol? valid, BindingDiagnosticBag diagnostics)
+            static bool tryLookupProperty(
+                SyntaxNode syntax,
+                TypeSymbol receiverType,
+                LookupResult lookupResult,
+                string propertyName,
+                Binder binder,
+                [NotNullWhen(true)] out PropertySymbol? valid,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                BindingDiagnosticBag diagnostics)
             {
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                LookupMembersInType(
+                binder.LookupMembersInType(
                     lookupResult,
                     receiverType,
                     propertyName,
                     arity: 0,
                     basesBeingResolved: null,
                     LookupOptions.Default,
-                    originalBinder: this,
+                    originalBinder: binder,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
-                diagnostics.Add(syntax, useSiteInfo);
 
                 if (lookupResult.IsSingleViable &&
                     lookupResult.Symbols[0] is PropertySymbol property &&
                     HasValidLengthOrCountGetter(property) &&
-                    IsAccessible(property.GetOwnOrInheritedGetMethod()!, syntax, diagnostics))
+                    binder.IsAccessible(property.GetOwnOrInheritedGetMethod()!, syntax, diagnostics))
                 {
                     lookupResult.Clear();
                     valid = property;

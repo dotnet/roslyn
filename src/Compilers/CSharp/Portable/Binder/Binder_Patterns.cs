@@ -384,11 +384,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (!TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics)) // PROTOTYPE should extension Length/Count count?
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                if (!TryBindNonExtensionLengthOrCount(node, receiverPlaceholder, out lengthAccess, ref useSiteInfo, diagnostics)) // PROTOTYPE should extension Length/Count count?
                 {
                     hasErrors = true;
                     Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
                 }
+
+                diagnostics.Add(node, useSiteInfo);
             }
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
