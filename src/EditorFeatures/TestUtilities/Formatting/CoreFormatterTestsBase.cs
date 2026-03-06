@@ -289,6 +289,6 @@ public abstract class CoreFormatterTestsBase
         var result = Formatter.Format(node, workspace.Services.SolutionServices, options, CancellationToken.None);
         var actual = result.GetText().ToString();
 
-        Assert.Equal(expected, actual);
+        AssertEx.Equal(expected, actual);
     }
 }
