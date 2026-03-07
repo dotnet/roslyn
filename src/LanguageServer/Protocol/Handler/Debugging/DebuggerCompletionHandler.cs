@@ -108,12 +108,7 @@ internal sealed class DebuggerCompletionHandler(IGlobalOptionService globalOptio
                 spliceResult.InsertedLength);
 
             // Use debugger-specific completion options, matching the overrides applied by CompletionSource.
-            var completionOptions = globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper) with
-            {
-                FilterOutOfScopeLocals = false,
-                ShowXmlDocCommentCompletion = false,
-                CanAddImportStatement = false,
-            };
+            var completionOptions = globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper).WithDebuggerOverrides();
 
             return await CompletionHandler
                 .GetCompletionListAsync(

@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Debugg
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [ExportBrokeredService(MonikerName, MonikerVersion, Audience = ServiceAudience.Local)]
 internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionService, IExportedBrokeredService
-#pragma warning restore RS0030
 {
     internal const string MonikerName = "Microsoft.CodeAnalysis.LanguageServer.DebuggerCompletionService";
     internal const string MonikerVersion = "0.1";
@@ -34,9 +33,7 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ILogger _logger;
 
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
     [ImportingConstructor]
-#pragma warning restore RS0030
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DebuggerCompletionBrokeredService(
         LanguageServerWorkspaceFactory workspaceFactory,
@@ -98,11 +95,7 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
                 .ConfigureAwait(false);
 
             // Fork solution with spliced text
-            var forkedSolution = solution.WithDocumentText(
-                document.Id,
-                spliceResult.Text,
-                PreservationMode.PreserveIdentity);
-
+            var forkedSolution = solution.WithDocumentText(document.Id, spliceResult.Text, PreservationMode.PreserveIdentity);
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
                 forkedSolution = forkedSolution.WithDocumentText(linkedDocumentId, spliceResult.Text, PreservationMode.PreserveIdentity);
@@ -110,11 +103,15 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
 
             var splicedDocument = forkedSolution.GetRequiredDocument(document.Id);
 
-            // Get completions using the Roslyn completion service directly
+            // Use debugger-specific completion options, matching the overrides applied by the LSP DebuggerCompletionHandler.
+            var completionOptions = Completion.CompletionOptions.Default.WithDebuggerOverrides();
+
             var completionService = splicedDocument.GetRequiredLanguageService<Completion.CompletionService>();
             var completions = await completionService.GetCompletionsAsync(
                 splicedDocument,
                 spliceResult.CompletionPosition,
+                completionOptions,
+                splicedDocument.Project.Solution.Options,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (completions == null || completions.ItemsList.Count == 0)
@@ -139,3 +136,4 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
         }
     }
 }
+#pragma warning restore RS0030

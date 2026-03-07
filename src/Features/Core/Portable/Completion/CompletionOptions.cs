@@ -53,6 +53,17 @@ internal sealed record class CompletionOptions
 
     public static readonly CompletionOptions Default = new();
 
+    /// <summary>
+    /// Applies overrides appropriate for debugger expression windows (Watch, Immediate, QuickWatch).
+    /// </summary>
+    public CompletionOptions WithDebuggerOverrides()
+        => this with
+        {
+            FilterOutOfScopeLocals = false,
+            ShowXmlDocCommentCompletion = false,
+            CanAddImportStatement = false,
+        };
+
     public RecommendationServiceOptions ToRecommendationServiceOptions()
         => new()
         {
