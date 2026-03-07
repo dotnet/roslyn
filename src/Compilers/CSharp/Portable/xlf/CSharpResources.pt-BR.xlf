@@ -1679,7 +1679,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="needs-review-translation">Palavra-chave inesperada “record”. Você quis dizer “record struct” or “record class”?</target>
+        <target state="translated">Palavra-chave inesperada “record”. Você quis dizer “record struct” or “record class”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -7202,7 +7202,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
-        <target state="needs-review-translation">As declarações parciais de '{0}' precisam ser todas classes, todas classes de registros, structs, todos registros de structs ou todas as interfaces</target>
+        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
