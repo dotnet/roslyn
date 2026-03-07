@@ -14383,4 +14383,43 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
             """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78766")]
+    public async Task ExtensionMethodAndPropertyWithSameName()
+    {
+        var markup = """
+            using NS1;
+
+            var x = new MyClass();
+            x.$$
+
+            namespace NS1
+            {
+                public class MyClass
+                {
+                    public int MyMember { get; set; }
+                }
+
+                public static class Extensions
+                {
+                    public static MyClass MyMember(this MyClass c)
+                        => c;
+                }
+            }
+            """;
+
+        MarkupTestFile.GetPosition(markup, out var code, out int position);
+
+        using var workspace = EditorTestWorkspace.CreateCSharp(code);
+        var document = workspace.CurrentSolution.Projects.First().Documents.First();
+
+        var service = GetCompletionService(document.Project);
+        var completionList = await GetCompletionListAsync(service, document, position, Microsoft.CodeAnalysis.Completion.CompletionTrigger.Invoke);
+
+        var myMemberItems = completionList.ItemsList.Where(item => item.DisplayText == "MyMember").ToList();
+
+        // We should have two separate completion items for MyMember:
+        // one for the property and one for the extension method
+        Assert.Equal(2, myMemberItems.Count);
+    }
 }

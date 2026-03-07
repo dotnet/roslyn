@@ -158,9 +158,13 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         // Use SymbolReferenceEquivalenceComparer.Instance as the value comparer as we
         // don't want symbols with just the same name to necessarily match
         // (as the default comparer on SymbolAndSelectionInfo does)
-        var symbolGroups = new MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>(
+        //
+        // Include whether the symbol is a method in the key to avoid merging methods with non-methods
+        // that have the same name (e.g., a property and an extension method with the same name).
+        // https://github.com/dotnet/roslyn/issues/78766
+        var symbolGroups = new MultiDictionary<(string displayText, string suffix, string insertionText, bool isMethod), SymbolAndSelectionInfo>(
             capacity: symbols.Length,
-            comparer: EqualityComparer<(string, string, string)>.Default,
+            comparer: EqualityComparer<(string, string, string, bool)>.Default,
             valueComparer: SymbolReferenceEquivalenceComparer.Instance);
 
         foreach (var symbol in symbols)
@@ -168,7 +172,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             var texts = GetDisplayAndSuffixAndInsertionText(symbol.Symbol, contextLookup(symbol));
             if (!string.IsNullOrWhiteSpace(texts.displayText))
             {
-                symbolGroups.Add(texts, symbol);
+                symbolGroups.Add((texts.displayText, texts.suffix, texts.insertionText, symbol.Symbol.Kind == SymbolKind.Method), symbol);
             }
         }
 
