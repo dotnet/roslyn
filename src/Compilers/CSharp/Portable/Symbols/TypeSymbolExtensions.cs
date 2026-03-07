@@ -182,6 +182,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
         }
 
+        extension(TypeSymbol patternInputType)
+        {
+            public bool IsSubjectForUnionMatching => patternInputType.StrippedType() is NamedTypeSymbol { IsUnionType: true };
+
+            public bool IsUnionMatchingInputType([NotNullWhen(true)] out NamedTypeSymbol? unionType)
+            {
+                if (patternInputType.StrippedType() is NamedTypeSymbol { IsUnionType: true } named)
+                {
+                    unionType = named;
+                    return true;
+                }
+
+                unionType = null;
+                return false;
+            }
+        }
+
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
             return type.GetEnumUnderlyingType() ?? type;

@@ -902,6 +902,11 @@
         <target state="translated">식 트리에는 튜플 == 또는 != 연산자를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="new">An expression tree may not contain a union conversion.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">식 트리에는 with 식이 포함될 수 없습니다.</target>
@@ -1237,6 +1242,16 @@
         <target state="translated">인라인 배열 요소 필드는 필수, 읽기 전용, 휘발성 또는 고정 크기 버퍼로 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="new">Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="new">Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">'{0}': 명명되지 않은 수신기 매개 변수를 사용하여 확장 블록에 인스턴스 멤버를 선언할 수 없습니다.</target>
@@ -1467,6 +1482,11 @@
         <target state="translated">'{0}'에 '{1}'에 대한 정의가 없고, '{1}' 형식의 첫 번째 인수를 받는 액세스 가능한 확장 메서드 '{0}'을(를) 찾을 수 없습니다(대신 'await foreach'를 사용하여 비동기 컬렉션을 반복하려고 한 건가요?).</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
         <target state="translated">RequiresUnsafeAttribute는 이 기호에 적용할 수 없습니다.</target>
@@ -1659,7 +1679,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="translated">예기치 않은 'record' 키워드가 있습니다. 'record struct' 또는 'record class'를 사용할까요?</target>
+        <target state="needs-review-translation">예기치 않은 'record' 키워드가 있습니다. 'record struct' 또는 'record class'를 사용할까요?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -2677,6 +2697,21 @@
         <target state="translated">예기치 않은 매개 변수 목록입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="new">A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="new">A union declaration must specify at least one case type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="new">An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성을 지정할 수 없으며 이 항목은 직접 호출할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>
@@ -3090,6 +3125,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nameof 연산자의 바인딩되지 않은 제네릭 형식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="new">unions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -7161,8 +7201,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">'{0}'의 partial 선언은 모든 클래스, 모든 레코드 클래스, 모든 구조체, 모든 레코드 구조체 또는 모든 인터페이스여야 합니다.</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">'{0}'의 partial 선언은 모든 클래스, 모든 레코드 클래스, 모든 구조체, 모든 레코드 구조체 또는 모든 인터페이스여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

@@ -73,6 +73,9 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
         SyntaxKind.EnumDeclaration,
     };
 
@@ -83,13 +86,17 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> NonEnumTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.ClassDeclaration,
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
         SyntaxKind.ExtensionBlockDeclaration,
+        SyntaxKind.UnionDeclaration,
 #endif
         SyntaxKind.InterfaceDeclaration,
         SyntaxKind.RecordDeclaration,
@@ -116,12 +123,18 @@ internal sealed class SyntaxKindSet
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+#if !OLDER_ROSLYN
+        SyntaxKind.UnionDeclaration,
+#endif
     };
 
     public static readonly ISet<SyntaxKind> InterfaceOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)

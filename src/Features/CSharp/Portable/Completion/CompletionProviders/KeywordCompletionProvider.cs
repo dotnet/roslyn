@@ -153,6 +153,7 @@ internal sealed class KeywordCompletionProvider() : AbstractKeywordCompletionPro
         new ULongKeywordRecommender(),
         new UncheckedKeywordRecommender(),
         new UndefKeywordRecommender(),
+        new UnionKeywordRecommender(),
         new UnmanagedKeywordRecommender(),
         new UnsafeKeywordRecommender(),
         new UShortKeywordRecommender(),

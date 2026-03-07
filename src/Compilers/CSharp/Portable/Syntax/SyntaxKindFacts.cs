@@ -379,6 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
@@ -861,6 +862,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ClassDeclaration;
                 case SyntaxKind.StructKeyword:
                     return SyntaxKind.StructDeclaration;
+                case SyntaxKind.UnionKeyword:
+                    return SyntaxKind.UnionDeclaration;
                 case SyntaxKind.InterfaceKeyword:
                     return SyntaxKind.InterfaceDeclaration;
                 case SyntaxKind.RecordKeyword:
@@ -1234,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ExtensionKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnionKeyword; i++)
             {
                 // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
                 if (i != 8441)
@@ -1297,6 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FileKeyword:
                 case SyntaxKind.AllowsKeyword:
                 case SyntaxKind.ExtensionKeyword:
+                case SyntaxKind.UnionKeyword:
                     return true;
                 default:
                     return false;
@@ -1426,6 +1430,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.AllowsKeyword;
                 case "extension":
                     return SyntaxKind.ExtensionKeyword;
+                case "union":
+                    return SyntaxKind.UnionKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1875,6 +1881,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "allows";
                 case SyntaxKind.ExtensionKeyword:
                     return "extension";
+                case SyntaxKind.UnionKeyword:
+                    return "union";
                 default:
                     return string.Empty;
             }

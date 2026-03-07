@@ -15,7 +15,7 @@ internal partial struct SymbolKey
             visitor.WriteSymbolKey(symbol.ContainingSymbol);
             visitor.WriteString(symbol.Name);
             visitor.WriteInteger(symbol.Arity);
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             // Include the metadata name for extensions.  We need this to uniquely find it when resolving.
             visitor.WriteString(symbol.IsExtension ? symbol.MetadataName : null);
 #endif
@@ -35,7 +35,7 @@ internal partial struct SymbolKey
             var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
             var name = reader.ReadRequiredString();
             var arity = reader.ReadInteger();
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             var extensionMetadataName = reader.ReadString();
 #else
             string? extensionMetadataName = null;

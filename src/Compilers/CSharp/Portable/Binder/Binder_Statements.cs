@@ -3789,13 +3789,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out MethodSymbol constructorSymbol))
             {
-                if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
-                    !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                if (hasPrimaryConstructor())
                 {
-                    // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    if (!SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                    {
+                        // Note: we check the constructor initializer of copy constructors elsewhere
+                        Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    }
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
 
@@ -3803,10 +3809,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             if (isDefaultValueTypeInitializer &&
-                isInstanceConstructor(out _) &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out _))
             {
-                Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                if (hasPrimaryConstructor())
+                {
+                    Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
             }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel

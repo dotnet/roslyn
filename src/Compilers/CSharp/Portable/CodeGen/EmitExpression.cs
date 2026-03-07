@@ -2196,8 +2196,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             {
                                 BoundConversion conv = (BoundConversion)current;
                                 Debug.Assert(!conv.ConversionKind.IsUserDefinedConversion());
+                                Debug.Assert(!conv.ConversionKind.IsUnionConversion());
 
-                                if (conv.ConversionKind.IsUserDefinedConversion())
+                                if (conv.ConversionKind.IsUserDefinedConversion() || conv.ConversionKind.IsUnionConversion())
                                 {
                                     return false;
                                 }

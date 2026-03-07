@@ -655,6 +655,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_UnionAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IUnion:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray2:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray3:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray4:
@@ -1090,6 +1092,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:
