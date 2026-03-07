@@ -43,7 +43,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ManagedCompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ManagedToolTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MapSourceRoots.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MvidReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ShowMessageForImplicitlySkipAnalyzers.cs" />

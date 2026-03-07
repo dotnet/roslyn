@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
-using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Signs the contents of <paramref name="peBlob"/> using <paramref name="peBuilder"/> and <paramref name="privateKey"/>.
         /// </summary>
-        internal abstract void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey);
+        internal abstract void SignBuilder(ManagedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey);
 
         /// <summary>
         /// Create a <see cref="StrongNameKeys"/> for the provided information.
