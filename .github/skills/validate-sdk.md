@@ -9,7 +9,13 @@ Follow these steps to install and validate a .NET SDK from an internal Azure Dev
 
 > **Important:** Do not run this skill from within a Roslyn enlistment. Run it from a separate scratch directory (e.g., `c:\repos\test-sdk`). The skill installs an SDK and creates temporary files in the current working directory.
 
-This skill is designed for use with **agency copilot** (install from https://aka.ms/agency). Run `agency copilot` in your terminal to start.
+This skill is designed for use with **agency copilot** (install from https://aka.ms/agency). Start it with the ADO MCP server for the `dnceng` organization:
+
+```
+agency copilot --mcp "ado --organization dnceng"
+```
+
+Run from any folder you want to use as your working directory (e.g., `c:\repos\test-sdk`). The SDK will be installed into a `.dotnet` subdirectory. A temporary `app.cs` file will also be created for validation.
 
 ## How to Invoke This Skill
 
@@ -17,10 +23,6 @@ In an `agency copilot` session, ask something like:
 - "Install the .NET SDK from this build: https://dev.azure.com/dnceng/internal/_build/results?buildId=2919304"
 - "Install .NET SDK from ADO build 2919304"
 - "Use /validate-sdk to set up the SDK from build 2919304"
-
-### Working Directory
-
-Run `agency copilot` from any folder you want to use as your working directory. The SDK will be installed into a `.dotnet` subdirectory of the current working directory (e.g., `c:\repos\test-sdk\.dotnet`). A temporary `app.cs` file will also be created in this directory for validation.
 
 ### Required Input
 
@@ -37,33 +39,6 @@ The user must provide **one** of the following:
 If the user doesn't have the build URL or ID, suggest they look for a link like:
 `https://dev.azure.com/dnceng/internal/_build/results?buildId=XXXXXXX`
 in their signoff document or validation instructions.
-
-## Prerequisites: Azure DevOps MCP Plugin
-
-This skill needs the Azure DevOps MCP plugin to query the ADO build and extract the SDK version number from it. Without this plugin, the agent cannot access the `dnceng/internal` build metadata.
-
-1. Check if `~/.copilot/mcp-config.json` exists and contains an `"ado"` server entry.
-2. If not, create or update `~/.copilot/mcp-config.json` with:
-
-```json
-{
-  "mcpServers": {
-    "ado": {
-      "command": "npx",
-      "args": ["-y", "@azure-devops/mcp", "dnceng", "-d", "core", "pipelines"],
-      "tools": ["*"]
-    }
-  }
-}
-```
-
-3. If you just added the MCP config, the CLI must be restarted for the new tools to become available. Tell the user:
-   - Note the current session ID (shown in the prompt or via `/session`)
-   - Run `/exit` to quit the CLI
-   - Restart with: `agency copilot --resume=<SESSION_ID>`
-   - Then tell the agent: "Proceed with validation"
-
-   The ADO MCP server requires Node.js 20+ and will authenticate via the browser on first use.
 
 ## Step 1: Get the Build ID
 
@@ -162,7 +137,6 @@ Use full SHAs (not shortened) and plain URLs (not markdown link syntax).
 
 ## Notes
 
-- The `dnceng/internal` project hosts .NET SDK staging builds. The org name is `dnceng`.
 - Build artifacts can also be explored via `ado-pipelines_get_build_log` and `ado-pipelines_get_build_log_by_id` if you need to inspect specific asset names.
 - The dotnet-install script approach is preferred over downloading artifacts directly, as the SDK zip is typically published to the CI feeds even for preview builds.
 
