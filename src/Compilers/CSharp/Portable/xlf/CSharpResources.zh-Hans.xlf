@@ -1679,7 +1679,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="needs-review-translation">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>
+        <target state="translated">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -7202,7 +7202,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
-        <target state="needs-review-translation">'{0}' 的部分声明必须为所有类、所有记录、所有结构、所有记录结构或所有接口</target>
+        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

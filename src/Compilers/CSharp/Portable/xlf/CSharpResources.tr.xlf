@@ -1679,7 +1679,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="needs-review-translation">Beklenmeyen 'record' anahtar sözcüğü. 'record struct' veya 'record class' mi demek istediniz?</target>
+        <target state="translated">Beklenmeyen 'record' anahtar sözcüğü. 'record struct' veya 'record class' mi demek istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -7202,7 +7202,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
-        <target state="needs-review-translation">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt sınıfı, tümü yapı, tümü kayıt yapısı veya tümü arabirim olmalıdır</target>
+        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
