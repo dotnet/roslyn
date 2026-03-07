@@ -307,12 +307,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             var exceptionType = Compilation.GetWellKnownType(WellKnownType.System_Exception);
-            var actionOfTType = Compilation.GetWellKnownType(WellKnownType.System_Action_T);
             var stringType = Compilation.GetSpecialType(SpecialType.System_String);
             var intType = Compilation.GetSpecialType(SpecialType.System_Int32);
 
             var containingNamespace = GetOrSynthesizeNamespace(SynthesizedHotReloadExceptionSymbol.NamespaceName);
-            symbol = new SynthesizedHotReloadExceptionSymbol(containingNamespace, exceptionType, actionOfTType, stringType, intType);
+            symbol = new SynthesizedHotReloadExceptionSymbol(containingNamespace, exceptionType, stringType, intType);
 
             Interlocked.CompareExchange(ref _lazyHotReloadExceptionType, symbol, comparand: null);
             return _lazyHotReloadExceptionType;

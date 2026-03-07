@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _baseType = baseType
             _namespace = containingNamespace
             _members = ImmutableArray.Create(Of Symbol)(
-                New SynthesizedHotReloadExceptionConstructorSymbol(Me, stringType, intType),
+                New SynthesizedHotReloadExceptionConstructorSymbol(Me, baseType, stringType, intType),
                 New SynthesizedFieldSymbol(Me, implicitlyDefinedBy:=Me, intType, CodeFieldName, Accessibility.Public, isReadOnly:=True, isShared:=False))
         End Sub
 
