@@ -126,6 +126,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
+            var location = Syntax.Identifier.GetLocation();
+
+            if (NeedsSynthesizedRequiresUnsafeAttribute)
+            {
+                Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
+                MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(addTo, compilation, location);
+                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor, addTo, location);
+            }
+
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
@@ -142,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
                 compilation.HasEntryPointSignature(this, diagnostics).IsCandidate)
             {
-                addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
+                addTo.Add(ErrorCode.WRN_MainIgnored, location, this);
             }
 
             addTo.AddRangeAndFree(diagnostics);
@@ -391,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
-        public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal override bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 

@@ -341,7 +341,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
+                                  SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -430,7 +430,7 @@
                                   (Kurzform: -linkres)
 -nowin32manifest                  Das Standardmanifest sollte nicht
                                   im Manifestabschnitt der Ausgabe-PE eingebettet werden.
--resource:&lt;resinfo&gt; Fügt die angegebene Datei als eingebettete
+-resource:&lt;resinfo&gt;               Fügt die angegebene Datei als eingebettete
                                   Assemblyressource hinzu.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Kurzform: -res)
@@ -481,9 +481,9 @@
                                   import_list:namespace,...
 -langversion:?                    Anzeigen der zulässigen Werte für die Sprachversion
 -langversion:&lt;string&gt;             Sprachversion angeben, z. B.
-                                  „default“ (neueste Hauptversion) oder
-                                  „latest“ (neueste Version, einschließlich Nebenversionen),
-                                  oder bestimmte Versionen wie „14“ oder „15.3“
+                                  `default` (neueste Hauptversion) oder
+                                  `latest` (neueste Version, einschließlich Nebenversionen),
+                                  oder bestimmte Versionen wie `14` oder `15.3`
 -optionexplicit[+|-]              Erfordert eine explizite Deklaration von Variablen.
 -optioninfer[+|-]                 Typrückschluss von Variablen zulassen.
 -rootnamespace:&lt;string&gt;             Gibt den Stammnamespace für alle
@@ -509,7 +509,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Gibt einen Algorithmus zum Berechnen der Prüfsumme-Quelldatei
                                   an, die in PDB gespeichert ist. Folgende Werte werden unterstützt:
-                                  SHA1 oder SHA256 (Standard).
+                                  SHA-1, SHA-256 (Standard), SHA-384 oder SHA-512.
 -codepage:&lt;number&gt;                Gibt die Codepage an, die beim Öffnen von
                                   Quelldateien verwendet werden soll.
 -delaysign[+|-]                Verzögertes Signieren der Assembly nur mit dem öffentlichen

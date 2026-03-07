@@ -427,6 +427,15 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<Diagnostic> filteredDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diag in generatorDiagnostics)
             {
+                try
+                {
+                    DiagnosticAnalysisContextHelpers.VerifyArguments(diag, compilation, isSupportedDiagnostic: static (_, _) => true, cancellationToken);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new UserFunctionException(ex);
+                }
+
                 if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
                     suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
                 {

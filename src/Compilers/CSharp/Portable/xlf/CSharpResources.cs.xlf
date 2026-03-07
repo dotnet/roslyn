@@ -387,6 +387,21 @@
         <target state="translated">Atribut AsyncMethodBuilder je u anonymních metod bez explicitního návratového typu zakázaný.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="translated">Nebezpečný člen {0} nemůže implementovat bezpečný člen {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="translated">Nebezpečný člen {0} nemůže implicitně implementovat bezpečný člen {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="translated">Nebezpečný člen {0} nemůže přepsat bezpečný člen {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">U tohoto členu nelze použít OverloadResolutionPriorityAttribute.</target>
@@ -1451,6 +1466,11 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">{0} neobsahuje definici pro {1} a nebyla nalezena žádná přístupná metoda rozšíření {1}, která by přijímala první argument typu {0}. (Nechtěli jste místo toho iterovat asynchronní kolekci pomocí await foreach?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
+        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
+        <target state="translated">Atribut RequiresUnsafeAttribute nelze pro tento symbol použít.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2667,10 +2687,30 @@
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se převést na typ delegáta. Pro tuto metodu získejte ukazatel na funkci.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">{0} se definuje v modulu s nerozpoznanou verzí RefSafetyRulesAttribute, očekává se hodnota 11.</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="translated">{0} je definováno v modulu s nerozpoznanou verzí {1}, očekává se {2}.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperation">
+        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
+        <target state="translated">{0} musí být použito v nebezpečném kontextu, protože je označeno jako RequiresUnsafe nebo extern.</target>
+        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperationCompat">
+        <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
+        <target state="translated">{0} musí být použito v nebezpečném kontextu, protože obsahuje ukazatele ve svém podpisu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="translated">Tuto operaci lze použít pouze v nebezpečném kontextu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
+        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
+        <target state="translated">Výraz stackalloc bez inicializátoru uvnitř SkipLocalsInit se dá použít jenom v nebezpečném kontextu.</target>
+        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
@@ -3050,6 +3090,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nevázané obecné typy v operátoru nameof</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>updated memory safety rules</source>
+        <target state="translated">aktualizovaná pravidla zabezpečení paměti</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3837,6 +3882,16 @@
         <target state="translated">Člen struktury vrací this nebo jiné členy instance pomocí odkazu</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">Atribut RequiresUnsafeAttribute je platný pouze v rámci aktualizovaných pravidel zabezpečení paměti.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">Atribut RequiresUnsafeAttribute je platný pouze v rámci aktualizovaných pravidel zabezpečení paměti.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Návratová hodnota musí být jiná než null, protože parametr {0} není null.</target>
@@ -4090,7 +4145,7 @@
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
+                              SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
@@ -4220,11 +4275,11 @@
                               tvar: -d)
 -langversion:?                Zobrazí povolené hodnoty pro verzi jazyka
 -langversion:&lt;string&gt;             Určuje verzi jazyka, například
-                              nejnovější (nejnovější verze včetně podverzí),
-                              default (stejné jako latest),
-                              latestmajor (nejnovější verze, kromě podverze),
-                              preview (nejnovější verze včetně funkcí v nepodporované verzi Preview),
-                              nebo konkrétní verze jako 6 nebo 7.1.
+                              `latest` (nejnovější verze včetně podverzí),
+                              `default` (stejné jako `latest`),
+                              `latestmajor` (nejnovější verze, kromě podverze),
+                              `preview` (nejnovější verze včetně funkcí v nepodporované verzi Preview),
+                              nebo konkrétní verze jako `6` nebo `7.1`
 -nullable[+|-]                Zadejte možnost kontextu s možnou hodnotou null enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Zadejte možnost kontextu s možnou hodnotou null enable|disable|warnings|annotations.
@@ -4250,7 +4305,7 @@
 -baseaddress:&lt;address&gt;        Základní adresa knihovny, která se má vytvořit
 -checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
                               zdrojového souboru uloženého v souboru PDB. Podporované hodnoty:
-                              SHA1 nebo SHA256 (výchozí).
+                              SHA1, SHA256 (predvolené), SHA384 alebo SHA512.
 -codepage:&lt;n&gt;                 Určuje znakovou stránku, která má být použita při otevírání zdrojových
                               souborů
 -utf8output                   Výstupní zprávy kompilátoru v kódování UTF-8

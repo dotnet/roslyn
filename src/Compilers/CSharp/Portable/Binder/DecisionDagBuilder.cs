@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Even though the two tests appear unrelated (with different inputs),
                     // it is possible that they are in fact related under certain conditions.
                     // For instance, the inputs [0] and [^1] point to the same element when length is 1.
-                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2) when s1.IndexerType.Equals(s2.IndexerType, TypeCompareKind.AllIgnoreOptions):
                         // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
                         // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
                         (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Even though the two tests appear unrelated (with different inputs),
                     // it is possible that they are in fact related under certain conditions.
                     // For instance, the inputs [0] and [^1] point to the same element when length is 1.
-                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2) when s1.IndexerType.Equals(s2.IndexerType, TypeCompareKind.AllIgnoreOptions):
                         // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
                         // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
                         (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);

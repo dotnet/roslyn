@@ -14,8 +14,8 @@
 
       We should try to keep this version in sync with the version of app-local runtime in VS.
     -->
-    <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.10</MicrosoftNetCoreAppRuntimePackagesVersion>
-    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.1</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>2.1.6</SqliteVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
@@ -252,8 +252,8 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
-    <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
+    <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-26119-01" />
+    <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-26119-01" />
     <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="2.0.0-beta1.25425.3" />
     <PackageVersion Include="Microsoft.ILVerification" Version="9.0.7" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />

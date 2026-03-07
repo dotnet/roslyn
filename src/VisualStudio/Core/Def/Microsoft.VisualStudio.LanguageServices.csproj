@@ -43,6 +43,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
+    <Content Include="UnifiedSettings\roslynSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -102,7 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Design" />
-    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsFormsIntegration" />

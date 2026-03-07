@@ -5865,7 +5865,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestObjectCreationArgument1_CSharp14()
+    public Task TestObjectCreationArgument1_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -5897,7 +5897,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestObjectCreationArgument2_CSharp14()
+    public Task TestObjectCreationArgument2_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -5929,7 +5929,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestObjectCreationArgument3_CSharp14()
+    public Task TestObjectCreationArgument3_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -5961,7 +5961,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestObjectCreationArgument4_CSharp14()
+    public Task TestObjectCreationArgument4_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -5990,6 +5990,60 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
+    public Task TestObjectCreationArgument5_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Generic;
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Dictionary<string, string> goo = new(StringComparer.OrdinalIgnoreCase);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
+        }.RunAsync();
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
+    public Task TestObjectCreationArgument5_CSharp15()
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Generic;
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Dictionary<string, string> goo = [|new|](StringComparer.OrdinalIgnoreCase);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Dictionary<string, string> goo = [with(StringComparer.OrdinalIgnoreCase)];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
         }.RunAsync();
 
     [Fact]
@@ -6064,7 +6118,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
     // Enable when dictionary-expressions come online.
 #if false
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestKeyValuePair1_CSharp14()
+    public Task TestKeyValuePair1_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -6096,7 +6150,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestKeyValuePair2_CSharp14()
+    public Task TestKeyValuePair2_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -6136,7 +6190,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestKeyValuePair3_CSharp14()
+    public Task TestKeyValuePair3_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -6168,7 +6222,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestKeyValuePair4_CSharp14()
+    public Task TestKeyValuePair4_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -6208,7 +6262,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestKeyValuePair5_CSharp14()
+    public Task TestKeyValuePair5_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -6241,7 +6295,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestKeyValuePair6_CSharp14()
+    public Task TestKeyValuePair6_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -6274,7 +6328,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
-    public Task TestKeyValuePair7_CSharp14()
+    public Task TestKeyValuePair7_CSharp15()
         => new VerifyCS.Test
         {
             TestCode = """

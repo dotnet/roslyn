@@ -22,7 +22,7 @@
     <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' ">true</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' AND '$(DotNetBuildUseMonoRuntime)' != 'true' ">true</PublishReadyToRun>
 
   </PropertyGroup>
 
@@ -33,9 +33,6 @@
   <ItemGroup>
     <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
     <PublishReadyToRunPgoFiles Condition="'$(VSCodeOptimizationDataRoot)'!=''" Include="$(VSCodeOptimizationDataRoot)\*.mibc" />
-
-    <!-- Workaround https://github.com/dotnet/dotnet/issues/3995 -->
-    <PublishReadyToRunExclude Include="Microsoft.VisualStudio.TestPlatform.Common.dll" />
   </ItemGroup>
 
   <Target Name="SetCrossgen2ExtraArgs" BeforeTargets="ResolveReadyToRunCompilers" Condition="'$(PublishReadyToRun)' == 'true'">

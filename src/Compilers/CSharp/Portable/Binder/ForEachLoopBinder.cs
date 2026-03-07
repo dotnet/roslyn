@@ -475,6 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
+            builder.ReportDiagnosticsIfUnsafeMemberAccess(this, foreachKeyword, _syntax, diagnostics);
+
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
 

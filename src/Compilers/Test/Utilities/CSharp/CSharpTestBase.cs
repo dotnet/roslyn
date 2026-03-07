@@ -679,6 +679,26 @@ namespace System.Runtime.CompilerServices
         protected static MetadataReference RefSafetyRulesAttributeLib =>
             CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
 
+        protected static readonly string MemorySafetyRulesAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class MemorySafetyRulesAttribute : Attribute
+                {
+                    public MemorySafetyRulesAttribute(int version) { Version = version; }
+                    public int Version;
+                }
+            }
+            """;
+
+        // https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
+        protected static readonly string RequiresUnsafeAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                public sealed class RequiresUnsafeAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -1291,8 +1311,11 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
             namespace System.Runtime.CompilerServices;
 
+            #pragma warning disable CS9113 // Unread primary constructor parameter
+
             [AttributeUsage(AttributeTargets.Method)]
             public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+            #pragma warning restore CS9113 // Unread primary constructor parameter
             """;
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)

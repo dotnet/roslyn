@@ -387,6 +387,21 @@
         <target state="translated">Атрибут AsyncMethodBuilder запрещен для анонимных методов без явного типа возвращаемого значения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="translated">Небезопасный элемент "{0}" не может реализовывать безопасный элемент "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="translated">Небезопасный элемент "{0}" не может неявно реализовывать безопасный элемент "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="translated">Небезопасный элемент "{0}" не может переопределять безопасный элемент "{1}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">Невозможно использовать "OverloadResolutionPriorityAttribute" с этим членом.</target>
@@ -1451,6 +1466,11 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">"{0}" не содержит определение для "{1}", не найден доступный метод расширения "{1}", принимающий первый аргумент типа "{0}" (возможно, нужно было выполнить итерацию для синхронной коллекции с помощью "await foreach"?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
+        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
+        <target state="translated">RequiresUnsafeAttribute невозможно применить к этому символу.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2667,10 +2687,30 @@
         <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может быть преобразован в тип делегата. Получите указатель на функцию для этого метода.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">"{0}" определен в модуле с нераспознанной версией RefSafetyRulesAttribute. Ожидается "11".</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="translated">"{0}" определен в модуле с нераспознанной версией {1}, ожидается "{2}".</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperation">
+        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
+        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как он помечен как RequiresUnsafe или extern</target>
+        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperationCompat">
+        <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
+        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как в его сигнатуре есть указатели</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="translated">Эту операцию можно использовать только в небезопасном контексте</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
+        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
+        <target state="translated">Выражение stackalloc без инициализатора внутри SkipLocalsInit можно использовать только в небезопасном контексте</target>
+        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
@@ -3050,6 +3090,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">не привязанные универсальные типы в операторе nameof</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>updated memory safety rules</source>
+        <target state="translated">обновленные правила обеспечения безопасности памяти</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3837,6 +3882,16 @@
         <target state="translated">Элемент структуры возвращает "этот" или другие элементы экземпляра по ссылке</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Возвращаемое значение должно быть отлично от NULL, так как параметр "{0}" имеет значение, отличное от NULL.</target>
@@ -4090,7 +4145,7 @@
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
+                              SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
@@ -4151,7 +4206,7 @@
                               Itanium, x64, arm, arm64, anycpu32bitpreferred или
                               anycpu. По умолчанию используется anycpu.
 
-                       - ВХОДНЫЕ ФАЙЛЫ - 
+                       - ВХОДНЫЕ ФАЙЛЫ -
 --recurse:&lt;подстановочный знак&gt;           Включить все файлы в текущем каталоге и
                               вложенных каталогах в соответствии с подстановочными
                               знаками
@@ -4249,8 +4304,8 @@
                        - РАСШИРЕННЫЕ ПАРАМЕТРЫ - 
 -baseaddress:&lt;адрес&gt;        Базовый адрес для создаваемой библиотеки
 -checksumalgorithm:&lt;алгоритм&gt;      Указать алгоритм вычисления контрольной суммы исходного файла,
-                              хранящегося в PDB. Поддерживаемые значения:
-                              SHA1 или SHA256 (по умолчанию). 
+                              исходного файла, хранящегося в PDB. Поддерживаемые значения:
+                              SHA1, SHA256 (по умолчанию), SHA384 или SHA512.
 -codepage:&lt;n&gt;                 Указать кодовую страницу для использования при открытии исходных
                               файлов
 -utf8output                   Выводить сообщения компилятора в кодировке UTF-8
@@ -4267,7 +4322,7 @@
                               имя выходного файла с расширением .pdb)
 -errorendlocation             Строка вывода и столбец конечного расположения
                               каждой ошибки
--preferreduilang              Указать предпочитаемое имя языка вывода. 
+-preferreduilang              Указать предпочитаемое имя языка вывода.
 -nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию. 
 -sdkpath:&lt;путь&gt;         Путь, используемый для поиска стандартных сборок библиотек.
 -nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll)
@@ -4275,7 +4330,7 @@
 -lib:&lt;список файлов&gt;              Указать дополнительные каталоги для поиска
                               ссылок 
 -errorreport:&lt;строка&gt;         Указать, как обрабатывать внутренние ошибки компилятора:
-                              prompt (выводить запрос), send (отправлять), queue (ставить в очередь) или none (не выполнять никаких действий). Значение по умолчанию:
+                              prompt, send, queue или none. Значение по умолчанию:
                               queue.
 -appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
                               содержащий параметры привязки сборки 

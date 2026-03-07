@@ -572,6 +572,11 @@
         <target state="translated">Em outros operadores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Include_Roslyn_source_generated_files">
+        <source>Include Roslyn source-generated files</source>
+        <target state="translated">Incluir arquivos gerados pelo Roslyn a partir do código-fonte</target>
+        <note>Used in the unified settings registration for real-time test discovery</note>
+      </trans-unit>
       <trans-unit id="Include_global_imports">
         <source>Include global imports</source>
         <target state="translated">Incluir as importações globais</target>
@@ -665,6 +670,11 @@
       <trans-unit id="Location">
         <source>Location</source>
         <target state="translated">Localização</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Logging_Roslyn_Workspace_structure">
+        <source>Logging Roslyn Workspace structure...</source>
+        <target state="translated">Estrutura do Workspace do Logging Roslyn...</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1362,6 +1372,11 @@
         <target state="translated">Resultados da Pesquisa Semântica</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_Inheritance">
+        <source>Show Inheritance</source>
+        <target state="translated">Mostrar Herança</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
         <source>Show "Remove Unused References" command in Solution Explorer</source>
         <target state="translated">Mostrar o comando "Remover Referências Não Utilizadas" no Gerenciador de Soluções</target>
@@ -1695,6 +1710,11 @@
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
         <target state="translated">Valor a ser injetado nos sites de chamada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio">
+        <source>Visual Studio</source>
+        <target state="translated">Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">

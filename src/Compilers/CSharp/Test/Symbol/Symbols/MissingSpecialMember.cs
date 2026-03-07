@@ -645,6 +645,8 @@ namespace System
                     case WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute:
                     case WellKnownType.System_MemoryExtensions:
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
@@ -1031,6 +1033,8 @@ namespace System
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
                     case WellKnownMember.System_MemoryExtensions__AsSpan_String:
