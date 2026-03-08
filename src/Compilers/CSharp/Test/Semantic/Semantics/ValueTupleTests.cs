@@ -843,5 +843,67 @@ namespace System
             Assert.Equal("C", secondTupleArgInfo.Type.ToTestDisplayString());
             Assert.Equal("C", secondTupleArgInfo.ConvertedType.ToTestDisplayString());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80752")]
+        public void ElementNameInference_FromLocal_NullSuppression()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    string M()
+                    {
+                        string? str = null;
+                        C? c = null;
+                        var t = (str!, c!);
+                        return t.str ?? "";
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Equal("(System.String str, C c)", tupleTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.String str, C c)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80752")]
+        public void ElementNameInference_FromPropertyName_NullSuppression()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string? Prop1 { get; set; }
+
+                    public string? Prop2 { get; set; }
+
+                    string M(C c)
+                    {
+                        var t = (c.Prop1!, c.Prop2!);
+                        return t.Prop1 ?? "";
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            var tupleTypeInfo = model.GetTypeInfo(tupleExpression);
+            Assert.Equal("(System.String Prop1, System.String Prop2)", tupleTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.String Prop1, System.String Prop2)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
+        }
     }
 }
