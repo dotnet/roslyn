@@ -12,6 +12,16 @@
         <target state="translated">Falta la ruta de archivo del documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_handler_of_type_0_must_have_a_full_name">
+        <source>The handler of type {0} must have a full name.</source>
+        <target state="new">The handler of type {0} must have a full name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_interface_0_does_not_contain_a_method_named_1">
+        <source>The interface {0} does not contain a method named {1}.</source>
+        <target state="new">The interface {0} does not contain a method named {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_message_type_0_is_not_assignable_to_1">
         <source>The message type {0} is not assignable to {1}.</source>
         <target state="translated">El tipo de mensaje {0} no se puede asignar a {1}.</target>

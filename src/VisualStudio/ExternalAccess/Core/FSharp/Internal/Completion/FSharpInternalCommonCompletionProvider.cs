@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Completion;

@@ -4,7 +4,11 @@
 
 using System;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal readonly struct ChecksumWrapper(Checksum checksum) : IEquatable<ChecksumWrapper>
 {

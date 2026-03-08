@@ -8,7 +8,11 @@ using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost.Handlers;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+#endif
 
 internal static class InlayHints
 {

@@ -6,7 +6,11 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 [Export(typeof(RazorTestAnalyzerLoader)), Shared]
 internal class RazorTestAnalyzerLoader

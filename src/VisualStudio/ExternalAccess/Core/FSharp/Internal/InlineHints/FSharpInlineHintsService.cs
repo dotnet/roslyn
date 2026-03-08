@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.InlineHints;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.InlineHints;

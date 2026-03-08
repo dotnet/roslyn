@@ -6,7 +6,11 @@ using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+#endif
 
 internal abstract class AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType> : AbstractRazorCohostRequestHandler<TRequestType, TResponseType>, ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier?>
 {

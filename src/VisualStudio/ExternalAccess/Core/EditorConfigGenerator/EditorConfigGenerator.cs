@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator.Api;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator;

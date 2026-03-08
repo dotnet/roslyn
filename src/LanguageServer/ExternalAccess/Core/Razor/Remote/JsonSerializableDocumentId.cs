@@ -5,7 +5,11 @@
 using System;
 using System.Text.Json.Serialization;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 /// <summary>
 /// Represents a DocumentId that can be used by Razor for OOP services that communicate via System.Text.Json

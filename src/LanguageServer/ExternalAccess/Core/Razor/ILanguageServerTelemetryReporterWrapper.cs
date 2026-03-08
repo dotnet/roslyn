@@ -4,7 +4,11 @@
 
 using System.Collections.Generic;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+#endif
 
 internal interface ILanguageServerTelemetryReporterWrapper
 {

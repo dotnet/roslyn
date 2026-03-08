@@ -7,7 +7,11 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal sealed class RazorDocumentServiceProviderWrapper : IDocumentServiceProvider, IDocumentOperationService
 {

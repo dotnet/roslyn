@@ -5,7 +5,11 @@
 using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal static class RazorUri
 {

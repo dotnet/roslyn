@@ -19,7 +19,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
 
@@ -33,20 +32,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
 
 [Shared]
 [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
-internal class FSharpNavigationBarItemService : INavigationBarItemService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpNavigationBarItemService(
+    IThreadingContext threadingContext,
+    [Import(AllowDefault = true)] IFSharpNavigationBarItemService? service) : INavigationBarItemService
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly IFSharpNavigationBarItemService _service;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpNavigationBarItemService(
-        IThreadingContext threadingContext,
-        IFSharpNavigationBarItemService service)
-    {
-        _threadingContext = threadingContext;
-        _service = service;
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IFSharpNavigationBarItemService? _service = service;
 
     public Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
     {
@@ -61,6 +54,9 @@ internal class FSharpNavigationBarItemService : INavigationBarItemService
         ITextVersion textVersion,
         CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return [];
+
         var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
         return items == null
             ? []

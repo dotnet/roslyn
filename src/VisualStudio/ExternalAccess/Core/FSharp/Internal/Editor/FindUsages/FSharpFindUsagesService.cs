@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor.FindUsages;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Editor.FindUsages;
@@ -25,11 +24,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.FSharp)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FSharpFindUsagesService(IFSharpFindUsagesService service) : IFindUsagesService
+internal sealed class FSharpFindUsagesService([Import(AllowDefault = true)] IFSharpFindUsagesService? service) : IFindUsagesService
 {
     public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
-        => service.FindImplementationsAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
+        => service?.FindImplementationsAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken)) ?? Task.CompletedTask;
 
     public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
-        => service.FindReferencesAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
+        => service?.FindReferencesAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken)) ?? Task.CompletedTask;
 }

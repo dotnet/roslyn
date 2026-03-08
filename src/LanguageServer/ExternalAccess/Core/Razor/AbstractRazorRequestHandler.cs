@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+#endif
 
 internal abstract class AbstractRazorRequestHandler<TRequestType, TResponseType> : ILspServiceRequestHandler<TRequestType, TResponseType>
 {

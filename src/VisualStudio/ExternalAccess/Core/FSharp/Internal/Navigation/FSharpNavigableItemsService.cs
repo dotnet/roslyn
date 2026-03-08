@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.GoToDefinition;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Navigation;
@@ -24,10 +23,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 [ExportLanguageService(typeof(INavigableItemsService), LanguageNames.FSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class FSharpNavigableItemsService(IFSharpFindDefinitionService service) : INavigableItemsService
+internal class FSharpNavigableItemsService([Import(AllowDefault = true)] IFSharpFindDefinitionService? service) : INavigableItemsService
 {
     public async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken)
     {
+        if (service == null)
+            return ImmutableArray<INavigableItem>.Empty;
+
         var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
         return items.SelectAsArray(x => (INavigableItem)new InternalFSharpNavigableItem(x));
     }

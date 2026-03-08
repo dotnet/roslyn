@@ -11,8 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Editor;
@@ -23,19 +22,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
 #endif
 
 [ExportBraceMatcher(LanguageNames.FSharp), Shared]
-internal class FSharpBraceMatcher : IBraceMatcher
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpBraceMatcher([Import(AllowDefault = true)] IFSharpBraceMatcher braceMatcher) : IBraceMatcher
 {
-    private readonly IFSharpBraceMatcher _braceMatcher;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpBraceMatcher(IFSharpBraceMatcher braceMatcher)
-    {
-        _braceMatcher = braceMatcher;
-    }
+    private readonly IFSharpBraceMatcher _braceMatcher = braceMatcher;
 
     public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
     {
+        if (_braceMatcher == null)
+            return null;
+
         var result = await _braceMatcher.FindBracesAsync(document, position, cancellationToken).ConfigureAwait(false);
         return result.HasValue ? new BraceMatchingResult(result.Value.LeftSpan, result.Value.RightSpan) : null;
     }

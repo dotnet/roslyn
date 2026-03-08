@@ -5,7 +5,11 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 [DataContract]
 internal readonly struct RazorMappedSpanResult

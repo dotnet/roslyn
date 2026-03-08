@@ -5,7 +5,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal class RazorSemanticTokensAccessor
 {

@@ -5,7 +5,11 @@
 using System;
 using System.Collections.Immutable;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal static class SolutionExtensions
 {

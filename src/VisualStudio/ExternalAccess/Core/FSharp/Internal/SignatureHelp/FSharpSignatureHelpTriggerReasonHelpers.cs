@@ -7,7 +7,6 @@
 using Microsoft.CodeAnalysis.SignatureHelp;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.SignatureHelp;

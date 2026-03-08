@@ -4,7 +4,11 @@
 
 using System.Text.Json.Serialization;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Completion;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
+#endif
 
 [JsonDerivedType(typeof(CodeSnippetItem))]
 [JsonDerivedType(typeof(TraitItem))]

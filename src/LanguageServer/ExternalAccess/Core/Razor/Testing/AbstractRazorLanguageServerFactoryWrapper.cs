@@ -7,7 +7,11 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis.Host;
 using StreamJsonRpc;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 /// <summary>
 /// NOTE: For Razor test usage only

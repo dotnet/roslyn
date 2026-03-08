@@ -10,7 +10,11 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 [Export(typeof(RazorGlobalOptions)), Shared]
 internal sealed class RazorGlobalOptions

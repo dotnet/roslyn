@@ -14,7 +14,11 @@ using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
+#endif
 {
     [Export(typeof(IAnalyzerAssemblyResolver)), Shared]
     [method: ImportingConstructor]
@@ -134,3 +138,4 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     }
 }
 #endif
+

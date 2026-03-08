@@ -10,7 +10,11 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+#endif
 
 internal static class CopilotUtilities
 {

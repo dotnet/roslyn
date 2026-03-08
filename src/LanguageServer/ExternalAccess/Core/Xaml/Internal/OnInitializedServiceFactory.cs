@@ -10,7 +10,11 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
 internal sealed class OnInitializedServiceFactory : ILspServiceFactory

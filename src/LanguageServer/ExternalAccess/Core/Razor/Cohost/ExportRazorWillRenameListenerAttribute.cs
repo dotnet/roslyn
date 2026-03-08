@@ -4,6 +4,10 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+#endif
 
 internal sealed class ExportRazorWillRenameListenerAttribute(string glob) : ExportLspWillRenameListenerAttribute(glob);

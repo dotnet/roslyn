@@ -6,7 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 /// <summary>
 /// Represents a service to be exported via MEF for language server initialization.

@@ -5,7 +5,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+#endif
 
 internal interface IHotReloadDiagnosticManager
 {

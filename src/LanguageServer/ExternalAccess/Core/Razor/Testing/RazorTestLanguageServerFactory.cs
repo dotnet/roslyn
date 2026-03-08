@@ -12,7 +12,11 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Composition;
 using StreamJsonRpc;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 [Shared]
 [Export(typeof(RazorTestLanguageServerFactory))]

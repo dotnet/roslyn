@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Editor;
@@ -28,49 +27,58 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
 
 [Shared]
 [ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.FSharp)]
-internal class FSharpEditorFormattingService : IFormattingInteractionService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpEditorFormattingService([Import(AllowDefault = true)] IFSharpEditorFormattingService? service, IGlobalOptionService globalOptions) : IFormattingInteractionService
 {
-    private readonly IFSharpEditorFormattingService _service;
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IFSharpEditorFormattingService? _service = service;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpEditorFormattingService(IFSharpEditorFormattingService service, IGlobalOptionService globalOptions)
-    {
-        _service = service;
-        _globalOptions = globalOptions;
-    }
+    public bool SupportsFormatDocument => _service?.SupportsFormatDocument ?? false;
 
-    public bool SupportsFormatDocument => _service.SupportsFormatDocument;
+    public bool SupportsFormatSelection => _service?.SupportsFormatSelection ?? false;
 
-    public bool SupportsFormatSelection => _service.SupportsFormatSelection;
+    public bool SupportsFormatOnPaste => _service?.SupportsFormatOnPaste ?? false;
 
-    public bool SupportsFormatOnPaste => _service.SupportsFormatOnPaste;
-
-    public bool SupportsFormatOnReturn => _service.SupportsFormatOnReturn;
+    public bool SupportsFormatOnReturn => _service?.SupportsFormatOnReturn ?? false;
 
     public Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return Task.FromResult<IList<TextChange>>(new List<TextChange>());
+
         return _service.GetFormattingChangesAsync(document, textSpan, cancellationToken);
     }
 
     public Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return Task.FromResult<IList<TextChange>?>(null);
+
         return _service.GetFormattingChangesAsync(document, typedChar, position, cancellationToken);
     }
 
     public Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return Task.FromResult<IList<TextChange>>(new List<TextChange>());
+
         return _service.GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken);
     }
 
     public Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return Task.FromResult<IList<TextChange>?>(null);
+
         return _service.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
     }
 
     public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
     {
+        if (_service == null)
+            return false;
+
         if (_service is IFSharpEditorFormattingServiceWithOptions serviceWithOptions)
         {
             var indentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.FSharp);

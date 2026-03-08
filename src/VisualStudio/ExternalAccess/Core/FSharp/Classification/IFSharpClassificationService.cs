@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Classification;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;

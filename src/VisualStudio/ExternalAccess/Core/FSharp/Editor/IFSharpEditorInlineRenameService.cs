@@ -11,8 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;

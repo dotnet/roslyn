@@ -6,8 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.GoToDefinition;

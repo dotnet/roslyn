@@ -9,8 +9,6 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.LanguageServices;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices;
