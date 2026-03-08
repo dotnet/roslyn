@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.DocumentHighlighting;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.DocumentHighlighting;
@@ -59,16 +58,11 @@ internal static class FSharpHighlightSpanKindHelpers
 
 [Shared]
 [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.FSharp)]
-internal class FSharpDocumentHighlightsService : IDocumentHighlightsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpDocumentHighlightsService([Import(AllowDefault = true)] IFSharpDocumentHighlightsService service) : IDocumentHighlightsService
 {
-    private readonly IFSharpDocumentHighlightsService _service;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpDocumentHighlightsService(IFSharpDocumentHighlightsService service)
-    {
-        _service = service;
-    }
+    private readonly IFSharpDocumentHighlightsService _service = service;
 
     private static ImmutableArray<HighlightSpan> MapHighlightSpans(ImmutableArray<FSharpHighlightSpan> highlightSpans)
     {
@@ -77,6 +71,9 @@ internal class FSharpDocumentHighlightsService : IDocumentHighlightsService
 
     public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return [];
+
         var highlights = await _service.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
         return highlights.SelectAsArray(x => new DocumentHighlights(x.Document, MapHighlightSpans(x.HighlightSpans)));
     }

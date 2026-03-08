@@ -8,7 +8,11 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost.Handlers;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+#endif
 
 internal static class ValidateBreakableRange
 {

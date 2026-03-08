@@ -6,7 +6,11 @@ using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+#endif
 
 internal readonly struct RazorRequestContext(RequestContext context)
 {

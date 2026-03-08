@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.NavigateTo;
@@ -24,20 +23,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
 
 [Shared]
 [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.FSharp)]
-internal class FSharpNavigateToSearchService : INavigateToSearchService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSharpNavigateToSearchService? service) : INavigateToSearchService
 {
-    private readonly IFSharpNavigateToSearchService _service;
+    private readonly IFSharpNavigateToSearchService? _service = service;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpNavigateToSearchService(IFSharpNavigateToSearchService service)
-    {
-        _service = service;
-    }
+    public IImmutableSet<string> KindsProvided => _service?.KindsProvided ?? ImmutableHashSet<string>.Empty;
 
-    public IImmutableSet<string> KindsProvided => _service.KindsProvided;
-
-    public bool CanFilter => _service.CanFilter;
+    public bool CanFilter => _service?.CanFilter ?? false;
 
     public async Task SearchDocumentAsync(
         Document document,
@@ -46,6 +40,9 @@ internal class FSharpNavigateToSearchService : INavigateToSearchService
         Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return;
+
         var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
         if (results.Length > 0)
             await onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))).ConfigureAwait(false);
@@ -62,6 +59,9 @@ internal class FSharpNavigateToSearchService : INavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return;
+
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 

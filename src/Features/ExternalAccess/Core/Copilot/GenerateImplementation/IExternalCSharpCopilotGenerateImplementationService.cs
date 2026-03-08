@@ -5,10 +5,17 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation;
 using Microsoft.CodeAnalysis.FindSymbols;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.GenerateImplementation;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+#endif
 
 internal interface IExternalCSharpCopilotGenerateImplementationService
 {

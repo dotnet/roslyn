@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;

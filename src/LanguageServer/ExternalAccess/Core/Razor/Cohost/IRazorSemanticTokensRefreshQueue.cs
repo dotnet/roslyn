@@ -6,7 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+#endif
 
 internal interface IRazorSemanticTokensRefreshQueue : ILspService
 {

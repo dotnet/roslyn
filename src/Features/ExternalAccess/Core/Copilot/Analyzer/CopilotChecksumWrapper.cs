@@ -4,7 +4,11 @@
 
 using System.Collections.Immutable;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+#endif
 
 /// <summary>
 /// Exposed to provide an efficient checksum implementation.

@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost.Handlers;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+#endif
 
 using Location = Roslyn.LanguageServer.Protocol.Location;
 

@@ -5,7 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 /// <summary>
 /// Manages sending requests to the client

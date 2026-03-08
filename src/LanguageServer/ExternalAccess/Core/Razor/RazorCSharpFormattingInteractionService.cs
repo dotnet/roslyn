@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
@@ -15,7 +14,15 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 /// <summary>
 /// Enables Razor to utilize Roslyn's C# formatting service.

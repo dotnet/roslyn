@@ -6,7 +6,11 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]

@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTests.Razor

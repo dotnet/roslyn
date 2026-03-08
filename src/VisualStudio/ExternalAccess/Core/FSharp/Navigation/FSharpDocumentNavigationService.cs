@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;

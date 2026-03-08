@@ -6,7 +6,11 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal readonly struct RazorExcerptResult
 {

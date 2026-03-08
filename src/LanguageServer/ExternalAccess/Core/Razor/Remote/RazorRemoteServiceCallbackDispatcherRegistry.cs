@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Remote;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal sealed class RazorRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
 {

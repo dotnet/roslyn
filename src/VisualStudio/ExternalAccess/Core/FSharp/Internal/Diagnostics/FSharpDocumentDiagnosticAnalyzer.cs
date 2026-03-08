@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Diagnostics;
@@ -26,24 +25,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
 
 [Shared]
 [ExportLanguageService(typeof(FSharpDocumentDiagnosticAnalyzerService), LanguageNames.FSharp)]
-internal class FSharpDocumentDiagnosticAnalyzerService : ILanguageService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpDocumentDiagnosticAnalyzerService([Import(AllowDefault = true)] IFSharpDocumentDiagnosticAnalyzer analyzer) : ILanguageService
 {
-    private readonly IFSharpDocumentDiagnosticAnalyzer _analyzer;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpDocumentDiagnosticAnalyzerService(IFSharpDocumentDiagnosticAnalyzer analyzer)
-    {
-        _analyzer = analyzer;
-    }
+    private readonly IFSharpDocumentDiagnosticAnalyzer _analyzer = analyzer;
 
     public Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
     {
+        if (_analyzer == null)
+            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+
         return _analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
     }
 
     public Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
     {
+        if (_analyzer == null)
+            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+
         return _analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
     }
 }

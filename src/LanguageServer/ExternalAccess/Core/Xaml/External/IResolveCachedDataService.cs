@@ -4,7 +4,11 @@
 
 using System;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 /// <summary>
 /// Represents a service to convert between a large data object + document identifier and request resolve data.

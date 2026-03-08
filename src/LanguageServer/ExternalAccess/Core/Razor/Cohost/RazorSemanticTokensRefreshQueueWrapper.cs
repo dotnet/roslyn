@@ -7,13 +7,20 @@ using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+#endif
 
 [ExportRazorLspServiceFactory(typeof(IRazorSemanticTokensRefreshQueue)), Shared]
 [method: ImportingConstructor]

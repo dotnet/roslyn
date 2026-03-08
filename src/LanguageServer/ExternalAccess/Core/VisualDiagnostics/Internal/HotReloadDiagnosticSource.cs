@@ -6,13 +6,20 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
+#endif
 
 internal sealed class HotReloadDiagnosticSource(IHotReloadDiagnosticSource source, TextDocument textDocument) : IDiagnosticSource
 {

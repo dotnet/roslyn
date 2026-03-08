@@ -14,5 +14,5 @@ internal sealed class ExtensionWorkspaceMessageHandlerWrapper(
     : ExtensionHandlerWrapper<Solution>(handler, customMessageHandlerInterface, extensionIdentifier)
 {
     protected override Task ExecuteAsync(MethodInfo executeAsyncMethod, object handler, object? message, Solution argument, CancellationToken cancellationToken)
-        => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionMessageContext(argument), cancellationToken]);
+        => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionMessageContext(argument), cancellationToken])!;
 }

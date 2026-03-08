@@ -11,7 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal sealed class RazorMappingServiceWrapper(IRazorMappingService razorMappingService) : ISpanMappingService
 {

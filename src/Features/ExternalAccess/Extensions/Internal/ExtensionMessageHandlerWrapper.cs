@@ -21,13 +21,13 @@ internal abstract class ExtensionHandlerWrapper<TArgument>
     {
         _handler = handler;
 
-        Name = handler.GetType().FullName;
+        Name = handler.GetType().FullName ?? throw new ArgumentException(string.Format(ExternalAccessExtensionsResources.The_handler_of_type_0_must_have_a_full_name, handler.GetType().Name), nameof(handler));
         MessageType = customMessageHandlerInterface.GenericTypeArguments[0];
         ResponseType = customMessageHandlerInterface.GenericTypeArguments[1];
         ExtensionIdentifier = extensionIdentifier;
 
-        _executeAsyncMethod = customMessageHandlerInterface.GetMethod(nameof(ExecuteAsync));
-        _responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<>.Result));
+        _executeAsyncMethod = customMessageHandlerInterface.GetMethod(nameof(ExecuteAsync)) ?? throw new ArgumentException(string.Format(ExternalAccessExtensionsResources.The_interface_0_does_not_contain_a_method_named_1, customMessageHandlerInterface.FullName, nameof(ExecuteAsync)), nameof(customMessageHandlerInterface));
+        _responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<>.Result))!;
     }
 
     public Type MessageType { get; }

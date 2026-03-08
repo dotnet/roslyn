@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.LanguageServer;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+#endif
 
 /// <summary>
 /// Base class for services that need to live in Razor but cannot be exported using <see cref="ExportCohostStatelessLspServiceAttribute"/>

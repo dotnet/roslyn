@@ -13,7 +13,11 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal readonly struct RazorServiceDescriptorsWrapper
 {

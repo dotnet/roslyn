@@ -15,7 +15,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+#endif
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RazorStartupService), WellKnownLspServerKinds.Any), Shared]
 [method: ImportingConstructor]

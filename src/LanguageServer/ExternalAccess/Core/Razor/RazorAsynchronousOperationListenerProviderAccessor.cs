@@ -7,7 +7,11 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 [Export(typeof(IRazorAsynchronousOperationListenerProviderAccessor))]
 [Shared]

@@ -12,8 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal;
 

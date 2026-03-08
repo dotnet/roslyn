@@ -8,7 +8,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Completion;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
+#endif
 
 internal interface IContextProvider
 {

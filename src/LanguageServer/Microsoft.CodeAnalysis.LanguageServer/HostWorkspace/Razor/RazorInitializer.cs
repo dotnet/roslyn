@@ -4,7 +4,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;

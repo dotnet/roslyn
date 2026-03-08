@@ -5,7 +5,11 @@
 using System.Composition;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+#endif
 
 [MetadataAttribute]
 internal class RazorMethodAttribute : LanguageServerEndpointAttribute

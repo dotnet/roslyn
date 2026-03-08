@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor.Implementation.Debugging;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Editor.Implementation.Debugging;
@@ -25,20 +24,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implement
 
 [Shared]
 [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]
-internal class FSharpBreakpointResolutionService : IBreakpointResolutionService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpBreakpointResolutionService([Import(AllowDefault = true)] IFSharpBreakpointResolutionService? service) : IBreakpointResolutionService
 {
-    private readonly IFSharpBreakpointResolutionService _service;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpBreakpointResolutionService(IFSharpBreakpointResolutionService service)
-    {
-        _service = service;
-    }
+    private readonly IFSharpBreakpointResolutionService? _service = service;
 
     public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-        => (await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false))?.UnderlyingObject;
+    {
+        if (_service == null)
+            return null;
+
+        return (await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false))?.UnderlyingObject;
+    }
 
     public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
-        => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
+    {
+        if (_service == null)
+            return Enumerable.Empty<BreakpointResolutionResult>();
+
+        return (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
+    }
 }

@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.TaskList;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;

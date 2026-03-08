@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Editor;
@@ -25,15 +24,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FSharpDefinitionLocationService(
-    IFSharpGoToDefinitionService service) : IDefinitionLocationService
+    [Import(AllowDefault = true)] IFSharpGoToDefinitionService? service) : IDefinitionLocationService
 {
     public Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        => DefinitionLocationServiceHelpers.GetDefinitionLocationFromLegacyImplementationsAsync(
-            document, position,
-            async cancellationToken =>
-            {
-                var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                return items?.Select(i => (i.Document, i.SourceSpan));
-            },
-            cancellationToken);
+    {
+        if (service is null)
+            return Task.FromResult<DefinitionLocation?>(null);
+
+        return DefinitionLocationServiceHelpers.GetDefinitionLocationFromLegacyImplementationsAsync(
+                document, position,
+                async cancellationToken =>
+                {
+                    var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+                    return items?.Select(i => (i.Document, i.SourceSpan));
+                },
+                cancellationToken);
+    }
 }

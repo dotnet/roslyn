@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;

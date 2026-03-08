@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 internal abstract class XamlRequestHandlerBase<TRequest, TResponse> : ILspServiceDocumentRequestHandler<TRequest, TResponse>
 {

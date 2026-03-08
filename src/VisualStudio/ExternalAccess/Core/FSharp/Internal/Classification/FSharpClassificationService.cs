@@ -15,8 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Classification;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Classification;
@@ -28,30 +27,31 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification;
 
 [Shared]
 [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp)]
-internal class FSharpClassificationService : IClassificationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpClassificationService([Import(AllowDefault = true)] IFSharpClassificationService? service) : IClassificationService
 {
-    private readonly IFSharpClassificationService _service;
-    private readonly ObjectPool<List<ClassifiedSpan>> s_listPool = new(() => []);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpClassificationService(IFSharpClassificationService service)
-    {
-        _service = service;
-    }
+    private readonly IFSharpClassificationService? _service = service;
+    private readonly ObjectPool<List<ClassifiedSpan>> _listPool = new(() => []);
 
     public void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
-        using var _ = s_listPool.GetPooledObject(out var list);
+        if (_service == null)
+            return;
+
+        using var _ = _listPool.GetPooledObject(out var list);
         _service.AddLexicalClassifications(text, textSpan, list, cancellationToken);
         result.AddRange(list);
     }
 
     public async Task AddSemanticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return;
+
         foreach (var textSpan in textSpans)
         {
-            using var _ = s_listPool.GetPooledObject(out var list);
+            using var _ = _listPool.GetPooledObject(out var list);
             await _service.AddSemanticClassificationsAsync(document, textSpan, list, cancellationToken).ConfigureAwait(false);
             result.AddRange(list);
         }
@@ -59,9 +59,12 @@ internal class FSharpClassificationService : IClassificationService
 
     public async Task AddSyntacticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
+        if (_service == null)
+            return;
+
         foreach (var textSpan in textSpans)
         {
-            using var _ = s_listPool.GetPooledObject(out var list);
+            using var _ = _listPool.GetPooledObject(out var list);
             await _service.AddSyntacticClassificationsAsync(document, textSpan, list, cancellationToken).ConfigureAwait(false);
             result.AddRange(list);
         }
@@ -69,6 +72,9 @@ internal class FSharpClassificationService : IClassificationService
 
     public ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
     {
+        if (_service == null)
+            return classifiedSpan;
+
         return _service.AdjustStaleClassification(text, classifiedSpan);
     }
 

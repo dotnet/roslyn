@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.Host;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 /// <summary>
 /// provides info on the given file

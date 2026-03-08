@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.CodeFixes;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+#endif
 
 internal static class RazorPredefinedCodeFixProviderNames
 {

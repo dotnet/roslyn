@@ -53,14 +53,14 @@
     <Compile Update="FSharp\ExternalAccessFSharpResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>FSharp\ExternalAccessFSharpResources.resx</DependentUpon>
+      <DependentUpon>ExternalAccessFSharpResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="FSharp\ExternalAccessFSharpResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>FSharp\ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

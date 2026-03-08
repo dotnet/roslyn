@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+#endif
 
 internal abstract class AbstractRazorLspServiceFactory : ILspServiceFactory
 {

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Features;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
