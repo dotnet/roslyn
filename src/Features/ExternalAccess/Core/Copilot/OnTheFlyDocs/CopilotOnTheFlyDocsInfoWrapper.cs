@@ -5,7 +5,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.QuickInfo;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+#endif
 
 internal sealed class CopilotOnTheFlyDocsInfoWrapper
 {

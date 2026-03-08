@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.DocumentationComments;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+#endif
 
 internal enum CopilotDocumentationCommentTagType
 {

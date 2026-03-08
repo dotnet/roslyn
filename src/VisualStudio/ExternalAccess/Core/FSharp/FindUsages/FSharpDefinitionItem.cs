@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FindUsages;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.FindUsages;

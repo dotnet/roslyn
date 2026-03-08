@@ -13,9 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
-namespace Microsoft.VisualStudio.ExternalAccess.Debugger;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Debugger;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
 #endif

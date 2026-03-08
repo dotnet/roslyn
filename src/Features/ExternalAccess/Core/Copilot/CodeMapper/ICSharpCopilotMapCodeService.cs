@@ -8,7 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.CodeMapper;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper;
+#endif
 
 internal interface ICSharpCopilotMapCodeService
 {

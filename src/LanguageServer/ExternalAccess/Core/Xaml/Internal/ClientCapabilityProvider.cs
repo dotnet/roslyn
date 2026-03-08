@@ -8,7 +8,11 @@ using System.Linq;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 internal class ClientCapabilityProvider : IClientCapabilityProvider
 {

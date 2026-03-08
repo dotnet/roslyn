@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Text;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+#endif
 
 internal static class CopilotAnalysisUtilities
 {

@@ -7,8 +7,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal;
 

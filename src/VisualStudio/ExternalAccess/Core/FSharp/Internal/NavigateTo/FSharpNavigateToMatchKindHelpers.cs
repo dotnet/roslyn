@@ -7,7 +7,6 @@
 using Microsoft.CodeAnalysis.NavigateTo;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.NavigateTo;

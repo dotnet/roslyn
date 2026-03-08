@@ -129,4 +129,10 @@
   <data name="Type_0_implements_interface_1_more_than_once" xml:space="preserve">
     <value>Type {0} implements interface {1} more than once.</value>
   </data>
+  <data name="The_handler_of_type_0_must_have_a_full_name" xml:space="preserve">
+    <value>The handler of type {0} must have a full name.</value>
+  </data>
+  <data name="The_interface_0_does_not_contain_a_method_named_1" xml:space="preserve">
+    <value>The interface {0} does not contain a method named {1}.</value>
+  </data>
 </root>

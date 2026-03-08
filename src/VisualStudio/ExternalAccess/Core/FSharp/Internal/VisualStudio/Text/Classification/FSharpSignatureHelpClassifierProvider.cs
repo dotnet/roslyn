@@ -13,8 +13,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
+#if Unified_ExternalAccess 
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.VisualStudio.Text.Classification;

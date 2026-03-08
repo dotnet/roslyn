@@ -6,7 +6,11 @@ using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 internal abstract class XamlRequestHandlerFactoryBase<TRequest, TResponse> : ILspServiceFactory
 {

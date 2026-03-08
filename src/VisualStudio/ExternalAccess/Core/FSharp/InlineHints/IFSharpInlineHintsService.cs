@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.InlineHints;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints;

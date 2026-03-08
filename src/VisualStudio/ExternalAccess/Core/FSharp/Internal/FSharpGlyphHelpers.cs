@@ -5,7 +5,6 @@
 #nullable disable
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal;

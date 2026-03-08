@@ -6,7 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+#endif
 
 /// <summary>
 /// Provides diagnostic sources.

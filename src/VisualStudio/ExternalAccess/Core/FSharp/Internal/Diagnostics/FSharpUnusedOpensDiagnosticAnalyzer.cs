@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Diagnostics;
 
@@ -27,19 +26,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification;
 
 [Shared]
 [ExportLanguageService(typeof(FSharpUnusedOpensDiagnosticAnalyzerService), LanguageNames.FSharp)]
-internal class FSharpUnusedOpensDiagnosticAnalyzerService : ILanguageService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpUnusedOpensDiagnosticAnalyzerService([Import(AllowDefault = true)] IFSharpUnusedOpensDiagnosticAnalyzer analyzer) : ILanguageService
 {
-    private readonly IFSharpUnusedOpensDiagnosticAnalyzer _analyzer;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpUnusedOpensDiagnosticAnalyzerService(IFSharpUnusedOpensDiagnosticAnalyzer analyzer)
-    {
-        _analyzer = analyzer;
-    }
+    private readonly IFSharpUnusedOpensDiagnosticAnalyzer _analyzer = analyzer;
 
     public Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(DiagnosticDescriptor descriptor, Document document, CancellationToken cancellationToken)
     {
+        if (_analyzer == null)
+            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+
         return _analyzer.AnalyzeSemanticsAsync(descriptor, document, cancellationToken);
     }
 }

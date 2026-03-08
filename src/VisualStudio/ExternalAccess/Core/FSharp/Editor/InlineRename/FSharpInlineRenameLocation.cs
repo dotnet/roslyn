@@ -7,8 +7,6 @@
 using Microsoft.CodeAnalysis.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;

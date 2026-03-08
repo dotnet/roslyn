@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;

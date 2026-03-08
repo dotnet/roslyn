@@ -5,7 +5,11 @@
 using System.Composition;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 [MetadataAttribute]
 internal sealed class XamlMethodAttribute : LanguageServerEndpointAttribute

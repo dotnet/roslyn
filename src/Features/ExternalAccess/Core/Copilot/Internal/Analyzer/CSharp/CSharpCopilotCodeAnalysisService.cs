@@ -22,10 +22,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+using Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.Analyzer.CSharp;
 #else
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 #endif
 

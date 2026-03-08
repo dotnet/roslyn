@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+#endif
 
 internal static class StringConstants
 {

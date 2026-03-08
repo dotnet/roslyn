@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #if Unified_ExternalAccess
-using Microsoft.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Diagnostics;
 #else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;

@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.ServiceHub.Framework;
 
+#if Unified_ExternalAccess
+namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
+#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+#endif
 
 /// <summary>
 /// Workspace service responsible for starting a Visual Diagnostic session on the LSP server
