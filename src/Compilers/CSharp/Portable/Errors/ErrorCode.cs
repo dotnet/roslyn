@@ -2472,7 +2472,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
         ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
         WRN_RequiresUnsafeAttributeLegacyRules = 9368,
-        ERR_UnsafeConstructorConstraint = 9369,
 
         ERR_ExpressionTreeContainsUnionConversion = 9369,
         ERR_UnionDeclarationNeedsCaseTypes = 9370,
@@ -2481,6 +2480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InstanceFieldInUnion = 9373,
         ERR_InstanceCtorWithOneParameterInUnion = 9374,
         ERR_UnionConstructorCallsDefaultConstructor = 9375,
+
+        ERR_UnsafeConstructorConstraint = 9376,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
