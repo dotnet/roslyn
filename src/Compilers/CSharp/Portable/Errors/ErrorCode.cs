@@ -2473,6 +2473,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
         WRN_RequiresUnsafeAttributeLegacyRules = 9368,
 
+        ERR_ExpressionTreeContainsUnionConversion = 9369,
+        ERR_UnionDeclarationNeedsCaseTypes = 9370,
+        ERR_NoImplicitConversionToObject = 9371,
+        ERR_UnionMatchingWrongPattern = 9372,
+        ERR_InstanceFieldInUnion = 9373,
+        ERR_InstanceCtorWithOneParameterInUnion = 9374,
+        ERR_UnionConstructorCallsDefaultConstructor = 9375,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

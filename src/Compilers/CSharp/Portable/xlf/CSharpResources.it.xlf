@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">Il membro non sicuro '{0}' non può implementare il membro sicuro '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">Il membro non sicuro '{0}' non può implementare in modo implicito il membro sicuro '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">Il membro non sicuro '{0}' non può eseguire l'override del membro sicuro '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -902,6 +902,11 @@
         <target state="translated">Un albero delle espressioni non può contenere un operatore == o != di tupla</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="new">An expression tree may not contain a union conversion.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Un albero delle espressioni non può contenere un'espressione with.</target>
@@ -1237,6 +1242,16 @@
         <target state="translated">Il campo dell'elemento della matrice inline non può essere dichiarato come obbligatorio, di sola lettura, volatile o come buffer a dimensione fissa.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="new">Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="new">Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">'{0}': non è possibile dichiarare i membri di istanza in un blocco di estensione con un parametro ricevitore senza nome</target>
@@ -1467,9 +1482,14 @@
         <target state="translated">'{0}' non contiene una definizione per '{1}' e non è possibile trovare alcun metodo di estensione accessibile '{1}' che accetta un primo argomento di tipo '{0}' (si intendeva forse eseguire l'iterazione sulla raccolta asincrona con 'await foreach'?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">Non è possibile applicare RequiresUnsafeAttribute a questo simbolo.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2677,6 +2697,21 @@
         <target state="translated">Elenco parametri imprevisto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="new">A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="new">A union declaration must specify at least one case type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="new">An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}', a cui è assegnato l'attributo 'UnmanagedCallersOnly', non può essere chiamato direttamente. Ottenere un puntatore a funzione per questo metodo.</target>
@@ -2689,27 +2724,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">'{0}' è definito in un modulo con una versione non riconosciuta di {1}. È previsto '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">'{0}' deve essere usato in un contesto non sicuro perché è contrassegnato come 'RequiresUnsafe' o 'extern'</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">'{0}' deve essere usato in un contesto non sicuro perché contiene puntatori nella firma</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Questa operazione può essere usata solo in un contesto non sicuro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">l'espressione stackalloc senza un inizializzatore all'interno di SkipLocalsInit può essere usata solo in un contesto non sicuro</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3092,9 +3127,14 @@
         <target state="translated">tipi generici non collegati nell'operatore nameof</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="new">unions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">regole di sicurezza della memoria aggiornate</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3884,12 +3924,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute è valido solo con regole di sicurezza della memoria aggiornate.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute è valido solo con regole di sicurezza della memoria aggiornate.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4183,7 +4223,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opzioni del Compilatore Visual C#
 
                        - FILE DI OUTPUT -
@@ -4305,7 +4345,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
 -baseaddress:&lt;address&gt;        Indirizzo di base della libreria da compilare
 -checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum
                               del file di origine archiviato nel file PDB. I valori supportati sono:
-                              SHA1 o SHA256 (impostazione predefinita).
+                              SHA1, SHA256 (valore predefinito), SHA384 e SHA512.
 -codepage:&lt;n&gt;                 Specifica la tabella codici da utilizzare per l'apertura dei file
                               di origine
 -utf8output                   Messaggi del compilatore di output nella codifica UTF-8
@@ -7161,8 +7201,8 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Le dichiarazioni parziali di '{0}' devono essere costituite solo da classi, classi di record, struct di record o interfacce</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

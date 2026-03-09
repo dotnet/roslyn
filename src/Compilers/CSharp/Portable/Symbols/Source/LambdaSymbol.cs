@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private RefKind _refKind;
         private ImmutableArray<CustomModifier> _refCustomModifiers;
         private TypeWithAnnotations _returnType;
+        private bool _runtimeAsyncEnabledChangedDuringInference;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
@@ -168,12 +169,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetInferredReturnType(RefKind refKind, TypeWithAnnotations inferredReturnType)
         {
             Debug.Assert(inferredReturnType.HasType);
-            Debug.Assert(_returnType.Type.IsErrorType());
+            Debug.Assert((object)_returnType.Type == ReturnTypeIsBeingInferred);
             Debug.Assert(refKind != RefKind.RefReadOnly);
+
+            var runtimeAsyncEnabledDuringInference = IsAsync && _binder.Compilation.IsRuntimeAsyncEnabledIn(this);
             _refKind = refKind;
             _refCustomModifiers = [];
             _returnType = inferredReturnType;
+            _runtimeAsyncEnabledChangedDuringInference = IsAsync && runtimeAsyncEnabledDuringInference != _binder.Compilation.IsRuntimeAsyncEnabledIn(this);
         }
+
+        /// <summary>
+        /// True if <see cref="SetInferredReturnType(RefKind, TypeWithAnnotations)"/> changed whether <see cref="CSharpCompilation.IsRuntimeAsyncEnabledIn(Symbol?)"/> returns true for this method.
+        /// In such cases, the lambda body needs to be re-bound to ensure correct handling of await expressions.
+        /// </summary>
+        public bool RuntimeAsyncEnabledChangedDuringInference => _runtimeAsyncEnabledChangedDuringInference;
 
         internal override bool IsExplicitInterfaceImplementation
         {

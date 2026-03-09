@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ImplicitDynamic:
                 case ImplicitConstant:
                 case ImplicitUserDefined:
+                case Union:
                 case AnonymousFunction:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.FunctionType:
@@ -89,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return false;
             }
+        }
+
+        public static bool IsUnionConversion(this ConversionKind conversionKind)
+        {
+            return conversionKind == Union;
         }
 
         public static bool IsPointerConversion(this ConversionKind kind)

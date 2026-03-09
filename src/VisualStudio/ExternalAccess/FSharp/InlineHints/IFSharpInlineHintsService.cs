@@ -16,3 +16,10 @@ internal interface IFSharpInlineHintsService
     /// <inheritdoc cref="IInlineHintsService.GetInlineHintsAsync"/>
     Task<ImmutableArray<FSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }
+
+/// <inheritdoc cref="IInlineHintsService"/>
+internal interface IFSharpInlineHintsService2
+{
+    /// <inheritdoc cref="IInlineHintsService.GetInlineHintsAsync"/>
+    Task<ImmutableArray<FSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, bool displayAllOverride, CancellationToken cancellationToken);
+}

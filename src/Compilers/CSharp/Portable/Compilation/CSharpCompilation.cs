@@ -350,29 +350,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (symbol is not MethodSymbol method)
+            if (symbol is not MethodSymbol { IsAsync: true } method)
             {
                 return false;
             }
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
+            Debug.Assert(method.IsDefinition);
 
-            var methodReturn = method.ReturnType.OriginalDefinition;
-            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
-                    InternalSpecialType.System_Threading_Tasks_Task or
-                    InternalSpecialType.System_Threading_Tasks_Task_T or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
-            {
-                return false;
-            }
-
-            return symbol switch
+            var runtimeAsyncEnabledInMethod = symbol switch
             {
                 SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
                 SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
                 _ => Feature(CodeAnalysis.Feature.RuntimeAsync) == "on"
             };
+
+            if (!runtimeAsyncEnabledInMethod)
+            {
+                return false;
+            }
+
+            var methodReturn = method.ReturnType.OriginalDefinition;
+            if ((object)methodReturn == LambdaSymbol.ReturnTypeIsBeingInferred)
+            {
+                // During lambda return type inference we have not yet established whether
+                // the return type is Task/ValueTask, so we assume runtime async to allow
+                // caching to be used for the majority case when the return type is indeed
+                // Task/ValueTask-based. If the return type ends up not being Task/ValueTask,
+                // that will bust the cache and ensure the body is re-bound with the correct
+                // handling
+                return true;
+            }
+
+            return ((InternalSpecialType)methodReturn.ExtendedSpecialType) is (
+                InternalSpecialType.System_Threading_Tasks_Task or
+                InternalSpecialType.System_Threading_Tasks_Task_T or
+                InternalSpecialType.System_Threading_Tasks_ValueTask or
+                InternalSpecialType.System_Threading_Tasks_ValueTask_T);
         }
 
         /// <summary>
