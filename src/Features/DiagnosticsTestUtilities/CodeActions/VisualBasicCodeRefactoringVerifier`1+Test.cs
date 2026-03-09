@@ -10,15 +10,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 #endif
 
@@ -85,8 +86,30 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
 
         protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
+            // Normalize all source strings to CRLF for cross-platform consistency.
+            // Skip normalization if the test explicitly set NewLine to "\n".
+            if (!_sharedState.Options.TryGetOption<string>(new OptionKey2(FormattingOptions2.NewLine, Language), out var newLine) || newLine == "\r\n")
+            {
+                NormalizeSources(TestState.Sources);
+                NormalizeSources(FixedState.Sources);
+            }
+
             _sharedState.Apply();
             await base.RunImplAsync(cancellationToken);
+        }
+
+        private static void NormalizeSources(SourceFileList sources)
+        {
+            for (var i = 0; i < sources.Count; i++)
+            {
+                var (filename, content) = sources[i];
+                var text = content.ToString();
+                var normalized = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
+                if (text != normalized)
+                {
+                    sources[i] = (filename, SourceText.From(normalized, content.Encoding, content.ChecksumAlgorithm));
+                }
+            }
         }
 
         protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)

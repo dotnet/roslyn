@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 #if !CODE_STYLE
@@ -95,8 +97,33 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
                 Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
             }
 
+            // Normalize all source strings to CRLF for cross-platform consistency.
+            // This catches sources added directly to TestState/FixedState/BatchFixedState,
+            // which bypass the normalizing TestCode/FixedCode property setters.
+            // Skip normalization if the test explicitly set NewLine to "\n" (e.g., FileHeaderTests).
+            if (!_sharedState.Options.TryGetOption<string>(new OptionKey2(FormattingOptions2.NewLine, Language), out var newLine) || newLine == "\r\n")
+            {
+                NormalizeSources(TestState.Sources);
+                NormalizeSources(FixedState.Sources);
+                NormalizeSources(BatchFixedState.Sources);
+            }
+
             _sharedState.Apply();
             await base.RunImplAsync(cancellationToken);
+        }
+
+        private static void NormalizeSources(SourceFileList sources)
+        {
+            for (var i = 0; i < sources.Count; i++)
+            {
+                var (filename, content) = sources[i];
+                var text = content.ToString();
+                var normalized = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
+                if (text != normalized)
+                {
+                    sources[i] = (filename, SourceText.From(normalized, content.Encoding, content.ChecksumAlgorithm));
+                }
+            }
         }
 
         protected override ParseOptions CreateParseOptions()
