@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(false); // Getting here is unexpected.
+                Debug.Fail("Getting here is unexpected.");
                 return false;
             }
         }
@@ -694,6 +694,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     action(argument, args);
                 }
+            }
+        }
+    }
+
+    internal partial class BoundValueForNullableAnalysis
+    {
+        public sealed override bool IsEquivalentToThisReference
+        {
+            get
+            {
+                Debug.Fail("Getting here is unexpected.");
+                return false;
             }
         }
     }

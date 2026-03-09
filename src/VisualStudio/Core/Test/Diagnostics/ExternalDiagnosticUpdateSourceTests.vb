@@ -1,10 +1,11 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -34,11 +35,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Shared ReadOnly s_projectGuid As Guid = Guid.NewGuid()
 
         <WpfFact>
-        Public Async Function TestExternalDiagnostics_UnsupportedId() As Task
+        Public Async Function TestExternalDiagnostics_SupportedId() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
-                Dim listener = workspace.GetService(Of AsynchronousOperationListenerProvider)()
-                Dim diagnosticWaiter = listener.GetWaiter(FeatureAttribute.DiagnosticService)
-                Dim errorListWaiter = listener.GetWaiter(FeatureAttribute.ErrorList)
+                Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
                 Dim analyzer = New AnalyzerForErrorLogTest()
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
@@ -53,23 +52,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
 
                     Dim project = workspace.CurrentSolution.Projects.First()
-
                     source.OnSolutionBuildStarted()
-                    Await diagnosticWaiter.ExpeditedWaitAsync()
-                    Await errorListWaiter.ExpeditedWaitAsync()
+                    Await waiter.ExpeditedWaitAsync()
 
-                    Assert.False(source.IsUnsupportedDiagnosticId(project.Id, "ID1"))
-                    Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "CA1002"))
+                    Assert.True(Await source.IsSupportedDiagnosticIdAsync(project.Id, "ID1", CancellationToken.None))
+                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "CA1002", CancellationToken.None))
                 End Using
             End Using
         End Function
 
         <WpfFact>
-        Public Sub TestExternalDiagnostics_UnsupportedIdTrueIfBuildNotStarted()
+        Public Async Function TestExternalDiagnostics_SupportedIdFalseIfBuildNotStarted() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
-                Dim listener = workspace.GetService(Of AsynchronousOperationListenerProvider)()
-                Dim diagnosticWaiter = listener.GetWaiter(FeatureAttribute.DiagnosticService)
-                Dim errorListWaiter = listener.GetWaiter(FeatureAttribute.ErrorList)
+                Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
                 Dim analyzer = New AnalyzerForErrorLogTest()
 
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
@@ -85,11 +80,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     Dim project = workspace.CurrentSolution.Projects.First()
 
-                    Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "ID1"))
-                    Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "CA1002"))
+                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "ID1", CancellationToken.None))
+                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "CA1002", CancellationToken.None))
                 End Using
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Async Function TestExternalDiagnosticsReported() As Task

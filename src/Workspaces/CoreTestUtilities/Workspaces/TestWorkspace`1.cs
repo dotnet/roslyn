@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -339,9 +339,6 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
             case ApplyChangesKind.RemoveDocument:
                 return KindSupportsAddRemoveDocument();
 
-            case ApplyChangesKind.RemoveProject:
-                return KindSupportsRemoveProject();
-
             case ApplyChangesKind.AddAdditionalDocument:
             case ApplyChangesKind.RemoveAdditionalDocument:
             case ApplyChangesKind.AddAnalyzerConfigDocument:
@@ -368,15 +365,6 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     }
 
     private bool KindSupportsAddRemoveDocument()
-        => _workspaceKind switch
-        {
-            WorkspaceKind.MiscellaneousFiles => false,
-            WorkspaceKind.Interactive => false,
-            WorkspaceKind.SemanticSearch => false,
-            _ => true
-        };
-
-    private bool KindSupportsRemoveProject()
         => _workspaceKind switch
         {
             WorkspaceKind.MiscellaneousFiles => false,

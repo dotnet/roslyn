@@ -2579,6 +2579,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
                 or ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget
                 or ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules
+                or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
+                or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
+                or ErrorCode.ERR_NoImplicitConversionToObject
+                or ErrorCode.ERR_UnionMatchingWrongPattern
+                or ErrorCode.ERR_InstanceFieldInUnion
+                or ErrorCode.ERR_InstanceCtorWithOneParameterInUnion
+                or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                     => false,
             };

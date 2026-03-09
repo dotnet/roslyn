@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -222,6 +222,9 @@ internal abstract partial class AbstractNavigateToSearchService
             case DeclaredSymbolInfoKind.Property:
                 return NavigateToItemKind.Property;
             case DeclaredSymbolInfoKind.Struct:
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider having a separate NavigateToItemKind category for unions
+            case DeclaredSymbolInfoKind.Union:
                 return NavigateToItemKind.Structure;
             case DeclaredSymbolInfoKind.Operator:
                 return NavigateToItemKind.OtherSymbol;
@@ -314,6 +317,7 @@ internal abstract partial class AbstractNavigateToSearchService
                     case NavigateToItemKind.Structure:
                         lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
                         lookupTable[(int)DeclaredSymbolInfoKind.RecordStruct] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.Union] = true;
                         break;
 
                     default:

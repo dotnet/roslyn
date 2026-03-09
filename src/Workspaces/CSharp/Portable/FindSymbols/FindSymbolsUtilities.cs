@@ -63,6 +63,7 @@ internal static class FindSymbolsUtilities
             SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
             SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
             SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
+            SyntaxKind.UnionDeclaration => DeclaredSymbolInfoKind.Union,
             _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
         };
     }

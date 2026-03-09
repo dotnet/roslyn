@@ -86,5 +86,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
         #endregion
+
+        #region UnionAttribute
+        private bool _hasUnionAttribute;
+        public bool HasUnionAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasUnionAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasUnionAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }

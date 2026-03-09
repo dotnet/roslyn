@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ClassKeyword;
                 case DeclarationKind.Struct:
                     return SyntaxKind.StructKeyword;
+                case DeclarationKind.Union:
+                    return SyntaxKind.UnionKeyword;
                 case DeclarationKind.Interface:
                     return SyntaxKind.InterfaceKeyword;
                 default:
@@ -72,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ClassKeyword;
                 case SyntaxKind.StructDeclaration:
                     return SyntaxKind.StructKeyword;
+                case SyntaxKind.UnionDeclaration:
+                    return SyntaxKind.UnionKeyword;
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxKind.InterfaceKeyword;
                 case SyntaxKind.RecordDeclaration:
@@ -123,7 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                     return SyntaxFactory.ClassDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.StructDeclaration:
-                    return SyntaxFactory.StructDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                    return SyntaxFactory.StructDeclaration(SyntaxKind.StructDeclaration, attributes, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                case SyntaxKind.UnionDeclaration:
+                    return SyntaxFactory.StructDeclaration(SyntaxKind.UnionDeclaration, attributes, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxFactory.InterfaceDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordDeclaration:
