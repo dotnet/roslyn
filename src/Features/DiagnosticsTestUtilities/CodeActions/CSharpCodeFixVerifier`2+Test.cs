@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
@@ -51,6 +52,10 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
             _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
             MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
+
+            // Ensure consistent line endings across platforms.
+            // NormalizeWhitespace() hardcodes \r\n, so configure the formatter to also use \r\n.
+            _sharedState.Options.Add(FormattingOptions2.NewLine, "\r\n");
         }
 
         /// <summary>
@@ -63,13 +68,13 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         internal OptionsCollection Options => _sharedState.Options;
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string TestCode { set => base.TestCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string TestCode { set => base.TestCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string BatchFixedCode { set => base.BatchFixedCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string BatchFixedCode { set => base.BatchFixedCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
         /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
         public string? EditorConfig

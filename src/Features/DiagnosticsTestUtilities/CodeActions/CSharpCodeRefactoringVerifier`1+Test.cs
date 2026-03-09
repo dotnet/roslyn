@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Testing;
 
 #if !CODE_STYLE
@@ -51,6 +52,10 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         {
             _sharedState = new SharedVerifierState(this, DefaultFileExt);
             this.FixedState.InheritanceMode = StateInheritanceMode.AutoInherit;
+
+            // Ensure consistent line endings across platforms.
+            // NormalizeWhitespace() hardcodes \r\n, so configure the formatter to also use \r\n.
+            _sharedState.Options.Add(FormattingOptions2.NewLine, "\r\n");
         }
 
         /// <summary>
@@ -63,10 +68,10 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         internal OptionsCollection Options => _sharedState.Options;
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string TestCode { set => base.TestCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string TestCode { set => base.TestCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
         /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
         public string? EditorConfig

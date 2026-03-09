@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
@@ -51,13 +52,17 @@ public static partial class VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix>
             _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
             MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
+
+            // Ensure consistent line endings across platforms.
+            // NormalizeWhitespace() hardcodes \r\n, so configure the formatter to also use \r\n.
+            _sharedState.Options.Add(FormattingOptions2.NewLine, "\r\n");
         }
 
-        public new string TestCode { set => base.TestCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string TestCode { set => base.TestCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
-        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
-        public new string BatchFixedCode { set => base.BatchFixedCode = value.Replace("\r\n", Environment.NewLine); }
+        public new string BatchFixedCode { set => base.BatchFixedCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
 
         /// <summary>
         /// Gets or sets the language version to use for the test. The default value is
