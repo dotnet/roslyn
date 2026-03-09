@@ -8433,6 +8433,29 @@ class C
             },
         }.RunAsync();
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44100")]
+    public Task RefLocal_WrittenMultipleTimes()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int _field;
+
+                    void M()
+                    {
+                        ref int r = ref _field;
+                        r = 1;
+                        r = 2;
+                    }
+                }
+                """,
+            Options =
+            {
+                { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion },
+            },
+        }.RunAsync();
+
     [Fact]
     public Task LocalFunction_OutParameter_UsedInCaller()
         => TestDiagnosticMissingAsync(
