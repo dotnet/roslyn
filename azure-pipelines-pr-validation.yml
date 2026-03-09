@@ -151,7 +151,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - task: Powershell@2
           name: SetOriginalBuildNumber
           displayName: Setting OriginalBuildNumber variable
@@ -350,10 +350,8 @@ extends:
             createDraftPR: true
             autoComplete: false
             insertToolset: ${{ parameters.InsertToolset }}
-            buildUserName: "dn-bot@microsoft.com"
-            buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            componentUserName: "dn-bot@microsoft.com"
-            componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+            dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: ${{ parameters.OptionalTitlePrefix }}
             sourceBranch: $(ComponentBranchName)
