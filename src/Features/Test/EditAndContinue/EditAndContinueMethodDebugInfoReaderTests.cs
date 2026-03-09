@@ -67,7 +67,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
                 }
             }
 
-            """;
+            """.ReplaceLineEndings("\r\n");
         var tree = CSharpTestSource.Parse(source, path: "/a/c.cs", options: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), checksumAlgorithm: SourceHashAlgorithm.Sha1);
         var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(tree, options: TestOptions.DebugDll);
 

@@ -234,6 +234,6 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
 
         MarkupTestFile.GetPositionAndSpans(expected, out var massaged, out int? caretPosition, out var spans);
 
-        Assert.Equal(massaged, actualText);
+        AssertEx.Equal(massaged, actualText);
     }
 }

@@ -189,7 +189,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             {
                 override {|caret:|}
             }
-            """;
+            """.ReplaceLineEndings("\r\n");
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();

@@ -256,7 +256,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
                 var x = 5;
             }
 
-            """; // add additional end line 
+            """.ReplaceLineEndings("\r\n"); // add additional end line
 
         var sourceText = SourceText.From(markup);
 
@@ -340,7 +340,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
             {
                 var x = 5;
             }
-            """;
+            """.ReplaceLineEndings("\r\n");
         return markup;
     }
 

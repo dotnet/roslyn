@@ -332,7 +332,7 @@ public sealed partial class CSharpRegexParserTests
     private static string Not(string regex)
         => $"(?({regex})[0-[0]]|.*)";
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestDeepRecursion()
     {
         var (token, tree, chars) =
