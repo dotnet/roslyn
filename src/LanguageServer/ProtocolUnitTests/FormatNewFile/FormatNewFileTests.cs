@@ -46,7 +46,7 @@ public sealed class FormatNewFileTests(ITestOutputHelper? testOutputHelper) : Ab
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
-        var newFilePath = "C:\\MyComponent.razor.cs";
+        var newFilePath = TestHelpers.CreateAbsolutePath("MyComponent.razor.cs");
 
         var result = await RunHandlerAsync(testLspServer, newFilePath, input);
         AssertEx.EqualOrDiff("""

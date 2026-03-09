@@ -14,7 +14,7 @@ public sealed class ServerInitializationTests : AbstractLanguageServerHostTests
     {
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public async Task TestServerHandlesTextSyncRequestsAsync()
     {
         await using var server = await CreateLanguageServerAsync();

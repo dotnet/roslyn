@@ -432,7 +432,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
         await testLspServer.OpenDocumentAsync(looseFileUri, """
             #:sdk Microsoft.Net.Sdk
             Console.WriteLine("Hello World!");
