@@ -606,9 +606,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Note: we currently don't honor cacheAllArgumentsOnly in this branch, and let
                     // callers do the caching instead
                     // Tracked by https://github.com/dotnet/roslyn/issues/71056
-                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     // https://github.com/dotnet/roslyn/issues/78829 - PROTOTYPE Do we need to do something special for recievers of extension indexers here?
-                    Debug.Assert(!indexerAccess.Indexer.IsExtensionBlockMember());
+                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
                         forceReceiverCapturing: false,

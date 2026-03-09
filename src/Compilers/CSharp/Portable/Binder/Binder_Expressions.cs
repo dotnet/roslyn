@@ -9141,12 +9141,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Tries to bind an extension indexer (real or implicit Index/Range pattern via extensions).
-        /// Walks extension scopes: tries real extension indexer first, then implicit pattern per scope.
-        /// Returns true if found applicable candidates (an implicit indexer is considered applicable when
-        /// we have an applicable Length/Count and an applicable this[int]/Slice(int, int)).
+        /// Tries to bind a real extension indexer.
+        /// Searches all extension scopes for real extension indexers.
+        /// Returns true if found applicable candidates.
         /// </summary>
-        private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments,
+        private bool TryBindExtensionRealIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? extensionIndexerAccess)
         {
             Debug.Assert(left is not null);
@@ -9161,35 +9160,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!left.Type.IsDynamic());
 
             var lookupResult = LookupResult.GetInstance();
-            AnalyzedArguments? analyzedIntIndexerOrSliceArguments = null;
-            ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders = default;
             AnalyzedArguments? actualExtensionArguments = null;
-            AnalyzedArguments? actualExtensionLengthOrCountArguments = null;
-            AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments = null;
 
-            extensionIndexerAccess = tryBindExtensionIndexer(syntax, left, analyzedArguments, lookupResult,
-                ref analyzedIntIndexerOrSliceArguments, ref intIndexerOrSliceArgumentPlaceholders,
-                ref actualExtensionArguments, ref actualExtensionLengthOrCountArguments, ref actualExtensionIntIndexerOrSliceArguments,
-                ref useSiteInfo, diagnostics);
+            extensionIndexerAccess = tryBindExtensionRealIndexer(syntax, left, analyzedArguments, lookupResult,
+                ref actualExtensionArguments, ref useSiteInfo, diagnostics);
 
             lookupResult.Free();
-            analyzedIntIndexerOrSliceArguments?.Free();
             actualExtensionArguments?.Free();
-            actualExtensionLengthOrCountArguments?.Free();
-            actualExtensionIntIndexerOrSliceArguments?.Free();
 
             return extensionIndexerAccess is not null;
 
-            BoundExpression? tryBindExtensionIndexer(
+            BoundExpression? tryBindExtensionRealIndexer(
                 SyntaxNode syntax,
                 BoundExpression left,
                 AnalyzedArguments analyzedArguments,
                 LookupResult lookupResult,
-                ref AnalyzedArguments? analyzedIntIndexerOrSliceArguments,
-                ref ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders,
                 ref AnalyzedArguments? actualExtensionArguments,
-                ref AnalyzedArguments? actualExtensionLengthOrCountArguments,
-                ref AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics)
             {
@@ -9202,15 +9188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder: this, scope: scope, ref useSiteInfo, diagnostics: diagnostics, out BoundExpression? extensionIndexerAccess))
                     {
                         return extensionIndexerAccess;
-                    }
-
-                    if (tryBindExtensionImplicitIndexerInScope(
-                        syntax, left, analyzedArguments, binder: this, scope, ref useSiteInfo, diagnostics,
-                        ref analyzedIntIndexerOrSliceArguments, ref intIndexerOrSliceArgumentPlaceholders,
-                        ref actualExtensionLengthOrCountArguments, ref actualExtensionIntIndexerOrSliceArguments,
-                        out BoundExpression? extensionImplicitIndexerAccess))
-                    {
-                        return extensionImplicitIndexerAccess;
                     }
                 }
 
@@ -9256,14 +9233,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return TryBindExtensionIndexerCandidates(syntax, receiver, properties, analyzedArguments, ref actualArguments, binder, ref useSiteInfo, diagnostics, out extensionIndexerAccess);
             }
+        }
 
-            // returns true if we should stop searching in further scopes
-            static bool tryBindExtensionImplicitIndexerInScope(
+        /// <summary>
+        /// Tries to bind an implicit Index/Range pattern via extensions.
+        /// Returns true if found applicable candidates (an implicit indexer is considered applicable when
+        /// we have an applicable Length/Count and an applicable this[int]/Slice(int, int)).
+        /// </summary>
+        private bool TryBindExtensionImplicitIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? extensionIndexerAccess)
+        {
+            Debug.Assert(left is not null);
+
+            if (left.Kind == BoundKind.BaseReference || analyzedArguments.HasDynamicArgument)
+            {
+                extensionIndexerAccess = null;
+                return false;
+            }
+
+            Debug.Assert(left.Type is not null);
+            Debug.Assert(!left.Type.IsDynamic());
+
+            AnalyzedArguments? analyzedIntIndexerOrSliceArguments = null;
+            ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders = default;
+            AnalyzedArguments? actualExtensionLengthOrCountArguments = null;
+            AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments = null;
+
+            bool result = tryBindExtensionImplicitIndexer(
+                syntax, left, analyzedArguments, binder: this, ref useSiteInfo, diagnostics,
+                ref analyzedIntIndexerOrSliceArguments, ref intIndexerOrSliceArgumentPlaceholders,
+                ref actualExtensionLengthOrCountArguments, ref actualExtensionIntIndexerOrSliceArguments,
+                out extensionIndexerAccess);
+
+            analyzedIntIndexerOrSliceArguments?.Free();
+            actualExtensionLengthOrCountArguments?.Free();
+            actualExtensionIntIndexerOrSliceArguments?.Free();
+
+            return result;
+
+            // Returns true if we should stop searching after the implicit pattern lookup.
+            static bool tryBindExtensionImplicitIndexer(
                 SyntaxNode syntax,
                 BoundExpression receiver,
                 AnalyzedArguments arguments,
                 Binder binder,
-                ExtensionScope scope,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 BindingDiagnosticBag diagnostics,
                 ref AnalyzedArguments? analyzedIntIndexerOrSliceArguments,
@@ -9283,25 +9296,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiver.IsEquivalentToThisReference, receiver.Type).MakeCompilerGenerated();
 
-                PropertySymbol? lengthOrCountProperty;
                 var implicitIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-
-                bool foundApplicableLengthOrCount = tryLookupExtensionLengthOrCount(syntax, receiverPlaceholder, binder, scope,
-                    ref actualExtensionLengthOrCountArguments, out lengthOrCountProperty, ref useSiteInfo, implicitIndexerDiagnostics);
-
                 BoundExpression? indexerOrSliceAccess = null;
-                bool foundApplicableIndexerOrSlice = foundApplicableLengthOrCount
-                    && TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope,
+                BoundExpression? lengthOrCountAccess = null;
+
+                bool foundApplicableLengthOrCount = false;
+                if (binder.TryBindNonExtensionLengthOrCount(syntax, receiverPlaceholder, out var instanceLengthOrCountAccess, ref useSiteInfo, implicitIndexerDiagnostics))
+                {
+                    foundApplicableLengthOrCount = true;
+                    lengthOrCountAccess = instanceLengthOrCountAccess;
+                }
+
+                if (!foundApplicableLengthOrCount)
+                {
+                    foreach (var scope in new ExtensionScopes(binder))
+                    {
+                        if (tryLookupExtensionLengthOrCount(syntax, receiverPlaceholder, binder, scope,
+                            ref actualExtensionLengthOrCountArguments, out PropertySymbol? extensionLengthOrCountProperty, ref useSiteInfo, implicitIndexerDiagnostics))
+                        {
+                            foundApplicableLengthOrCount = true;
+                            if (extensionLengthOrCountProperty is not null)
+                            {
+                                Debug.Assert(extensionLengthOrCountProperty.ContainingType.ExtensionParameter is not null);
+                                diagnostics.ReportUseSite(extensionLengthOrCountProperty, syntax);
+                                lengthOrCountAccess = binder.GetExtensionMemberAccess(syntax, receiver, extensionLengthOrCountProperty, implicitIndexerDiagnostics).MakeCompilerGenerated();
+                                lengthOrCountAccess = binder.CheckValue(lengthOrCountAccess, BindValueKind.RValue, implicitIndexerDiagnostics);
+                            }
+
+                            break;
+                        }
+                    }
+                }
+
+                bool foundApplicableIndexerOrSlice = false;
+                if (foundApplicableLengthOrCount)
+                {
+                    // Check instance scope first (scope: null), then extension scopes
+                    foundApplicableIndexerOrSlice = TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope: null,
                         ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
                         out indexerOrSliceAccess, ref argumentPlaceholders, ref useSiteInfo, implicitIndexerDiagnostics);
 
-                if (lengthOrCountProperty is not null && indexerOrSliceAccess is not null)
-                {
-                    diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
-                    Debug.Assert(lengthOrCountProperty.ContainingType.ExtensionParameter is not null);
-                    var lengthOrCountAccess = binder.GetExtensionMemberAccess(syntax, receiver, lengthOrCountProperty, implicitIndexerDiagnostics).MakeCompilerGenerated();
-                    lengthOrCountAccess = binder.CheckValue(lengthOrCountAccess, BindValueKind.RValue, implicitIndexerDiagnostics);
+                    Debug.Assert(actualExtensionIntIndexerOrSliceArguments is null);
 
+                    if (!foundApplicableIndexerOrSlice)
+                    {
+                        foreach (var scope in new ExtensionScopes(binder))
+                        {
+                            if (TryBindIntIndexerOrSliceAccessInScope(syntax, receiverPlaceholder, argKind, binder, scope,
+                                ref analyzedIntIndexerOrSliceArguments, ref actualExtensionIntIndexerOrSliceArguments,
+                                out indexerOrSliceAccess, ref argumentPlaceholders, ref useSiteInfo, implicitIndexerDiagnostics))
+                            {
+                                foundApplicableIndexerOrSlice = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (lengthOrCountAccess is not null && indexerOrSliceAccess is not null)
+                {
                     Debug.Assert(!argumentPlaceholders.IsDefault);
                     indexerAccess = binder.MakeImplicitIndexerAccess(syntax, receiver, arguments, receiverPlaceholder,
                         lengthOrCountAccess, indexerOrSliceAccess, argumentPlaceholders, argKind, implicitIndexerDiagnostics);
@@ -9318,8 +9371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 implicitIndexerDiagnostics.Free();
 
-                // We consider this scope to have an applicable implicit indexer if we found applicable candidates for both parts (the Length/Count and the this[int]/Slice).
-                // If only one parts or no parts are applicable, we'll continue searching further scopes.
+                // We consider the implicit pattern to be applicable if we found applicable candidates for both parts
+                // (the Length/Count and the this[int]/Slice) when each part is searched independently across extension scopes.
                 return foundApplicableLengthOrCount && foundApplicableIndexerOrSlice;
             }
 
@@ -10803,7 +10856,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var extensionIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                    foundApplicableExtensionIndexer = TryBindExtensionIndexer(node, expr, analyzedArguments, ref useSiteInfo, extensionIndexerDiagnostics, out fallbackIndexerAccess);
+                    foundApplicableExtensionIndexer = TryBindExtensionRealIndexer(node, expr, analyzedArguments, ref useSiteInfo, extensionIndexerDiagnostics, out fallbackIndexerAccess);
+                    if (!foundApplicableExtensionIndexer)
+                    {
+                        foundApplicableExtensionIndexer = TryBindExtensionImplicitIndexer(node, expr, analyzedArguments, ref useSiteInfo, extensionIndexerDiagnostics, out fallbackIndexerAccess);
+                    }
+
                     if (foundApplicableExtensionIndexer)
                     {
                         foundApplicableRealInstanceIndexer = true;

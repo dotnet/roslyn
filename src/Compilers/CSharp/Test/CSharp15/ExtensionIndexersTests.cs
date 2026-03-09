@@ -2112,6 +2112,80 @@ class C { }
     }
 
     [Fact]
+    public void Indexing_57()
+    {
+        // extension this[Index] is not available on base
+        var src = """
+
+class Base { }
+
+class Derived : Base
+{
+    void Main()
+    {
+        _ = base[^1];
+        _ = (base)[^1];
+        _ = this[^1];
+    }
+}
+
+static class E
+{
+    extension(Base b)
+    {
+        public int this[System.Index i] => 0;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (8,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Base'
+            //         _ = base[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[^1]").WithArguments("Base").WithLocation(8, 13),
+            // (9,14): error CS0175: Use of keyword 'base' is not valid in this context
+            //         _ = (base)[^1];
+            Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(9, 14));
+    }
+
+    [Fact]
+    public void Indexing_58()
+    {
+        // extension this[Range] is not available on base
+        var src = """
+
+class Base { }
+
+class Derived : Base
+{
+    void Main()
+    {
+        _ = base[1..^1];
+        _ = (base)[1..^1];
+        _ = this[1..^1];
+    }
+}
+
+static class E
+{
+    extension(Base b)
+    {
+        public int this[System.Range r] => 0;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (8,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Base'
+            //         _ = base[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[1..^1]").WithArguments("Base").WithLocation(8, 13),
+            // (9,14): error CS0175: Use of keyword 'base' is not valid in this context
+            //         _ = (base)[1..^1];
+            Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(9, 14));
+    }
+
+    [Fact]
     public void BadContainer_01()
     {
         // lacking static enclosing type
@@ -2317,14 +2391,14 @@ class C
         // extension Length paired with instance this[int]
         var src = """
 var c = new C();
-_ = c[^1];
+System.Console.Write(c[^1]);
 c[^2] = 10;
 
 static class E
 {
     extension(C c)
     {
-        public int Length => throw null;
+        public int Length => 3;
     }
 }
 
@@ -2332,19 +2406,14 @@ class C
 {
     public int this[int i]
     {
-        get => throw null;
-        set => throw null;
+        get { System.Console.Write($"instance.get({i}) "); return 42; }
+        set { System.Console.Write($"instance.set({i}, {value}) "); }
     }
 }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (2,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(2, 7),
-            // (3,3): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            // c[^2] = 10;
-            Diagnostic(ErrorCode.ERR_BadArgType, "^2").WithArguments("1", "System.Index", "int").WithLocation(3, 3));
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instance.get(2) 42instance.set(1, 10) "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2353,7 +2422,7 @@ class C
         // extension this[int] paired with instance Length
         var src = """
 var c = new C();
-_ = c[^1];
+System.Console.Write(c[^1]);
 c[^2] = 10;
 
 static class E
@@ -2362,25 +2431,20 @@ static class E
     {
         public int this[int i]
         {
-            get => throw null;
-            set => throw null;
+            get { System.Console.Write($"get({i}) "); return 42; }
+            set { System.Console.Write($"set({i}, {value}) "); }
         }
     }
 }
 
 class C
 {
-    public int Length => throw null;
+    public int Length => 3;
 }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
-            // (3,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // c[^2] = 10;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^2]").WithArguments("C").WithLocation(3, 1));
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42set(1, 10) "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2450,10 +2514,7 @@ namespace Outer
 class C { }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (9,17): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            //             _ = new C()[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[^1]").WithArguments("C").WithLocation(9, 17));
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -2548,7 +2609,7 @@ class C { }
     [Fact]
     public void ImplicitIndexIndexer_09()
     {
-        // Inner extension Length + inner extension this[int] is preferred over outer this[Index].
+        // Outer extension this[Index] is preferred over inner extension Length + inner extension this[int].
         var src = """
 using Outer;
 
@@ -2582,7 +2643,10 @@ namespace Outer
     {
         extension(C c)
         {
-            public int this[System.Index i] { get => throw null; }
+            public int this[System.Index i]
+            {
+                get { System.Console.Write($"real({i}) "); return 42; }
+            }
         }
     }
 }
@@ -2591,10 +2655,7 @@ class C { }
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("implicit(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using Outer;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("real(^1) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2782,7 +2843,7 @@ namespace Inner
     {
         extension(C c)
         {
-            public int Length => throw null;
+            public int Length { get { System.Console.Write("inner "); return 3; } }
         }
     }
 }
@@ -2793,7 +2854,7 @@ namespace Outer
     {
         extension(C c)
         {
-            public int Length => 3;
+            public int Length => throw null;
             public int this[int i]
             {
                 get { System.Console.Write($"outer({i}) "); return 42; }
@@ -2806,7 +2867,7 @@ class C { }
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("inner outer(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -3471,11 +3532,9 @@ namespace Outer
 class C { }
 """;
 
+        // Note: the `using` is considered used since we look for this[Index] across all scopes before looking for this[int] across all scopes
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Count get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using Outer;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Count get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -3533,6 +3592,44 @@ class C<T>
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_40()
+    {
+        // extension Length + this[int] is not available on base
+        var src = """
+
+class Base { }
+
+class Derived : Base
+{
+    void Main()
+    {
+        _ = base[^1];
+        _ = (base)[^1];
+        _ = this[^1];
+    }
+}
+
+static class E
+{
+    extension(Base b)
+    {
+        public int Length => 3;
+        public int this[int i] => 0;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (8,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Base'
+            //         _ = base[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[^1]").WithArguments("Base").WithLocation(8, 13),
+            // (9,14): error CS0175: Use of keyword 'base' is not valid in this context
+            //         _ = (base)[^1];
+            Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(9, 14));
     }
 
     [Fact]
@@ -3989,11 +4086,8 @@ namespace Outer
 class C { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        comp.VerifyEmitDiagnostics(
-            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            //             System.Console.Write(c[^1]);
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+        // Note: the `using` is considered used since we look for `this[Index]` all the way through before looking at implicit indexers
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4047,10 +4141,8 @@ namespace Outer
 class C { }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            //             System.Console.Write(c[^1]);
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+        // Note: the `using` is considered used since we look for `this[Index]` all the way through before looking at implicit indexers
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4103,10 +4195,8 @@ namespace Outer
 class C { }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            //             System.Console.Write(c[^1]);
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+        // Note: the `using` is considered used since we look for `this[Index]` all the way through before looking at implicit indexers
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4319,7 +4409,7 @@ namespace Outer
         extension(C c)
         {
             public int Length => 3;
-            public int this[int i] { get { System.Console.Write($"outer "); return 42; } }
+            public int this[int i] { get => throw null; }
         }
     }
 }
@@ -4327,8 +4417,10 @@ namespace Outer
 class C { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
     }
 
     [Fact]
@@ -4391,8 +4483,10 @@ class C { }
 class D { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
     }
 
     [Fact]
@@ -4445,10 +4539,9 @@ namespace Outer
 class C { }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe).VerifyEmitDiagnostics(
-            // (10,34): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            //             System.Console.Write(c[^1]);
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(10, 34));
+        // Note: the `using` is considered used since we look for `this[Index]` all the way through before looking at implicit indexers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4485,7 +4578,7 @@ namespace Outer
     {
         extension(C c)
         {
-            public int this[System.Index i] { get => throw null; }
+            public int this[System.Index i] { get { System.Console.Write($"outer "); return 42; } }
         }
     }
 }
@@ -4494,11 +4587,8 @@ class C { }
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("inner 42"), verify: Verification.FailsPEVerify)
-            .VerifyDiagnostics(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using Outer;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+        // Note: the `using` is considered used since we look for `this[Index]` all the way through before looking at implicit indexers
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -5096,6 +5186,186 @@ _ = c[..];
     }
 
     [Fact]
+    public void ImplicitIndexIndexer_76()
+    {
+        // receiver side effects with instance Length and extension this[int]
+        var src = """
+int count = 0;
+System.Console.Write(GetC()[^1]);
+GetC()[^2] = 10;
+GetC()[^3] += 10;
+
+C GetC()
+{
+    count++;
+    System.Console.Write($" receiver({count}) ");
+    return new C();
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+            set { System.Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+
+class C
+{
+    public int Length => 4;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("receiver(1) get(3) 42 receiver(2) set(2, 10)  receiver(3) get(1) set(1, 52)"), verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_77()
+    {
+        // object initializer with instance Length and extension this[int]
+        var src = """
+_ = new C() { [^1] = 42 };
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i]
+        {
+            set { System.Console.Write($"set({i}, {value})"); }
+        }
+    }
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("set(2, 42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_78()
+    {
+        // instance Count + extension Length + extension this[int]
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+c[^2] = 10;
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length { get { System.Console.Write("extLength "); return 100; } }
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+            set { System.Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+
+class C
+{
+    public int Count { get { System.Console.Write(" instCount "); return 100; } }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instCount get(99) 42 instCount set(98, 10)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_79()
+    {
+        // instance Length + extension Count + extension this[int]
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+c[^2] = 10;
+
+static class E
+{
+    extension(C c)
+    {
+        public int Count => throw null;
+
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+            set { System.Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+
+class C
+{
+    public int Length { get { System.Console.Write("instCount "); return 5; } }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instCount get(4) 42instCount set(3, 10) "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_80()
+    {
+        // extension Length in inner scope + extension this[int] in inner scope + extension MUnused() in outer scope
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void Main()
+        {
+            _ = new C()[^1];
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int MUnused() => throw null;
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using Outer;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+    }
+
+    [Fact]
     public void ImplicitRangeIndexer_01()
     {
         // instance implicit indexer (instance scope) takes precedence over extension this[Range] (extension scope)
@@ -5132,26 +5402,28 @@ class C
         // extension Length + instance Slice
         var src = """
 var c = new C();
-_ = c[0..^1];
+System.Console.Write(c[0..^1]);
 
 static class E
 {
     extension(C c)
     {
-        public int Length => throw null;
+        public int Length => 3;
     }
 }
 
 class C
 {
-    public int Slice(int i, int j) => throw null;
+    public int Slice(int i, int j)
+    {
+        System.Console.Write($"Slice({i}, {j}) ");
+        return 42;
+    }
 }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[0..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[0..^1]").WithArguments("C").WithLocation(2, 5));
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Slice(0, 2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -5160,26 +5432,28 @@ class C
         // extension Slice + instance Length
         var src = """
 var c = new C();
-_ = c[0..^1];
+System.Console.Write(c[0..^1]);
 
 static class E
 {
     extension(C c)
     {
-        public int Slice(int i, int j) => throw null;
+        public int Slice(int i, int j)
+        {
+            System.Console.Write($"Slice({i}, {j}) ");
+            return 42;
+        }
     }
 }
 
 class C
 {
-    public int Length => throw null;
+    public int Length => 3;
 }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[0..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[0..^1]").WithArguments("C").WithLocation(2, 5));
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Slice(0, 2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -5277,10 +5551,7 @@ namespace Outer
 class C { }
 """;
 
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (9,17): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            //             _ = new C()[0..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[0..^1]").WithArguments("C").WithLocation(9, 17));
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -5727,6 +5998,44 @@ class C { }
     }
 
     [Fact]
+    public void ImplicitRangeIndexer_22()
+    {
+        // extension Length + Slice is not available on base
+        var src = """
+
+class Base { }
+
+class Derived : Base
+{
+    void Main()
+    {
+        _ = base[1..^1];
+        _ = (base)[1..^1];
+        _ = this[1..^1];
+    }
+}
+
+static class E
+{
+    extension(Base b)
+    {
+        public int Length => 3;
+        public int Slice(int start, int length) => 0;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (8,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Base'
+            //         _ = base[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "base[1..^1]").WithArguments("Base").WithLocation(8, 13),
+            // (9,14): error CS0175: Use of keyword 'base' is not valid in this context
+            //         _ = (base)[1..^1];
+            Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(9, 14));
+    }
+
+    [Fact]
     public void ImplicitRangeIndexer_24()
     {
         // extension Length applicable to receiver, but extension Slice is not
@@ -6068,6 +6377,409 @@ namespace Outer
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_33()
+    {
+        // ambiguous inner Length extensions + ambiguous inner Slice extension, outer this[Range] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void M()
+        {
+            var c = new C();
+            System.Console.Write(c[1..^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int Count { get => throw null; }
+            public int Slice(int start, int length) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Range r] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_34()
+    {
+        // ambiguous inner Length extensions + ambiguous inner Slice extension, outer this[Range] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void M()
+        {
+            var c = new C();
+            System.Console.Write(c[1..^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int Slice(int start, int length) => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int Slice(int start, int length) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Range r] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_35()
+    {
+        // ambiguous inner Length extensions + one inner Slice extension, outer this[Range] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void M()
+        {
+            var c = new C();
+            System.Console.Write(c[1..^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int Slice(int start, int length) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Range r] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_36()
+    {
+        // inner Length extension + ambiguous inner Slice extension, outer this[Range] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[1..^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int Slice(int start, int length) => throw null;
+        }
+    }
+
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Slice(int start, int length) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Range r] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_37()
+    {
+        // inner Length extension + inner Slice extension, outer this[Range] extension
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public static class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[1..^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int Slice(int start, int length) { System.Console.Write($"inner "); return 42; }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E3
+    {
+        extension(C c)
+        {
+            public int this[System.Range r] { get { System.Console.Write($"outer "); return 42; } }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_38()
+    {
+        // receiver side effects with instance Length and extension Slice
+        var src = """
+int count = 0;
+
+System.Console.Write(GetC()[1..^1]);
+System.Console.Write($" count={count}");
+
+C GetC()
+{
+    count++;
+    System.Console.Write($"receiver({count}) ");
+    return new C();
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public string Slice(int start, int length)
+        {
+            System.Console.Write($"slice({start}, {length}) ");
+            return "ok";
+        }
+    }
+}
+
+class C
+{
+    public int Length => 5;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("receiver(1) slice(1, 3) ok count=1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_39()
+    {
+        // from-end range argument evaluation order with instance Length and extension Slice
+        var src = """
+var c = new C();
+System.Console.Write(c[^M()..^N()]);
+
+int M()
+{
+    System.Console.Write("M ");
+    return 4;
+}
+
+int N()
+{
+    System.Console.Write("N ");
+    return 1;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public string Slice(int start, int length)
+        {
+            System.Console.Write($"slice({start}, {length}) ");
+            return "ok";
+        }
+    }
+}
+
+class C
+{
+    public int Length
+    {
+        get
+        {
+            System.Console.Write("Length ");
+            return 10;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("M N Length slice(6, 3) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_40()
+    {
+        // instance Count + extension Length + extension Slice
+        var src = """
+var c = new C();
+System.Console.Write(c[0..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length { get { System.Console.Write("extLength "); return 100; } }
+        public string Slice(int start, int length) { System.Console.Write($"slice({start}, {length}) "); return "ok"; }
+    }
+}
+
+class C
+{
+    public int Count { get { System.Console.Write("instCount "); return 5; } }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instCount slice(0, 4) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_41()
+    {
+        // instance Length + extension Count + extension Slice
+        var src = """
+var c = new C();
+System.Console.Write(c[0..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Count => throw null;
+        public string Slice(int start, int length) { System.Console.Write($"slice({start}, {length}) "); return "ok"; }
+    }
+}
+
+class C
+{
+    public int Length { get { System.Console.Write("instLength "); return 5; } }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instLength slice(0, 4) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
