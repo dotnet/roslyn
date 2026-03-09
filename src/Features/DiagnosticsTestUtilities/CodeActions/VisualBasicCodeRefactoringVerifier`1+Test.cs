@@ -53,7 +53,8 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
 
             // Ensure consistent line endings across platforms.
             // NormalizeWhitespace() hardcodes \r\n, so configure the formatter to also use \r\n.
-            _sharedState.Options.Add(FormattingOptions2.NewLine, "\r\n");
+            // Use Set (not Add) so tests can override this default without a duplicate key error.
+            _sharedState.Options.Set(FormattingOptions2.NewLine, "\r\n");
         }
 
         public new string TestCode { set => base.TestCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }

@@ -55,7 +55,8 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
 
             // Ensure consistent line endings across platforms.
             // NormalizeWhitespace() hardcodes \r\n, so configure the formatter to also use \r\n.
-            _sharedState.Options.Add(FormattingOptions2.NewLine, "\r\n");
+            // Use Set (not Add) so tests can override this default without a duplicate key error.
+            _sharedState.Options.Set(FormattingOptions2.NewLine, "\r\n");
         }
 
         /// <summary>

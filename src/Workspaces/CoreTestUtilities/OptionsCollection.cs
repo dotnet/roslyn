@@ -38,11 +38,14 @@ internal sealed class OptionsCollection(string languageName) : IReadOnlyCollecti
     {
         // Can only add internally defined option whose storage is not mapped to another option:
         Debug.Assert(optionKey.Option is IOption2 { Definition.StorageMapping: null });
-        _options.Add(optionKey, value);
+        _options[optionKey] = value;
     }
 
     public void Set<T>(Option2<T> option, T value)
         => _options[new OptionKey2(option)] = value;
+
+    public void Set<T>(PerLanguageOption2<T> option, T value)
+        => _options[new OptionKey2(option, languageName)] = value;
 
     public void Add<T>(Option2<T> option, T value)
         => Add(new OptionKey2(option), value);
@@ -72,7 +75,7 @@ internal sealed class OptionsCollection(string languageName) : IReadOnlyCollecti
             return;
 
         foreach (var (key, value) in options)
-            _options.Add(key, value);
+            _options[key] = value;
     }
 
     public IEnumerator<KeyValuePair<OptionKey2, object?>> GetEnumerator()

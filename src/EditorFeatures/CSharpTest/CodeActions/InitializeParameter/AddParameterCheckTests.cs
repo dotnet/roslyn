@@ -2077,42 +2077,46 @@ public sealed class AddParameterCheckTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19956")]
-    public Task TestNoBlock()
-        => new VerifyCS.Test
+    public async Task TestNoBlock()
+    {
+        var test = new VerifyCS.Test
         {
             TestCode = """
-            using System;
+                using System;
 
-            class C
-            {
-                public C(string s[||])
-            }
-            """,
+                class C
+                {
+                    public C(string s[||])
+                }
+                """,
             ExpectedDiagnostics = {
                 // /0/Test0.cs(6,12): error CS0501: 'C.C(string)' must declare a body because it is not marked abstract, extern, or partial
                 DiagnosticResult.CompilerError("CS0501").WithLocation(5, 12).WithArguments("C.C(string)"),
                 // /0/Test0.cs(6,23): error CS1002: ; expected
                 DiagnosticResult.CompilerError("CS1002").WithLocation(5, 23),
             },
-            FixedState =
-            {
-                Sources = { """
-                    using System;
+            FixedCode = """
+                using System;
 
-                    class C
+                class C
+                {
+                    public C(string s)
                     {
-                        public C(string s)
+                        if (s is null)
                         {
-                            if (s is null)
-                            {
-                                throw new ArgumentNullException(nameof(s));
-                            }
+                            throw new ArgumentNullException(nameof(s));
                         }
                     }
-                    """ },
-                InheritanceMode = StateInheritanceMode.Explicit
-            }
-        }.RunAsync();
+                }
+                """,
+        };
+        test.FixedState.InheritanceMode = StateInheritanceMode.Explicit;
+        // Explicit mode doesn't inherit the editorconfig that Apply() adds to TestState.
+        // Add the same generated config to FixedState so the framework's document count validation passes.
+        var editorConfig = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig("cs", null, test.Options);
+        test.FixedState.AnalyzerConfigFiles.Add(("/.editorconfig", editorConfig!));
+        await test.RunAsync();
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
     public Task TestInArrowExpression1()

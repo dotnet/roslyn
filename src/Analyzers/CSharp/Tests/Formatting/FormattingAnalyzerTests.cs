@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -265,22 +266,24 @@ public sealed class FormattingAnalyzerTests
                 }
             }
             """.ReplaceLineEndings();
-        await new Verify.Test
+        var test = new Verify.Test
         {
+            // Use EditorConfig property (not AnalyzerConfigFiles) so the test's settings
+            // are merged into the same generated .editorconfig as the verifier's options.
+            EditorConfig = """
+                root = true
+                [*.cs]
+                csharp_new_line_before_open_brace = methods
+                """,
             TestState =
             {
                 Sources = { testCode },
-                AnalyzerConfigFiles =
-                {
-                    ("/.editorconfig", """
-                    root = true
-                    [*.cs]
-                    csharp_new_line_before_open_brace = methods
-                    """),
-                },
             },
             FixedState = { Sources = { fixedCode } },
-        }.RunAsync();
+        };
+        // Override the default end_of_line = crlf to match this test's .ReplaceLineEndings()
+        test.Options.Set(FormattingOptions2.NewLine, Environment.NewLine);
+        await test.RunAsync();
     }
 
     [Fact]
