@@ -904,7 +904,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
         <source>An expression tree may not contain a union conversion.</source>
-        <target state="new">An expression tree may not contain a union conversion.</target>
+        <target state="translated">Strom výrazů nesmí obsahovat převod typu union.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1244,12 +1244,12 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
         <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
-        <target state="new">Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</target>
+        <target state="translated">Explicitně deklarované veřejné konstruktory s jedním parametrem nejsou v deklaraci union povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceFieldInUnion">
         <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
-        <target state="new">Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</target>
+        <target state="translated">Pole instance, automatické vlastnosti ani události podobné polím nejsou v deklaraci union povoleny.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
@@ -1484,7 +1484,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
-        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <target state="translated">Typ {0} nelze převést na object pomocí implicitní referenční nebo boxing převod.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
@@ -2699,17 +2699,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</target>
+        <target state="translated">Konstruktor deklarovaný v deklaraci union musí obsahovat inicializátor this, který volá syntetizovaný nebo explicitně deklarovaný konstruktor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
         <source>A union declaration must specify at least one case type.</source>
-        <target state="new">A union declaration must specify at least one case type.</target>
+        <target state="translated">Deklarace typu union musí specifikovat aspoň jeden typ případu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionMatchingWrongPattern">
         <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</target>
+        <target state="translated">Výraz typu {0} nelze zpracovat tímto vzorem; další chyby viz toto umístění.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -3129,7 +3129,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnions">
         <source>unions</source>
-        <target state="new">unions</target>
+        <target state="translated">sjednocení</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -7202,7 +7202,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
-        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</target>
+        <target state="translated">Částečné deklarace {0} musí být jen třídy, jen třídy záznamů, jen struktury, jen sjednocení, jen struktury záznamů nebo jen rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

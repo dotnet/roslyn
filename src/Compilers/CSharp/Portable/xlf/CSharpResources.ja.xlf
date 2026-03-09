@@ -904,7 +904,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
         <source>An expression tree may not contain a union conversion.</source>
-        <target state="new">An expression tree may not contain a union conversion.</target>
+        <target state="translated">式のツリーは、共用体変換を含むことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1244,12 +1244,12 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
         <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
-        <target state="new">Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</target>
+        <target state="translated">単一のパラメーターを持つ明示的に宣言されたパブリック コンストラクターは、'union' 宣言では許可されていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceFieldInUnion">
         <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
-        <target state="new">Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</target>
+        <target state="translated">インスタンス フィールド、自動プロパティ、またはフィールドに似たイベントは、'union' 宣言では許可されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
@@ -1484,7 +1484,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
-        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <target state="translated">暗黙的な参照またはボックス化変換を使用して型 '{0}' を 'object' に変換することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
@@ -2699,17 +2699,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</target>
+        <target state="translated">'union' 宣言で宣言されたコンストラクターには、合成コンストラクターまたは明示的に宣言されたコンストラクターを呼び出す 'this' 初期化子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
         <source>A union declaration must specify at least one case type.</source>
-        <target state="new">A union declaration must specify at least one case type.</target>
+        <target state="translated">共用体宣言では、少なくとも 1 つのケース型を指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionMatchingWrongPattern">
         <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</target>
+        <target state="translated">型 '{0}' の式は、このパターンでは処理できません。この場所で他のエラーを参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -3129,7 +3129,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnions">
         <source>unions</source>
-        <target state="new">unions</target>
+        <target state="translated">共用体</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -7202,7 +7202,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
-        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</target>
+        <target state="translated">'{0}' の部分宣言は、すべてのクラス、すべてのレコード クラス、すべての構造体、すべての共用体、すべてのレコード構造体、またはすべてのインターフェイスである必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
