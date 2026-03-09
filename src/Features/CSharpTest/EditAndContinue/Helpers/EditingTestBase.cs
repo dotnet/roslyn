@@ -253,7 +253,7 @@ public abstract class EditingTestBase : CSharpTestBase
         => new(oldSource.NormalizePlatformLineEndings("\r\n"), newSource.NormalizePlatformLineEndings("\r\n"), source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
 
     internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
-        => new(oldSource, newSource);
+        => new(oldSource.NormalizePlatformLineEndings("\r\n"), newSource.NormalizePlatformLineEndings("\r\n"));
 
     internal static void VerifyPreserveLocalVariables(EditScriptDescription edits, bool preserveLocalVariables)
     {

@@ -39,12 +39,6 @@ public abstract class AbstractSnippetProviderTests
             AddProject("TestProject", "TestAssembly", LanguageName)
             .WithMetadataReferences(metadataReferences);
 
-        // NormalizeWhitespace() used by snippet providers always produces \r\n line endings (DefaultEOL),
-        // which may differ from the platform-native line endings in markup strings.
-        // Normalize everything to \r\n for consistent positions and text comparison.
-        markupBeforeCommit = markupBeforeCommit.NormalizePlatformLineEndings("\r\n");
-        markupAfterCommit = markupAfterCommit.NormalizePlatformLineEndings("\r\n");
-
         TestFileMarkupParser.GetPosition(markupBeforeCommit, out markupBeforeCommit, out var snippetRequestPosition);
         var document = project.AddDocument(
             "TestDocument",
