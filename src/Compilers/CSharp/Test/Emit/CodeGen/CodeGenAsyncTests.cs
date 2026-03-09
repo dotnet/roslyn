@@ -8709,6 +8709,65 @@ static class Test1
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82274")]
+        public void RuntimeAsync_SequencePoints_CustomAwaiterBranch()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task TaskReturningMethodAsync(bool syncReturn)
+                    {
+                        if (syncReturn)
+                            return;
+
+                        await Task.Yield();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("TaskReturningMethodAsync", "0x2e") });
+            verifier.VerifyIL("Program.TaskReturningMethodAsync(bool)", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  1
+                  .locals init (bool V_0,
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                                System.Runtime.CompilerServices.YieldAwaitable V_2)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: if (syncReturn)
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  // sequence point: <hidden>
+                  IL_0003:  ldloc.0
+                  IL_0004:  brfalse.s  IL_0008
+                  // sequence point: return;
+                  IL_0006:  br.s       IL_002e
+                  // sequence point: await Task.Yield();
+                  IL_0008:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_000d:  stloc.2
+                  IL_000e:  ldloca.s   V_2
+                  IL_0010:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0015:  stloc.1
+                  // sequence point: <hidden>
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_001d:  brtrue.s   IL_0026
+                  IL_001f:  ldloc.1
+                  IL_0020:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0025:  nop
+                  IL_0026:  ldloca.s   V_1
+                  IL_0028:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_002d:  nop
+                  // sequence point: }
+                  IL_002e:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
         [CombinatorialData]
         public void RuntimeAsync_AwaitTaskWhenAll_AsyncLambdaInSelect_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
@@ -9495,6 +9554,7 @@ static class Test1
                   IL_0001:  newobj     "C..ctor()"
                   IL_0006:  call       "C.Awaiter C.GetAwaiter()"
                   IL_000b:  stloc.s    V_4
+                  // sequence point: <hidden>
                   IL_000d:  ldloc.s    V_4
                   IL_000f:  callvirt   "bool C.Awaiter.IsCompleted.get"
                   IL_0014:  brtrue.s   IL_001e
@@ -9519,6 +9579,7 @@ static class Test1
                   IL_0033:  newobj     "C..ctor()"
                   IL_0038:  call       "C.Awaiter C.GetAwaiter()"
                   IL_003d:  stloc.s    V_6
+                  // sequence point: <hidden>
                   IL_003f:  ldloc.s    V_6
                   IL_0041:  callvirt   "bool C.Awaiter.IsCompleted.get"
                   IL_0046:  brtrue.s   IL_0050
