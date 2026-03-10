@@ -31,21 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, bool forceCheckConstraints = false)
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
         {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, static node => node.GetLocation(), forceCheckConstraints);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, static node => node.GetLocation());
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location, bool forceCheckConstraints = false)
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location)
         {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l, forceCheckConstraints);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l);
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool forceCheckConstraints = false)
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
         {
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, arg, location, forConstructorConstraint: false);
 
-            if (forceCheckConstraints || ShouldCheckConstraints)
+            if (ShouldCheckConstraints)
             {
                 switch (symbol)
                 {
@@ -121,7 +121,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag, Symbol, SyntaxNodeOrToken)"/> for the <paramref name="symbol"/> instead and add corresponding tests.
         /// </summary>
         [Conditional("DEBUG")]
-        internal static void AssertNotUnsafeMemberAccess(Symbol symbol)
+        internal void AssertNotUnsafeMemberAccess(Symbol symbol)
+        {
+            AssertNotUnsafeMemberAccess(symbol, ShouldCheckConstraints);
+        }
+
+        /// <inheritdoc cref="AssertNotUnsafeMemberAccess(Symbol)"/>
+        [Conditional("DEBUG")]
+        internal static void AssertNotUnsafeMemberAccess(Symbol symbol, bool shouldCheckConstraints = true)
         {
             // Resolving `symbol.ToString()` can lead to errors in some cases
             // and `Debug.Assert` on .NET Framework evaluates all interpolated values eagerly,
@@ -137,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Fail($"Symbol {symbol} has {nameof(symbol.Kind)}={symbol.Kind}.");
             }
 
-            if (symbol is NamedTypeSymbol { TypeParameters.Length: > 0 })
+            if (shouldCheckConstraints && symbol is NamedTypeSymbol { TypeParameters.Length: > 0 })
             {
                 Debug.Fail($"Symbol {symbol} is a generic type.");
             }
