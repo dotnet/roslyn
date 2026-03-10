@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString;
@@ -170,7 +171,9 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task VerbatimStringWithNewLine()
-        => TestInRegularAndScriptAsync("""
+    {
+        var newlineEscape = Environment.NewLine.Replace("\r", @"\r").Replace("\n", @"\n");
+        return TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -180,15 +183,16 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """,
-            """
+            $$"""
             class Test
             {
                 void Method()
                 {
-                    var v = "a\r\nb";
+                    var v = "a{{newlineEscape}}b";
                 }
             }
             """);
+    }
 
     [Fact]
     public Task RegularStringWithEscapedNull()
@@ -268,7 +272,9 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
 
     [Fact]
     public Task DoNotEscapeCurlyBracesInVerbatimString()
-        => TestInRegularAndScriptAsync("""
+    {
+        var newlineEscape = Environment.NewLine.Replace("\r", @"\r").Replace("\n", @"\n");
+        return TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -278,13 +284,14 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """,
-            """
+            $$"""
             class Test
             {
                 void Method()
                 {
-                    var v = "a\r\n{1}";
+                    var v = "a{{newlineEscape}}{1}";
                 }
             }
             """);
+    }
 }
