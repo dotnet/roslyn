@@ -8516,7 +8516,7 @@ struct S
 
         [Theory]
         [CombinatorialData]
-        public void SpillAssignmentToThisStruct_02(bool suppressRuntimeAsync)
+        public void SpillAssignmentToThisStruct_02(bool disableRuntimeAsync)
         {
             var source = $$"""
                 using System;
@@ -8544,7 +8544,7 @@ struct S
                 {
                     extension<T>(T t) where T : I
                     {
-                        {{(suppressRuntimeAsync ? "[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]" : "")}}
+                        {{(disableRuntimeAsync ? "[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]" : "")}}
                         public async Task M()
                         {
                             t.P = 1;
@@ -8552,16 +8552,16 @@ struct S
                         }
                     }
                 }
-                """ + RuntimeAsyncMethodGenerationAttributeDefinition;
+                """;
 
             var expectedOutput = "0";
-            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompileAndVerify([source, RuntimeAsyncMethodGenerationAttributeDefinition], expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify([source, RuntimeAsyncMethodGenerationAttributeDefinition], expectedOutput: expectedOutput, options: TestOptions.DebugExe);
 
-            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
-                ILVerifyMessage = suppressRuntimeAsync
+                ILVerifyMessage = disableRuntimeAsync
                     ? """
                     [Main]: Return value missing on the stack. { Offset = 0x1f }
                     """
@@ -8572,18 +8572,18 @@ struct S
             });
 
             verifier.VerifyDiagnostics();
-            if (!suppressRuntimeAsync)
+            if (!disableRuntimeAsync)
             {
 
                 verifier.VerifyIL("Extensions.M<T>(this T)", """
                     {
-                    // Code size       15 (0xf)
-                    .maxstack  2
-                    IL_0000:  ldarga.s   V_0
-                    IL_0002:  ldc.i4.1
-                    IL_0003:  constrained. "T"
-                    IL_0009:  callvirt   "void I.P.set"
-                    IL_000e:  ret
+                      // Code size       15 (0xf)
+                      .maxstack  2
+                      IL_0000:  ldarga.s   V_0
+                      IL_0002:  ldc.i4.1
+                      IL_0003:  constrained. "T"
+                      IL_0009:  callvirt   "void I.P.set"
+                      IL_000e:  ret
                     }
                     """);
             }

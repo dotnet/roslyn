@@ -357,8 +357,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
             Debug.Assert(method.IsDefinition);
+            Debug.Assert(method is not Symbols.Metadata.PE.PEMethodSymbol);
 
-            var runtimeAsyncEnabledInMethod = method.IsRuntimeAsyncEnabledInMethod switch
+            var runtimeAsyncEnabledInMethod = method.IsRuntimeAsyncExplicitlyControlledInMethod switch
             {
                 ThreeState.True => true,
                 ThreeState.False => false,

@@ -214,9 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal sealed override ThreeState IsRuntimeAsyncEnabledInMethod =>
+        internal sealed override ThreeState IsRuntimeAsyncExplicitlyControlledInMethod =>
             InheritsBaseMethodAttributes
-                ? BaseMethod.IsRuntimeAsyncEnabledInMethod
+                ? BaseMethod.IsRuntimeAsyncExplicitlyControlledInMethod
                 : ThreeState.Unknown;
     }
 }

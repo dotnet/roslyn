@@ -98,7 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasSpecialNameAttribute { get; }
 
-        internal abstract ThreeState IsRuntimeAsyncEnabledInMethod { get; }
+        /// <summary>
+        /// Returns the method-level runtime async setting from
+        /// <c>RuntimeAsyncMethodGenerationAttribute</c>, or <see cref="ThreeState.Unknown"/>
+        /// if no setting was specified.
+        /// </summary>
+        internal abstract ThreeState IsRuntimeAsyncExplicitlyControlledInMethod { get; }
 
         /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
