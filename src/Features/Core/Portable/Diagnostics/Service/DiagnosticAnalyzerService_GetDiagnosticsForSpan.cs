@@ -303,7 +303,7 @@ internal sealed partial class DiagnosticAnalyzerService
         static async Task ComputeDocumentDiagnosticsAsync(
             DiagnosticAnalyzerService service,
             TextDocument document,
-            CompilationWithAnalyzers compilationWithAnalyzers,
+            CompilationWithAnalyzers? compilationWithAnalyzers,
             bool logPerformanceInfo,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind,
