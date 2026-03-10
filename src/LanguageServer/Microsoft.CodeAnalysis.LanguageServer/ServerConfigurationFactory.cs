@@ -54,6 +54,7 @@ internal sealed record class ServerConfiguration(
     bool UseStdIo,
     string? ExtensionLogDirectory,
     bool AutoLoadProjects,
+    bool UseVSCodeSettings,
     SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
     int? ClientProcessId);
 

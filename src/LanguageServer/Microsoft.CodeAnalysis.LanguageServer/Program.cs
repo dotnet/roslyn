@@ -269,6 +269,13 @@ static RootCommand CreateCommand()
         DefaultValueFactory = _ => false,
     };
 
+    var useVSCodeSettingsOption = new Option<bool>("--useVSCodeSettings")
+    {
+        Description = "Use per-folder VS Code settings from .vscode/settings.json when auto loading projects.",
+        Required = false,
+        DefaultValueFactory = _ => false,
+    };
+
     var sourceGeneratorExecutionOption = new Option<SourceGeneratorExecutionPreference>("--sourceGeneratorExecutionPreference")
     {
         Description = "Controls when source generators are executed.",
@@ -299,6 +306,7 @@ static RootCommand CreateCommand()
         serverPipeNameOption,
         useStdIoOption,
         autoLoadProjectsOption,
+        useVSCodeSettingsOption,
         sourceGeneratorExecutionOption,
         clientProcessIdOption,
     };
@@ -317,6 +325,7 @@ static RootCommand CreateCommand()
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
         var useStdIo = parseResult.GetValue(useStdIoOption);
         var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
+        var useVSCodeSettings = parseResult.GetValue(useVSCodeSettingsOption);
         var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
         var clientProcessId = parseResult.GetValue(clientProcessIdOption);
 
@@ -333,6 +342,7 @@ static RootCommand CreateCommand()
             UseStdIo: useStdIo,
             ExtensionLogDirectory: extensionLogDirectory,
             AutoLoadProjects: autoLoadProjects,
+            UseVSCodeSettings: useVSCodeSettings,
             SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
             ClientProcessId: clientProcessId);
 

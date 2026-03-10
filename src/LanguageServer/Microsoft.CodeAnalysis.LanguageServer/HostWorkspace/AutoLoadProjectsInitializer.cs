@@ -46,6 +46,17 @@ internal sealed class AutoLoadProjectsInitializer(
             return;
         }
 
+        if (serverConfiguration.UseVSCodeSettings)
+        {
+            var solutionPath = TryGetSolutionToLoadFromVSCodeSettings(workspaceFolders, _logger);
+            if (solutionPath is not null)
+            {
+                _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
+                projectSystem.OpenSolutionAsync(solutionPath).ReportNonFatalErrorAsync().Forget();
+                return;
+            }
+        }
+
         // If there's a single workspace folder with a single solution file at the root, load that solution.
         if (workspaceFolders.Length == 1)
         {
@@ -116,5 +127,36 @@ internal sealed class AutoLoadProjectsInitializer(
                     }
                 }, CancellationToken.None).Forget();
         }
+    }
+
+    internal static string? TryGetSolutionToLoadFromVSCodeSettings(WorkspaceFolder[] workspaceFolders, ILogger logger)
+    {
+        Contract.ThrowIfTrue(workspaceFolders.Length == 0);
+
+        for (var i = 0; i < workspaceFolders.Length; i++)
+        {
+            var folder = workspaceFolders[i];
+            if (folder.DocumentUri.ParsedUri is null || folder.DocumentUri.ParsedUri.Scheme != Uri.UriSchemeFile)
+            {
+                logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping VS Code settings lookup.", folder.DocumentUri);
+                continue;
+            }
+
+            var folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.ParsedUri);
+            if (!Directory.Exists(folderPath))
+            {
+                logger.LogWarning("Workspace folder path {FolderPath} does not exist, skipping VS Code settings lookup.", folderPath);
+                continue;
+            }
+
+            var settings = VSCodeSettings.Read(Path.Combine(folderPath, ".vscode", "settings.json"), logger);
+            var solutionPath = settings.ResolveDefaultSolutionPath(folderPath);
+            if (solutionPath is not null)
+            {
+                return solutionPath;
+            }
+        }
+
+        return null;
     }
 }

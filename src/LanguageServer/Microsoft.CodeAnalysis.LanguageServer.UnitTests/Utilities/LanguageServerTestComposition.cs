@@ -30,6 +30,7 @@ internal sealed class LanguageServerTestComposition
             ServerPipeName: null,
             UseStdIo: false,
             AutoLoadProjects: false,
+            UseVSCodeSettings: false,
             SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
             ClientProcessId: null);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
