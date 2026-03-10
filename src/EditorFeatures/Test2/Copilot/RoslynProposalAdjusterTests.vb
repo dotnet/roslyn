@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim tuple = Await service.TryAdjustProposalAsync(
-                    allowableAdjustments:=fixers, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), lineFormattingOptions:=Nothing, CancellationToken.None)
 
                 Dim adjustedChanges = tuple.TextChanges
                 Dim format = tuple.Format
@@ -607,7 +607,7 @@ class C
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim result = Await service.TryAdjustProposalAsync(
-                    allowableAdjustments:=fixers, originalDocument, changes, CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=Nothing, CancellationToken.None)
 
                 ' The adjuster should have made changes (at minimum, adding "using System;").
                 Assert.False(result.TextChanges.IsDefaultOrEmpty)
@@ -673,7 +673,7 @@ class C
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim result = Await service.TryAdjustProposalAsync(
-                    allowableAdjustments:=fixers, originalDocument, changes, CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=Nothing, CancellationToken.None)
 
                 Assert.False(result.TextChanges.IsDefaultOrEmpty)
 
@@ -722,6 +722,51 @@ class C
                         Assert.Equal(expectedEndings(i), actualEndings(i))
                     Next
                 Next
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_LineFormattingOptions_OverridesDocumentNewLine() As Task
+            ' A CRLF document, but we pass LineFormattingOptions with LF as the newline.
+            Dim crlf = vbCrLf
+            Dim lf = vbLf
+
+            Dim originalCode =
+                "class C" & crlf &
+                "{" & crlf &
+                "    void M()" & crlf &
+                "    {" & crlf &
+                "    }" & crlf &
+                "}"
+
+            Dim proposalText = "Console.WriteLine(1);"
+
+            Using workspace = EditorTestWorkspace.CreateCSharp(
+                    originalCode, composition:=s_composition)
+                Dim documentId = workspace.Documents.First().Id
+                Dim originalDocument = workspace.CurrentSolution.GetDocument(documentId)
+
+                Dim insertPos = originalCode.IndexOf("    {" & crlf, originalCode.IndexOf("void M()")) + ("    {" & crlf).Length
+                Dim changes = CopilotUtilities.TryNormalizeCopilotTextChanges(
+                    {New TextChange(New TextSpan(insertPos, 0), "        " & proposalText & crlf)})
+
+                ' Pass LineFormattingOptions that say the file uses LF.
+                Dim lfOptions = New LineFormattingOptions() With {.NewLine = lf}
+
+                Dim fixers = {
+                    ProposalAdjusterKinds.AddMissingImports,
+                    ProposalAdjusterKinds.FormatCode
+                }.ToImmutableHashSet()
+
+                Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
+                Dim result = Await service.TryAdjustProposalAsync(
+                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=lfOptions, CancellationToken.None)
+
+                Assert.False(result.TextChanges.IsDefaultOrEmpty)
+
+                Dim usingChange = result.TextChanges.FirstOrDefault(
+                    Function(c) c.NewText IsNot Nothing AndAlso c.NewText.Contains("using System"))
+                Assert.NotNull(usingChange.NewText)
             End Using
         End Function
 
