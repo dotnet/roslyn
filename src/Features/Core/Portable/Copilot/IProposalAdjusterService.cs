@@ -153,9 +153,47 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         // Get the final set of changes between the original document and the new document.
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
-        var totalChanges = allChanges.AsImmutableOrEmpty();
+        var totalChanges = FixLineEndingBoundaries(oldText, allChanges.AsImmutableOrEmpty());
 
         return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
+    }
+
+    private static ImmutableArray<TextChange> FixLineEndingBoundaries(
+        SourceText originalText, ImmutableArray<TextChange> changes)
+    {
+        if (changes.IsDefaultOrEmpty)
+            return changes;
+
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
+        var anyFixed = false;
+
+        foreach (var change in changes)
+        {
+            var span = change.Span;
+            var newText = change.NewText ?? "";
+
+            // Check: replacement starts with \n and preceding char is \r → expand span to include the \r.
+            if (newText.Length > 0 && newText[0] == '\n' &&
+                span.Start > 0 && originalText[span.Start - 1] == '\r')
+            {
+                span = new TextSpan(span.Start - 1, span.Length + 1);
+                newText = "\r" + newText;
+                anyFixed = true;
+            }
+
+            // Check: replacement ends with \r and following char is \n → expand span to include the \n.
+            if (newText.Length > 0 && newText[^1] == '\r' &&
+                span.End < originalText.Length && originalText[span.End] == '\n')
+            {
+                span = new TextSpan(span.Start, span.Length + 1);
+                newText += "\n";
+                anyFixed = true;
+            }
+
+            result.Add(anyFixed ? new TextChange(span, newText) : change);
+        }
+
+        return anyFixed ? result.ToImmutableAndClear() : changes;
     }
 
     private static async Task<Document> TryGetAddImportTextChangesAsync(
