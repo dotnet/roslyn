@@ -123,7 +123,7 @@ internal class NuGetPublish
                 var result = await PublishPackageAsync(packageId, version, skipDuplicateFlag);
                 if (result.ExitCode != 0)
                 {
-                    logger.LogError("Failed to publish '{PackageId}'", packageId);
+                    logger.LogError("Failed to publish '{PackageId}': {Message}", packageId, result.Output);
                 }
                 else
                 {
