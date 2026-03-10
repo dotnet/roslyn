@@ -65,10 +65,18 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         internal OptionsCollection Options => _sharedState.Options;
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string TestCode { set => base.TestCode = value; }
+        public new string TestCode { set => base.TestCode = NormalizeToCRLF(value); }
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string FixedCode { set => base.FixedCode = value; }
+        public new string FixedCode { set => base.FixedCode = NormalizeToCRLF(value); }
+
+        /// <summary>
+        /// Normalizes line endings to CRLF (\r\n) to match the end_of_line=crlf editorconfig setting
+        /// in <see cref="CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig"/>. This ensures consistent
+        /// test behavior across Windows and Linux where raw string line endings differ.
+        /// </summary>
+        private static string NormalizeToCRLF(string value)
+            => value.Replace("\r\n", "\n").Replace("\n", "\r\n");
 
         /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
         public string? EditorConfig

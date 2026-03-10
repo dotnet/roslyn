@@ -53,9 +53,17 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
             _sharedState = new SharedVerifierState(this, DefaultFileExt);
         }
 
-        public new string TestCode { set => base.TestCode = value; }
+        public new string TestCode { set => base.TestCode = NormalizeToCRLF(value); }
 
-        public new string FixedCode { set => base.FixedCode = value; }
+        public new string FixedCode { set => base.FixedCode = NormalizeToCRLF(value); }
+
+        /// <summary>
+        /// Normalizes line endings to CRLF (\r\n) to match the end_of_line=crlf editorconfig setting
+        /// in <see cref="CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig"/>. This ensures consistent
+        /// test behavior across Windows and Linux where raw string line endings differ.
+        /// </summary>
+        private static string NormalizeToCRLF(string value)
+            => value.Replace("\r\n", "\n").Replace("\n", "\r\n");
 
         /// <summary>
         /// Gets or sets the language version to use for the test. The default value is

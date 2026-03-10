@@ -641,8 +641,18 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             {
                 var actual = annotatedItems[i].Span;
                 var expected = expectedSpans[i];
-                Assert.Equal(expected, actual);
+
+                // Normalize positions to account for line ending differences (\r\n vs \n)
+                // between the expected markup and actual code action output.
+                Assert.Equal(NormalizeSpan(expected, expectedText), NormalizeSpan(actual, actualText));
             }
+        }
+
+        static TextSpan NormalizeSpan(TextSpan span, string text)
+        {
+            var start = span.Start - text[..span.Start].Count(c => c == '\r');
+            var end = span.End - text[..span.End].Count(c => c == '\r');
+            return TextSpan.FromBounds(start, end);
         }
     }
 

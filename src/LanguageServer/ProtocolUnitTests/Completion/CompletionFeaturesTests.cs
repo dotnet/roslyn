@@ -1063,7 +1063,9 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
 
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
-        Assert.Equal(268, resolvedItem.Command.Arguments[3]);
+        // The caret position depends on the document's line ending length (9 newlines precede this position)
+        var expectedCaretPosition = 259 + 9 * (Environment.NewLine.Length - 1);
+        Assert.Equal(expectedCaretPosition, resolvedItem.Command.Arguments[3]);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6495")]

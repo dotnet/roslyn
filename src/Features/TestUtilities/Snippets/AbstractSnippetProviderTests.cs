@@ -50,11 +50,15 @@ public abstract class AbstractSnippetProviderTests
             SourceText.From(markupBeforeCommit, Encoding.UTF8, SourceHashAlgorithms.Default),
             filePath: Path.Combine(TempRoot.Root, "TestDocument"));
 
+        // Always set end_of_line = crlf so the Formatter produces \r\n consistent with NormalizeWhitespace.
+        var fullEditorConfig = "root = true\n\n[*]\nend_of_line = crlf\n";
         if (editorconfig is not null)
+            fullEditorConfig += editorconfig;
+
         {
             var editorConfigDoc = document.Project.AddAnalyzerConfigDocument(
                 ".editorconfig",
-                SourceText.From(editorconfig, Encoding.UTF8, SourceHashAlgorithms.Default),
+                SourceText.From(fullEditorConfig, Encoding.UTF8, SourceHashAlgorithms.Default),
                 filePath: Path.Combine(TempRoot.Root, ".editorconfig"));
 
             document = editorConfigDoc.Project.GetDocument(document.Id)!;
