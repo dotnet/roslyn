@@ -161,6 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Lazily caches SyntaxTrees by their xxHash128 checksum. Used to look up the syntax tree referenced by an interceptor.</summary>
         private ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> _contentHashToSyntaxTree;
 
+        /// <summary>
+        /// Lazily caches diagnostics for method body compilations for a given SyntaxTree and TextSpan
+        /// </summary>
+        private ImmutableArray<MethodBodyDiagnostics> _methodBodiesInTreeDiagnostics = ImmutableArray<MethodBodyDiagnostics>.Empty;
+
         internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableUsedInForbiddenZoneType
         {
             get
@@ -3181,8 +3186,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private struct MethodBodyDiagnostics
+        {
+            public SyntaxTree? Tree { get; }
+            public TextSpan? Span { get; }
+            public ImmutableArray<Diagnostic> Diagnostics { get; }
+
+            public MethodBodyDiagnostics(SyntaxTree? tree, TextSpan? span, ImmutableArray<Diagnostic> diagnostics)
+            {
+                Tree = tree;
+                Span = span;
+                Diagnostics = diagnostics;
+            }
+        }
+
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
+            var cachedDiagnostics = _methodBodiesInTreeDiagnostics;
+            foreach (var methodBodyDiagnostics in cachedDiagnostics)
+            {
+                if (methodBodyDiagnostics.Tree == tree && methodBodyDiagnostics.Span == span)
+                {
+                    return methodBodyDiagnostics.Diagnostics;
+                }
+            }
+
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             Debug.Assert(bindingDiagnostics.DiagnosticBag is { });
 
@@ -3260,7 +3288,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
             }
 
-            return bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
+            var diagnostics = bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
+
+            _methodBodiesInTreeDiagnostics = cachedDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
+
+            return diagnostics;
 
             void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
             {
