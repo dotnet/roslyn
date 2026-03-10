@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,8 +91,15 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
         protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             _sharedState.Apply();
-            NormalizeSourceFileEndingsToCRLF(TestState);
-            NormalizeSourceFileEndingsToCRLF(FixedState);
+
+            // Skip normalization if the test explicitly sets FormattingOptions2.NewLine (e.g. to "\n")
+            // since it intentionally tests specific line ending behavior.
+            if (!Options.Any(kvp => ReferenceEquals(kvp.Key.Option, FormattingOptions2.NewLine)))
+            {
+                NormalizeSourceFileEndingsToCRLF(TestState);
+                NormalizeSourceFileEndingsToCRLF(FixedState);
+            }
+
             await base.RunImplAsync(cancellationToken);
         }
 
