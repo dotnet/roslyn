@@ -3202,6 +3202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
+            const int MaxCachedMethodBodiesInTreeDiagnostics = 10;
+
             var cachedDiagnostics = _methodBodiesInTreeDiagnostics;
             foreach (var methodBodyDiagnostics in cachedDiagnostics)
             {
@@ -3288,8 +3290,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
             }
 
+            var methodBodiesInTreeDiagnostics = cachedDiagnostics;
+            if (methodBodiesInTreeDiagnostics.Length >= MaxCachedMethodBodiesInTreeDiagnostics)
+            {
+                // Cache is full, evict the first half
+                var halfSize = MaxCachedMethodBodiesInTreeDiagnostics / 2;
+                methodBodiesInTreeDiagnostics = methodBodiesInTreeDiagnostics.RemoveRange(0, halfSize);
+            }
+
             var diagnostics = bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
-            var methodBodiesInTreeDiagnostics = cachedDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
+            methodBodiesInTreeDiagnostics = methodBodiesInTreeDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
 
             // Only update the cache if it hasn't changed since we read it, otherwise we might lose diagnostics from another thread that is doing the same thing.
             ImmutableInterlocked.InterlockedCompareExchange(ref _methodBodiesInTreeDiagnostics, methodBodiesInTreeDiagnostics, cachedDiagnostics);
