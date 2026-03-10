@@ -168,7 +168,7 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
                 """"
             """"", mutatingLspWorkspace);
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
     public Task OnAutoInsert_RawString_GrowDelimitersWhenEndExists_Interpolated(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpectedRawString("\"",
             """""
