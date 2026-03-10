@@ -43,7 +43,12 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
     /// <summary>
     /// This dictionary maps ProjectIds to a set of DiagnosticIds.
     /// </summary>
-    private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _projectIdToDiagnosticIdsCache = [];
+    /// <remarks>
+    /// A project id being in the map means we are tracking changes for this project
+    /// and will update diagnostic ids when AnalyzerReferences change. A null value
+    /// means that we haven't computed the diagnostic ids for this project id yet.
+    /// </remarks>
+    private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>?> _projectIdToDiagnosticIdsCache = [];
     private readonly AsyncBatchingWorkQueue<ProjectId> _projectDescriptorRefreshQueue;
 
     private readonly Workspace _workspace;
@@ -74,11 +79,14 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
     /// </summary>
     public void RegisterProject(ProjectId projectId)
     {
+        // Ensure we have an entry for this projectId in case we get a workspace change event before
+        // we set it in RefreshCacheDiagnosticIdsAsync.
+        _projectIdToDiagnosticIdsCache.TryAdd(projectId, null);
         _projectDescriptorRefreshQueue.AddWork(projectId);
     }
 
     public bool TryGetDiagnosticIds(ProjectId projectId, [NotNullWhen(returnValue: true)] out ImmutableHashSet<string>? diagnosticIds)
-        => _projectIdToDiagnosticIdsCache.TryGetValue(projectId, out diagnosticIds);
+        => _projectIdToDiagnosticIdsCache.TryGetValue(projectId, out diagnosticIds) && diagnosticIds != null;
 
     private void WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
