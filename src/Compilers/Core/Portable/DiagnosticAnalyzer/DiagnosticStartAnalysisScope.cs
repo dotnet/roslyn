@@ -732,8 +732,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<OperationBlockAnalyzerAction> operationBlockActions,
             ImmutableArray<AnalyzerAction> syntaxNodeActions,
             ImmutableArray<OperationAnalyzerAction> operationActions,
-            bool concurrent,
-            bool isEmpty)
+            bool concurrent)
         {
             _compilationStartActions = compilationStartActions;
             _compilationEndActions = compilationEndActions;
@@ -753,7 +752,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _syntaxNodeActions = syntaxNodeActions;
             _operationActions = operationActions;
             _concurrent = concurrent;
-            IsEmpty = isEmpty;
+
+            IsEmpty = compilationStartActions.IsEmpty &&
+                      compilationEndActions.IsEmpty &&
+                      compilationActions.IsEmpty &&
+                      syntaxTreeActions.IsEmpty &&
+                      additionalFileActions.IsEmpty &&
+                      semanticModelActions.IsEmpty &&
+                      symbolActions.IsEmpty &&
+                      symbolStartActions.IsEmpty &&
+                      symbolEndActions.IsEmpty &&
+                      codeBlockStartActions.IsEmpty &&
+                      codeBlockEndActions.IsEmpty &&
+                      codeBlockActions.IsEmpty &&
+                      operationBlockStartActions.IsEmpty &&
+                      operationBlockEndActions.IsEmpty &&
+                      operationBlockActions.IsEmpty &&
+                      syntaxNodeActions.IsEmpty &&
+                      operationActions.IsEmpty;
         }
 
         public readonly int CompilationStartActionsCount { get { return _compilationStartActions.Length; } }
@@ -999,25 +1015,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(otherActions));
             }
 
-            AnalyzerActions actions = new AnalyzerActions(concurrent: _concurrent || otherActions.Concurrent);
-            actions._compilationStartActions = _compilationStartActions.AddRange(otherActions._compilationStartActions);
-            actions._compilationEndActions = _compilationEndActions.AddRange(otherActions._compilationEndActions);
-            actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);
-            actions._syntaxTreeActions = _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions);
-            actions._additionalFileActions = _additionalFileActions.AddRange(otherActions._additionalFileActions);
-            actions._semanticModelActions = _semanticModelActions.AddRange(otherActions._semanticModelActions);
-            actions._symbolActions = _symbolActions.AddRange(otherActions._symbolActions);
-            actions._symbolStartActions = appendSymbolStartAndSymbolEndActions ? _symbolStartActions.AddRange(otherActions._symbolStartActions) : _symbolStartActions;
-            actions._symbolEndActions = appendSymbolStartAndSymbolEndActions ? _symbolEndActions.AddRange(otherActions._symbolEndActions) : _symbolEndActions;
-            actions._codeBlockStartActions = _codeBlockStartActions.AddRange(otherActions._codeBlockStartActions);
-            actions._codeBlockEndActions = _codeBlockEndActions.AddRange(otherActions._codeBlockEndActions);
-            actions._codeBlockActions = _codeBlockActions.AddRange(otherActions._codeBlockActions);
-            actions._syntaxNodeActions = _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions);
-            actions._operationActions = _operationActions.AddRange(otherActions._operationActions);
-            actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
-            actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
-            actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
-            actions.IsEmpty = IsEmpty && otherActions.IsEmpty;
+            AnalyzerActions actions = new AnalyzerActions(
+                compilationStartActions: _compilationStartActions.AddRange(otherActions._compilationStartActions),
+                compilationEndActions: _compilationEndActions.AddRange(otherActions._compilationEndActions),
+                compilationActions: _compilationActions.AddRange(otherActions._compilationActions),
+                syntaxTreeActions: _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions),
+                additionalFileActions: _additionalFileActions.AddRange(otherActions._additionalFileActions),
+                semanticModelActions: _semanticModelActions.AddRange(otherActions._semanticModelActions),
+                symbolActions: _symbolActions.AddRange(otherActions._symbolActions),
+                symbolStartActions: appendSymbolStartAndSymbolEndActions ? _symbolStartActions.AddRange(otherActions._symbolStartActions) : _symbolStartActions,
+                symbolEndActions: appendSymbolStartAndSymbolEndActions ? _symbolEndActions.AddRange(otherActions._symbolEndActions) : _symbolEndActions,
+                codeBlockStartActions: _codeBlockStartActions.AddRange(otherActions._codeBlockStartActions),
+                codeBlockEndActions: _codeBlockEndActions.AddRange(otherActions._codeBlockEndActions),
+                codeBlockActions: _codeBlockActions.AddRange(otherActions._codeBlockActions),
+                operationBlockStartActions: _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions),
+                operationBlockEndActions: _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions),
+                operationBlockActions: _operationBlockActions.AddRange(otherActions._operationBlockActions),
+                syntaxNodeActions: _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions),
+                operationActions: _operationActions.AddRange(otherActions._operationActions),
+                concurrent: _concurrent || otherActions.Concurrent);
 
             return actions;
         }
@@ -1069,7 +1085,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ArrayBuilder<OperationAnalyzerAction>? _operationActionsBuilder;
 
             private bool _concurrent;
-            private bool _isEmpty = true;
 
             /// <summary>
             /// Appends actions from another <see cref="AnalyzerActions"/> instance.
@@ -1087,7 +1102,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 _concurrent = _concurrent || otherActions.Concurrent;
-                _isEmpty = false;
 
                 AppendActions(ref _compilationStartActionsImmutable, ref _compilationStartActionsBuilder, otherActions._compilationStartActions);
                 AppendActions(ref _compilationEndActionsImmutable, ref _compilationEndActionsBuilder, otherActions._compilationEndActions);
@@ -1164,8 +1178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     operationBlockActions: ToImmutableAndFree(ref _operationBlockActionsImmutable, ref _operationBlockActionsBuilder),
                     syntaxNodeActions: ToImmutableAndFree(ref _syntaxNodeActionsImmutable, ref _syntaxNodeActionsBuilder),
                     operationActions: ToImmutableAndFree(ref _operationActionsImmutable, ref _operationActionsBuilder),
-                    concurrent: _concurrent,
-                    isEmpty: _isEmpty);
+                    concurrent: _concurrent);
             }
 
             private static ImmutableArray<T> ToImmutableAndFree<T>(
