@@ -326,12 +326,12 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
                 }
             }
             """,
-            $$"""
+            $$$"""
             class Test
             {
                 void Method()
                 {
-                    var v = $"a{{newlineEscape}}{{1}}";
+                    var v = $"a{{{newlineEscape}}}{{1}}";
                 }
             }
             """);
