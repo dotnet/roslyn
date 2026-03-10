@@ -113,7 +113,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(filePath, uri.LocalPath);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [ConditionalTheory(typeof(UnixLikeOnly), AlwaysSkip = "https://github.com/dotnet/runtime/issues/1487")]
     [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
     [InlineData("\\/\u200e", "file:////%E2%80%8E")]
     [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]
@@ -163,7 +163,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(expectedRelativeUri, uri.GetRequiredParsedUri().AbsoluteUri);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [ConditionalTheory(typeof(UnixLikeOnly), AlwaysSkip = "https://github.com/dotnet/runtime/issues/1487")]
     [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
     [InlineData("\\/\u200e", "file:////%E2%80%8E")]
     [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]

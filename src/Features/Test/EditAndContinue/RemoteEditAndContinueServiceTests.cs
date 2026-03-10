@@ -40,6 +40,10 @@ public sealed class RemoteEditAndContinueServiceTests
     [Theory, CombinatorialData]
     public async Task Proxy(TestHost testHost)
     {
+        // OOP remote host services are only available on Windows
+        if (testHost == TestHost.OutOfProcess && !ExecutionConditionUtil.IsWindows)
+            return;
+
         var localComposition = FeaturesTestCompositions.Features.WithTestHostParts(testHost)
             .AddParts(typeof(NoCompilationLanguageService));
 
