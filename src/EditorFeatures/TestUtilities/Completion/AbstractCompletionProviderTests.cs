@@ -376,6 +376,11 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)
     {
+        // NormalizeWhitespace() used by completion providers always produces \r\n line endings,
+        // so normalize markup to \r\n for consistent positions and text comparison.
+        markupBeforeCommit = markupBeforeCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        expectedCodeAfterCommit = expectedCodeAfterCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
         using (workspaceFixture.Target.GetWorkspace(markupBeforeCommit, GetComposition()))
         {
@@ -401,6 +406,11 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         char? commitChar,
         SourceCodeKind? sourceCodeKind = null)
     {
+        // NormalizeWhitespace() used by completion providers always produces \r\n line endings,
+        // so normalize markup to \r\n for consistent positions and text comparison.
+        markupBeforeCommit = markupBeforeCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        expectedCodeAfterCommit = expectedCodeAfterCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
         workspaceFixture.Target.GetWorkspace(markupBeforeCommit, GetComposition());
@@ -408,7 +418,6 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         var code = workspaceFixture.Target.Code;
         var position = workspaceFixture.Target.Position;
 
-        expectedCodeAfterCommit = expectedCodeAfterCommit.NormalizeLineEndings();
         if (sourceCodeKind.HasValue)
         {
             await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, sourceCodeKind.Value);
