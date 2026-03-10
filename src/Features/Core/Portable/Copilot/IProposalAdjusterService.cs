@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
-using Adjuster = Func<Document, Document, CancellationToken, Task<Document>>;
+using Adjuster = Func<Document, Document, LineFormattingOptions?, CancellationToken, Task<Document>>;
 
 internal static class ProposalAdjusterKinds
 {
@@ -46,7 +46,8 @@ internal interface ICopilotProposalAdjusterService : ILanguageService
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Document document,
-        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
+        CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
@@ -54,7 +55,8 @@ internal interface IRemoteCopilotProposalAdjusterService
     /// <inheritdoc cref="ICopilotProposalAdjusterService.TryAdjustProposalAsync"/>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Checksum solutionChecksum,
-        DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        DocumentId documentId, ImmutableArray<TextChange> normalizedChanges,
+        LineFormattingOptions? lineFormattingOptions, CancellationToken cancellationToken);
 }
 
 internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
@@ -67,9 +69,9 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     {
         this.globalOptions = globalOptions;
         _adjusters = [
-            (ProposalAdjusterKinds.AddMissingTokens, this.AddMissingTokensIfAppropriateAsync),
-            (ProposalAdjusterKinds.AddMissingImports, this.TryGetAddImportTextChangesAsync),
-            (ProposalAdjusterKinds.FormatCode, this.TryGetFormattingTextChangesAsync),
+            (ProposalAdjusterKinds.AddMissingTokens, (original, forked, _, ct) => this.AddMissingTokensIfAppropriateAsync(original, forked, ct)),
+            (ProposalAdjusterKinds.AddMissingImports, static (original, forked, _, ct) => TryGetAddImportTextChangesAsync(original, forked, ct)),
+            (ProposalAdjusterKinds.FormatCode, static (original, forked, lineFormatting, ct) => TryGetFormattingTextChangesAsync(original, forked, lineFormatting, ct)),
         ];
     }
 
@@ -78,7 +80,8 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Document document,
-        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
+        CancellationToken cancellationToken)
     {
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
@@ -89,19 +92,22 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
             var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, ProposalAdjustmentResult>(
                 document.Project,
                 (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(
-                    allowableAdjustments, checksum, document.Id, normalizedChanges, cancellationToken),
+                    allowableAdjustments, checksum, document.Id, normalizedChanges,
+                    lineFormattingOptions, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : default;
         }
 
         return await TryAdjustProposalInCurrentProcessAsync(
-            allowableAdjustments, document, normalizedChanges, cancellationToken).ConfigureAwait(false);
+            allowableAdjustments, document, normalizedChanges, lineFormattingOptions,
+            cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
         ImmutableHashSet<string> allowableAdjustments, Document originalDocument,
-        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
+        CancellationToken cancellationToken)
     {
         Debug.Assert(allowableAdjustments is not null);
 
@@ -130,7 +136,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
                 continue;
 
             var timer = SharedStopwatch.StartNew();
-            var adjustedDocument = await adjuster(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
+            var adjustedDocument = await adjuster(originalDocument, forkedDocument, lineFormattingOptions, cancellationToken).ConfigureAwait(false);
             if (forkedDocument != adjustedDocument)
             {
                 adjustmentResults.Add(new(adjusterName, AdjustmentTime: timer.Elapsed));
@@ -147,12 +153,12 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         // Get the final set of changes between the original document and the new document.
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
-        var totalChanges = NormalizeLineEndingsInChanges(oldText, allChanges.AsImmutableOrEmpty());
+        var totalChanges = allChanges.AsImmutableOrEmpty();
 
         return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
 
-    private async Task<Document> TryGetAddImportTextChangesAsync(
+    private static async Task<Document> TryGetAddImportTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
@@ -170,12 +176,18 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         return withImportsDocument;
     }
 
-    private async Task<Document> TryGetFormattingTextChangesAsync(
-        Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
+    private static async Task<Document> TryGetFormattingTextChangesAsync(
+        Document originalDocument, Document forkedDocument,
+        LineFormattingOptions? lineFormattingOptions, CancellationToken cancellationToken)
     {
         var syntaxFormattingService = originalDocument.GetRequiredLanguageService<ISyntaxFormattingService>();
 
         var formattingOptions = await originalDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        // Override with the buffer-derived line formatting options if available, so the formatter
+        // uses the file's actual newline character and inferred indentation settings.
+        if (lineFormattingOptions is not null)
+            formattingOptions = formattingOptions with { LineFormatting = lineFormattingOptions };
 
         // Find the span of changes made to the forked document.
         var totalNewSpan = await GetSpanOfChangesAsync(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
@@ -214,137 +226,5 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var totalSpans = CopilotUtilities.GetTextSpansFromTextChanges(changes);
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, totalSpans);
         return totalNewSpan;
-    }
-
-    /// <summary>
-    /// Ensures that no <see cref="TextChange"/> modifies line break characters.  The Proposal system
-    /// rejects edits that modify a line break (e.g. adding a \r to a \n), and the suggestion
-    /// service already corrects line break mismatches on insertion, so changing them here is both invalid
-    /// and unnecessary. For each change, we match every line ending in <see cref="TextChange.NewText"/>
-    /// 1:1 with the line endings found in the original text within the change's <see cref="TextChange.Span"/>.
-    /// </summary>
-    private static ImmutableArray<TextChange> NormalizeLineEndingsInChanges(
-        SourceText originalText, ImmutableArray<TextChange> changes)
-    {
-        if (changes.IsDefaultOrEmpty)
-            return changes;
-
-        using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
-        foreach (var change in changes)
-        {
-            var newText = NormalizeNewlines(change.NewText ?? "", originalText, change.Span);
-            result.Add(new TextChange(change.Span, newText));
-        }
-
-        return result.ToImmutableAndClear();
-    }
-
-    /// <summary>
-    /// Normalizes every line ending in <paramref name="newText"/> to match the line endings found within
-    /// <paramref name="span"/> of <paramref name="originalText"/>. Line endings are matched in order:
-    /// the first line break in <paramref name="newText"/> gets the first line ending from the original
-    /// span, the second gets the second, and so on. If <paramref name="newText"/> has more line breaks
-    /// than the original span, the extras use the last line ending found in the span (or, if the span
-    /// contains no line breaks, the nearest line ending from the surrounding text).
-    /// </summary>
-    private static string NormalizeNewlines(string newText, SourceText originalText, TextSpan span)
-    {
-        if (newText.IndexOf('\r') < 0 && newText.IndexOf('\n') < 0)
-            return newText;
-
-        // Collect the line endings within the original span, in order.
-        using var _1 = ArrayBuilder<string>.GetInstance(out var originalEndings);
-        GetLineEndingsInSpan(originalText, span, originalEndings);
-
-        // Determine the fallback line ending to use for extra newlines in newText (or when
-        // the original span had no line breaks at all, e.g. a pure insertion).
-        var fallback = originalEndings.Count > 0
-            ? originalEndings[^1]
-            : GetLineEndingAtPosition(originalText, span.Start);
-
-        // Walk through newText, replacing each line ending with the corresponding original one.
-        using var _2 = PooledStringBuilder.GetInstance(out var sb);
-        var endingIndex = 0;
-        for (var i = 0; i < newText.Length; i++)
-        {
-            var ch = newText[i];
-            if (ch == '\r' && i + 1 < newText.Length && newText[i + 1] == '\n')
-            {
-                sb.Append(endingIndex < originalEndings.Count ? originalEndings[endingIndex] : fallback);
-                endingIndex++;
-                i++;
-            }
-            else if (ch == '\r' || ch == '\n')
-            {
-                sb.Append(endingIndex < originalEndings.Count ? originalEndings[endingIndex] : fallback);
-                endingIndex++;
-            }
-            else
-            {
-                sb.Append(ch);
-            }
-        }
-
-        return sb.ToString();
-    }
-
-    /// <summary>
-    /// Collects all line endings whose start position (<see cref="TextLine.End"/>) falls within
-    /// <paramref name="span"/> of <paramref name="text"/>, in document order.
-    /// </summary>
-    private static void GetLineEndingsInSpan(SourceText text, TextSpan span, ArrayBuilder<string> endings)
-    {
-        var startLine = text.Lines.GetLineFromPosition(span.Start).LineNumber;
-        var endLine = text.Lines.GetLineFromPosition(span.End).LineNumber;
-
-        for (var i = startLine; i <= endLine; i++)
-        {
-            var line = text.Lines[i];
-
-            // Only include line endings that start within the span.
-            if (line.End < span.Start || line.End >= span.End)
-                continue;
-
-            var breakLength = line.EndIncludingLineBreak - line.End;
-            if (breakLength == 2)
-                endings.Add("\r\n");
-            else if (breakLength == 1)
-                endings.Add(text[line.End] == '\n' ? "\n" : "\r");
-        }
-    }
-
-    /// <summary>
-    /// Gets the line ending used by the line at <paramref name="position"/> in <paramref name="text"/>.
-    /// If that line has no line break (e.g. last line of the file), searches backwards for the nearest
-    /// line that does. Falls back to <c>"\r\n"</c> if the file has no line endings at all.
-    /// </summary>
-    private static string GetLineEndingAtPosition(SourceText text, int position)
-    {
-        var lineIndex = text.Lines.GetLineFromPosition(position).LineNumber;
-
-        // Walk backwards from the current line to find one with a line break.
-        for (var i = lineIndex; i >= 0; i--)
-        {
-            var line = text.Lines[i];
-            var breakLength = line.EndIncludingLineBreak - line.End;
-            if (breakLength == 2)
-                return "\r\n";
-            if (breakLength == 1)
-                return text[line.End] == '\n' ? "\n" : "\r";
-        }
-
-        // No line endings found anywhere before this position; try lines after.
-        for (var i = lineIndex + 1; i < text.Lines.Count; i++)
-        {
-            var line = text.Lines[i];
-            var breakLength = line.EndIncludingLineBreak - line.End;
-            if (breakLength == 2)
-                return "\r\n";
-            if (breakLength == 1)
-                return text[line.End] == '\n' ? "\n" : "\r";
-        }
-
-        // File has no line endings at all (single-line file).
-        return "\r\n";
     }
 }
