@@ -124,7 +124,6 @@ internal class NuGetPublish
                 if (result.ExitCode != 0)
                 {
                     logger.LogError("Failed to publish '{PackageId}'", packageId);
-                    throw new InvalidOperationException(result.Output);
                 }
                 else
                 {
