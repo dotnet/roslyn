@@ -149,7 +149,7 @@ internal abstract partial class AbstractLegacyProject
 
         var projectHierarchyGuid = GetProjectIDGuid(hierarchy);
 
-        var diagnosticCache = workspaceImpl.Services.GetService<VisualStudioDiagnosticIdCache>();
+        var diagnosticCache = workspaceImpl.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
         diagnosticCache.RegisterProject(ProjectSystemProject.Id);
 
         _externalErrorReporter = new ProjectExternalErrorReporter(ProjectSystemProject.Id, projectHierarchyGuid, externalErrorReportingPrefix, language, workspaceImpl);
