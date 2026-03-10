@@ -6977,7 +6977,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt sınıfı, tümü yapı, tümü kayıt yapısı veya tümü arabirim olmalıdır</target>
+        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
