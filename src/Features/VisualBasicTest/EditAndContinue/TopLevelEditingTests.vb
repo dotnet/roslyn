@@ -34,7 +34,7 @@ Imports System.Diagnostics
             Dim src2 As String = ""
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Delete [Imports System.Diagnostics]@2")
+            edits.VerifyEdits("Delete [Imports System.Diagnostics]@1")
             Assert.IsType(Of ImportsStatementSyntax)(edits.Edits.First().OldNode)
             Assert.Equal(edits.Edits.First().NewNode, Nothing)
         End Sub
@@ -54,9 +54,9 @@ Imports System.Collections.Generic
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Delete [Imports D = System.Diagnostics]@2",
-                "Delete [Imports <xmlns=""http://roslyn/default1"">]@34",
-                "Delete [Imports System.Collections]@76")
+                "Delete [Imports D = System.Diagnostics]@1",
+                "Delete [Imports <xmlns=""http://roslyn/default1"">]@32",
+                "Delete [Imports System.Collections]@73")
 
             edits.VerifySemanticDiagnostics()
         End Sub
@@ -76,9 +76,9 @@ Imports System.Collections.Generic
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Imports D = System.Diagnostics]@2",
-                "Insert [Imports <xmlns=""http://roslyn/default1"">]@34",
-                "Insert [Imports System.Collections]@76")
+                "Insert [Imports D = System.Diagnostics]@1",
+                "Insert [Imports <xmlns=""http://roslyn/default1"">]@32",
+                "Insert [Imports System.Collections]@73")
 
             edits.VerifySemanticDiagnostics()
         End Sub
@@ -99,7 +99,7 @@ Imports System.Collections.Generic
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Imports System.Collections]@30 -> [Imports X = System.Collections]@30")
+                "Update [Imports System.Collections]@28 -> [Imports X = System.Collections]@28")
 
             edits.VerifySemanticDiagnostics()
         End Sub
@@ -123,8 +123,8 @@ Imports System.Collections.Generic
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30",
-                "Update [Imports <xmlns=""http://roslyn/default1"">]@63 -> [Imports <xmlns=""http://roslyn/default2"">]@63")
+                "Update [Imports X1 = System.Collections]@28 -> [Imports X2 = System.Collections]@28",
+                "Update [Imports <xmlns=""http://roslyn/default1"">]@60 -> [Imports <xmlns=""http://roslyn/default2"">]@60")
 
             edits.VerifySemanticDiagnostics()
         End Sub
@@ -146,7 +146,7 @@ Imports System.Collections.Generic
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Imports System.Diagnostics]@2 -> [Imports System]@2")
+                "Update [Imports System.Diagnostics]@1 -> [Imports System]@1")
 
             edits.VerifySemanticDiagnostics()
         End Sub
@@ -168,7 +168,7 @@ Imports System.Diagnostics
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [Imports System.Diagnostics]@2 -> @66")
+                "Reorder [Imports System.Diagnostics]@1 -> @63")
         End Sub
 
         <Fact>
@@ -239,7 +239,7 @@ Option Strict On
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [Option Strict On]@2")
+                "Delete [Option Strict On]@1")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "", VBFeaturesResources.option_))
@@ -257,7 +257,7 @@ Option Strict On
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Option Strict On]@2")
+                "Insert [Option Strict On]@1")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "Option Strict On", VBFeaturesResources.option_))
@@ -276,7 +276,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Option Strict On]@2 -> [Option Strict Off]@2")
+                "Update [Option Strict On]@1 -> [Option Strict Off]@1")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Update, "Option Strict Off", VBFeaturesResources.option_))
@@ -322,7 +322,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A, B>Class C]@130 -> [<A>Class C]@130")
+                "Update [<A, B>Class C]@128 -> [<A>Class C]@128")
 
             edits.VerifySemanticDiagnostics(
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_)},
@@ -613,7 +613,7 @@ Option Strict Off
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [<A1>Class C]@132 -> [<A2>Class C]@132")
+                "Update [<A1>Class C]@130 -> [<A2>Class C]@130")
 
             edits.VerifySemanticDiagnostics(
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_)},
@@ -650,7 +650,7 @@ Public Class A3 : Inherits System.Attribute : End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [<CreateNewOnMetadataUpdate, A1, A2>Class C]@363 -> [<CreateNewOnMetadataUpdate, A2, A3>Class C]@363")
+                "Update [<CreateNewOnMetadataUpdate, A1, A2>Class C]@352 -> [<CreateNewOnMetadataUpdate, A2, A3>Class C]@352")
 
             edits.VerifySemantics(
                 semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))},
@@ -2196,7 +2196,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A1>X]@141 -> [<A2>X]@141")
+                "Update [<A1>X]@139 -> [<A2>X]@139")
 
             edits.VerifySemanticDiagnostics(
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "<A2>X", FeaturesResources.enum_value)},
@@ -2250,7 +2250,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Red = 1]@230 -> [Red = 2]@230")
+                "Update [Red = 1]@223 -> [Red = 2]@223")
 
             edits.VerifySemantics(
                 semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("Color"))},
@@ -3140,7 +3140,7 @@ End Structure
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [B = 2]@40")
+                "Insert [B = 2]@36")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value))
@@ -4311,20 +4311,20 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Sub F3(c As Integer) : End Sub]@194",
-                "Update [Sub F1(a As Integer)]@24 -> [Sub F2(b As Integer)]@24",
-                "Update [Sub F3(c As Integer)]@127 -> [Sub F1(a As Integer)]@127",
-                "Insert [Sub F3(c As Integer)]@194",
-                "Insert [(c As Integer)]@200",
-                "Insert [c As Integer]@201",
-                "Update [a]@31 -> [b]@31",
-                "Update [c]@134 -> [a]@134",
-                "Insert [c]@201",
-                "Delete [Sub F2(b As Integer) : End Sub]@163",
-                "Delete [Sub F2(b As Integer)]@163",
-                "Delete [(b As Integer)]@169",
-                "Delete [b As Integer]@170",
-                "Delete [b]@170")
+                "Insert [Sub F3(c As Integer) : End Sub]@183",
+                "Update [Sub F1(a As Integer)]@22 -> [Sub F2(b As Integer)]@22",
+                "Update [Sub F3(c As Integer)]@120 -> [Sub F1(a As Integer)]@120",
+                "Insert [Sub F3(c As Integer)]@183",
+                "Insert [(c As Integer)]@189",
+                "Insert [c As Integer]@190",
+                "Update [a]@29 -> [b]@29",
+                "Update [c]@127 -> [a]@127",
+                "Insert [c]@190",
+                "Delete [Sub F2(b As Integer) : End Sub]@155",
+                "Delete [Sub F2(b As Integer)]@155",
+                "Delete [(b As Integer)]@161",
+                "Delete [b As Integer]@162",
+                "Delete [b]@162")
 
             edits.VerifySemantics(
                 semanticEdits:=
@@ -4728,8 +4728,8 @@ End Structure
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [" & oldModifiers & "Sub F() : End Sub]@9 -> [" & newModifiers & "Sub F() : End Sub]@9",
-                "Update [" & oldModifiers & "Sub F()]@9 -> [" & newModifiers & "Sub F()]@9")
+                "Update [" & oldModifiers & "Sub F() : End Sub]@8 -> [" & newModifiers & "Sub F() : End Sub]@8",
+                "Update [" & oldModifiers & "Sub F()]@8 -> [" & newModifiers & "Sub F()]@8")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "Sub F()", FeaturesResources.method))
@@ -5565,7 +5565,7 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Goo Implements I.Goo]@39 -> [Sub Goo]@39")
+                "Update [Sub Goo Implements I.Goo]@35 -> [Sub Goo]@35")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Goo", FeaturesResources.method))
@@ -5615,7 +5615,7 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Goo]@39 -> [Sub Goo Implements I.Goo]@39")
+                "Update [Sub Goo]@35 -> [Sub Goo Implements I.Goo]@35")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Goo", FeaturesResources.method))
@@ -5665,8 +5665,8 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Goo Implements I.Goo]@39 -> [Sub Goo Implements J.Goo]@39",
-                "Update [Sub JGoo Implements J.Goo]@84 -> [Sub JGoo Implements I.Goo]@84")
+                "Update [Sub Goo Implements I.Goo]@35 -> [Sub Goo Implements J.Goo]@35",
+                "Update [Sub JGoo Implements J.Goo]@77 -> [Sub JGoo Implements I.Goo]@77")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Goo", FeaturesResources.method),
@@ -6115,7 +6115,7 @@ End Interface
 
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits("Update [Public Shared " + oldModifiers + " Operator CType(d As C) As Integer]@9 -> [Public Shared " + newModifiers + " Operator CType(d As C) As Integer]@9")
+            edits.VerifyEdits("Update [Public Shared " + oldModifiers + " Operator CType(d As C) As Integer]@8 -> [Public Shared " + newModifiers + " Operator CType(d As C) As Integer]@8")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Public Shared " & newModifiers & " Operator CType(d As C)", FeaturesResources.operator_))
@@ -6278,9 +6278,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [Public Shared Operator +(d As C, g As C) As Integer
-        Return 0
-    End Operator]@116 -> @15")
+                "Reorder [Public Shared Operator +(d As C, g As C) As Integer" & vbLf &
+"        Return 0" & vbLf &
+"    End Operator]@110 -> @13")
 
             edits.VerifySemanticDiagnostics()
         End Sub
@@ -8826,8 +8826,8 @@ Class C
 End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            Dim decl = "Private _
-        Get"
+            Dim decl = "Private _" & vbLf &
+"        Get"
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAccessibility, decl, FeaturesResources.property_accessor))
@@ -8860,8 +8860,8 @@ Class C
 End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            Dim decl = "Private _
-        Set"
+            Dim decl = "Private _" & vbLf &
+"        Set"
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAccessibility, decl, FeaturesResources.property_accessor))
@@ -11327,9 +11327,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Custom Event E As Action]@33 -> [Custom Event E As Action(Of String)]@33",
-                "Update [value As Action]@78 -> [value As Action(Of String)]@89",
-                "Update [value As Action]@142 -> [value As Action(Of String)]@164")
+                "Update [Custom Event E As Action]@29 -> [Custom Event E As Action(Of String)]@29",
+                "Update [value As Action]@73 -> [value As Action(Of String)]@84",
+                "Update [value As Action]@135 -> [value As Action(Of String)]@157")
 
             edits.VerifySemantics(
                 semanticEdits:=
@@ -12106,7 +12106,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<System.Obsolete(""1""), B>a As Integer]@154 -> [<System.Obsolete(""2""), A>a As Integer]@154")
+                "Update [<System.Obsolete(""1""), B>a As Integer]@152 -> [<System.Obsolete(""2""), A>a As Integer]@152")
 
             edits.VerifySemanticDiagnostics(
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter)},
@@ -12123,7 +12123,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Public Function M() As <A>Integer]@141 -> [Public Function M() As <B>Integer]@141")
+                "Update [Public Function M() As <A>Integer]@139 -> [Public Function M() As <B>Integer]@139")
 
             edits.VerifySemanticDiagnostics(
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method)},
@@ -12401,8 +12401,8 @@ Class C : End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [(Of A)]@25",
-                "Delete [A]@29")
+                "Delete [(Of A)]@23",
+                "Delete [A]@27")
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.type_parameter, "A")))

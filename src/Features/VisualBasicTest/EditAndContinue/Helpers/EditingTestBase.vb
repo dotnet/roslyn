@@ -200,6 +200,8 @@ End Namespace
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScriptDescription
+            src1 = src1.Replace(vbCrLf, vbLf)
+            src2 = src2.Replace(vbCrLf, vbLf)
             Dim tree1 = ParseSource(src1, documentIndex)
             Dim tree2 = ParseSource(src2, documentIndex)
 
@@ -218,13 +220,15 @@ End Namespace
         End Function
 
         Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional methodKind As MethodKind = MethodKind.Regular) As EditScriptDescription
+            src1 = src1.Replace(vbCrLf, vbLf)
+            src2 = src2.Replace(vbCrLf, vbLf)
             Dim match = GetMethodMatch(src1, src2, methodKind)
             Return New EditScriptDescription(src1, src2, match.GetTreeEdits())
         End Function
 
         Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional methodKind As MethodKind = MethodKind.Regular) As Match(Of SyntaxNode)
-            Dim m1 = MakeMethodBody(src1, methodKind)
-            Dim m2 = MakeMethodBody(src2, methodKind)
+            Dim m1 = MakeMethodBody(src1.Replace(vbCrLf, vbLf), methodKind)
+            Dim m2 = MakeMethodBody(src2.Replace(vbCrLf, vbLf), methodKind)
 
             Dim match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
 
@@ -278,11 +282,11 @@ End Namespace
         End Function
 
         Friend Shared Function GetActiveStatements(oldSource As String, newSource As String, Optional flags As ActiveStatementFlags() = Nothing, Optional documentIndex As Integer = 0) As ActiveStatementsDescription
-            Return New ActiveStatementsDescription(oldSource, newSource, Function(source) SyntaxFactory.ParseSyntaxTree(source, path:=GetDocumentFilePath(documentIndex)), flags)
+            Return New ActiveStatementsDescription(oldSource.Replace(vbCrLf, vbLf), newSource.Replace(vbCrLf, vbLf), Function(source) SyntaxFactory.ParseSyntaxTree(source, path:=GetDocumentFilePath(documentIndex)), flags)
         End Function
 
         Friend Shared Function GetSyntaxMap(oldSource As String, newSource As String) As SyntaxMapDescription
-            Return New SyntaxMapDescription(oldSource, newSource)
+            Return New SyntaxMapDescription(oldSource.Replace(vbCrLf, vbLf), newSource.Replace(vbCrLf, vbLf))
         End Function
     End Class
 End Namespace
