@@ -90,7 +90,33 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
         protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             _sharedState.Apply();
+            NormalizeSourceFileEndingsToCRLF(TestState);
+            NormalizeSourceFileEndingsToCRLF(FixedState);
             await base.RunImplAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Normalizes all source file line endings in the given state to CRLF so that tests
+        /// produce consistent results across Windows and Linux. On Linux, raw string literals
+        /// use LF but SyntaxFactory/NormalizeWhitespace generate CRLF, causing mismatches.
+        /// </summary>
+        private static void NormalizeSourceFileEndingsToCRLF(Testing.SolutionState state)
+        {
+            NormalizeSourceCollection(state.Sources);
+            foreach (var project in state.AdditionalProjects.Values)
+                NormalizeSourceCollection(project.Sources);
+        }
+
+        private static void NormalizeSourceCollection(Testing.SourceFileCollection sources)
+        {
+            for (var i = 0; i < sources.Count; i++)
+            {
+                var (filename, sourceText) = sources[i];
+                var text = sourceText.ToString();
+                var normalized = NormalizeToCRLF(text);
+                if (text != normalized)
+                    sources[i] = (filename, SourceText.From(normalized, sourceText.Encoding, sourceText.ChecksumAlgorithm));
+            }
         }
 
         protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
