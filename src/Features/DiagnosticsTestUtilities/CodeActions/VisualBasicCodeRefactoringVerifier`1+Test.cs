@@ -51,16 +51,11 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
         public Test()
         {
             _sharedState = new SharedVerifierState(this, DefaultFileExt);
-
-            // Ensure consistent line endings across platforms.
-            // NormalizeWhitespace() hardcodes \r\n, so configure the formatter to also use \r\n.
-            // Use Set (not Add) so tests can override this default without a duplicate key error.
-            _sharedState.Options.Set(FormattingOptions2.NewLine, "\r\n");
         }
 
-        public new string TestCode { set => base.TestCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
+        public new string TestCode { set => base.TestCode = value; }
 
-        public new string FixedCode { set => base.FixedCode = value.Replace("\r\n", "\n").Replace("\n", "\r\n"); }
+        public new string FixedCode { set => base.FixedCode = value; }
 
         /// <summary>
         /// Gets or sets the language version to use for the test. The default value is
@@ -86,30 +81,8 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
 
         protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
-            // Normalize all source strings to CRLF for cross-platform consistency.
-            // Skip normalization if the test explicitly set NewLine to "\n".
-            if (!_sharedState.Options.TryGetOption<string>(new OptionKey2(FormattingOptions2.NewLine, Language), out var newLine) || newLine == "\r\n")
-            {
-                NormalizeSources(TestState.Sources);
-                NormalizeSources(FixedState.Sources);
-            }
-
             _sharedState.Apply();
             await base.RunImplAsync(cancellationToken);
-        }
-
-        private static void NormalizeSources(SourceFileList sources)
-        {
-            for (var i = 0; i < sources.Count; i++)
-            {
-                var (filename, content) = sources[i];
-                var text = content.ToString();
-                var normalized = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-                if (text != normalized)
-                {
-                    sources[i] = (filename, SourceText.From(normalized, content.Encoding, content.ChecksumAlgorithm));
-                }
-            }
         }
 
         protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)

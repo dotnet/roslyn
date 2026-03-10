@@ -1023,7 +1023,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
                      {
                          override {|caret:|}
                      }
-                     """.ReplaceLineEndings("\r\n");
+                     """;
         await using var testLspServer = await CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true }, commonReferences: false);
 
@@ -1058,7 +1058,8 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
-        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = "public override global::System.Boolean AbstractMethod(global::System.Int32 x)\r\n    {\r\n        throw new System.NotImplementedException();\r\n    }" };
+        var nl = Environment.NewLine;
+        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = $"public override global::System.Boolean AbstractMethod(global::System.Int32 x){nl}    {{{nl}        throw new System.NotImplementedException();{nl}    }}" };
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
 
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
