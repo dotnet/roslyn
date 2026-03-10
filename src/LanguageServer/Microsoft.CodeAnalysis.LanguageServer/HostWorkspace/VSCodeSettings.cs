@@ -11,13 +11,15 @@ internal sealed class VSCodeSettings
 {
     private const string DotnetDefaultSolutionSettingName = "dotnet.defaultSolution";
 
-    public static VSCodeSettings Empty { get; } = new(defaultSolution: null);
+    public static VSCodeSettings Empty { get; } = new(defaultSolution: null, isDefaultSolutionLoadDisabled: false);
 
     public string? DefaultSolution { get; }
+    public bool IsDefaultSolutionLoadDisabled { get; }
 
-    private VSCodeSettings(string? defaultSolution)
+    private VSCodeSettings(string? defaultSolution, bool isDefaultSolutionLoadDisabled)
     {
         DefaultSolution = defaultSolution;
+        IsDefaultSolutionLoadDisabled = isDefaultSolutionLoadDisabled;
     }
 
     public static VSCodeSettings Read(string settingsFilePath, ILogger logger)
@@ -40,7 +42,7 @@ internal sealed class VSCodeSettings
 
     public string? ResolveDefaultSolutionPath(string workspaceFolderPath)
     {
-        if (string.IsNullOrEmpty(DefaultSolution))
+        if (IsDefaultSolutionLoadDisabled || string.IsNullOrEmpty(DefaultSolution))
         {
             return null;
         }
@@ -66,9 +68,14 @@ internal sealed class VSCodeSettings
 
         var defaultSolution = TryGetStringSetting(document.RootElement, DotnetDefaultSolutionSettingName);
 
-        return string.IsNullOrEmpty(defaultSolution) || string.Equals(defaultSolution, "disable", StringComparison.Ordinal)
+        if (string.Equals(defaultSolution, "disable", StringComparison.Ordinal))
+        {
+            return new(defaultSolution: null, isDefaultSolutionLoadDisabled: true);
+        }
+
+        return string.IsNullOrEmpty(defaultSolution)
             ? Empty
-            : new(defaultSolution);
+            : new(defaultSolution, isDefaultSolutionLoadDisabled: false);
     }
 
     private static string? TryGetStringSetting(JsonElement root, string propertyName)

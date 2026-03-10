@@ -46,15 +46,17 @@ internal sealed class AutoLoadProjectsInitializer(
             return;
         }
 
-        if (serverConfiguration.UseVSCodeSettings)
+        var solutionLoadSettings = TryGetSolutionToLoadFromVSCodeSettings(workspaceFolders, _logger);
+        if (solutionLoadSettings.IsDefaultSolutionLoadDisabled)
         {
-            var solutionPath = TryGetSolutionToLoadFromVSCodeSettings(workspaceFolders, _logger);
-            if (solutionPath is not null)
-            {
-                _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
-                projectSystem.OpenSolutionAsync(solutionPath).ReportNonFatalErrorAsync().Forget();
-                return;
-            }
+            _logger.LogInformation("Using VS Code settings to disable auto loading solution on startup.");
+            return;
+        }
+        else if (solutionLoadSettings.DefaultSolutionPath is not null)
+        {
+            _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionLoadSettings.DefaultSolutionPath);
+            projectSystem.OpenSolutionAsync(solutionLoadSettings.DefaultSolutionPath).ReportNonFatalErrorAsync().Forget();
+            return;
         }
 
         // If there's a single workspace folder with a single solution file at the root, load that solution.
@@ -129,7 +131,7 @@ internal sealed class AutoLoadProjectsInitializer(
         }
     }
 
-    internal static string? TryGetSolutionToLoadFromVSCodeSettings(WorkspaceFolder[] workspaceFolders, ILogger logger)
+    internal static VSCodeSolutionLoadSettings TryGetSolutionToLoadFromVSCodeSettings(WorkspaceFolder[] workspaceFolders, ILogger logger)
     {
         Contract.ThrowIfTrue(workspaceFolders.Length == 0);
 
@@ -150,13 +152,26 @@ internal sealed class AutoLoadProjectsInitializer(
             }
 
             var settings = VSCodeSettings.Read(Path.Combine(folderPath, ".vscode", "settings.json"), logger);
+            if (workspaceFolders.Length == 1 && settings.IsDefaultSolutionLoadDisabled)
+            {
+                return VSCodeSolutionLoadSettings.Disabled;
+            }
+
             var solutionPath = settings.ResolveDefaultSolutionPath(folderPath);
             if (solutionPath is not null)
             {
-                return solutionPath;
+                return new VSCodeSolutionLoadSettings(isDefaultSolutionLoadDisabled: false, defaultSolutionPath: solutionPath);
             }
         }
 
-        return null;
+        return default;
+    }
+
+    internal readonly struct VSCodeSolutionLoadSettings(bool isDefaultSolutionLoadDisabled, string? defaultSolutionPath)
+    {
+        public static VSCodeSolutionLoadSettings Disabled => new(isDefaultSolutionLoadDisabled: true, defaultSolutionPath: null);
+
+        public bool IsDefaultSolutionLoadDisabled { get; } = isDefaultSolutionLoadDisabled;
+        public string? DefaultSolutionPath { get; } = defaultSolutionPath;
     }
 }

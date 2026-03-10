@@ -26,6 +26,7 @@ public sealed class VSCodeSettingsTests : IDisposable
             """);
 
         Assert.Equal("src/App.sln", settings.DefaultSolution);
+        Assert.False(settings.IsDefaultSolutionLoadDisabled);
     }
 
     [Fact]
@@ -51,6 +52,7 @@ public sealed class VSCodeSettingsTests : IDisposable
             """);
 
         Assert.Null(settings.DefaultSolution);
+        Assert.True(settings.IsDefaultSolutionLoadDisabled);
     }
 
     [Fact]
@@ -79,7 +81,8 @@ public sealed class VSCodeSettingsTests : IDisposable
 
         var solutionPath = AutoLoadProjectsInitializer.TryGetSolutionToLoadFromVSCodeSettings([workspaceFolder], NullLogger.Instance);
 
-        Assert.Null(solutionPath);
+        Assert.True(solutionPath.IsDefaultSolutionLoadDisabled);
+        Assert.Null(solutionPath.DefaultSolutionPath);
     }
 
     [Fact]
@@ -98,7 +101,7 @@ public sealed class VSCodeSettingsTests : IDisposable
 
         var solutionPath = AutoLoadProjectsInitializer.TryGetSolutionToLoadFromVSCodeSettings([firstFolder, secondFolder], NullLogger.Instance);
 
-        Assert.Equal(Path.Combine(ProtocolConversions.GetDocumentFilePathFromUri(secondFolder.DocumentUri.GetRequiredParsedUri()), "eng", "App.slnx"), solutionPath);
+        Assert.Equal(Path.Combine(ProtocolConversions.GetDocumentFilePathFromUri(secondFolder.DocumentUri.GetRequiredParsedUri()), "eng", "App.slnx"), solutionPath.DefaultSolutionPath);
     }
 
     private WorkspaceFolder CreateWorkspaceFolder(string name, string settingsJson)
