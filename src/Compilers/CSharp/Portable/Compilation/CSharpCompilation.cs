@@ -3289,8 +3289,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnostics = bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
+            var methodBodiesInTreeDiagnostics = cachedDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
 
-            _methodBodiesInTreeDiagnostics = cachedDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
+            // Only update the cache if it hasn't changed since we read it, otherwise we might lose diagnostics from another thread that is doing the same thing.
+            ImmutableInterlocked.InterlockedCompareExchange(ref _methodBodiesInTreeDiagnostics, methodBodiesInTreeDiagnostics, cachedDiagnostics);
 
             return diagnostics;
 
