@@ -551,14 +551,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             // Look up implementation in our map
             Assumes.True(implementationMap.TryGetValue(identifier, out var implementation));
-            // Normalize line endings to CRLF for consistency with the test document,
-            // which is normalized to CRLF by the verifier infrastructure.
-            var normalized = implementation.Replace("\r\n", "\n").Replace("\n", "\r\n");
             resultsBuilder.Add(
                 memberNode,
                 new ImplementationDetails
                 {
-                    ReplacementNode = SyntaxFactory.ParseMemberDeclaration(normalized),
+                    ReplacementNode = SyntaxFactory.ParseMemberDeclaration(implementation),
                 });
         }
 
