@@ -106,6 +106,8 @@ public static partial class VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix>
                 NormalizeSourceFileEndingsToCRLF(FixedState);
                 NormalizeSourceFileEndingsToCRLF(BatchFixedState);
                 EnsureEditorConfigInAdditionalProjects(TestState);
+                EnsureEditorConfigInAdditionalProjects(FixedState);
+                EnsureEditorConfigInAdditionalProjects(BatchFixedState);
             }
 
             await base.RunImplAsync(cancellationToken);
