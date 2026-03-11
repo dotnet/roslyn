@@ -398,12 +398,20 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             "\nActual: " + string.Join(", ", actualActionSet));
     }
 
+    /// <summary>
+    /// Normalizes line endings in test markup. Override in derived classes that need
+    /// specific line ending behavior (e.g., wrapping tests that need CRLF consistency
+    /// for <see cref="SyntaxNode.IsEquivalentTo"/> comparisons to work cross-platform).
+    /// </summary>
+    protected virtual string NormalizeMarkup(string markup)
+        => markup.ReplaceLineEndings();
+
     protected async Task TestActionCountAsync(
         string initialMarkup,
         int count,
         TestParameters parameters = null)
     {
-        initialMarkup = initialMarkup.ReplaceLineEndings();
+        initialMarkup = NormalizeMarkup(initialMarkup);
         var ps = parameters ?? TestParameters.Default;
         using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
         var (actions, _) = await GetCodeActionsAsync(workspace, ps);
@@ -439,8 +447,8 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         string expectedMarkup,
         TestParameters parameters)
     {
-        initialMarkup = initialMarkup.ReplaceLineEndings();
-        expectedMarkup = expectedMarkup.ReplaceLineEndings();
+        initialMarkup = NormalizeMarkup(initialMarkup);
+        expectedMarkup = NormalizeMarkup(expectedMarkup);
 
         MarkupTestFile.GetSpans(
             initialMarkup,
