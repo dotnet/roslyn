@@ -230,9 +230,7 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
         // We don't want code cleanup automatically cleaning suppressed diagnostics.
         diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
 
-        // Exclude diagnostics whose code fixes generate stub implementations.
-        // These fixes introduce 'throw new NotImplementedException()' which silently converts compile-time
-        // errors into runtime errors.
+        // We don't want code cleanup implementing members.
         diagnostics = diagnostics.WhereAsArray(d => !s_implementMemberDiagnosticIds.Contains(d.Id));
 
         // ensure more than just known diagnostics were returned
