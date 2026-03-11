@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -39,10 +40,11 @@ public abstract class AbstractSnippetProviderTests
             AddProject("TestProject", "TestAssembly", LanguageName)
             .WithMetadataReferences(metadataReferences);
 
-        // NormalizeWhitespace() used by snippet providers always produces \r\n line endings (DefaultEOL),
-        // so normalize markup to \r\n for consistent positions and text comparison.
-        markupBeforeCommit = markupBeforeCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
-        markupAfterCommit = markupAfterCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        // Normalize markup to platform-native line endings for consistent positions and text
+        // comparison. The formatter's end_of_line setting (below) ensures NormalizeWhitespace's
+        // \r\n output is normalized to the platform line ending.
+        markupBeforeCommit = markupBeforeCommit.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+        markupAfterCommit = markupAfterCommit.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
 
         TestFileMarkupParser.GetPosition(markupBeforeCommit, out markupBeforeCommit, out var snippetRequestPosition);
         var document = project.AddDocument(
@@ -50,8 +52,11 @@ public abstract class AbstractSnippetProviderTests
             SourceText.From(markupBeforeCommit, Encoding.UTF8, SourceHashAlgorithms.Default),
             filePath: Path.Combine(TempRoot.Root, "TestDocument"));
 
-        // Always set end_of_line = crlf so the Formatter produces \r\n consistent with NormalizeWhitespace.
-        var fullEditorConfig = "root = true\n\n[*]\nend_of_line = crlf\n";
+        // Set end_of_line to match the platform so the Formatter produces consistent line endings.
+        // On Windows this is crlf (matching NormalizeWhitespace), on Linux lf (the formatter
+        // normalizes any \r\n from NormalizeWhitespace to \n).
+        var endOfLine = Environment.NewLine == "\n" ? "lf" : "crlf";
+        var fullEditorConfig = $"root = true\n\n[*]\nend_of_line = {endOfLine}\n";
         if (editorconfig is not null)
             fullEditorConfig += editorconfig;
 

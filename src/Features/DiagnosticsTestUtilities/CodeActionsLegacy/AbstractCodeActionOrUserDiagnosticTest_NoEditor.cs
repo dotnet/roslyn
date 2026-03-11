@@ -210,7 +210,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
 
     private static void MakeProjectsAndDocumentsRooted(TTestWorkspace workspace)
     {
-        const string defaultRootFilePath = @"z:\";
+        var defaultRootFilePath = Path.DirectorySeparatorChar == '/' ? "/" : @"z:\";
         var newSolution = workspace.CurrentSolution;
         foreach (var projectId in workspace.CurrentSolution.ProjectIds)
         {

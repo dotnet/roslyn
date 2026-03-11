@@ -54,17 +54,17 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
             _sharedState = new SharedVerifierState(this, DefaultFileExt);
         }
 
-        public new string TestCode { set => base.TestCode = NormalizeToCRLF(value); }
+        public new string TestCode { set => base.TestCode = NormalizeLineEndings(value); }
 
-        public new string FixedCode { set => base.FixedCode = NormalizeToCRLF(value); }
+        public new string FixedCode { set => base.FixedCode = NormalizeLineEndings(value); }
 
         /// <summary>
-        /// Normalizes line endings to CRLF (\r\n) to match the end_of_line=crlf editorconfig setting
-        /// in <see cref="CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig"/>. This ensures consistent
-        /// test behavior across Windows and Linux where raw string line endings differ.
+        /// Normalizes line endings to the platform-native value to match the end_of_line editorconfig
+        /// setting in <see cref="CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig"/>. This ensures
+        /// consistent test behavior across Windows and Linux where raw string line endings differ.
         /// </summary>
-        private static string NormalizeToCRLF(string value)
-            => value.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        private static string NormalizeLineEndings(string value)
+            => value.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
 
         /// <summary>
         /// Gets or sets the language version to use for the test. The default value is
@@ -96,19 +96,20 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
             // since it intentionally tests specific line ending behavior.
             if (!Options.Any(kvp => ReferenceEquals(kvp.Key.Option, FormattingOptions2.NewLine)))
             {
-                NormalizeSourceFileEndingsToCRLF(TestState);
-                NormalizeSourceFileEndingsToCRLF(FixedState);
+                NormalizeSourceFileEndings(TestState);
+                NormalizeSourceFileEndings(FixedState);
             }
 
             await base.RunImplAsync(cancellationToken);
         }
 
         /// <summary>
-        /// Normalizes all source file line endings in the given state to CRLF so that tests
-        /// produce consistent results across Windows and Linux. On Linux, raw string literals
-        /// use LF but SyntaxFactory/NormalizeWhitespace generate CRLF, causing mismatches.
+        /// Normalizes all source file line endings in the given state to the platform-native value
+        /// so that tests produce consistent results across Windows and Linux. On Linux, raw string
+        /// literals use LF but SyntaxFactory/NormalizeWhitespace generate CRLF; the formatter
+        /// normalizes them to the platform end_of_line setting.
         /// </summary>
-        private static void NormalizeSourceFileEndingsToCRLF(Testing.SolutionState state)
+        private static void NormalizeSourceFileEndings(Testing.SolutionState state)
         {
             NormalizeSourceCollection(state.Sources);
             foreach (var project in state.AdditionalProjects.Values)
@@ -121,7 +122,7 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
             {
                 var (filename, sourceText) = sources[i];
                 var text = sourceText.ToString();
-                var normalized = NormalizeToCRLF(text);
+                var normalized = NormalizeLineEndings(text);
                 if (text != normalized)
                     sources[i] = (filename, SourceText.From(normalized, sourceText.Encoding, sourceText.ChecksumAlgorithm));
             }

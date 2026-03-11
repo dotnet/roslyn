@@ -84,11 +84,13 @@ internal sealed class SharedVerifierState
         }
 
         // When EditorConfig is a global config, add a separate regular editorconfig at the root
-        // to ensure end_of_line=crlf is properly applied to all test source files.
+        // to ensure consistent end_of_line is properly applied to all test source files.
+        // Use platform-native line ending: crlf on Windows, lf on Linux/macOS.
         if (isGlobalConfig)
         {
+            var endOfLine = Environment.NewLine == "\n" ? "lf" : "crlf";
             var regularConfig = SourceText.From(
-                $"root = true\r\n\r\n[*.{_defaultFileExt}]\r\nend_of_line = crlf\r\n", Encoding.UTF8);
+                $"root = true\r\n\r\n[*.{_defaultFileExt}]\r\nend_of_line = {endOfLine}\r\n", Encoding.UTF8);
             if (_regularEditorConfigIndex is null)
             {
                 _regularEditorConfigIndex = _test.TestState.AnalyzerConfigFiles.Count;
