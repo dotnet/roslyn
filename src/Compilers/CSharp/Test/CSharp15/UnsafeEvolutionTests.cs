@@ -820,6 +820,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(expectedDiagnostics);
 
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(expectedDiagnostics);
+
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
@@ -2657,34 +2661,40 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         ];
         string[] symbolsWithAttribute = safeSymbols.Except(["C"]).Concat(unsafeSymbols).ToArray();
 
-        CompileAndVerify(source,
-            parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)
-                .WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress),
-            symbolValidator: m =>
-            {
-                VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false);
-                VerifyRequiresUnsafeAttribute(
-                    m,
-                    expectedUnsafeSymbols: [],
-                    expectedSafeSymbols: [.. safeSymbols, .. unsafeSymbols],
-                    expectedAttribute: symbolsWithAttribute);
-            })
-            .VerifyDiagnostics();
+        foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular14 })
+        {
+            CompileAndVerify(source,
+                parseOptions: parseOptions,
+                options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)
+                    .WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress),
+                symbolValidator: m =>
+                {
+                    VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false);
+                    VerifyRequiresUnsafeAttribute(
+                        m,
+                        expectedUnsafeSymbols: [],
+                        expectedSafeSymbols: [.. safeSymbols, .. unsafeSymbols],
+                        expectedAttribute: symbolsWithAttribute);
+                })
+                .VerifyDiagnostics();
+        }
 
-        CompileAndVerify(source,
-            parseOptions: TestOptions.RegularPreview,
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: m =>
-            {
-                VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
-                VerifyRequiresUnsafeAttribute(
-                    m,
-                    expectedUnsafeSymbols: [.. unsafeSymbols],
-                    expectedSafeSymbols: [.. safeSymbols],
-                    expectedAttribute: symbolsWithAttribute);
-            })
-            .VerifyDiagnostics();
+        foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext })
+        {
+            CompileAndVerify(source,
+                parseOptions: parseOptions,
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: m =>
+                {
+                    VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
+                    VerifyRequiresUnsafeAttribute(
+                        m,
+                        expectedUnsafeSymbols: [.. unsafeSymbols],
+                        expectedSafeSymbols: [.. safeSymbols],
+                        expectedAttribute: symbolsWithAttribute);
+                })
+                .VerifyDiagnostics();
+        }
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -3068,25 +3078,62 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M").WithArguments("C.M()").WithLocation(1, 9),
             ]);
 
-        CompileAndVerify([
+        CompileAndVerify(
+            [
                 """
+                System.Action a;
                 unsafe
                 {
                     var d = C.M;
                     System.Console.WriteLine(d.GetType());
+                    a = d;
                 }
+
+                a();
 
                 static class C
                 {
                     [System.Runtime.CompilerServices.RequiresUnsafe]
-                    public static void M() { }
+                    public static void M() => System.Console.WriteLine("ran");
                 }
                 """,
                 RequiresUnsafeAttributeDefinition,
             ],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
-            expectedOutput: "System.Action")
+            expectedOutput: """
+                System.Action
+                ran
+                """)
             .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Member_Method_ExpressionTree()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public static class C
+                {
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public static void M() { }
+                }
+                """,
+            caller: """
+                using System;
+                using System.Linq.Expressions;
+
+                Expression<Action> e1 = () => C.M();
+                unsafe { Expression<Action> e2 = () => C.M(); }
+                """,
+            additionalSources: [RequiresUnsafeAttributeDefinition],
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (4,31): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
+                // Expression<Action> e1 = () => C.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(4, 31),
+            ]);
     }
 
     [Fact]
@@ -3204,6 +3251,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["B.M1"],
             expectedDiagnostics: expectedDiagnostics,
             expectedDiagnosticsWhenReferencingLegacyLib: expectedDiagnostics);
+
+        CreateCompilation([lib, caller, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation([lib, caller, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
@@ -7484,6 +7536,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -7496,6 +7553,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (10,69): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     [MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("updated memory safety rules").WithLocation(10, 69));
+
+        CreateCompilation(libSource,
+            parseOptions: TestOptions.RegularNext)
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14)
@@ -7959,12 +8020,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(7, 28));
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (7,28): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         static extern void F();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("updated memory safety rules").WithLocation(7, 28));
+
+        CreateCompilation(libSource,
+            parseOptions: TestOptions.RegularNext)
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14)
@@ -8047,6 +8117,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -8068,6 +8143,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (10,73): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(10, 73));
+
+        CreateCompilation(libSource,
+            parseOptions: TestOptions.RegularNext)
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14)
@@ -8238,6 +8317,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -8250,6 +8334,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,42): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int this[int i] { get; set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(4, 42));
+
+        CreateCompilation(libSource,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14,
@@ -8427,6 +8516,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -8439,6 +8533,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (5,46): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public static extern event System.Action E;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 46));
+
+        CreateCompilation(libSource,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14,
@@ -8592,12 +8691,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (4,19): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern C();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(4, 19));
+
+        CreateCompilation(libSource,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14,
@@ -8749,12 +8858,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation([libSource, CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (4,33): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern void operator +=(C c);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("updated memory safety rules").WithLocation(4, 33));
+
+        CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
             parseOptions: TestOptions.Regular14,
