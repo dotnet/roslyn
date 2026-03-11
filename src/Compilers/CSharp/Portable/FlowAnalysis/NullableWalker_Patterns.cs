@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TakeIncrementalSnapshot(label);
                 VisitForRewriting(label.Pattern);
 
-                if (!State.Reachable && label.WhenClause != null)
+                if (!LabelState(label.Label).Reachable && label.WhenClause != null)
                 {
                     // Unreachable when clauses are not visited in `LearnFromDecisionDag`.
                     VisitForRewriting(label.WhenClause);
