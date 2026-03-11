@@ -9,6 +9,7 @@ using static SyntaxFactory;
 internal static class CSharpSyntaxTokens
 {
     public static readonly SyntaxToken AbstractKeyword = Token(SyntaxKind.AbstractKeyword);
+    public static readonly SyntaxToken AsKeyword = Token(SyntaxKind.AsKeyword);
     public static readonly SyntaxToken AssemblyKeyword = Token(SyntaxKind.AssemblyKeyword);
     public static readonly SyntaxToken AsyncKeyword = Token(SyntaxKind.AsyncKeyword);
     public static readonly SyntaxToken AwaitKeyword = Token(SyntaxKind.AwaitKeyword);

@@ -409,10 +409,8 @@ extends:
           displayName: Get Branch Name
         - template: /eng/pipelines/insert.yml@self
           parameters:
-            buildUserName: "dn-bot@microsoft.com"
-            buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            componentUserName: "dn-bot@microsoft.com"
-            componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+            dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
             publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"

@@ -389,17 +389,17 @@
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">Das unsichere Mitglied „{0}“ kann das sichere Mitglied „{1}“ nicht implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">Das unsichere Mitglied „{0}“ kann das sichere Mitglied „{1}“ nicht implizit implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">Das unsichere Mitglied „{0}“ kann das sichere Mitglied „{1}“ nicht überschreiben</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
@@ -904,7 +904,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
         <source>An expression tree may not contain a union conversion.</source>
-        <target state="new">An expression tree may not contain a union conversion.</target>
+        <target state="translated">Ein Ausdrucksbaum darf keine Union-Konvertierung enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1244,12 +1244,12 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
         <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
-        <target state="new">Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</target>
+        <target state="translated">Explizit deklarierte öffentliche Konstruktoren mit nur einem Parameter sind in einer „union“-Deklaration nicht erlaubt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceFieldInUnion">
         <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
-        <target state="new">Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</target>
+        <target state="translated">Instanzfelder, automatische Eigenschaften oder feldähnliche Ereignisse sind in einer „union“-Deklaration nicht erlaubt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
@@ -1484,12 +1484,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
-        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <target state="translated">Der Typ „{0}“ kann nicht über eine implizite Referenz- oder Boxing-Konvertierung in "object" umgewandelt werden</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="new">RequiresUnsafeAttribute cannot be applied to this symbol.</target>
+        <target state="translated">RequiresUnsafeAttribute kann nicht auf dieses Symbol angewendet werden.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -1679,7 +1679,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="needs-review-translation">Unerwartetes Schlüsselwort „Datensatz“. Meinten Sie „Datensatzstruktur“ oder „Datensatzklasse“?</target>
+        <target state="translated">Unerwartetes Schlüsselwort „Datensatz“. Meinten Sie „Datensatzstruktur“ oder „Datensatzklasse“?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -2699,17 +2699,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</target>
+        <target state="translated">Ein in einer „union“-Deklaration deklarierter Konstruktor muss einen „this“-Initialisierer haben, der einen synthetisierten Konstruktor oder einen explizit deklarierten Konstruktor aufruft.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
         <source>A union declaration must specify at least one case type.</source>
-        <target state="new">A union declaration must specify at least one case type.</target>
+        <target state="translated">Eine „union“-Deklaration muss mindestens einen Anfragetyp angeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionMatchingWrongPattern">
         <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</target>
+        <target state="translated">Ein Ausdruck vom Typ „{0}“ kann von diesem Muster nicht verarbeitet werden. Weitere Fehler finden Sie an dieser Stelle.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -2724,27 +2724,27 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</target>
+        <target state="translated">„{0}“ ist in einem Modul mit einer unbekannten Version von {1} definiert, erwartet wird „{2}“.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</target>
+        <target state="translated">„{0}“ muss in einem unsicheren Kontext verwendet werden, da er als „RequiresUnsafe“ oder „extern“ gekennzeichnet ist</target>
         <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
-        <target state="new">'{0}' must be used in an unsafe context because it has pointers in its signature</target>
+        <target state="translated">„{0}“ muss in einem unsicheren Kontext verwendet werden, da die Signatur Zeiger enthält</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeOperation">
         <source>This operation may only be used in an unsafe context</source>
-        <target state="new">This operation may only be used in an unsafe context</target>
+        <target state="translated">Dieser Vorgang darf nur in einem unsicheren Kontext verwendet werden</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="new">stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</target>
+        <target state="translated">stackalloc-Ausdruck ohne Initialisierer in SkipLocalsInit darf nur in einem unsicheren Kontext verwendet werden</target>
         <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -3129,12 +3129,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnions">
         <source>unions</source>
-        <target state="new">unions</target>
+        <target state="translated">Unions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
-        <target state="new">updated memory safety rules</target>
+        <target state="translated">Aktualisierte Speichersicherheitsregeln</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3924,12 +3924,12 @@
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute ist nur unter den aktualisierten Speichersicherheitsregeln gültig.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
         <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <target state="translated">RequiresUnsafeAttribute ist nur unter den aktualisierten Speichersicherheitsregeln gültig.</target>
         <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -4223,7 +4223,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# Compileroptionen
 
                        – AUSGABEDATEIEN –
@@ -4315,11 +4315,11 @@
                               (Kurzform: -d)
 -langversion:?                Anzeigen der zulässigen Werte für die Sprachversion
 -langversion:&lt;string&gt;             Sprachversion angeben, z. B.
-                              „latest“ (neueste Version, einschließlich Nebenversionen),
-                              „default“ (identisch mit „latest“),
-                              „latestmajor“ (neueste Version, einschließlich Nebenversionen),
-                              „preview“ (neueste Version, einschließlich Features in nicht unterstützter Vorschau),
-                              oder bestimmte Versionen wie „6“ oder „7.1“
+                              `latest` (neueste Version, einschließlich Nebenversionen),
+                              `default` (identisch mit `latest`),
+                              `latestmajor` (neueste Version, einschließlich Nebenversionen),
+                              `preview` (neueste Version, einschließlich Features in nicht unterstützter Vorschau),
+                              oder bestimmte Versionen wie `6` oder `7.1`
 -nullable[+|-]                Gibt die „Nullwerte zulassend“-Kontextoption enable|disable an.
 -nullable:{enable|disable|warnings|annotations}
                               Gibt die „Nullwerte zulassend“-Kontextoption enable|disable|warnings|annotations an.
@@ -4345,7 +4345,7 @@
 -baseaddress:&lt;address&gt;        Basisadresse für die zu erstellende Bibliothek
 -checksumalgorithm:&lt;alg&gt;          Gibt einen Algorithmus zum Berechnen der Prüfsumme-Quelldatei
                               an, die in PDB gespeichert ist. Folgende Werte werden unterstützt:
-                              SHA1 oder SHA256 (Standard).
+                              SHA-1, SHA-256 (Standard), SHA-384 oder SHA-512.
 -codepage:&lt;n&gt;                 Gibt die beim Öffnen von Quelldateien
                               zu verwendende Codepage an
 -utf8output                   Ausgabecompilermeldungen in UTF-8-Codierung
@@ -4370,7 +4370,7 @@
 -lib:&lt;file list&gt;              Gibt zusätzliche Verzeichnisse an, in denen nach
                               Verweise gesucht werden soll
 -errorreport:&lt;string&gt;         Gibt an, wie interne Compiler-Fehler behandelt werden sollen:
-                              „prompt“, „send“, „queue“ oder „none“. Der Standardwert ist
+                              "prompt", "send", "queue" oder "none". Der Standardwert ist
                               „queue“.
 -appconfig:&lt;file&gt;             Gibt eine Anwendungskonfigurationsdatei an, die
                               Assemblybindungseinstellungen enthält
@@ -7202,7 +7202,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
-        <target state="needs-review-translation">Partielle Deklarationen von "{0}" müssen entweder nur Klassen, nur Datensatzklassen, nur Strukturen, nur Datensatzstrukturen oder nur Schnittstellen sein.</target>
+        <target state="translated">Partielle Deklarationen von „{0}“ müssen alle Klassen, alle Datensatzklassen, alle Strukturen, alle Unions, alle Datensatzstrukturen oder alle Schnittstellen sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
