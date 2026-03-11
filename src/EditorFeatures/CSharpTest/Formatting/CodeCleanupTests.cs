@@ -791,6 +791,54 @@ public sealed partial class CodeCleanupTests
     public Task DoNotApplyFixerIfChangesAreMadeOutsideDocument()
         => TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code);
 
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2564885")]
+    public Task DoNotImplementInterfaceMembersDuringCodeCleanup()
+        => AssertCodeCleanupResult(
+            expected: """
+            internal interface IFoo
+            {
+                void Foo();
+            }
+
+            internal class Bar : IFoo
+            {
+            }
+            """,
+            code: """
+            internal interface IFoo
+            {
+                void Foo();
+            }
+
+            internal class Bar : IFoo
+            {
+            }
+            """);
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2564885")]
+    public Task DoNotImplementAbstractMembersDuringCodeCleanup()
+        => AssertCodeCleanupResult(
+            expected: """
+            internal abstract class Foo
+            {
+                internal abstract void M();
+            }
+
+            internal class Bar : Foo
+            {
+            }
+            """,
+            code: """
+            internal abstract class Foo
+            {
+                internal abstract void M();
+            }
+
+            internal class Bar : Foo
+            {
+            }
+            """);
+
     private static Task TestThirdPartyCodeFixerNoChanges<TCodefix, TAnalyzer>(string code, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodefix : CodeFixProvider, new()

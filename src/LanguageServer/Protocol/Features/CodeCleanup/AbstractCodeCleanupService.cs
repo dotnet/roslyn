@@ -24,6 +24,18 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
 {
     private readonly ICodeFixService _codeFixService = codeFixService;
 
+    /// <summary>
+    /// Diagnostic IDs whose code fixes generate stub implementations and should not be applied automatically during code cleanup.
+    /// Applying these fixes silently converts compile-time errors into runtime errors.
+    /// </summary>
+    private static readonly ImmutableHashSet<string> s_implementMemberDiagnosticIds = ImmutableHashSet.Create(
+        "CS0535", // 'Type' does not implement interface member 'Member'
+        "CS0737", // 'Type' does not implement interface member 'Member' (not public)
+        "CS0738", // 'Type' does not implement interface member 'Member' (wrong return type)
+        "CS0534", // 'Type' does not implement inherited abstract member 'Member'
+        "BC30149", // Class 'Type' must implement 'Method' for interface 'Interface'
+        "BC30610"); // Class must either be declared 'MustInherit' or override inherited 'MustOverride' member(s)
+
     protected abstract string OrganizeImportsDescription { get; }
     protected abstract ImmutableArray<DiagnosticSet> GetDiagnosticSets();
 
@@ -217,6 +229,11 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
 
         // We don't want code cleanup automatically cleaning suppressed diagnostics.
         diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
+
+        // Exclude diagnostics whose code fixes generate stub implementations.
+        // These fixes introduce 'throw new NotImplementedException()' which silently converts compile-time
+        // errors into runtime errors.
+        diagnostics = diagnostics.WhereAsArray(d => !s_implementMemberDiagnosticIds.Contains(d.Id));
 
         // ensure more than just known diagnostics were returned
         if (!diagnostics.Any())
