@@ -56,17 +56,25 @@ internal sealed class SharedVerifierState
 
     internal void Apply()
     {
+        var isGlobalConfig = EditorConfig?.TrimStart().StartsWith("is_global", StringComparison.OrdinalIgnoreCase) == true;
         var analyzerConfigSource = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultFileExt, EditorConfig, Options);
+
+        // When EditorConfig is a global analyzer config (is_global=true), we must place it at
+        // /.globalconfig rather than /.editorconfig. This frees /.editorconfig for a regular
+        // editorconfig with end_of_line=crlf, which global configs cannot express (they don't
+        // support file-glob sections like [*.cs]).
+        var analyzerConfigPath = isGlobalConfig ? "/.globalconfig" : "/.editorconfig";
+
         if (analyzerConfigSource is not null)
         {
             if (_analyzerConfigIndex is null)
             {
                 _analyzerConfigIndex = _test.TestState.AnalyzerConfigFiles.Count;
-                _test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", analyzerConfigSource));
+                _test.TestState.AnalyzerConfigFiles.Add((analyzerConfigPath, analyzerConfigSource));
             }
             else
             {
-                _test.TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = ("/.editorconfig", analyzerConfigSource);
+                _test.TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = (analyzerConfigPath, analyzerConfigSource);
             }
         }
         else if (_analyzerConfigIndex is { } index)
@@ -75,21 +83,20 @@ internal sealed class SharedVerifierState
             _test.TestState.AnalyzerConfigFiles.RemoveAt(index);
         }
 
-        // When EditorConfig is a global config (is_global=true), the end_of_line=crlf setting
-        // appended under [*.ext] won't be effective because global configs don't use file globs.
-        // Add a separate regular editorconfig to ensure end_of_line is properly applied.
-        if (EditorConfig?.TrimStart().StartsWith("is_global", StringComparison.OrdinalIgnoreCase) == true)
+        // When EditorConfig is a global config, add a separate regular editorconfig at the root
+        // to ensure end_of_line=crlf is properly applied to all test source files.
+        if (isGlobalConfig)
         {
             var regularConfig = SourceText.From(
                 $"root = true\r\n\r\n[*.{_defaultFileExt}]\r\nend_of_line = crlf\r\n", Encoding.UTF8);
             if (_regularEditorConfigIndex is null)
             {
                 _regularEditorConfigIndex = _test.TestState.AnalyzerConfigFiles.Count;
-                _test.TestState.AnalyzerConfigFiles.Add(("/src/.editorconfig", regularConfig));
+                _test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", regularConfig));
             }
             else
             {
-                _test.TestState.AnalyzerConfigFiles[_regularEditorConfigIndex.Value] = ("/src/.editorconfig", regularConfig);
+                _test.TestState.AnalyzerConfigFiles[_regularEditorConfigIndex.Value] = ("/.editorconfig", regularConfig);
             }
         }
         else if (_regularEditorConfigIndex is { } regIndex)
