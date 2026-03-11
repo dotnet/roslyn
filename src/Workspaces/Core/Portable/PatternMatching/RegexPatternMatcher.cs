@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -16,17 +17,13 @@ internal abstract partial class PatternMatcher
     /// as case-sensitive when the case-sensitive regex also matches. This is consistent with
     /// how standard NavigateTo works: find broadly, then rank case-sensitive matches higher.
     /// </summary>
-    internal sealed class RegexPatternMatcher : PatternMatcher
+    internal sealed class RegexPatternMatcher(string pattern, bool includeMatchedSpans, CultureInfo? culture = null)
+        : PatternMatcher(includeMatchedSpans, culture)
     {
-        private readonly Regex _caseInsensitiveRegex;
-        private readonly Regex _caseSensitiveRegex;
-
-        public RegexPatternMatcher(string pattern, bool includeMatchedSpans)
-            : base(includeMatchedSpans, culture: null)
-        {
-            _caseInsensitiveRegex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-            _caseSensitiveRegex = new Regex(pattern, RegexOptions.CultureInvariant);
-        }
+        // Both regexes are compiled to native code on first use, amortizing the compilation
+        // cost across the many candidate strings checked during a single NavigateTo search.
+        private readonly Regex _caseInsensitiveRegex = new(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        private readonly Regex _caseSensitiveRegex = new(pattern, RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         protected override bool AddMatchesWorker(string candidate, ref TemporaryArray<PatternMatch> matches)
         {
@@ -34,6 +31,8 @@ internal abstract partial class PatternMatcher
             if (!ciMatch.Success)
                 return false;
 
+            // Run the case-sensitive regex to determine categorization. The UI ranks
+            // case-sensitive matches higher, so we report it when both match.
             var csMatch = _caseSensitiveRegex.Match(candidate);
             var isCaseSensitive = csMatch.Success;
 

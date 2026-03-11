@@ -75,25 +75,28 @@ internal static class RegexPatternDetector
         if (tree is null || tree.Diagnostics.Length > 0)
             return (null, pattern);
 
-        // The root expression is always an alternation node. If there's no top-level alternation
-        // (single branch), drill into the sole sequence. Otherwise, no split — the dot would be
-        // inside an alternation branch, not at the top level.
+        // The Roslyn regex parser wraps the root in an alternation node even when there's no `|`.
+        // We only split at the top-level sequence — a dot inside an alternation branch (e.g.
+        // `Foo.Bar|Baz.Quux`) is ambiguous and doesn't make sense as a single container/name split.
         var rootExpr = tree.Root.Expression;
         if (rootExpr is not RegexAlternationNode alternation || alternation.SequenceList.Length != 1)
             return (null, pattern);
 
         var topSequence = alternation.SequenceList[0];
 
-        // Walk children right-to-left looking for an unquantified RegexWildcardNode.
+        // Walk right-to-left to find the last bare dot. A RegexWildcardNode that appears directly
+        // as a child of the top-level sequence (not wrapped in a quantifier) represents a bare `.`.
+        // If it were quantified (e.g. `.*`), the parser would wrap it in a quantifier node and it
+        // wouldn't appear directly as a RegexWildcardNode child.
         for (var i = topSequence.Children.Length - 1; i >= 0; i--)
         {
             if (topSequence.Children[i] is RegexWildcardNode wildcard)
             {
-                // Found a bare dot. Split the original string at this position.
                 var dotSpan = wildcard.DotToken.VirtualChars[0].Span;
                 var containerEnd = dotSpan.Start;
                 var nameStart = dotSpan.End;
 
+                // Skip dots at the very start or end — they can't form a valid container/name pair.
                 if (containerEnd == 0 || nameStart >= pattern.Length)
                     continue;
 

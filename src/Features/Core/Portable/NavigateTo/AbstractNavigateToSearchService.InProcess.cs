@@ -103,7 +103,14 @@ internal abstract partial class AbstractNavigateToSearchService
     {
         if (isRegex)
         {
-            // For regex patterns, use the compiled query tree for pre-filtering when possible.
+            // When the compiled query tree has extractable literals (HasLiterals is true), we can
+            // check if the document's indexed bigrams contain the required n-grams. This is the key
+            // optimization: most documents won't match a specific regex and can be skipped cheaply.
+            //
+            // When HasLiterals is false (e.g. the regex is `.*` which compiles to None), we can't
+            // reject any document — every document is a candidate and must be checked with the full
+            // regex. This is the "unsupported for pre-filtering" case: the regex is still run, but
+            // without the speed benefit of pre-filtering.
             if (regexQuery is { HasLiterals: true } && !filterIndex.RegexQueryCheckPasses(regexQuery))
             {
                 matchKinds = PatternMatcherKind.None;
@@ -134,6 +141,9 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
+        // Regex patterns get a RegexPatternMatcher that runs compiled System.Text.RegularExpressions.Regex.
+        // Non-regex patterns get the standard PatternMatcher which handles CamelCase, substring, fuzzy, etc.
+        // Both are used identically downstream — the caller doesn't know which kind it has.
         using var containerMatcher = isRegex
             ? (patternContainer != null ? new PatternMatcher.RegexPatternMatcher(patternContainer, includeMatchedSpans: true) : null)
             : PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);

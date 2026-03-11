@@ -8,13 +8,24 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
 /// <summary>
-/// A boolean query tree compiled from a regex AST. Used to pre-filter documents
-/// before running the full regex match. Each node evaluates against a document's
-/// indexed bigrams/trigrams to quickly reject documents that cannot possibly contain
-/// a match.
+/// A boolean query tree compiled from a regex AST, used to pre-filter documents before running
+/// the full (expensive) regex match. Each node evaluates against a document's indexed
+/// bigrams/trigrams to quickly reject documents that cannot possibly contain a match.
+/// <para/>
+/// The tree mirrors the boolean structure of the regex: concatenation becomes <see cref="All"/>
+/// (AND), alternation becomes <see cref="Any"/> (OR), and opaque constructs (wildcards, character
+/// classes) become <see cref="None"/> (passthrough). A pattern like <c>(Read|Write)Line</c> compiles
+/// to <c>All(Any(Literal("Read"), Literal("Write")), Literal("Line"))</c>, requiring "Line"'s
+/// bigrams to be present and at least one of "Read" or "Write"'s bigrams.
+/// <para/>
+/// When the entire tree reduces to <see cref="None"/> (e.g. for <c>.*</c> which has no extractable
+/// literals), <see cref="HasLiterals"/> is <see langword="false"/> and callers skip pre-filtering —
+/// every document becomes a candidate and must be checked with the full regex.
 /// </summary>
 internal abstract class RegexQuery
 {
+    // Private constructor prevents external subclassing, ensuring the closed set of
+    // All/Any/Literal/None is exhaustive for pattern matching.
     private RegexQuery() { }
 
     /// <summary>
@@ -32,7 +43,7 @@ internal abstract class RegexQuery
     {
         public ImmutableArray<RegexQuery> Children { get; } = children;
         public override bool HasLiterals => Children.Any(static c => c.HasLiterals);
-        public override string ToString() => $"All({string.Join(", ", Children.Select(c => c.ToString()))})";
+        public override string ToString() => $"All({string.Join(", ", Children)})";
     }
 
     /// <summary>
@@ -43,7 +54,7 @@ internal abstract class RegexQuery
     {
         public ImmutableArray<RegexQuery> Children { get; } = children;
         public override bool HasLiterals => Children.Any(static c => c.HasLiterals);
-        public override string ToString() => $"Any({string.Join(", ", Children.Select(c => c.ToString()))})";
+        public override string ToString() => $"Any({string.Join(", ", Children)})";
     }
 
     /// <summary>
@@ -74,6 +85,12 @@ internal abstract class RegexQuery
     /// <summary>
     /// Simplifies the query tree by flattening nested <see cref="All"/>/<see cref="Any"/> nodes,
     /// removing <see cref="None"/> where safe, and collapsing single-child wrappers.
+    /// <para/>
+    /// The key asymmetry: <see cref="None"/> means "anything could match here." In an
+    /// <see cref="All"/> (AND), that's vacuously true and can be dropped — the remaining children
+    /// still constrain the match. In an <see cref="Any"/> (OR), it poisons the whole disjunction —
+    /// if one branch can match anything, the entire <see cref="Any"/> can match anything, so it
+    /// collapses to <see cref="None"/>.
     /// </summary>
     public static RegexQuery Optimize(RegexQuery query)
     {
@@ -107,7 +124,7 @@ internal abstract class RegexQuery
             {
                 0 => None.Instance,
                 1 => children[0],
-                _ => new All([.. children]),
+                _ => new All(children.ToImmutable()),
             };
         }
 
@@ -134,7 +151,7 @@ internal abstract class RegexQuery
             {
                 0 => None.Instance,
                 1 => children[0],
-                _ => new Any([.. children]),
+                _ => new Any(children.ToImmutable()),
             };
         }
     }
