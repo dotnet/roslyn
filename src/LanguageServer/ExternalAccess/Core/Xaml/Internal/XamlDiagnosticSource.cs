@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -11,11 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Roslyn.LanguageServer.Protocol;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-#endif
 
 internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticSource, TextDocument document) : IDiagnosticSource
 {

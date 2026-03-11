@@ -12,11 +12,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Debugger;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
-#endif
 
 [Export]
 [Shared]

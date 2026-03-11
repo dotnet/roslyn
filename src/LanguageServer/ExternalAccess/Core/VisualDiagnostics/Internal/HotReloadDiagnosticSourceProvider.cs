@@ -7,21 +7,14 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
-#endif
 
 internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticManager diagnosticManager, bool isDocument) : IDiagnosticSourceProvider
 {

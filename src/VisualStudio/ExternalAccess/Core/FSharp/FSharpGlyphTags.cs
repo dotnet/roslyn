@@ -6,11 +6,7 @@
 
 using System.Collections.Immutable;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal;
-#else
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
-#endif
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 

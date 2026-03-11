@@ -8,21 +8,15 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Text;
-
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.SemanticSearch;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;
-#endif
 
 [Export(typeof(ICopilotSemanticSearchQueryExecutor)), Shared]
 [method: ImportingConstructor]

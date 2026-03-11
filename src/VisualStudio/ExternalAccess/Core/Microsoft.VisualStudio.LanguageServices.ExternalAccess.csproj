@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
@@ -6,8 +6,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
     <TargetFrameworks>net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
-
-    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -18,6 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Apex" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
+
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
 
     <!--

@@ -7,11 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-#endif
 
 /// <summary>
 /// Represents a service that can be imported via MEF to provide descriptions for a symbol.

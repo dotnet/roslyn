@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,10 +20,6 @@
       ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\EditorConfigGenerator\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

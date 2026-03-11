@@ -6,11 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Xaml;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-#endif
 
 /// <summary>
 /// Defines an easy to use subclass for <see cref="ExportLspServiceFactoryAttribute"/> with the Roslyn languages contract name.
