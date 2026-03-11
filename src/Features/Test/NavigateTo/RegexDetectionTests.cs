@@ -15,8 +15,8 @@ public class RegexDetectionTests
     [InlineData("(Read|Write)")]
     [InlineData("Read|Write")]
     [InlineData("[abc]")]
-    [InlineData("Foo.*Bar")]
-    [InlineData("Foo.+Bar")]
+    [InlineData("Goo.*Bar")]
+    [InlineData("Goo.+Bar")]
     [InlineData("x+")]
     [InlineData("x?")]
     [InlineData("x*")]
@@ -25,7 +25,7 @@ public class RegexDetectionTests
     [InlineData("End$")]
     [InlineData("a{2,3}")]
     [InlineData("a{2}")]
-    [InlineData(@"Foo\.Bar")]
+    [InlineData(@"Goo\.Bar")]
     [InlineData("(Read|Write)Line")]
     [InlineData("(?:abc)")]
     public void IsRegexPattern_Positive(string pattern)
@@ -39,9 +39,9 @@ public class RegexDetectionTests
 
     [Theory]
     [InlineData("abc")]
-    [InlineData("FooBar")]
+    [InlineData("GooBar")]
     [InlineData("x.y")]
-    [InlineData("Foo.Bar.Baz")]
+    [InlineData("Goo.Bar.Baz")]
     [InlineData("get word")]
     [InlineData("ReadLine")]
     [InlineData("_myField")]
@@ -58,29 +58,29 @@ public class RegexDetectionTests
     #region SplitOnContainerDot — positive (split occurs)
 
     [Fact]
-    public void Split_PlainFooDotBar()
+    public void Split_PlainGooDotBar()
     {
-        // Foo.Bar -> bare dot splits into container="Foo", name="Bar"
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Foo.Bar");
-        Assert.Equal("Foo", container);
+        // Goo.Bar -> bare dot splits into container="Goo", name="Bar"
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Goo.Bar");
+        Assert.Equal("Goo", container);
         Assert.Equal("Bar", name);
     }
 
     [Fact]
     public void Split_RegexContainerPlainName()
     {
-        // (Foo|Bar).Baz -> bare dot after ')' -> container="(Foo|Bar)", name="Baz"
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("(Foo|Bar).Baz");
-        Assert.Equal("(Foo|Bar)", container);
+        // (Goo|Bar).Baz -> bare dot after ')' -> container="(Goo|Bar)", name="Baz"
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("(Goo|Bar).Baz");
+        Assert.Equal("(Goo|Bar)", container);
         Assert.Equal("Baz", name);
     }
 
     [Fact]
     public void Split_RegexContainerRegexName()
     {
-        // (Foo|Bar).(Baz|Quux) -> bare dot -> container="(Foo|Bar)", name="(Baz|Quux)"
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("(Foo|Bar).(Baz|Quux)");
-        Assert.Equal("(Foo|Bar)", container);
+        // (Goo|Bar).(Baz|Quux) -> bare dot -> container="(Goo|Bar)", name="(Baz|Quux)"
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("(Goo|Bar).(Baz|Quux)");
+        Assert.Equal("(Goo|Bar)", container);
         Assert.Equal("(Baz|Quux)", name);
     }
 
@@ -116,30 +116,30 @@ public class RegexDetectionTests
     #region SplitOnContainerDot — negative (no split)
 
     [Fact]
-    public void NoSplit_FooDotStarBar()
+    public void NoSplit_GooDotStarBar()
     {
-        // Foo.*Bar -> the dot is quantified with *, not bare -> no split
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Foo.*Bar");
+        // Goo.*Bar -> the dot is quantified with *, not bare -> no split
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Goo.*Bar");
         Assert.Null(container);
-        Assert.Equal("Foo.*Bar", name);
+        Assert.Equal("Goo.*Bar", name);
     }
 
     [Fact]
-    public void NoSplit_FooDotPlusBar()
+    public void NoSplit_GooDotPlusBar()
     {
-        // Foo.+Bar -> the dot is quantified with +, not bare -> no split
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Foo.+Bar");
+        // Goo.+Bar -> the dot is quantified with +, not bare -> no split
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Goo.+Bar");
         Assert.Null(container);
-        Assert.Equal("Foo.+Bar", name);
+        Assert.Equal("Goo.+Bar", name);
     }
 
     [Fact]
     public void NoSplit_EscapedDot()
     {
-        // Foo\.Bar -> escape node, not a wildcard -> no split
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot(@"Foo\.Bar");
+        // Goo\.Bar -> escape node, not a wildcard -> no split
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot(@"Goo\.Bar");
         Assert.Null(container);
-        Assert.Equal(@"Foo\.Bar", name);
+        Assert.Equal(@"Goo\.Bar", name);
     }
 
     [Fact]
@@ -162,28 +162,28 @@ public class RegexDetectionTests
     [Fact]
     public void NoSplit_TopLevelAlternation()
     {
-        // Foo.Bar|Baz.Quux -> top-level alternation has two branches; dot is inside a branch, not top-level
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Foo.Bar|Baz.Quux");
+        // Goo.Bar|Baz.Quux -> top-level alternation has two branches; dot is inside a branch, not top-level
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Goo.Bar|Baz.Quux");
         Assert.Null(container);
-        Assert.Equal("Foo.Bar|Baz.Quux", name);
+        Assert.Equal("Goo.Bar|Baz.Quux", name);
     }
 
     [Fact]
     public void NoSplit_DotQuestionBar()
     {
-        // Foo.?Bar -> the dot is quantified with ? -> no split
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Foo.?Bar");
+        // Goo.?Bar -> the dot is quantified with ? -> no split
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Goo.?Bar");
         Assert.Null(container);
-        Assert.Equal("Foo.?Bar", name);
+        Assert.Equal("Goo.?Bar", name);
     }
 
     [Fact]
     public void NoSplit_InvalidRegex()
     {
         // Unbalanced parens -> parser returns diagnostics -> no split, return as-is
-        var (container, name) = RegexPatternDetector.SplitOnContainerDot("(Foo.Bar");
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("(Goo.Bar");
         Assert.Null(container);
-        Assert.Equal("(Foo.Bar", name);
+        Assert.Equal("(Goo.Bar", name);
     }
 
     [Fact]

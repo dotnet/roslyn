@@ -40,28 +40,28 @@ public class RegexQueryCompilerTests
     [Fact]
     public void Sequence_ProducesAll()
     {
-        // Foo.*Bar -> All(Literal("Foo"), Literal("Bar"))  (the .* becomes None, pruned by optimizer)
-        var query = RegexQueryCompiler.Compile("Foo.*Bar");
+        // Goo.*Bar -> All(Literal("Goo"), Literal("Bar"))  (the .* becomes None, pruned by optimizer)
+        var query = RegexQueryCompiler.Compile("Goo.*Bar");
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("Foo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
         Assert.Equal("Bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     [Fact]
     public void OneOrMore_PreservesInner()
     {
-        // Foo+ -> the parser sees "Fo" as text, then o+ as OneOrMore(text("o"))
+        // Goo+ -> the parser sees "Fo" as text, then o+ as OneOrMore(text("o"))
         // Result: All(Literal("Fo"), Literal("o")) or just Literal("Fo") + Literal("o")
-        var query = RegexQueryCompiler.Compile("Foo+");
+        var query = RegexQueryCompiler.Compile("Goo+");
         Assert.True(query!.HasLiterals);
     }
 
     [Fact]
     public void EscapedDot_ProducesLiteral()
     {
-        // Foo\.Bar -> the escaped dot is a literal '.'
-        var query = RegexQueryCompiler.Compile(@"Foo\.Bar");
+        // Goo\.Bar -> the escaped dot is a literal '.'
+        var query = RegexQueryCompiler.Compile(@"Goo\.Bar");
         Assert.NotNull(query);
         Assert.True(query!.HasLiterals);
     }
@@ -351,24 +351,24 @@ public class RegexQueryCompilerTests
     [Fact]
     public void EndToEnd_DotStarBetweenLiterals()
     {
-        // Foo.*Bar -> All(Literal("Foo"), Literal("Bar"))
-        var query = RegexQueryCompiler.Compile("Foo.*Bar")!;
+        // Goo.*Bar -> All(Literal("Goo"), Literal("Bar"))
+        var query = RegexQueryCompiler.Compile("Goo.*Bar")!;
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("Foo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
         Assert.Equal("Bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     [Fact]
     public void EndToEnd_DotPlusBetweenLiterals()
     {
-        // Foo.+Bar -> All(Literal("Foo"), Literal("Bar"))
+        // Goo.+Bar -> All(Literal("Goo"), Literal("Bar"))
         // The .+ is OneOrMore(Wildcard) -> Wildcard compiles to None -> OneOrMore preserves inner -> None
-        // After optimization: All(Literal("Foo"), Literal("Bar"))
-        var query = RegexQueryCompiler.Compile("Foo.+Bar")!;
+        // After optimization: All(Literal("Goo"), Literal("Bar"))
+        var query = RegexQueryCompiler.Compile("Goo.+Bar")!;
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("Foo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
         Assert.Equal("Bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
@@ -403,10 +403,10 @@ public class RegexQueryCompilerTests
     [Fact]
     public void EndToEnd_AnchorWithLiteral()
     {
-        // ^Foo$ -> All(Literal("Foo")) -> Literal("Foo")
+        // ^Goo$ -> All(Literal("Goo")) -> Literal("Goo")
         // Anchors become None, pruned from All
-        var query = RegexQueryCompiler.Compile("^Foo$")!;
-        Assert.Equal("Foo", Assert.IsType<RegexQuery.Literal>(query).Text);
+        var query = RegexQueryCompiler.Compile("^Goo$")!;
+        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(query).Text);
     }
 
     [Fact]

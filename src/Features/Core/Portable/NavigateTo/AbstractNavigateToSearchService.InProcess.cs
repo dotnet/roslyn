@@ -44,18 +44,20 @@ internal abstract partial class AbstractNavigateToSearchService
 
     /// <summary>
     /// Determines the name and container from a search pattern, using regex-aware splitting when
-    /// the pattern contains regex metacharacters.
+    /// the pattern contains regex metacharacters. Also compiles a <see cref="RegexQuery"/> for
+    /// pre-filtering when the pattern is a regex.
     /// </summary>
-    internal static (string name, string? container, bool isRegex) ProcessSearchPattern(string searchPattern)
+    internal static (string name, string? container, bool isRegex, RegexQuery? regexQuery) ProcessSearchPattern(string searchPattern)
     {
         if (RegexPatternDetector.IsRegexPattern(searchPattern))
         {
             var (container, name) = RegexPatternDetector.SplitOnContainerDot(searchPattern);
-            return (name, container, isRegex: true);
+            var regexQuery = RegexQueryCompiler.Compile(name);
+            return (name, container, isRegex: true, regexQuery);
         }
 
         var (patternName, containerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
-        return (patternName, containerOpt, isRegex: false);
+        return (patternName, containerOpt, isRegex: false, regexQuery: null);
     }
 
     private static async ValueTask SearchSingleDocumentAsync(
@@ -144,12 +146,18 @@ internal abstract partial class AbstractNavigateToSearchService
         // Regex patterns get a RegexPatternMatcher that runs compiled System.Text.RegularExpressions.Regex.
         // Non-regex patterns get the standard PatternMatcher which handles CamelCase, substring, fuzzy, etc.
         // Both are used identically downstream — the caller doesn't know which kind it has.
-        using var containerMatcher = isRegex
-            ? (patternContainer != null ? new PatternMatcher.RegexPatternMatcher(patternContainer, includeMatchedSpans: true) : null)
-            : PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);
+        //
+        // TryCreate returns null if the pattern is syntactically invalid (e.g. unclosed groups).
+        // In that case we silently produce no results for this document rather than crashing.
         using var nameMatcher = isRegex
-            ? new PatternMatcher.RegexPatternMatcher(patternName, includeMatchedSpans: true)
+            ? PatternMatcher.RegexPatternMatcher.TryCreate(patternName, includeMatchedSpans: true)
             : PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, matchKinds);
+        if (nameMatcher is null)
+            return;
+
+        using var containerMatcher = isRegex
+            ? (patternContainer != null ? PatternMatcher.RegexPatternMatcher.TryCreate(patternContainer, includeMatchedSpans: true) : null)
+            : PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);
 
         foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {

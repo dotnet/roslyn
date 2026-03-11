@@ -77,7 +77,7 @@ internal static class RegexPatternDetector
 
         // The Roslyn regex parser wraps the root in an alternation node even when there's no `|`.
         // We only split at the top-level sequence — a dot inside an alternation branch (e.g.
-        // `Foo.Bar|Baz.Quux`) is ambiguous and doesn't make sense as a single container/name split.
+        // `Goo.Bar|Baz.Quux`) is ambiguous and doesn't make sense as a single container/name split.
         var rootExpr = tree.Root.Expression;
         if (rootExpr is not RegexAlternationNode alternation || alternation.SequenceList.Length != 1)
             return (null, pattern);

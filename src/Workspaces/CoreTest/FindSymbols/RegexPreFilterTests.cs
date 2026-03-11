@@ -134,12 +134,12 @@ public class RegexPreFilterTests
     [Fact]
     public void MultipleSymbols_BigramsAccumulate()
     {
-        // "Foo" contributes "fo","oo" bigrams; "Bar" contributes "ba","ar"
-        // Query All(Literal("Foo"), Literal("Bar")) should pass because each literal's
+        // "Goo" contributes "fo","oo" bigrams; "Bar" contributes "ba","ar"
+        // Query All(Literal("Goo"), Literal("Bar")) should pass because each literal's
         // bigrams are present across the accumulated index.
-        var index = CreateIndex(("Foo", ""), ("Bar", ""));
+        var index = CreateIndex(("Goo", ""), ("Bar", ""));
         var query = new RegexQuery.All([
-            new RegexQuery.Literal("Foo"),
+            new RegexQuery.Literal("Goo"),
             new RegexQuery.Literal("Bar"),
         ]);
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
@@ -183,7 +183,7 @@ public class RegexPreFilterTests
     public void EmptyIndex_FailsOnLiteral()
     {
         var index = CreateIndex();
-        var query = new RegexQuery.Literal("Foo");
+        var query = new RegexQuery.Literal("Goo");
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
@@ -209,11 +209,11 @@ public class RegexPreFilterTests
     [Fact]
     public void FalsePositive_Baseline_ReorderedBigrams()
     {
-        // "FooBar" has bigrams: fo, oo, ob, ba, ar
-        // Query Literal("BarFoo") has bigrams: ba, ar, rf, fo, oo
+        // "GooBar" has bigrams: fo, oo, ob, ba, ar
+        // Query Literal("BarGoo") has bigrams: ba, ar, rf, fo, oo
         // "rf" is not present, so bigram check should reject this.
-        var index = CreateIndex(("FooBar", ""));
-        var query = new RegexQuery.Literal("BarFoo");
+        var index = CreateIndex(("GooBar", ""));
+        var query = new RegexQuery.Literal("BarGoo");
         // This should correctly fail because "rf" bigram is missing.
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
@@ -221,12 +221,12 @@ public class RegexPreFilterTests
     [Fact]
     public void FalsePositive_Baseline_SharedBigramsAcrossSymbols()
     {
-        // Two symbols "Foo" and "Bar" together contribute bigrams: fo, oo, ba, ar
+        // Two symbols "Goo" and "Bar" together contribute bigrams: fo, oo, ba, ar
         // Query Literal("ooba") has bigrams: oo, ob, ba
-        // "ob" is not from either "Foo" or "Bar" individually, but bigrams accumulate
-        // across symbols. "Foo" has 'o' and "Bar" has 'b' but the bigram "ob" is only
+        // "ob" is not from either "Goo" or "Bar" individually, but bigrams accumulate
+        // across symbols. "Goo" has 'o' and "Bar" has 'b' but the bigram "ob" is only
         // present if some symbol has those two chars adjacent.
-        var index = CreateIndex(("Foo", ""), ("Bar", ""));
+        var index = CreateIndex(("Goo", ""), ("Bar", ""));
         var query = new RegexQuery.Literal("ooba");
         // "ob" bigram is NOT present (no symbol has 'o' followed by 'b')
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));

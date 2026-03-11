@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Collections;
@@ -17,13 +18,52 @@ internal abstract partial class PatternMatcher
     /// as case-sensitive when the case-sensitive regex also matches. This is consistent with
     /// how standard NavigateTo works: find broadly, then rank case-sensitive matches higher.
     /// </summary>
-    internal sealed class RegexPatternMatcher(string pattern, bool includeMatchedSpans, CultureInfo? culture = null)
-        : PatternMatcher(includeMatchedSpans, culture)
+    internal sealed class RegexPatternMatcher : PatternMatcher
     {
-        // Both regexes are compiled to native code on first use, amortizing the compilation
-        // cost across the many candidate strings checked during a single NavigateTo search.
-        private readonly Regex _caseInsensitiveRegex = new(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
-        private readonly Regex _caseSensitiveRegex = new(pattern, RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        private readonly Regex _caseInsensitiveRegex;
+        private readonly Regex _caseSensitiveRegex;
+
+        private RegexPatternMatcher(Regex caseInsensitiveRegex, Regex caseSensitiveRegex, bool includeMatchedSpans, CultureInfo? culture)
+            : base(includeMatchedSpans, culture)
+        {
+            _caseInsensitiveRegex = caseInsensitiveRegex;
+            _caseSensitiveRegex = caseSensitiveRegex;
+        }
+
+        /// <summary>
+        /// Tries to create a <see cref="RegexPatternMatcher"/> for the given pattern. Returns
+        /// <see langword="null"/> if the pattern is not a valid .NET regex (e.g. unclosed groups,
+        /// invalid escape sequences). Callers should fall back to the standard search path.
+        /// </summary>
+        public static RegexPatternMatcher? TryCreate(string pattern, bool includeMatchedSpans, CultureInfo? culture = null)
+        {
+            // Symbol names never contain whitespace, so strip it from the pattern to allow
+            // users to write readable regexes like `( Read | Write ) Line`.
+            var strippedPattern = StripWhitespace(pattern);
+
+            try
+            {
+                // Both regexes are compiled to native code on first use, amortizing the compilation
+                // cost across the many candidate strings checked during a single NavigateTo search.
+                var ci = new Regex(strippedPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+                var cs = new Regex(strippedPattern, RegexOptions.CultureInvariant | RegexOptions.Compiled);
+                return new RegexPatternMatcher(ci, cs, includeMatchedSpans, culture);
+            }
+            catch (ArgumentException)
+            {
+                // Pattern is syntactically invalid for System.Text.RegularExpressions.
+                return null;
+            }
+        }
+
+        private static string StripWhitespace(string pattern)
+        {
+            // Fast path: most patterns have no whitespace.
+            if (pattern.IndexOf(' ') < 0)
+                return pattern;
+
+            return pattern.Replace(" ", "");
+        }
 
         protected override bool AddMatchesWorker(string candidate, ref TemporaryArray<PatternMatch> matches)
         {

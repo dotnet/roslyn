@@ -121,7 +121,14 @@ internal static class RegexQueryCompiler
         if (chars.Length == 0)
             return RegexQuery.None.Instance;
 
-        return new RegexQuery.Literal(chars.CreateString());
+        // Strip whitespace from text nodes because symbol names never contain spaces.
+        // This allows users to write readable patterns like `( Read | Write ) Line` —
+        // the spaces around alternation branches are purely for readability.
+        var literal = chars.CreateString().Replace(" ", "");
+        if (literal.Length == 0)
+            return RegexQuery.None.Instance;
+
+        return new RegexQuery.Literal(literal);
     }
 
     private static RegexQuery CompileSimpleEscape(RegexSimpleEscapeNode escape)

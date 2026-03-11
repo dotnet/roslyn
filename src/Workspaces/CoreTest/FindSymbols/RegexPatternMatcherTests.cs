@@ -12,7 +12,10 @@ public class RegexPatternMatcherTests
 {
     private static PatternMatch? GetMatch(string pattern, string candidate, bool includeMatchedSpans = false)
     {
-        using var matcher = new PatternMatcher.RegexPatternMatcher(pattern, includeMatchedSpans);
+        using var matcher = PatternMatcher.RegexPatternMatcher.TryCreate(pattern, includeMatchedSpans);
+        if (matcher is null)
+            return null;
+
         using var matches = TemporaryArray<PatternMatch>.Empty;
         if (matcher.AddMatches(candidate, ref matches.AsRef()))
             return matches[0];
@@ -70,7 +73,7 @@ public class RegexPatternMatcherTests
     [Fact]
     public void DotStar_SubstringMatch()
     {
-        var match = GetMatch("Foo.*Bar", "FooSomethingBar");
+        var match = GetMatch("Goo.*Bar", "GooSomethingBar");
         Assert.NotNull(match);
         Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
         Assert.True(match.Value.IsCaseSensitive);
@@ -79,7 +82,7 @@ public class RegexPatternMatcherTests
     [Fact]
     public void DotStar_PartialMatch()
     {
-        var match = GetMatch("Foo.*Bar", "MyFooSomethingBarEnd");
+        var match = GetMatch("Goo.*Bar", "MyGooSomethingBarEnd");
         Assert.NotNull(match);
         Assert.Equal(PatternMatchKind.NonLowercaseSubstring, match.Value.Kind);
     }
@@ -113,7 +116,7 @@ public class RegexPatternMatcherTests
     [Fact]
     public void Quantifiers_OneOrMore()
     {
-        var match = GetMatch("Fo+Bar", "FooBar");
+        var match = GetMatch("Go+Bar", "GooBar");
         Assert.NotNull(match);
         Assert.True(match.Value.IsCaseSensitive);
     }
@@ -121,15 +124,14 @@ public class RegexPatternMatcherTests
     [Fact]
     public void Quantifiers_ZeroOrMore()
     {
-        var match = GetMatch("Fo*Bar", "FBar");
+        var match = GetMatch("Go*Bar", "GBar");
         Assert.NotNull(match);
     }
 
     [Fact]
     public void EscapedDot_LiteralMatch()
     {
-        // \. matches a literal dot
-        var match = GetMatch(@"Foo\.Bar", "Foo.Bar");
+        var match = GetMatch(@"Goo\.Bar", "Goo.Bar");
         Assert.NotNull(match);
         Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
     }
@@ -146,7 +148,6 @@ public class RegexPatternMatcherTests
     [Fact]
     public void CaseSensitive_MatchHigherPriority()
     {
-        // When case-sensitive regex also matches, isCaseSensitive is true
         var match = GetMatch("Read", "ReadLine");
         Assert.NotNull(match);
         Assert.True(match.Value.IsCaseSensitive);
@@ -180,17 +181,15 @@ public class RegexPatternMatcherTests
     [Fact]
     public void NoMatch_EmptyCandidate()
     {
-        var match = GetMatch("Foo", "");
+        var match = GetMatch("Goo", "");
         Assert.Null(match);
     }
 
     [Fact]
     public void NoMatch_CaseMattersForAnchored()
     {
-        // ^ReadLine$ requires exact match. Case-insensitive finds it but it's still "Exact".
-        // However, if we use a case-specific anchor test:
         var match = GetMatch("^readLine$", "ReadLine");
-        Assert.NotNull(match); // case-insensitive finds it
+        Assert.NotNull(match);
         Assert.False(match.Value.IsCaseSensitive);
     }
 
@@ -201,7 +200,7 @@ public class RegexPatternMatcherTests
     [Fact]
     public void CaseSensitivity_ExactCaseSensitive()
     {
-        var match = GetMatch("FooBar", "FooBar");
+        var match = GetMatch("GooBar", "GooBar");
         Assert.NotNull(match);
         Assert.True(match.Value.IsCaseSensitive);
     }
@@ -209,7 +208,7 @@ public class RegexPatternMatcherTests
     [Fact]
     public void CaseSensitivity_ExactCaseInsensitive()
     {
-        var match = GetMatch("foobar", "FooBar");
+        var match = GetMatch("goobar", "GooBar");
         Assert.NotNull(match);
         Assert.False(match.Value.IsCaseSensitive);
     }
@@ -217,7 +216,7 @@ public class RegexPatternMatcherTests
     [Fact]
     public void CaseSensitivity_SubstringCaseSensitive()
     {
-        var match = GetMatch("Foo", "FooBar");
+        var match = GetMatch("Goo", "GooBar");
         Assert.NotNull(match);
         Assert.True(match.Value.IsCaseSensitive);
     }
@@ -225,7 +224,7 @@ public class RegexPatternMatcherTests
     [Fact]
     public void CaseSensitivity_SubstringCaseInsensitive()
     {
-        var match = GetMatch("foo", "FooBar");
+        var match = GetMatch("goo", "GooBar");
         Assert.NotNull(match);
         Assert.False(match.Value.IsCaseSensitive);
     }
@@ -233,7 +232,6 @@ public class RegexPatternMatcherTests
     [Fact]
     public void CaseSensitivity_Alternation_MixedCase()
     {
-        // Pattern "Read|write" — "ReadLine" matches case-sensitive via "Read" branch
         var match = GetMatch("Read|write", "ReadLine");
         Assert.NotNull(match);
         Assert.True(match.Value.IsCaseSensitive);
@@ -242,7 +240,6 @@ public class RegexPatternMatcherTests
     [Fact]
     public void CaseSensitivity_Alternation_CaseInsensitiveOnly()
     {
-        // Pattern "read|write" — "ReadLine" matches case-insensitive only
         var match = GetMatch("read|write", "ReadLine");
         Assert.NotNull(match);
         Assert.False(match.Value.IsCaseSensitive);
@@ -270,14 +267,65 @@ public class RegexPatternMatcherTests
     [Fact]
     public void NullCandidate_NoMatch()
     {
-        var match = GetMatch("Foo", null!);
+        var match = GetMatch("Goo", null!);
         Assert.Null(match);
     }
 
     [Fact]
     public void WhitespaceCandidate_NoMatch()
     {
-        var match = GetMatch("Foo", "   ");
+        var match = GetMatch("Goo", "   ");
+        Assert.Null(match);
+    }
+
+    [Fact]
+    public void InvalidRegex_ReturnsNull()
+    {
+        var match = GetMatch("(unclosed", "Anything");
+        Assert.Null(match);
+    }
+
+    [Fact]
+    public void InvalidRegex_BadEscape_ReturnsNull()
+    {
+        var match = GetMatch(@"\", "Anything");
+        Assert.Null(match);
+    }
+
+    #endregion
+
+    #region Whitespace handling
+
+    [Fact]
+    public void WhitespaceInPattern_IsStripped()
+    {
+        var match = GetMatch("( Read | Write ) Line", "ReadLine");
+        Assert.NotNull(match);
+        Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
+        Assert.True(match.Value.IsCaseSensitive);
+    }
+
+    [Fact]
+    public void WhitespaceInPattern_IsStripped_SecondBranch()
+    {
+        var match = GetMatch("( Read | Write ) Line", "WriteLine");
+        Assert.NotNull(match);
+        Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
+        Assert.True(match.Value.IsCaseSensitive);
+    }
+
+    [Fact]
+    public void WhitespaceInPattern_SimpleLiteral()
+    {
+        var match = GetMatch("Goo Bar", "GooBar");
+        Assert.NotNull(match);
+        Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
+    }
+
+    [Fact]
+    public void WhitespaceInPattern_DoesNotMatchSpacedCandidate()
+    {
+        var match = GetMatch("Goo Bar", "Goo Bar");
         Assert.Null(match);
     }
 

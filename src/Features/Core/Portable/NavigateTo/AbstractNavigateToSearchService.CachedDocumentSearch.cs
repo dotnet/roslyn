@@ -120,8 +120,7 @@ internal abstract partial class AbstractNavigateToSearchService
         if (!ShouldSearchCachedDocuments(out _, out _, out _))
             return;
 
-        var (patternName, patternContainer, isRegex) = ProcessSearchPattern(searchPattern);
-        var regexQuery = isRegex ? RegexQueryCompiler.Compile(patternName) : null;
+        var (patternName, patternContainer, isRegex, regexQuery) = ProcessSearchPattern(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // Process the documents by project group.  That way, when each project is done, we can
