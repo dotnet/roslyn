@@ -1007,12 +1007,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         Debug.Assert(alias.UsingDirective != null);
 
-                        if (alias.UsingDirective.UnsafeKeyword == default &&
-                            alias.Alias.Target is { } immediateTarget &&
-                            diagnostics.DiagnosticBag is { } bag &&
-                            alias.Alias.TryGetFirstLocation() is { } location)
+                        if (alias.UsingDirective.UnsafeKeyword == default)
                         {
-                            compilation.GetBinder(alias.UsingDirective.NamespaceOrType).ReportDiagnosticsIfUnsafeMemberAccess(bag, immediateTarget, location);
+                            compilation.GetBinder(alias.UsingDirective.NamespaceOrType).ReportDiagnosticsIfUnsafeMemberAccess(diagnostics.DiagnosticBag, alias.Alias.Target, alias.Alias.GetFirstLocation());
                         }
 
                         semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);
