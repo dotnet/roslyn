@@ -136,6 +136,11 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
         string expectedSourceOriginal,
         string expectedSourceReference = null)
     {
+        // Normalize line endings to platform default for consistent behavior across platforms.
+        initialMarkUp = initialMarkUp.ReplaceLineEndings();
+        expectedSourceOriginal = expectedSourceOriginal?.ReplaceLineEndings();
+        expectedSourceReference = expectedSourceReference?.ReplaceLineEndings();
+
         var testOptions = TestParameters.Default;
         using (var workspace = CreateWorkspaceFromOptions(initialMarkUp, testOptions))
         {
@@ -186,7 +191,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
                     });
 
                 var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
-                AssertEx.EqualOrDiff(expectedSourceOriginal, actualText);
+                AssertEx.EqualOrDiff(expectedSourceOriginal, actualText.ReplaceLineEndings());
 
                 if (expectedSourceReference == null)
                 {
@@ -202,7 +207,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
                 {
                     Assert.True(changedDocumentIds.Contains(refDocumentId));
                     var actualRefText = (await newSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
-                    Assert.Equal(expectedSourceReference, actualRefText);
+                    Assert.Equal(expectedSourceReference, actualRefText.ReplaceLineEndings());
                 }
             }
             else
