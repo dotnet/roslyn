@@ -5,18 +5,11 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Navigation;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
-#endif
 
 internal class InternalFSharpNavigableItem : INavigableItem
 {

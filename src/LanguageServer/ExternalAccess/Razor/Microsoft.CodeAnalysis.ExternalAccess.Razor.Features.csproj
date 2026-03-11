@@ -16,11 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Dependencies\Contracts\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
-    <Compile Include="..\Core\Razor\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!--
       This is used to load in the language server so it gets special treatment. Otherwise only razor assemblies should be added.
     -->
@@ -52,10 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
   </ItemGroup>
 
 </Project>

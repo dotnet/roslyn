@@ -10,20 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess 
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Classification;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Classification;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification;
-#endif
 
 [Shared]
 [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp)]

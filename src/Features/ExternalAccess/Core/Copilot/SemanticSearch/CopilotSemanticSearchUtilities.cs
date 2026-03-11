@@ -12,12 +12,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
-#endif
 
 internal static class CopilotSemanticSearchUtilities
 {

@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-#endif
-
-/// <summary>
-/// A capabilities provider that should only be used from Razor tests
-/// </summary>
-internal interface IRazorTestCapabilitiesProvider
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    string GetServerCapabilitiesJson(string clientCapabilitiesJson);
+    /// <summary>
+    /// A capabilities provider that should only be used from Razor tests
+    /// </summary>
+    internal interface IRazorTestCapabilitiesProvider
+    {
+        string GetServerCapabilitiesJson(string clientCapabilitiesJson);
+    }
 }

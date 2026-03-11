@@ -7,19 +7,12 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess 
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.InlineHints;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.InlineHints;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints;
-#endif
 
 [ExportLanguageService(typeof(IInlineHintsService), LanguageNames.FSharp), Shared]
 internal class FSharpInlineHintsService : IInlineHintsService

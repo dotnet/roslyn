@@ -9,21 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
-#endif
 
 /// <summary>
 /// LSP Service responsible for loading IVisualDiagnosticsLanguageService workspace service and delegate the broker service to the workspace service,

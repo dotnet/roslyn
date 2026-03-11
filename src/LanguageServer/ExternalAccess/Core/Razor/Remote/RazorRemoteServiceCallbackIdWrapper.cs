@@ -5,21 +5,18 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Remote;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-#endif
-
-[DataContract]
-internal readonly struct RazorRemoteServiceCallbackIdWrapper
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [DataMember(Order = 0)]
-    internal RemoteServiceCallbackId UnderlyingObject { get; }
+    [DataContract]
+    internal readonly struct RazorRemoteServiceCallbackIdWrapper
+    {
+        [DataMember(Order = 0)]
+        internal RemoteServiceCallbackId UnderlyingObject { get; }
 
-    public RazorRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId underlyingObject)
-        => UnderlyingObject = underlyingObject;
+        public RazorRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId underlyingObject)
+            => UnderlyingObject = underlyingObject;
 
-    public static implicit operator RazorRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId id)
-        => new(id);
+        public static implicit operator RazorRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId id)
+            => new(id);
+    }
 }

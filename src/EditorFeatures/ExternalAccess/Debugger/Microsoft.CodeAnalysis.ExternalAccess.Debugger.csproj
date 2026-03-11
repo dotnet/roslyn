@@ -29,11 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\Debugger\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.csproj" />
   </ItemGroup>
 
   <ItemGroup>

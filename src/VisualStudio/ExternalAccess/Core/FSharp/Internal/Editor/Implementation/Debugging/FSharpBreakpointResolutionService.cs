@@ -9,18 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor.Implementation.Debugging;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Editor.Implementation.Debugging;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging;
-#endif
 
 [Shared]
 [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]

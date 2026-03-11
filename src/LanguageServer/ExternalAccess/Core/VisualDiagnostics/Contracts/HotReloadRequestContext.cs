@@ -6,11 +6,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
-#endif
 
 internal sealed class HotReloadRequestContext(RequestContext context)
 {

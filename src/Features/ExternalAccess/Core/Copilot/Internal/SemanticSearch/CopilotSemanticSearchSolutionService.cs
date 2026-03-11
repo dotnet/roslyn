@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if Unified_ExternalAccess
-
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
 
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.SemanticSearch;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;
 
 [Export(typeof(ISemanticSearchSolutionService)), Shared]
 [method: ImportingConstructor]
@@ -37,5 +34,3 @@ internal sealed class CopilotSemanticSearchSolutionService(
     public Solution SetQueryText(Solution solution, string? query, string? targetLanguage, string referenceAssembliesDir)
         => GetImpl().SetQueryText(solution, query, targetLanguage, referenceAssembliesDir);
 }
-
-#endif

@@ -7,13 +7,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
-#endif
 
 internal class FSharpNavigableItem
 {

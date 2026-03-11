@@ -7,18 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Threading;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Completion;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.Completion;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Completion;
-#endif
 
 [Export(typeof(ICSharpCopilotContextProviderService)), Shared]
 [method: ImportingConstructor]

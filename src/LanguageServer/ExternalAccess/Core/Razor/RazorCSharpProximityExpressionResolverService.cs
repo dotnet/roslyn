@@ -6,14 +6,11 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Debugging;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-#endif
-
-internal static class RazorCSharpProximityExpressionResolverService
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int absoluteIndex, CancellationToken cancellationToken)
-        => CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, absoluteIndex, cancellationToken);
+    internal static class RazorCSharpProximityExpressionResolverService
+    {
+        public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int absoluteIndex, CancellationToken cancellationToken)
+            => CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, absoluteIndex, cancellationToken);
+    }
 }

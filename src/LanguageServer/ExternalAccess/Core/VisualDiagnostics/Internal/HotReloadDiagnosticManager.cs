@@ -7,17 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
-#endif
 
 [Export(typeof(IHotReloadDiagnosticManager)), Shared]
 [method: ImportingConstructor]
