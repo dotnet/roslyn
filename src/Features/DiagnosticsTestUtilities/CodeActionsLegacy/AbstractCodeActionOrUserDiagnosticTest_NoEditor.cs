@@ -403,6 +403,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         int count,
         TestParameters parameters = null)
     {
+        initialMarkup = initialMarkup.ReplaceLineEndings();
         var ps = parameters ?? TestParameters.Default;
         using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
         var (actions, _) = await GetCodeActionsAsync(workspace, ps);
@@ -438,10 +439,8 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         string expectedMarkup,
         TestParameters parameters)
     {
-        // Normalize to CRLF for consistent behavior across platforms. SyntaxFactory/NormalizeWhitespace
-        // always generates \r\n, so source must also use \r\n for wrapping-style detection to work.
-        initialMarkup = initialMarkup.ReplaceLineEndings("\r\n");
-        expectedMarkup = expectedMarkup.ReplaceLineEndings("\r\n");
+        initialMarkup = initialMarkup.ReplaceLineEndings();
+        expectedMarkup = expectedMarkup.ReplaceLineEndings();
 
         MarkupTestFile.GetSpans(
             initialMarkup,
