@@ -401,7 +401,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
     /// <summary>
     /// Normalizes line endings in test markup. Override in derived classes that need
     /// specific line ending behavior (e.g., wrapping tests that need CRLF consistency
-    /// for <see cref="SyntaxNode.IsEquivalentTo"/> comparisons to work cross-platform).
+    /// for IsEquivalentTo comparisons to work cross-platform).
     /// </summary>
     protected virtual string NormalizeMarkup(string markup)
         => markup.ReplaceLineEndings();
