@@ -266,8 +266,8 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj">
-      <Name>Microsoft.VisualStudio.LanguageServices.ExternalAccess</Name>
+    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.VisualStudio.ExternalAccess.LanguageServices.csproj">
+      <Name>Microsoft.VisualStudio.ExternalAccess.LanguageServices</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
