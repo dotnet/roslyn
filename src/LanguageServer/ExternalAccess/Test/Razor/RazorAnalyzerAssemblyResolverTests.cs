@@ -4,17 +4,22 @@
 #if NET
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using System.Text;
+using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTests.Razor;
 

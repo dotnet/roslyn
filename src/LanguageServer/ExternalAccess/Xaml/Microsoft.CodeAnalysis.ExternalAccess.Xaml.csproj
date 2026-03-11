@@ -31,11 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\Xaml\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -27,12 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\FSharp\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Remove="..\Core\FSharp\ExternalAccessFSharpResources.Designer.cs" />
+    <ProjectReference Include="..\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,21 +39,6 @@
 
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="ExternalAccessFSharpResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ExternalAccessFSharpResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="ExternalAccessFSharpResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

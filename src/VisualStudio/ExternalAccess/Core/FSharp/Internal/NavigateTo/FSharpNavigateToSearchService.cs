@@ -8,18 +8,11 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.NavigateTo;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
-#endif
 
 [Shared]
 [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.FSharp)]

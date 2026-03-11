@@ -1,12 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.GenerateImplementation;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation;
-#endif
 
 /// <summary>
 /// Holds details about a replacement node, providing either a message explaining the absence of a replacement or the

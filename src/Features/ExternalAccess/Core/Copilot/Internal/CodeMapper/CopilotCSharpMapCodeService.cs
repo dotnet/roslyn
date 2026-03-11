@@ -8,19 +8,12 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MapCode;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.CodeMapper;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.Internal.CodeMapper;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper;
-#endif
 
 [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
 internal sealed class CSharpMapCodeService : IMapCodeService

@@ -13,19 +13,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Editor;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
-#endif
 
 internal static class FSharpInlineRenameReplacementKindHelpers
 {

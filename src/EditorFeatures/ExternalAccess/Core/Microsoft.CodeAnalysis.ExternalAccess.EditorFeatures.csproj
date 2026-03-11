@@ -7,8 +7,6 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
 
-    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
-
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures</PackageId>
@@ -18,6 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
+
     <!--
       ⚠ ONLY VISUAL STUDIO DEBUGGER ASSEMBLIES MAY BE ADDED HERE ⚠
     -->

@@ -8,17 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Diagnostics;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Diagnostics;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
-#endif
 
 [Export(typeof(IFSharpDiagnosticAnalyzerService)), Shared]
 [method: ImportingConstructor]

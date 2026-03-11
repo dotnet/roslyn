@@ -4,13 +4,7 @@
 
 #nullable disable
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
-#endif
 
 internal static class FSharpGlyphHelpers
 {

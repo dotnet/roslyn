@@ -6,31 +6,28 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-#endif
-
-internal readonly struct RazorExcerptResult
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    public readonly SourceText Content;
-
-    public readonly TextSpan MappedSpan;
-
-    public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
-
-    public readonly Document Document;
-
-    public readonly TextSpan Span;
-
-    public RazorExcerptResult(SourceText content, TextSpan mappedSpan, ImmutableArray<ClassifiedSpan> classifiedSpans, Document document, TextSpan span)
+    internal readonly struct RazorExcerptResult
     {
-        Content = content;
-        MappedSpan = mappedSpan;
-        ClassifiedSpans = classifiedSpans;
+        public readonly SourceText Content;
 
-        Document = document;
-        Span = span;
+        public readonly TextSpan MappedSpan;
+
+        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
+
+        public readonly Document Document;
+
+        public readonly TextSpan Span;
+
+        public RazorExcerptResult(SourceText content, TextSpan mappedSpan, ImmutableArray<ClassifiedSpan> classifiedSpans, Document document, TextSpan span)
+        {
+            Content = content;
+            MappedSpan = mappedSpan;
+            ClassifiedSpans = classifiedSpans;
+
+            Document = document;
+            Span = span;
+        }
     }
 }

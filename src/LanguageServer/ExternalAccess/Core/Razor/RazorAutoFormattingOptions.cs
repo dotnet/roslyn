@@ -4,31 +4,28 @@
 
 using Microsoft.CodeAnalysis.Formatting;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-#endif
-
-internal readonly struct RazorAutoFormattingOptions
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal readonly AutoFormattingOptions UnderlyingObject;
-
-    public RazorAutoFormattingOptions(AutoFormattingOptions underlyingObject)
-        => UnderlyingObject = underlyingObject;
-
-    public RazorAutoFormattingOptions(
-        bool formatOnReturn,
-        bool formatOnTyping,
-        bool formatOnSemicolon,
-        bool formatOnCloseBrace)
-        : this(new AutoFormattingOptions()
-        {
-            FormatOnReturn = formatOnReturn,
-            FormatOnTyping = formatOnTyping,
-            FormatOnSemicolon = formatOnSemicolon,
-            FormatOnCloseBrace = formatOnCloseBrace,
-        })
+    internal readonly struct RazorAutoFormattingOptions
     {
+        internal readonly AutoFormattingOptions UnderlyingObject;
+
+        public RazorAutoFormattingOptions(AutoFormattingOptions underlyingObject)
+            => UnderlyingObject = underlyingObject;
+
+        public RazorAutoFormattingOptions(
+            bool formatOnReturn,
+            bool formatOnTyping,
+            bool formatOnSemicolon,
+            bool formatOnCloseBrace)
+            : this(new AutoFormattingOptions()
+            {
+                FormatOnReturn = formatOnReturn,
+                FormatOnTyping = formatOnTyping,
+                FormatOnSemicolon = formatOnSemicolon,
+                FormatOnCloseBrace = formatOnCloseBrace,
+            })
+        {
+        }
     }
 }

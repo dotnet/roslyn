@@ -6,14 +6,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-#endif
-
-internal static class RazorBreakpointSpans
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    public static bool TryGetBreakpointSpan(SyntaxTree tree, int position, CancellationToken cancellationToken, out TextSpan breakpointSpan)
-        => BreakpointSpans.TryGetBreakpointSpan(tree, position, cancellationToken, out breakpointSpan);
+    internal static class RazorBreakpointSpans
+    {
+        public static bool TryGetBreakpointSpan(SyntaxTree tree, int position, CancellationToken cancellationToken, out TextSpan breakpointSpan)
+            => BreakpointSpans.TryGetBreakpointSpan(tree, position, cancellationToken, out breakpointSpan);
+    }
 }

@@ -5,20 +5,17 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-#endif
-
-[DataContract]
-internal readonly struct RazorClassificationOptionsWrapper
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    public static RazorClassificationOptionsWrapper Default = new(ClassificationOptions.Default);
+    [DataContract]
+    internal readonly struct RazorClassificationOptionsWrapper
+    {
+        public static RazorClassificationOptionsWrapper Default = new(ClassificationOptions.Default);
 
-    [DataMember(Order = 0)]
-    internal readonly ClassificationOptions UnderlyingObject;
+        [DataMember(Order = 0)]
+        internal readonly ClassificationOptions UnderlyingObject;
 
-    public RazorClassificationOptionsWrapper(ClassificationOptions underlyingObject)
-        => UnderlyingObject = underlyingObject;
+        public RazorClassificationOptionsWrapper(ClassificationOptions underlyingObject)
+            => UnderlyingObject = underlyingObject;
+    }
 }

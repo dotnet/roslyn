@@ -10,19 +10,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-#if Unified_ExternalAccess
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Diagnostics;
-
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Diagnostics;
-#else
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
-#endif
 
 [Shared]
 [ExportLanguageService(typeof(FSharpSimplifyNameDiagnosticAnalyzerService), LanguageNames.FSharp)]

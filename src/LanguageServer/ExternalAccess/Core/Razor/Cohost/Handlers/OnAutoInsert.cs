@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
@@ -12,11 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost.Handlers;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-#endif
 
 internal static class OnAutoInsert
 {

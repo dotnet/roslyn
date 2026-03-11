@@ -7,8 +7,6 @@
     <TargetFrameworks>$(NetVSShared);netstandard2.0</TargetFrameworks>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
-    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
-
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Features</PackageId>
@@ -18,6 +16,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Copilot" />
+
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
 

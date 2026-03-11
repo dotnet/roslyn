@@ -4,11 +4,7 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost.Handlers;
-#else
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-#endif
 
 /// <summary>
 /// Provides a wrapper around the <see cref="InlayHintCache"/> so that Razor can control the lifecycle.

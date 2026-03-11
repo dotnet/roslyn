@@ -24,11 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Core\Copilot\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <ProjectReference Include="..\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>

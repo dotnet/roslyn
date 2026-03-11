@@ -7,8 +7,6 @@
     <TargetFrameworks>$(NetVSShared);netstandard2.0</TargetFrameworks>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
-    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
-
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.LanguageServer</PackageId>
     <PackageDescription>
@@ -17,6 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
+
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />

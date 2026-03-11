@@ -9,23 +9,20 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 
-#if Unified_ExternalAccess
-namespace Microsoft.CodeAnalysis.ExternalAccess.Unified.Razor.Cohost.Handlers;
-#else
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-#endif
-
-internal static class SemanticTokensRange
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers
 {
-    public static Task<int[]> GetSemanticTokensAsync(
-        Document document,
-        ImmutableArray<LinePositionSpan> spans,
-        bool supportsVisualStudioExtensions,
-        CancellationToken cancellationToken)
-        => SemanticTokensHelpers.HandleRequestHelperAsync(
-            document,
-            spans,
-            supportsVisualStudioExtensions,
-            ClassificationOptions.Default,
-            cancellationToken);
+    internal static class SemanticTokensRange
+    {
+        public static Task<int[]> GetSemanticTokensAsync(
+            Document document,
+            ImmutableArray<LinePositionSpan> spans,
+            bool supportsVisualStudioExtensions,
+            CancellationToken cancellationToken)
+            => SemanticTokensHelpers.HandleRequestHelperAsync(
+                document,
+                spans,
+                supportsVisualStudioExtensions,
+                ClassificationOptions.Default,
+                cancellationToken);
+    }
 }
