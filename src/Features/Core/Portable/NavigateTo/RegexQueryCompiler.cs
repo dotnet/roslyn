@@ -121,10 +121,11 @@ internal static class RegexQueryCompiler
         if (chars.Length == 0)
             return RegexQuery.None.Instance;
 
-        // Strip whitespace from text nodes because symbol names never contain spaces.
+        // Strip whitespace from text nodes because symbol names never contain whitespace.
         // This allows users to write readable patterns like `( Read | Write ) Line` —
-        // the spaces around alternation branches are purely for readability.
-        var literal = chars.CreateString().Replace(" ", "");
+        // the whitespace around alternation branches is purely for readability.
+        var raw = chars.CreateString();
+        var literal = StripWhitespace(raw);
         if (literal.Length == 0)
             return RegexQuery.None.Instance;
 
@@ -151,5 +152,26 @@ internal static class RegexQueryCompiler
             return CompileNode(expression);
 
         return RegexQuery.None.Instance;
+    }
+
+    private static string StripWhitespace(string value)
+    {
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (char.IsWhiteSpace(value[i]))
+            {
+                var chars = new char[value.Length];
+                var pos = 0;
+                for (var j = 0; j < value.Length; j++)
+                {
+                    if (!char.IsWhiteSpace(value[j]))
+                        chars[pos++] = value[j];
+                }
+
+                return new string(chars, 0, pos);
+            }
+        }
+
+        return value;
     }
 }

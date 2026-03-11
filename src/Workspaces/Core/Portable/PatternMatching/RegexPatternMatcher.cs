@@ -58,11 +58,29 @@ internal abstract partial class PatternMatcher
 
         private static string StripWhitespace(string pattern)
         {
-            // Fast path: most patterns have no whitespace.
-            if (pattern.IndexOf(' ') < 0)
+            // Fast path: most patterns have no whitespace at all.
+            var firstWhitespace = -1;
+            for (var i = 0; i < pattern.Length; i++)
+            {
+                if (char.IsWhiteSpace(pattern[i]))
+                {
+                    firstWhitespace = i;
+                    break;
+                }
+            }
+
+            if (firstWhitespace < 0)
                 return pattern;
 
-            return pattern.Replace(" ", "");
+            var chars = new char[pattern.Length];
+            var pos = 0;
+            for (var i = 0; i < pattern.Length; i++)
+            {
+                if (!char.IsWhiteSpace(pattern[i]))
+                    chars[pos++] = pattern[i];
+            }
+
+            return new string(chars, 0, pos);
         }
 
         protected override bool AddMatchesWorker(string candidate, ref TemporaryArray<PatternMatch> matches)
@@ -77,6 +95,11 @@ internal abstract partial class PatternMatcher
             var isCaseSensitive = csMatch.Success;
 
             var bestMatch = isCaseSensitive ? csMatch : ciMatch;
+
+            // Regex matching intentionally uses a simplified two-tier kind system (Exact vs
+            // NonLowercaseSubstring) rather than the full CamelCase/Prefix/Substring hierarchy.
+            // The standard hierarchy relies on word-boundary analysis that doesn't apply to
+            // arbitrary regex matches.
             var kind = bestMatch.Length == candidate.Length && bestMatch.Index == 0
                 ? PatternMatchKind.Exact
                 : PatternMatchKind.NonLowercaseSubstring;

@@ -51,8 +51,8 @@ public class RegexQueryCompilerTests
     [Fact]
     public void OneOrMore_PreservesInner()
     {
-        // Goo+ -> the parser sees "Fo" as text, then o+ as OneOrMore(text("o"))
-        // Result: All(Literal("Fo"), Literal("o")) or just Literal("Fo") + Literal("o")
+        // Goo+ -> the parser sees "Go" as text, then o+ as OneOrMore(text("o"))
+        // Result: All(Literal("Go"), Literal("o")) or just Literal("Go") + Literal("o")
         var query = RegexQueryCompiler.Compile("Goo+");
         Assert.True(query!.HasLiterals);
     }
@@ -291,7 +291,7 @@ public class RegexQueryCompilerTests
     [Fact]
     public void HasLiterals_True_ForLiteral()
     {
-        Assert.True(new RegexQuery.Literal("foo").HasLiterals);
+        Assert.True(new RegexQuery.Literal("goo").HasLiterals);
     }
 
     [Fact]
@@ -303,14 +303,14 @@ public class RegexQueryCompilerTests
     [Fact]
     public void HasLiterals_True_ForAllWithLiteral()
     {
-        var query = new RegexQuery.All([new RegexQuery.Literal("foo"), RegexQuery.None.Instance]);
+        var query = new RegexQuery.All([new RegexQuery.Literal("goo"), RegexQuery.None.Instance]);
         Assert.True(query.HasLiterals);
     }
 
     [Fact]
     public void HasLiterals_True_ForAnyWithLiteral()
     {
-        var query = new RegexQuery.Any([new RegexQuery.Literal("foo"), new RegexQuery.Literal("bar")]);
+        var query = new RegexQuery.Any([new RegexQuery.Literal("goo"), new RegexQuery.Literal("bar")]);
         Assert.True(query.HasLiterals);
     }
 
