@@ -350,10 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = rootBinder.GetBinder(current);
                     }
                 }
-                else if (kind == SyntaxKind.ObjectInitializerExpression)
-                {
-                    binder = rootBinder.GetBinder(current);
-                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of

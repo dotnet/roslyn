@@ -1909,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver != null);
-            return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder ||
+            return IsObjectInitializerMemberLvalue(node) && receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder ||
                 CheckValueKind(node, receiver, kind, true, diagnostics);
         }
 

@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         SuppressObsoleteChecks = 1 << 1,
         ConstructorInitializer = 1 << 2,
         FieldInitializer = 1 << 3,
-        ObjectInitializerMember = 1 << 4,    // object initializer field/property access
         CollectionInitializerAddMethod = 1 << 5,   // used for collection initializer add method overload resolution diagnostics
         AttributeArgument = 1 << 6,
         GenericConstraintsClause = 1 << 7, // "where" clause (used for cycle checking)

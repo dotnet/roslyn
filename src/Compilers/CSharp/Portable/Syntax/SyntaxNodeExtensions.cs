@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.SwitchExpression:
                 case SyntaxKind.SwitchExpressionArm:
-                case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
