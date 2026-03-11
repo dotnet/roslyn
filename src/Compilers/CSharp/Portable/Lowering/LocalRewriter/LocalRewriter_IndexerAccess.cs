@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1029,42 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // [start..] can be simplified to .Substring(start) or .Slice(start) for some built-in types
             // e.g. string and (ReadOnly)Span
 
-            BoundExpression? moreEfficientIndexerAccess = null;
-            if (endMakeOffsetInput is null)
-            {
-                MethodSymbol? singleArgumentOverload = null;
-
-                if (TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringIntInt, out var stringSubstring, isOptional: true)
-                    && sliceCall.Method.Equals(stringSubstring, TypeCompareKind.ConsiderEverything))
-                {
-                    if (TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true))
-                    {
-                        singleArgumentOverload = stringOverload;
-                    }
-                }
-                // with single typeWithElementType parameter ((ReadOnly)(Span|Memory))
-                // Method name is always "Slice"
-                else if (sliceCall is { Method: SubstitutedMethodSymbol { UnderlyingMethod: var generalizedMethod, Name: WellKnownMemberNames.SliceMethodName }, Type: NamedTypeSymbol { Name: var typeName } typeWithElementType })
-                {
-                    // We use the return typeWithElementType of the current twoArgumentOverloadSymbol to simplify the logic
-                    singleArgumentOverload = (typeName switch
-                    {
-                        nameof(Span<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, generalizedMethod, node.Syntax),
-                        nameof(ReadOnlySpan<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, generalizedMethod, node.Syntax),
-                        nameof(Memory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, generalizedMethod, node.Syntax),
-                        nameof(ReadOnlyMemory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, generalizedMethod, node.Syntax),
-                        _ => null,
-                        // The returned typeWithElementType of the above twoArgumentOverloadSymbol has not had a concrete element typeWithElementType yet.
-                    })?.AsMember(typeWithElementType);
-                }
-
-                if (singleArgumentOverload is not null)
-                {
-                    moreEfficientIndexerAccess = F.Call(VisitExpression(receiver), singleArgumentOverload, VisitExpression(startExpr));
-                }
-            }
-
-            var rewrittenIndexerAccess = moreEfficientIndexerAccess ?? VisitExpression(sliceCall);
+            var rewrittenIndexerAccess = tryLowerToSliceStart(receiver, startExpr, sliceCall) ?? VisitExpression(sliceCall);
 
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
@@ -1072,10 +1037,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenIndexerAccess;
 
-            MethodSymbol? tryGetCorrespondingOneArgumentOverload(WellKnownMember twoArgumentOverloadMember, WellKnownMember oneArgumentOverloadMember, MethodSymbol method, SyntaxNode syntax)
+            BoundExpression? tryLowerToSliceStart(BoundExpression receiverExpr, BoundExpression startArg, BoundCall currentSliceCall)
+            {
+                if (endMakeOffsetInput is not null)
+                {
+                    return null;
+                }
+
+                if (TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringIntInt, out var stringSubstring, isOptional: true)
+                    && ReferenceEquals(currentSliceCall.Method.OriginalDefinition, stringSubstring)
+                    && TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true))
+                {
+                    return F.Call(VisitExpression(receiverExpr), stringOverload, VisitExpression(startArg));
+                }
+
+                if (currentSliceCall.Method is not { Name: WellKnownMemberNames.SliceMethodName, ContainingType: NamedTypeSymbol typeWithElementType, OriginalDefinition: var methodDefinition })
+                {
+                    return null;
+                }
+
+                var oneArgumentOverload = typeWithElementType.Name switch
+                {
+                    nameof(Span<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, methodDefinition, node.Syntax),
+                    nameof(ReadOnlySpan<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, methodDefinition, node.Syntax),
+                    nameof(Memory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, methodDefinition, node.Syntax),
+                    nameof(ReadOnlyMemory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, methodDefinition, node.Syntax),
+                    _ => null,
+                };
+
+                if (oneArgumentOverload is null)
+                {
+                    return null;
+                }
+
+                return F.Call(VisitExpression(receiverExpr), oneArgumentOverload.AsMember(typeWithElementType), VisitExpression(startArg));
+            }
+
+            MethodSymbol? tryGetCorrespondingOneArgumentOverload(WellKnownMember twoArgumentOverloadMember, WellKnownMember oneArgumentOverloadMember, MethodSymbol methodDefinition, SyntaxNode syntax)
             {
                 if (!TryGetWellKnownTypeMember(syntax, twoArgumentOverloadMember, out MethodSymbol? twoArgumentOverloadSymbol, isOptional: true)
-                    || !method.Equals(twoArgumentOverloadSymbol)
+                    || !ReferenceEquals(methodDefinition, twoArgumentOverloadSymbol)
                     || !TryGetWellKnownTypeMember(syntax, oneArgumentOverloadMember, out MethodSymbol? oneArgumentOverloadSymbol, isOptional: true))
                 {
                     return null;
