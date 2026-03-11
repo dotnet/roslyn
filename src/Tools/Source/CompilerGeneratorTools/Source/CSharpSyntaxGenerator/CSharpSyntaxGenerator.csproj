@@ -12,8 +12,10 @@
     <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <ProjectReference Include="$(RepoRoot)eng\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
     <!-- Pin SCI and SRM to 8.0, since this generator is built & consumed in our pipeline so it has to work with stock compiler in msbuild (currently shipped with 8.0) -->
     <PackageReference Include="System.Collections.Immutable" VersionOverride="8.0.0" />
     <PackageReference Include="System.Reflection.Metadata" VersionOverride="8.0.0" />
