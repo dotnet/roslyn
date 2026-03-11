@@ -37,6 +37,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             parameters As TestParameters,
             ParamArray outputs As String()) As Task
 
+            ' Normalize to CRLF so that the wrapping code's "already existing style" detection
+            ' works consistently across platforms. The wrapping code generates CRLF trivia (from
+            ' end_of_line=crlf editorconfig) and needs the source to also have CRLF to correctly
+            ' identify that the existing code already matches a wrapping style.
+            input = input.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
+            For i = 0 To outputs.Length - 1
+                outputs(i) = outputs(i).Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
+            Next
+
             Return TestAllInRegularAndScriptAsync(input, parameters, outputs)
         End Function
     End Class

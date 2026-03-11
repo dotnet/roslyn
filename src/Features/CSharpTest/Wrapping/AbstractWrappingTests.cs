@@ -38,6 +38,14 @@ public abstract class AbstractWrappingTests : AbstractCSharpCodeActionTest_NoEdi
         TestParameters parameters,
         params string[] outputs)
     {
+        // Normalize to CRLF so that the wrapping code's "already existing style" detection
+        // works consistently across platforms. The wrapping code generates CRLF trivia (from
+        // end_of_line=crlf editorconfig) and needs the source to also have CRLF to correctly
+        // identify that the existing code already matches a wrapping style.
+        input = input.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        for (var i = 0; i < outputs.Length; i++)
+            outputs[i] = outputs[i].Replace("\r\n", "\n").Replace("\n", "\r\n");
+
         return TestAllInRegularAndScriptAsync(input, parameters, outputs);
     }
 }

@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.CodeActions;
@@ -23,6 +25,13 @@ internal sealed class SharedVerifierState
     /// file has been generated yet.
     /// </summary>
     private int? _analyzerConfigIndex;
+
+    /// <summary>
+    /// The index in <see cref="Testing.ProjectState.AnalyzerConfigFiles"/> of the additional
+    /// regular editorconfig added when <see cref="EditorConfig"/> is a global config, or
+    /// <see langword="null"/> if not applicable.
+    /// </summary>
+    private int? _regularEditorConfigIndex;
 
     /// <summary>
     /// The index in <see cref="AnalyzerTest{TVerifier}.SolutionTransforms"/> of the options transformation for
@@ -64,6 +73,29 @@ internal sealed class SharedVerifierState
         {
             _analyzerConfigIndex = null;
             _test.TestState.AnalyzerConfigFiles.RemoveAt(index);
+        }
+
+        // When EditorConfig is a global config (is_global=true), the end_of_line=crlf setting
+        // appended under [*.ext] won't be effective because global configs don't use file globs.
+        // Add a separate regular editorconfig to ensure end_of_line is properly applied.
+        if (EditorConfig?.TrimStart().StartsWith("is_global", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var regularConfig = SourceText.From(
+                $"root = true\r\n\r\n[*.{_defaultFileExt}]\r\nend_of_line = crlf\r\n", Encoding.UTF8);
+            if (_regularEditorConfigIndex is null)
+            {
+                _regularEditorConfigIndex = _test.TestState.AnalyzerConfigFiles.Count;
+                _test.TestState.AnalyzerConfigFiles.Add(("/src/.editorconfig", regularConfig));
+            }
+            else
+            {
+                _test.TestState.AnalyzerConfigFiles[_regularEditorConfigIndex.Value] = ("/src/.editorconfig", regularConfig);
+            }
+        }
+        else if (_regularEditorConfigIndex is { } regIndex)
+        {
+            _regularEditorConfigIndex = null;
+            _test.TestState.AnalyzerConfigFiles.RemoveAt(regIndex);
         }
 
         var solutionTransformIndex = _remainingOptionsSolutionTransform is not null ? _test.SolutionTransforms.IndexOf(_remainingOptionsSolutionTransform) : -1;

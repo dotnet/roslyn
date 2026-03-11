@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -110,6 +111,7 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
                 NormalizeSourceFileEndingsToCRLF(TestState);
                 NormalizeSourceFileEndingsToCRLF(FixedState);
                 NormalizeSourceFileEndingsToCRLF(BatchFixedState);
+                EnsureEditorConfigInAdditionalProjects(TestState);
             }
 
             await base.RunImplAsync(cancellationToken);
@@ -136,6 +138,32 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
                 var normalized = NormalizeToCRLF(text);
                 if (text != normalized)
                     sources[i] = (filename, SourceText.From(normalized, sourceText.Encoding, sourceText.ChecksumAlgorithm));
+            }
+        }
+
+        /// <summary>
+        /// Ensures additional projects have the end_of_line=crlf editorconfig so that code fixes
+        /// that modify documents in additional projects produce consistent line endings on Linux.
+        /// </summary>
+        private static void EnsureEditorConfigInAdditionalProjects(Testing.SolutionState state)
+        {
+            foreach (var project in state.AdditionalProjects.Values)
+            {
+                var hasEditorConfig = false;
+                for (var i = 0; i < project.AnalyzerConfigFiles.Count; i++)
+                {
+                    if (project.AnalyzerConfigFiles[i].filename?.Contains(".editorconfig") == true)
+                    {
+                        hasEditorConfig = true;
+                        break;
+                    }
+                }
+
+                if (!hasEditorConfig)
+                {
+                    project.AnalyzerConfigFiles.Add(("/.editorconfig",
+                        SourceText.From("root = true\r\n\r\n[*]\r\nend_of_line = crlf\r\n", Encoding.UTF8)));
+                }
             }
         }
 
