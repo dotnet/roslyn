@@ -111,12 +111,10 @@ internal static class CodeFixVerifierHelper
         analyzerConfig.AppendLine();
         analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
 
-        // Force consistent line endings via the formatter. On Windows we use CRLF (matching
-        // NormalizeWhitespace output). On Linux/macOS we use LF; the formatter will normalize any
-        // \r\n produced by NormalizeWhitespace to \n, keeping the result consistent with the
-        // platform-native line endings in raw-string test literals.
-        var endOfLine = Environment.NewLine == "\n" ? "lf" : "crlf";
-        analyzerConfig.AppendLine($"end_of_line = {endOfLine}");
+        // Some code actions generate code via SyntaxFactory/NormalizeWhitespace which always produce \r\n line
+        // endings regardless of platform. Force the formatter to also use \r\n so that code action output has
+        // consistent line endings for cross-platform test comparison.
+        analyzerConfig.AppendLine("end_of_line = crlf");
 
         foreach (var (optionKey, value) in options)
         {

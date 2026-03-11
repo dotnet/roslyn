@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 
@@ -84,11 +86,21 @@ internal sealed class SharedVerifierState
         }
 
         // When EditorConfig is a global config, add a separate regular editorconfig at the root
-        // to ensure consistent end_of_line is properly applied to all test source files.
-        // Use platform-native line ending: crlf on Windows, lf on Linux/macOS.
+        // to ensure end_of_line is properly applied to all test source files.
+        // If the test explicitly sets FormattingOptions2.NewLine (to opt out of CRLF normalization),
+        // use that value for end_of_line instead of hardcoding crlf.
         if (isGlobalConfig)
         {
-            var endOfLine = Environment.NewLine == "\n" ? "lf" : "crlf";
+            var endOfLine = "crlf";
+            foreach (var kvp in Options)
+            {
+                if (ReferenceEquals(kvp.Key.Option, FormattingOptions2.NewLine))
+                {
+                    endOfLine = kvp.Value?.ToString() == "\n" ? "lf" : "crlf";
+                    break;
+                }
+            }
+
             var regularConfig = SourceText.From(
                 $"root = true\r\n\r\n[*.{_defaultFileExt}]\r\nend_of_line = {endOfLine}\r\n", Encoding.UTF8);
             if (_regularEditorConfigIndex is null)
