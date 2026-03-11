@@ -30,6 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers
             End Get
         End Property
 
+        Protected Overrides Function IsRegularCommentOrDocumentationComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind() = SyntaxKind.CommentTrivia OrElse trivia.Kind() = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
         Protected Overrides Function GetReferenceSyntaxNodeFromXmlCref(syntaxNode As SyntaxNode) As SyntaxNode
             Return CType(syntaxNode, XmlCrefAttributeSyntax).Reference
         End Function
