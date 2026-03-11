@@ -36,6 +36,13 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
     internal PatternMatcherKind CouldContainNavigateToMatch(string patternName, string? patternContainer)
         => _navigateToSearchInfo.CouldContainNavigateToMatch(patternName, patternContainer);
 
+    /// <summary>
+    /// Evaluates a compiled <see cref="PatternMatching.RegexQuery"/> against this document's indexed
+    /// bigrams to determine if a regex pattern could match any symbol in the document.
+    /// </summary>
+    internal bool RegexQueryCheckPasses(PatternMatching.RegexQuery query)
+        => _navigateToSearchInfo.RegexQueryCheckPasses(query);
+
     public static ValueTask<NavigateToSearchIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
 

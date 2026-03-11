@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -65,7 +65,8 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
+        var (patternName, patternContainerOpt, isRegex) = ProcessSearchPattern(pattern);
+        var regexQuery = isRegex ? RegexQueryCompiler.Compile(patternName) : null;
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
@@ -82,7 +83,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 sourceGeneratedDocs,
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
-                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+                    document, patternName, patternContainerOpt, isRegex, regexQuery, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
 
             await onProjectCompleted().ConfigureAwait(false);
         }

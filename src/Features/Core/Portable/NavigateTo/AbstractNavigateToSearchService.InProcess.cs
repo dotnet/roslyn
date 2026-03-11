@@ -42,10 +42,28 @@ internal abstract partial class AbstractNavigateToSearchService
             (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy),
         ];
 
+    /// <summary>
+    /// Determines the name and container from a search pattern, using regex-aware splitting when
+    /// the pattern contains regex metacharacters.
+    /// </summary>
+    internal static (string name, string? container, bool isRegex) ProcessSearchPattern(string searchPattern)
+    {
+        if (RegexPatternDetector.IsRegexPattern(searchPattern))
+        {
+            var (container, name) = RegexPatternDetector.SplitOnContainerDot(searchPattern);
+            return (name, container, isRegex: true);
+        }
+
+        var (patternName, containerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        return (patternName, containerOpt, isRegex: false);
+    }
+
     private static async ValueTask SearchSingleDocumentAsync(
         Document document,
         string patternName,
         string? patternContainer,
+        bool isRegex,
+        RegexQuery? regexQuery,
         DeclaredSymbolInfoKindSet kinds,
         Action<RoslynNavigateToItem> onItemFound,
         CancellationToken cancellationToken)
@@ -56,8 +74,7 @@ internal abstract partial class AbstractNavigateToSearchService
         // First, load the lightweight filter index to check if this document could possibly match.
         // This avoids loading the much larger TopLevelSyntaxTreeIndex for non-matching documents.
         var filterIndex = await NavigateToSearchIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
-        var matchKinds = filterIndex.CouldContainNavigateToMatch(patternName, patternContainer);
-        if (matchKinds == PatternMatcherKind.None)
+        if (!CouldContainMatch(filterIndex, patternName, patternContainer, isRegex, regexQuery, out var matchKinds))
             return;
 
         // The filter passed — now load the full index with all declared symbols.
@@ -72,8 +89,33 @@ internal abstract partial class AbstractNavigateToSearchService
         }
 
         ProcessIndex(
-            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
+            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, isRegex, kinds,
             matchKinds, index, linkedIndices, onItemFound, cancellationToken);
+    }
+
+    private static bool CouldContainMatch(
+        NavigateToSearchIndex filterIndex,
+        string patternName,
+        string? patternContainer,
+        bool isRegex,
+        RegexQuery? regexQuery,
+        out PatternMatcherKind matchKinds)
+    {
+        if (isRegex)
+        {
+            // For regex patterns, use the compiled query tree for pre-filtering when possible.
+            if (regexQuery is { HasLiterals: true } && !filterIndex.RegexQueryCheckPasses(regexQuery))
+            {
+                matchKinds = PatternMatcherKind.None;
+                return false;
+            }
+
+            matchKinds = PatternMatcherKind.Standard;
+            return true;
+        }
+
+        matchKinds = filterIndex.CouldContainNavigateToMatch(patternName, patternContainer);
+        return matchKinds != PatternMatcherKind.None;
     }
 
     private static void ProcessIndex(
@@ -81,6 +123,7 @@ internal abstract partial class AbstractNavigateToSearchService
         Document? document,
         string patternName,
         string? patternContainer,
+        bool isRegex,
         DeclaredSymbolInfoKindSet kinds,
         PatternMatcherKind matchKinds,
         TopLevelSyntaxTreeIndex index,
@@ -91,8 +134,12 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        using var containerMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);
-        using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, matchKinds);
+        using var containerMatcher = isRegex
+            ? (patternContainer != null ? new PatternMatcher.RegexPatternMatcher(patternContainer, includeMatchedSpans: true) : null)
+            : PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);
+        using var nameMatcher = isRegex
+            ? new PatternMatcher.RegexPatternMatcher(patternName, includeMatchedSpans: true)
+            : PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, matchKinds);
 
         foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {

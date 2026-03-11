@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -120,7 +120,8 @@ internal abstract partial class AbstractNavigateToSearchService
         if (!ShouldSearchCachedDocuments(out _, out _, out _))
             return;
 
-        var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var (patternName, patternContainer, isRegex) = ProcessSearchPattern(searchPattern);
+        var regexQuery = isRegex ? RegexQueryCompiler.Compile(patternName) : null;
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // Process the documents by project group.  That way, when each project is done, we can
@@ -153,10 +154,11 @@ internal abstract partial class AbstractNavigateToSearchService
                 cancellationToken,
                 async (documentKey, cancellationToken) =>
                 {
-                    // First, load the lightweight filter index to check if this document could possibly match.
                     var filterIndex = await GetFilterIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
-                    var nameMatchKinds = filterIndex?.CouldContainNavigateToMatch(patternName, patternContainer) ?? PatternMatcherKind.None;
-                    if (nameMatchKinds == PatternMatcherKind.None)
+                    if (filterIndex == null)
+                        return;
+
+                    if (!CouldContainMatch(filterIndex, patternName, patternContainer, isRegex, regexQuery, out var nameMatchKinds))
                         return;
 
                     // The filter passed — now load the full index with all declared symbols.
@@ -165,7 +167,7 @@ internal abstract partial class AbstractNavigateToSearchService
                         return;
 
                     ProcessIndex(
-                        documentKey, document: null, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                        documentKey, document: null, patternName, patternContainer, isRegex, declaredSymbolInfoKindsSet,
                         nameMatchKinds, index, linkedIndices: null, onItemFound, cancellationToken);
                 }).ConfigureAwait(false);
 
