@@ -158,6 +158,11 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
 
+    /// <summary>
+    /// If two adjacent changes split a \r\n pair, they are merged into a single change first.
+    /// Then, spans that start or end between a \r\n pair (or whose replacement text starts with
+    /// \n adjacent to \r, or ends with \r adjacent to \n) are expanded to include the full \r\n.
+    /// </summary>
     private static ImmutableArray<TextChange> FixLineEndingBoundaries(
         SourceText originalText, ImmutableArray<TextChange> changes)
     {
@@ -167,30 +172,47 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
         var anyFixed = false;
 
-        foreach (var change in changes)
+        for (var index = 0; index < changes.Length; index++)
         {
-            var span = change.Span;
-            var newText = change.NewText ?? "";
+            var span = changes[index].Span;
+            var newText = changes[index].NewText ?? "";
+            var changed = false;
 
-            // Check: replacement starts with \n and preceding char is \r → expand span to include the \r.
-            if (newText.Length > 0 && newText[0] == '\n' &&
-                span.Start > 0 && originalText[span.Start - 1] == '\r')
+            if (newText.Length > 0 && newText[^1] == '\r' &&
+                index + 1 < changes.Length)
+            {
+                var next = changes[index + 1];
+                var nextText = next.NewText ?? "";
+                if (nextText.Length > 0 && nextText[0] == '\n' &&
+                    next.Span.Start == span.End)
+                {
+                    span = TextSpan.FromBounds(span.Start, next.Span.End);
+                    newText += nextText;
+                    index++;
+                    changed = true;
+                }
+            }
+
+            while (span.Start > 0 && originalText[span.Start - 1] == '\r' &&
+                   ((span.Start < originalText.Length && originalText[span.Start] == '\n') ||
+                    (newText.Length > 0 && newText[0] == '\n')))
             {
                 span = new TextSpan(span.Start - 1, span.Length + 1);
                 newText = "\r" + newText;
-                anyFixed = true;
+                changed = true;
             }
 
-            // Check: replacement ends with \r and following char is \n → expand span to include the \n.
-            if (newText.Length > 0 && newText[^1] == '\r' &&
-                span.End < originalText.Length && originalText[span.End] == '\n')
+            while (span.End < originalText.Length && originalText[span.End] == '\n' &&
+                   ((span.End > 0 && originalText[span.End - 1] == '\r') ||
+                    (newText.Length > 0 && newText[^1] == '\r')))
             {
                 span = new TextSpan(span.Start, span.Length + 1);
                 newText += "\n";
-                anyFixed = true;
+                changed = true;
             }
 
-            result.Add(anyFixed ? new TextChange(span, newText) : change);
+            anyFixed = anyFixed || changed;
+            result.Add(changed ? new TextChange(span, newText) : changes[index]);
         }
 
         return anyFixed ? result.ToImmutableAndClear() : changes;
@@ -264,5 +286,12 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var totalSpans = CopilotUtilities.GetTextSpansFromTextChanges(changes);
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, totalSpans);
         return totalNewSpan;
+    }
+
+    internal readonly struct TestAccessor
+    {
+        internal static ImmutableArray<TextChange> FixLineEndingBoundaries(
+            SourceText originalText, ImmutableArray<TextChange> changes)
+            => AbstractCopilotProposalAdjusterService.FixLineEndingBoundaries(originalText, changes);
     }
 }
