@@ -774,24 +774,26 @@ class C
         Public Sub TestCSharp_FixLineEndingBoundaries_NewTextStartsWithLfAfterCr()
             ' "AB\r\nCD\r\nEF" - insert "\nX" at position 3 (between \r and \n).
             ' NewText[0]=\n and preceding char is \r, so would be rejected.
+            ' The leading \n is dropped.
             Dim originalText = SourceText.From("AB" & vbCrLf & "CD" & vbCrLf & "EF")
             Dim changes = ImmutableArray.Create(
                 New TextChange(New TextSpan(3, 0), vbLf & "X"))
 
             Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
             Assert.Single(fixed)
-            Assert.Equal(2, fixed(0).Span.Start)
+            Assert.Equal(4, fixed(0).Span.Start)
             Assert.Equal(4, fixed(0).Span.End)
-            Assert.Equal(vbCrLf & "X" & vbLf, fixed(0).NewText)
+            Assert.Equal("X", fixed(0).NewText)
 
             Dim result = originalText.WithChanges(fixed)
-            Assert.Equal("AB" & vbCrLf & "X" & vbLf & "CD" & vbCrLf & "EF", result.ToString())
+            Assert.Equal("AB" & vbCrLf & "XCD" & vbCrLf & "EF", result.ToString())
         End Sub
 
         <WpfFact>
         Public Sub TestCSharp_FixLineEndingBoundaries_NewTextEndsWithCrBeforeLf()
             ' "AB\r\nCD\r\nEF" - insert "X\r" at position 7 (between \r and \n).
             ' NewText[^1]=\r and following char is \n, so would be rejected.
+            ' The trailing \r is dropped.
             Dim originalText = SourceText.From("AB" & vbCrLf & "CD" & vbCrLf & "EF")
             Dim changes = ImmutableArray.Create(
                 New TextChange(New TextSpan(7, 0), "X" & vbCr))
@@ -799,11 +801,11 @@ class C
             Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
             Assert.Single(fixed)
             Assert.Equal(6, fixed(0).Span.Start)
-            Assert.Equal(8, fixed(0).Span.End)
-            Assert.Equal(vbCr & "X" & vbCrLf, fixed(0).NewText)
+            Assert.Equal(6, fixed(0).Span.End)
+            Assert.Equal("X", fixed(0).NewText)
 
             Dim result = originalText.WithChanges(fixed)
-            Assert.Equal("AB" & vbCrLf & "CD" & vbCr & "X" & vbCrLf & "EF", result.ToString())
+            Assert.Equal("AB" & vbCrLf & "CDX" & vbCrLf & "EF", result.ToString())
         End Sub
 
         <WpfFact>
@@ -826,54 +828,29 @@ class C
         <WpfFact>
         Public Sub TestCSharp_FixLineEndingBoundaries_AdjacentChangesSplitCrLf()
             ' Two adjacent changes split a \r\n pair across the boundary.
-            ' "ABC\r" + "\nDEF" would each be rejected individually,they get merged.
+            ' "ABC\r" + "\nDEF" - the trailing \r and leading \n are dropped,
+            ' and the spans are shrunk since the original chars match.
             Dim originalText = SourceText.From("abc" & vbCrLf & "def")
             Dim changes = ImmutableArray.Create(
                 New TextChange(New TextSpan(0, 4), "ABC" & vbCr),
                 New TextChange(New TextSpan(4, 4), vbLf & "DEF"))
 
             Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
-            Assert.Single(fixed)
-            Assert.Equal(0, fixed(0).Span.Start)
-            Assert.Equal(8, fixed(0).Span.End)
-            Assert.Equal("ABC" & vbCrLf & "DEF", fixed(0).NewText)
+            Assert.Equal(2, fixed.Length)
 
+            ' First change: trailing \r dropped, span shrunk from [0,4) to [0,3).
+            Assert.Equal(0, fixed(0).Span.Start)
+            Assert.Equal(3, fixed(0).Span.End)
+            Assert.Equal("ABC", fixed(0).NewText)
+
+            ' Second change: leading \n dropped, span shrunk from [4,8) to [5,8).
+            Assert.Equal(5, fixed(1).Span.Start)
+            Assert.Equal(8, fixed(1).Span.End)
+            Assert.Equal("DEF", fixed(1).NewText)
+
+            ' The original \r\n at positions 3-4 is preserved.
             Dim result = originalText.WithChanges(fixed)
             Assert.Equal("ABC" & vbCrLf & "DEF", result.ToString())
-        End Sub
-
-        <WpfFact>
-        Public Sub TestCSharp_FixLineEndingBoundaries_SpanStartsBetweenCrLf()
-            ' "AB\r\nCD\r\nEF" - Span=[3,5) starts between the \r and \n, expanded backward.
-            Dim originalText = SourceText.From("AB" & vbCrLf & "CD" & vbCrLf & "EF")
-            Dim changes = ImmutableArray.Create(
-                New TextChange(New TextSpan(3, 2), "XY"))
-
-            Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
-            Assert.Single(fixed)
-            Assert.Equal(2, fixed(0).Span.Start)
-            Assert.Equal(5, fixed(0).Span.End)
-            Assert.Equal(vbCr & "XY", fixed(0).NewText)
-
-            Dim result = originalText.WithChanges(fixed)
-            Assert.Equal("AB" & vbCr & "XYD" & vbCrLf & "EF", result.ToString())
-        End Sub
-
-        <WpfFact>
-        Public Sub TestCSharp_FixLineEndingBoundaries_SpanEndsBetweenCrLf()
-            ' "AB\r\nCD\r\nEF" - Span=[0,7) ends between \r(pos 6) and \n(pos 7), expanded forward.
-            Dim originalText = SourceText.From("AB" & vbCrLf & "CD" & vbCrLf & "EF")
-            Dim changes = ImmutableArray.Create(
-                New TextChange(New TextSpan(0, 7), "REPLACED"))
-
-            Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
-            Assert.Single(fixed)
-            Assert.Equal(0, fixed(0).Span.Start)
-            Assert.Equal(8, fixed(0).Span.End)
-            Assert.Equal("REPLACED" & vbLf, fixed(0).NewText)
-
-            Dim result = originalText.WithChanges(fixed)
-            Assert.Equal("REPLACED" & vbLf & "EF", result.ToString())
         End Sub
 
 #End Region
