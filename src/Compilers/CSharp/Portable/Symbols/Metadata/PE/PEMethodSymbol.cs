@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ThreeState IsRuntimeAsyncExplicitlyControlledInMethod
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting
         {
             get
             {

@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ThreeState IsRuntimeAsyncExplicitlyControlledInMethod
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting
             => GetDecodedWellKnownAttributeData()?.RuntimeAsyncMethodGenerationSetting ?? ThreeState.Unknown;
 
         internal override ImmutableArray<string> NotNullMembers =>

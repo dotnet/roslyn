@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => UnderlyingMethod.FlowAnalysisAnnotations;
 
-        internal sealed override ThreeState IsRuntimeAsyncExplicitlyControlledInMethod => UnderlyingMethod.IsRuntimeAsyncExplicitlyControlledInMethod;
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => UnderlyingMethod.RuntimeAsyncMethodGenerationAttributeSetting;
 
         internal sealed override ImmutableArray<string> NotNullMembers => UnderlyingMethod.NotNullMembers;
 

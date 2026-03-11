@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return FlowAnalysisAnnotations.None; }
         }
 
-        internal sealed override ThreeState IsRuntimeAsyncExplicitlyControlledInMethod => ThreeState.Unknown;
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

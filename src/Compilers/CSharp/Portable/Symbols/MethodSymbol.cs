@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <c>RuntimeAsyncMethodGenerationAttribute</c>, or <see cref="ThreeState.Unknown"/>
         /// if no setting was specified.
         /// </summary>
-        internal abstract ThreeState IsRuntimeAsyncExplicitlyControlledInMethod { get; }
+        internal abstract ThreeState RuntimeAsyncMethodGenerationAttributeSetting { get; }
 
         /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members

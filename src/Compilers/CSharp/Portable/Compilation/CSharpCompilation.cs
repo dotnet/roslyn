@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.IsDefinition);
             Debug.Assert(method is not Symbols.Metadata.PE.PEMethodSymbol);
 
-            var runtimeAsyncEnabledInMethod = method.IsRuntimeAsyncExplicitlyControlledInMethod switch
+            var runtimeAsyncEnabledInMethod = method.RuntimeAsyncMethodGenerationAttributeSetting switch
             {
                 ThreeState.True => true,
                 ThreeState.False => false,

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
-        internal sealed override ThreeState IsRuntimeAsyncExplicitlyControlledInMethod => ThreeState.Unknown;
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
 
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
