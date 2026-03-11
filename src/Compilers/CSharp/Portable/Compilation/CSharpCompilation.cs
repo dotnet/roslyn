@@ -3188,11 +3188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private struct MethodBodyDiagnostics
         {
-            public SyntaxTree? Tree { get; }
+            public SyntaxTree Tree { get; }
             public TextSpan? Span { get; }
             public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-            public MethodBodyDiagnostics(SyntaxTree? tree, TextSpan? span, ImmutableArray<Diagnostic> diagnostics)
+            public MethodBodyDiagnostics(SyntaxTree tree, TextSpan? span, ImmutableArray<Diagnostic> diagnostics)
             {
                 Tree = tree;
                 Span = span;
@@ -3203,6 +3203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
             const int MaxCachedMethodBodiesInTreeDiagnostics = 10;
+
+            Debug.Assert(this.ContainsSyntaxTree(tree));
 
             var cachedDiagnostics = _methodBodiesInTreeDiagnostics;
             foreach (var methodBodyDiagnostics in cachedDiagnostics)
