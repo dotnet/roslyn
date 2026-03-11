@@ -378,8 +378,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
 
-    System_Memory_T,
-    System_ReadOnlyMemory_T,
+        System_Memory_T,
+        System_ReadOnlyMemory_T,
         System_Runtime_CompilerServices_UnionAttribute,
         System_Runtime_CompilerServices_IUnion,
 
@@ -749,8 +749,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
 
-        "System.Memory`1",
-        "System.ReadOnlyMemory`1",
+            "System.Memory`1",
+            "System.ReadOnlyMemory`1",
             "System.Runtime.CompilerServices.UnionAttribute",
             "System.Runtime.CompilerServices.IUnion",
         };
