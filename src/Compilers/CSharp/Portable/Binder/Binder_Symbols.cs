@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (symbol.Kind != SymbolKind.Alias)
                             {
                                 ReportDiagnosticsIfObsolete(diagnostics, type, syntax, hasBaseReceiver: false);
-                                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, type, syntax);
+                                AssertNotUnsafeMemberAccess(type);
                             }
                         }
                         else
