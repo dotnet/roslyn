@@ -9,7 +9,7 @@
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.VisualStudio.LanguageServices.ExternalAccess</PackageId>
+    <PackageId>Microsoft.VisualStudio.ExternalAccess.LanguageServices</PackageId>
     <PackageDescription>
       A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>
