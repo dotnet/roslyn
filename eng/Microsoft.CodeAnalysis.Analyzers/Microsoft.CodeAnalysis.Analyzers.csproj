@@ -4,11 +4,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
+    <AssemblyName>Microsoft.CodeAnalysis.Analyzers.ProjectReference</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\Core\Microsoft.CodeAnalysis.Analyzers.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
   </ItemGroup>
+
+  <Target Name="GetTargetPath"
+          DependsOnTargets="ResolvePackageAssets"
+          Returns="@(Analyzer)" />
 </Project>

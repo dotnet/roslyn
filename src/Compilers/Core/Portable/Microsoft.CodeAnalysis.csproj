@@ -37,7 +37,8 @@
     <ProjectReference Include="$(RepoRoot)eng\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.csproj"
                       Condition="'$(DotNetBuildSourceOnly)' != 'true'"
                       OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" />
