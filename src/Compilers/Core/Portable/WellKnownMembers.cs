@@ -5230,8 +5230,8 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Span_T__Slice_Int
                 (byte)(MemberFlags.Method),                                                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                        // DeclaringTypeId
+                 0,                                                                                                                                               // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Span_T - WellKnownType.ExtSentinel),
@@ -5241,8 +5241,8 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ReadOnlySpan_T__Slice_Int
                 (byte)(MemberFlags.Method),                                                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                // DeclaringTypeId
+                 0,                                                                                                                                               // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),
@@ -5253,7 +5253,7 @@ namespace Microsoft.CodeAnalysis
                 // System_Memory_T__Slice_Int_Int
                  (byte)(MemberFlags.Method),                                                                                                                    // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
+                 0,                                                                                                                                               // Arity
                     2,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),
@@ -5264,8 +5264,8 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ReadOnlyMemory_T__Slice_Int_Int
                  (byte)(MemberFlags.Method),                                                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),                              // DeclaringTypeId
+                 0,                                                                                                                                               // Arity
                     2,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),
@@ -5277,7 +5277,7 @@ namespace Microsoft.CodeAnalysis
                 // System_Memory_T__Slice_Int
                 (byte)(MemberFlags.Method),                                                                                                                    // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
+                 0,                                                                                                                                               // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),
@@ -5287,8 +5287,8 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ReadOnlyMemory_T__Slice_Int
                 (byte)(MemberFlags.Method),                                                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),                              // DeclaringTypeId
+                 0,                                                                                                                                               // Arity
                     1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),
