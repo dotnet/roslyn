@@ -13,6 +13,9 @@
     <PackageDescription>
       A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>
+
+    <!-- Referenced by dotnet/aspnetcore and included in SDK. Required for source build/vertical build. -->
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
 
   <ItemGroup>
