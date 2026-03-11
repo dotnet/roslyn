@@ -159,9 +159,9 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     }
 
     /// <summary>
-    /// If two adjacent changes split a \r\n pair, they are merged into a single change first.
-    /// Then, spans that start or end between a \r\n pair (or whose replacement text starts with
-    /// \n adjacent to \r, or ends with \r adjacent to \n) are expanded to include the full \r\n.
+    /// If replacement text starts with \n adjacent to \r, or ends with \r adjacent to
+    /// \n, strip the offending character and shrink the span when the original text at the boundary
+    /// matches the dropped character.
     /// </summary>
     private static ImmutableArray<TextChange> FixLineEndingBoundaries(
         SourceText originalText, ImmutableArray<TextChange> changes)
@@ -172,47 +172,47 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
         var anyFixed = false;
 
-        for (var index = 0; index < changes.Length; index++)
+        foreach (var change in changes)
         {
-            var span = changes[index].Span;
-            var newText = changes[index].NewText ?? "";
+            var span = change.Span;
+            var newText = change.NewText ?? "";
             var changed = false;
 
-            if (newText.Length > 0 && newText[^1] == '\r' &&
-                index + 1 < changes.Length)
+            if (newText.Length > 0)
             {
-                var next = changes[index + 1];
-                var nextText = next.NewText ?? "";
-                if (nextText.Length > 0 && nextText[0] == '\n' &&
-                    next.Span.Start == span.End)
+                if (newText[0] == '\n' &&
+                    span.Start > 0 &&
+                    originalText[span.Start - 1] == '\r')
                 {
-                    span = TextSpan.FromBounds(span.Start, next.Span.End);
-                    newText += nextText;
-                    index++;
+                    // The replacement text would add a \n to a \r, changing the nature of the line break.
+                    if (originalText[span.Start] == '\n')
+                    {
+                        // The \n exists in the original text. There is no reason to replace it.
+                        span = TextSpan.FromBounds(span.Start + 1, Math.Max(span.Start + 1, span.End));
+                    }
+
+                    newText = newText[1..];
+                    changed = true;
+                }
+
+                if (newText.Length > 0 && newText[^1] == '\r' &&
+                    span.End < originalText.Length &&
+                    originalText[span.End] == '\n')
+                {
+                    // The replacement text would add a \r to a \n, changing the nature of the line break.
+                    if (originalText[span.End - 1] == '\r')
+                    {
+                        // The \r already exists in the original text. There is no reason to replace it.
+                        span = TextSpan.FromBounds(Math.Min(span.Start, span.End - 1), span.End - 1);
+                    }
+
+                    newText = newText[..^1];
                     changed = true;
                 }
             }
 
-            while (span.Start > 0 && originalText[span.Start - 1] == '\r' &&
-                   ((span.Start < originalText.Length && originalText[span.Start] == '\n') ||
-                    (newText.Length > 0 && newText[0] == '\n')))
-            {
-                span = new TextSpan(span.Start - 1, span.Length + 1);
-                newText = "\r" + newText;
-                changed = true;
-            }
-
-            while (span.End < originalText.Length && originalText[span.End] == '\n' &&
-                   ((span.End > 0 && originalText[span.End - 1] == '\r') ||
-                    (newText.Length > 0 && newText[^1] == '\r')))
-            {
-                span = new TextSpan(span.Start, span.Length + 1);
-                newText += "\n";
-                changed = true;
-            }
-
             anyFixed = anyFixed || changed;
-            result.Add(changed ? new TextChange(span, newText) : changes[index]);
+            result.Add(changed ? new TextChange(span, newText) : change);
         }
 
         return anyFixed ? result.ToImmutableAndClear() : changes;
