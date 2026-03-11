@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
@@ -29,22 +28,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim;
 internal static class CSharpHelpers
 {
     public static CSharpProjectShim CreateCSharpProject(TestEnvironment environment, string projectName)
-    {
-        var projectBinPath = Path.GetTempPath();
-        var hierarchy = environment.CreateHierarchy(projectName, projectBinPath, projectRefPath: null, projectCapabilities: "CSharp");
-
-        return CreateCSharpProject(environment, projectName, hierarchy);
-    }
+        => Microsoft.VisualStudio.LanguageServices.UnitTests.CSharpHelpers.CSharpHelpers.CreateCSharpProject(environment, projectName);
 
     public static CSharpProjectShim CreateCSharpProject(TestEnvironment environment, string projectName, IVsHierarchy hierarchy)
-    {
-        return new CSharpProjectShim(
-            new MockCSharpProjectRoot(hierarchy),
-            projectSystemName: projectName,
-            hierarchy: hierarchy,
-            serviceProvider: environment.ServiceProvider,
-            threadingContext: environment.ThreadingContext);
-    }
+        => Microsoft.VisualStudio.LanguageServices.UnitTests.CSharpHelpers.CSharpHelpers.CreateCSharpProject(environment, projectName, hierarchy);
 
     public static Task<CPSProject> CreateCSharpCPSProjectAsync(TestEnvironment environment, string projectName, params string[] commandLineArguments)
     {
@@ -137,82 +124,6 @@ internal static class CSharpHelpers
             }
 
             return CSharpCommandLineParser.Default.Parse(arguments, baseDirectory, sdkDirectory);
-        }
-    }
-
-    private sealed class MockCSharpProjectRoot : ICSharpProjectRoot
-    {
-        private readonly IVsHierarchy _hierarchy;
-
-        public MockCSharpProjectRoot(IVsHierarchy hierarchy)
-        {
-            _hierarchy = hierarchy;
-        }
-
-        int ICSharpProjectRoot.BelongsToProject(string pszFileName)
-        {
-            throw new NotImplementedException();
-        }
-
-        string ICSharpProjectRoot.BuildPerConfigCacheFileName()
-        {
-            throw new NotImplementedException();
-        }
-
-        bool ICSharpProjectRoot.CanCreateFileCodeModel(string pszFile)
-        {
-            throw new NotImplementedException();
-        }
-
-        void ICSharpProjectRoot.ConfigureCompiler(ICSCompiler compiler, ICSInputSet inputSet, bool addSources)
-        {
-            throw new NotImplementedException();
-        }
-
-        object ICSharpProjectRoot.CreateFileCodeModel(string pszFile, ref Guid riid)
-        {
-            throw new NotImplementedException();
-        }
-
-        string ICSharpProjectRoot.GetActiveConfigurationName()
-        {
-            throw new NotImplementedException();
-        }
-
-        string ICSharpProjectRoot.GetFullProjectName()
-        {
-            throw new NotImplementedException();
-        }
-
-        int ICSharpProjectRoot.GetHierarchyAndItemID(string pszFile, out IVsHierarchy ppHier, out uint pItemID)
-        {
-            ppHier = _hierarchy;
-
-            // Each item should have it's own ItemID, but for simplicity we'll just hard-code a value of
-            // no particular significance.
-            pItemID = 42;
-
-            return VSConstants.S_OK;
-        }
-
-        void ICSharpProjectRoot.GetHierarchyAndItemIDOptionallyInProject(string pszFile, out IVsHierarchy ppHier, out uint pItemID, bool mustBeInProject)
-        {
-            throw new NotImplementedException();
-        }
-
-        string ICSharpProjectRoot.GetProjectLocation()
-        {
-            throw new NotImplementedException();
-        }
-
-        object ICSharpProjectRoot.GetProjectSite(ref Guid riid)
-        {
-            throw new NotImplementedException();
-        }
-
-        void ICSharpProjectRoot.SetProjectSite(ICSharpProjectSite site)
-        {
-            throw new NotImplementedException();
         }
     }
 }
