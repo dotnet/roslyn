@@ -221,7 +221,7 @@ internal abstract class AbstractSimplificationService<
 
                             currentNodeOrToken = replacedParent
                                 .ChildNodesAndTokens()
-                                .Single(c => c.HasAnnotation(annotation));
+                                .First(c => c.HasAnnotation(annotation));
                         }
 
                         if (isNode)
