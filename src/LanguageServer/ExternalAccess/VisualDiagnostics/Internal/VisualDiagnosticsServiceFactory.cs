@@ -58,11 +58,10 @@ internal sealed class VisualDiagnosticsServiceFactory(
             (_visualDiagnosticsLanguageService as IDisposable)?.Dispose();
         }
 
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
             _taskCompletionSource.TrySetResult(true);
-            return Task.CompletedTask;
         }
 
         public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)

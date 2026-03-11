@@ -9,12 +9,29 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SubstitutedTypeParameterSymbol : WrappedTypeParameterSymbol
+    internal sealed class SubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbolBase
+    {
+        internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
+            : base(newContainer, map, substitutedFrom, ordinal)
+        {
+            Debug.Assert(ContainingSymbol.OriginalDefinition == _underlyingTypeParameter.ContainingSymbol.OriginalDefinition);
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+        }
+
+        public override TypeParameterSymbol OriginalDefinition
+            => _underlyingTypeParameter.OriginalDefinition;
+    }
+
+    internal abstract class SubstitutedTypeParameterSymbolBase : WrappedTypeParameterSymbol
     {
         private readonly Symbol _container;
         private readonly TypeMap _map;
@@ -25,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _mySequence;
 #endif
 
-        internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
+        internal SubstitutedTypeParameterSymbolBase(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
             : base(substitutedFrom)
         {
             _container = newContainer;
@@ -46,17 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeParameterSymbol OriginalDefinition
-        {
-            get
-            {
-                // A substituted type parameter symbol is used as a type parameter of a frame type for lambda-captured
-                // variables within a generic method.  In that case the frame's own type parameter is an original.
-                return
-                    ContainingSymbol.OriginalDefinition != _underlyingTypeParameter.ContainingSymbol.OriginalDefinition ? this :
-                    _underlyingTypeParameter.OriginalDefinition;
-            }
-        }
+        public abstract override TypeParameterSymbol OriginalDefinition { get; }
 
         public override TypeParameterSymbol ReducedFrom
         {

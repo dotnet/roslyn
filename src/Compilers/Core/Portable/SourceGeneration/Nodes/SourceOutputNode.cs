@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
                     var sourcesBuilder = new AdditionalSourcesCollection(_sourceExtension);
                     var diagnostics = DiagnosticBag.GetInstance();
 
-                    SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, graphState.Compilation, cancellationToken);
+                    SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, graphState.Compilation, graphState.DriverState.ChecksumAlgorithm, cancellationToken);
                     try
                     {
                         var stopwatch = SharedStopwatch.StartNew();

@@ -444,6 +444,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             # IDE0220
             dotnet_diagnostic.IDE0220.severity = %value%
+            
+            # IDE0221
+            dotnet_diagnostic.IDE0221.severity = %value%
 
             # IDE0230
             dotnet_diagnostic.IDE0230.severity = %value%
@@ -513,6 +516,12 @@ public sealed class IDEDiagnosticIDConfigurationTests
             
             # IDE0380
             dotnet_diagnostic.IDE0380.severity = %value%
+            
+            # IDE0390
+            dotnet_diagnostic.IDE0390.severity = %value%
+            
+            # IDE0391
+            dotnet_diagnostic.IDE0391.severity = %value%
 
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
@@ -907,6 +916,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0210", "csharp_style_prefer_top_level_statements", "true"),
             ("IDE0211", "csharp_style_prefer_top_level_statements", "true"),
             ("IDE0220", "dotnet_style_prefer_foreach_explicit_cast_in_source", "when_strongly_typed"),
+            ("IDE0221", "dotnet_style_prefer_non_hidden_explicit_cast_in_source", "true"),
             ("IDE0230", "csharp_style_prefer_utf8_string_literals", "true"),
             ("IDE0240", null, null),
             ("IDE0241", null, null),
@@ -930,6 +940,8 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0360", "csharp_style_prefer_simple_property_accessors", "true"),
             ("IDE0370", null, null),
             ("IDE0380", null, null),
+            ("IDE0390", null, null),
+            ("IDE0391", null, null),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

@@ -380,7 +380,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                     or SyntaxKind.DefaultKeyword
                     or SyntaxKind.BaseKeyword
                     or SyntaxKind.ThisKeyword
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
                     or SyntaxKind.ExtensionKeyword
 #endif
                 || previousToken.IsGenericGreaterThanToken()
@@ -445,19 +445,21 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         // default:
         // <label> :
         // { Property1.Property2: ... }
-        if (currentToken.IsKind(SyntaxKind.ColonToken))
+        if (currentToken.IsKind(SyntaxKind.ColonToken) &&
+            currentToken.Parent is (kind:
+                SyntaxKind.AttributeTargetSpecifier or
+                SyntaxKind.CaseSwitchLabel or
+                SyntaxKind.CasePatternSwitchLabel or
+                SyntaxKind.DefaultSwitchLabel or
+                SyntaxKind.ExpressionColon or
+#if false
+                SyntaxKind.KeyValuePairElement or
+#endif
+                SyntaxKind.LabeledStatement or
+                SyntaxKind.NameColon or
+                SyntaxKind.SwitchExpressionArm))
         {
-            if (currentToken.Parent is (kind:
-                    SyntaxKind.CaseSwitchLabel or
-                    SyntaxKind.CasePatternSwitchLabel or
-                    SyntaxKind.DefaultSwitchLabel or
-                    SyntaxKind.LabeledStatement or
-                    SyntaxKind.AttributeTargetSpecifier or
-                    SyntaxKind.NameColon or
-                    SyntaxKind.ExpressionColon or SyntaxKind.SwitchExpressionArm))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
+            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
         }
 
         // [cast expression] * case

@@ -820,16 +820,16 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (18,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (18,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(18, 9),
-                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
-                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
-                // (23,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (23,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(23, 29)
                 );
@@ -970,16 +970,16 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
-                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
-                // (21,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (21,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(21, 9),
-                // (24,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (24,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(24, 29)
                 );
@@ -1068,16 +1068,16 @@ class Program
 
             // The error improvement is tracked by https://github.com/dotnet/roslyn/issues/71854
             comp.VerifyDiagnostics(
-                // (5,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (5,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(5, 9),
-                // (6,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (6,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(6, 9),
-                // (7,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (7,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(7, 9),
-                // (10,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                // (10,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
                 //     static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(10, 22)
                 );
@@ -17034,6 +17034,55 @@ class Program
   IL_004c:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ScopedParams()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class C
+                {
+                    public static void M(scoped params S x)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (12,33): error CS9348: The 'params' modifier cannot immediately follow the 'scoped' modifier.
+                //     public static void M(scoped params S x)
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "params").WithArguments("params").WithLocation(12, 33));
+        }
+
+        [Fact]
+        public void ParamsScoped()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class C
+                {
+                    public static void M(params scoped S x)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics();
         }
     }
 }

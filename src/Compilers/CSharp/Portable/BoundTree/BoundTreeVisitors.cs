@@ -224,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        [DebuggerStepThrough]
         protected virtual void EnsureSufficientExecutionStack(int recursionDepth)
         {
             StackGuard.EnsureSufficientExecutionStack(recursionDepth);

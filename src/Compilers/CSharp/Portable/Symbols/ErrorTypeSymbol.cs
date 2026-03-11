@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public sealed override bool MightContainExtensionMethods
+        public sealed override bool MightContainExtensions
         {
             get
             {
@@ -449,6 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsUnionTypeCore => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;
 

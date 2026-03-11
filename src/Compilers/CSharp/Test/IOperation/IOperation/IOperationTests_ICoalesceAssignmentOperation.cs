@@ -239,10 +239,10 @@ ICoalesceAssignmentOperation (OperationKind.CoalesceAssignment, Type: ?, IsInval
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(5,6): error CS1525: Invalid expression term '??='
-                //     {
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("??=").WithLocation(5, 6),
-                // file.cs(6,33): error CS1525: Invalid expression term ';'
+                // (6,19): error CS1525: Invalid expression term '??='
+                //         /*<bind>*/??=/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "??=").WithArguments("??=").WithLocation(6, 19),
+                // (6,33): error CS1525: Invalid expression term ';'
                 //         /*<bind>*/??=/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 33)
             };

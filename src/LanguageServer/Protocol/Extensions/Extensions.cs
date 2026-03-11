@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -72,11 +73,18 @@ internal static partial class Extensions
     {
         var documentIds = GetDocumentIds(solution, documentUri);
 
-        var documents = documentIds
-            .Select(solution.GetTextDocument)
-            .WhereNotNull()
-            .ToImmutableArray();
-        return documents;
+        if (documentIds.IsEmpty)
+            return [];
+
+        using var _ = ArrayBuilder<TextDocument>.GetInstance(out var documentsBuilder);
+
+        foreach (var documentId in documentIds)
+        {
+            if (solution.GetTextDocument(documentId) is { } document)
+                documentsBuilder.Add(document);
+        }
+
+        return documentsBuilder.ToImmutableAndClear();
     }
 
     public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, DocumentUri documentUri)

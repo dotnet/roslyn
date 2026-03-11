@@ -123,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">La solution ne contient pas le document spécifié.</target>
+        <source>The solution does not contain the specified document: '{0}'.</source>
+        <target state="translated">La solution ne contient pas le document spécifié : « {0} »</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_members">

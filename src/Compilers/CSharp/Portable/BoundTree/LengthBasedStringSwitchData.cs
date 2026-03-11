@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.AppendLine($"Label {readable(charJumpTable.Label)}:");
                 builder.AppendLine($"  Selected char position: {charJumpTable.SelectedCharPosition}:");
-                dump(charJumpTable.CharCaseLabels!);
+                dump(charJumpTable.CharCaseLabels);
             }
             builder.AppendLine();
 
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var stringJumpTable in StringBasedJumpTables)
             {
                 builder.AppendLine($"Label {readable(stringJumpTable.Label)}:");
-                dump(stringJumpTable.StringCaseLabels!);
+                dump(stringJumpTable.StringCaseLabels);
             }
             builder.AppendLine();
 

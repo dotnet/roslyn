@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
         {
             BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
-            if (decisionDag.ContainsAnySynthesizedNodes())
+            if (!decisionDag.SuitableForLowering)
             {
                 decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
                     compilation,
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.DefaultLabel?.Label ?? this.BreakLabel,
                     BindingDiagnosticBag.Discarded,
                     forLowering: true);
-                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+                Debug.Assert(decisionDag.SuitableForLowering);
             }
 
             return decisionDag;

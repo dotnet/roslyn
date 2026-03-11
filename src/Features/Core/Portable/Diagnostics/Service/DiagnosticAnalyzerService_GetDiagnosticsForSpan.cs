@@ -294,17 +294,23 @@ internal sealed partial class DiagnosticAnalyzerService
 
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
-        await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers, AnalysisKind.Syntax, range, incrementalAnalysis: false).ConfigureAwait(false);
-        await ComputeDocumentDiagnosticsAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range, incrementalAnalysis).ConfigureAwait(false);
-        await ComputeDocumentDiagnosticsAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, incrementalAnalysis: false).ConfigureAwait(false);
+        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, syntaxAnalyzers, AnalysisKind.Syntax, range, incrementalAnalysis: false, list, cancellationToken).ConfigureAwait(false);
+        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticSpanAnalyzers, AnalysisKind.Semantic, range, incrementalAnalysis, list, cancellationToken).ConfigureAwait(false);
+        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, incrementalAnalysis: false, list, cancellationToken).ConfigureAwait(false);
 
         return list.ToImmutableAndClear();
 
-        async Task ComputeDocumentDiagnosticsAsync(
+        static async Task ComputeDocumentDiagnosticsAsync(
+            DiagnosticAnalyzerService service,
+            TextDocument document,
+            CompilationWithAnalyzers? compilationWithAnalyzers,
+            bool logPerformanceInfo,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind,
             TextSpan? span,
-            bool incrementalAnalysis)
+            bool incrementalAnalysis,
+            ArrayBuilder<DiagnosticData> list,
+            CancellationToken cancellationToken)
         {
             if (analyzers.Length == 0)
                 return;
@@ -313,16 +319,16 @@ internal sealed partial class DiagnosticAnalyzerService
             Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
             var analysisScope = new DocumentAnalysisScope(document, span, analyzers, kind);
-            var executor = new DocumentAnalysisExecutor(this, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
+            var executor = new DocumentAnalysisExecutor(service, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
             var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
             var computeTask = incrementalAnalysis
-                ? _incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(executor, analyzers, version, cancellationToken)
+                ? service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(executor, analyzers, version, cancellationToken)
                 : ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken);
             var diagnosticsMap = await computeTask.ConfigureAwait(false);
 
             if (incrementalAnalysis)
-                _incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+                service._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
 
             list.AddRange(diagnosticsMap.SelectMany(kvp => kvp.Value));
         }

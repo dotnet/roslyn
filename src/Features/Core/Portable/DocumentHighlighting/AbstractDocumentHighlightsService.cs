@@ -96,7 +96,7 @@ internal abstract partial class AbstractDocumentHighlightsService :
     {
         var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
         var token = root.FindToken(position);
-        var embeddedHighlightsServices = this.GetServices(semanticModel, token, cancellationToken);
+        var (embeddedHighlightsServices, _) = this.GetServices(semanticModel, token, cancellationToken);
         foreach (var service in embeddedHighlightsServices)
         {
             var result = service.Value.GetDocumentHighlights(

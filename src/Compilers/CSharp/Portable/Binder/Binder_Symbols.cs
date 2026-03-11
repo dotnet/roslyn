@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -267,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (symbol.Kind != SymbolKind.Alias)
                             {
                                 ReportDiagnosticsIfObsolete(diagnostics, type, syntax, hasBaseReceiver: false);
+                                AssertNotUnsafeMemberAccess(type);
                             }
                         }
                         else
@@ -333,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
                     symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
+                    if (symbol.TypeWithAnnotations.IsResolved) AssertNotUnsafeMemberAccess(symbol.TypeWithAnnotations.Type);
                 }
 
                 return symbol;
@@ -457,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
                     MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
-                    if (GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null) is CSDiagnosticInfo info)
+                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRules.Legacy, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
                         var asterisk = functionPointerTypeSyntax.AsteriskToken;
@@ -600,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = (PointerTypeSyntax)syntax;
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                ReportUnsafeIfNotAllowed(node, diagnostics);
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
 
                 if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
@@ -926,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (type.ContainsPointerOrFunctionPointer())
                         {
-                            ReportUnsafeIfNotAllowed(node, diagnostics);
+                            ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                         }
                     }
                 }
@@ -1145,6 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type.VisitType((typePart, argTuple, isNested) =>
                     {
                         argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.diagnostics, typePart, argTuple.syntax, hasBaseReceiver: false);
+                        Binder.AssertNotUnsafeMemberAccess(typePart);
                         return false;
                     }, args);
                 }
@@ -1343,6 +1347,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Binds the <see cref="TypeSyntax"/> nodes in <paramref name="typeArguments"/> from some <see
+        /// cref="GenericNameSyntax.TypeArgumentList"/> and returns the actual types referenced.  In the case of a <see
+        /// cref="OmittedTypeArgumentSyntax"/> a <see cref="UnboundArgumentErrorTypeSymbol.Instance"/> will be returned
+        /// as the type.  No diagnostics are issued in that case.  Callers must check for omitted type arguments and
+        /// issue a diagnostic if in a context where they are not allowed.  For example, an omitted type argument is
+        /// allowed in <c><![CDATA[typeof(List<>)]]></c> or <c><![CDATA[nameof(List<>)]]></c> (the latter in C# 14 and
+        /// above).  However they are not allowed in a regular type reference, or invocation (like
+        /// <c><![CDATA[x.M<>()]]></c>)
+        /// </summary>
         private ImmutableArray<TypeWithAnnotations> BindTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(typeArguments.Count > 0);
@@ -1656,6 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = BindNamespaceOrTypeSymbol(leftName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics: false).NamespaceOrTypeSymbol;
             ReportDiagnosticsIfObsolete(diagnostics, left, leftName, hasBaseReceiver: false);
+            AssertNotUnsafeMemberAccess(left);
 
             bool isLeftUnboundGenericType = left.Kind == SymbolKind.NamedType &&
                 ((NamedTypeSymbol)left).IsUnboundGenericType;
@@ -1899,11 +1914,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberSymbol;
         }
 
-        internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, out UseSiteInfo<AssemblySymbol> useSiteInfo, bool isOptional = false)
+#nullable enable
+        internal static Symbol? GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, out UseSiteInfo<AssemblySymbol> useSiteInfo, bool isOptional = false)
         {
-            Symbol memberSymbol = compilation.GetWellKnownTypeMember(member);
+            Symbol? memberSymbol = compilation.GetWellKnownTypeMember(member);
 
-            if ((object)memberSymbol != null)
+            if (memberSymbol is not null)
             {
                 useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(memberSymbol);
                 if (useSiteInfo.DiagnosticInfo != null)
@@ -1941,6 +1957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return memberSymbol;
         }
+#nullable disable
 
         private class ConsistentSymbolOrder : IComparer<Symbol>
         {

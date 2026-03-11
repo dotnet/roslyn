@@ -33,19 +33,10 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
         SignatureHelpTriggerReason triggerReason,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var expression = await CommonSignatureHelpUtilities.TryGetSyntaxAsync<BaseObjectCreationExpressionSyntax>(
+            document, position, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken).ConfigureAwait(false);
 
-        if (!CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out BaseObjectCreationExpressionSyntax? expression))
-        {
-            return null;
-        }
-
-        if (expression.ArgumentList is null)
-            return null;
-
-        return expression;
+        return expression?.ArgumentList is null ? null : expression;
     }
 
     private bool IsTriggerToken(SyntaxToken token)
@@ -89,7 +80,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
             return null;
 
         // guess the best candidate if needed and determine parameter index
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+        var (currentSymbol, parameterIndexOverride) = new CSharpLightweightOverloadResolution(semanticModel, objectCreationExpression.ArgumentList.Arguments, position)
             .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken), methods);
 
         // present items and select
@@ -97,7 +88,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
         var items = methods.SelectAsArray(c =>
-            ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+            ConvertNormalTypeConstructor(c, objectCreationExpression.SpanStart, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
 
         var selectedItem = TryGetSelectedIndex(methods, currentSymbol);
 
@@ -119,7 +110,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
             return null;
 
         // determine parameter index
-        var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+        var parameterIndexOverride = new CSharpLightweightOverloadResolution(semanticModel, objectCreationExpression.ArgumentList.Arguments, position)
             .FindParameterIndexIfCompatibleMethod(invokeMethod);
 
         // present item and select

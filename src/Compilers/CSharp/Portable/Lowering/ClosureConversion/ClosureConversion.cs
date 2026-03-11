@@ -1409,6 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: false,
                         explicitCastInCode: true,
                         conversionGroupOpt: conversion.ConversionGroupOpt,
+                        inConversionGroupFlags: conversion.InConversionGroupFlags,
                         constantValueOpt: conversion.ConstantValueOpt,
                         type: conversion.Type);
                 }

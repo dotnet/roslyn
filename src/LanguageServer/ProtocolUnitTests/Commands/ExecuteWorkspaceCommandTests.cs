@@ -67,9 +67,9 @@ public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtoco
             return JsonSerializer.Deserialize<TextDocumentIdentifier>((JsonElement)request.Arguments!.First(), ProtocolConversions.LspJsonSerializerOptions)!;
         }
 
-        public override Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult<object>(true);
+            return true;
         }
     }
 }

@@ -27,7 +27,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : Syntax
     protected override CodeActionCleanup Cleanup => CodeActionCleanup.None;
 #endif
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var title = GetTitle();
         context.RegisterCodeFix(
@@ -39,7 +39,6 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : Syntax
                 // code action is preferred over virtually any others that could be located at that position.
                 priority: CodeActionPriority.High),
             context.Diagnostics);
-        return Task.CompletedTask;
     }
 
     private static Task<Document> RemoveUnnecessaryImportsAsync(

@@ -19,10 +19,12 @@ try {
       exit 1
     }
     
+    git remote add gh https://github.com/dotnet/roslyn.git
+
     if ($enforceLatestCommit) {
       Write-Host "Validating the PR head matches the specified commit SHA ($commitSHA)..."
       Write-Host "Getting the hash of refs/pull/$prNumber/head..."
-      $remoteRef = git ls-remote origin refs/pull/$prNumber/head
+      $remoteRef = git ls-remote gh refs/pull/$prNumber/head
       Write-Host ($remoteRef | Out-String)
 
       $prHeadSHA = $remoteRef.Split()[0]

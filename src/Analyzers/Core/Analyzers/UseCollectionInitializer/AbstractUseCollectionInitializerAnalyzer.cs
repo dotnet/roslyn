@@ -50,7 +50,8 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 {
     protected bool _analyzeForCollectionExpression;
 
-    protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
+    protected abstract bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount);
+
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
         ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
@@ -121,15 +122,20 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             if (initializerExpressions is [var firstInit, ..])
             {
                 // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
-                // this can't legally become a collection expression.
-                if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
-                    return false;
+                // this can't legally become a collection expression.  Unless there are exactly two elements in the
+                // initializer, and we support k:v elements.
+                if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit, out var initializerElementCount))
+                {
+                    if (initializerElementCount != 2 || !this.SyntaxFacts.SupportsKeyValuePairElement(_objectCreationExpression.SyntaxTree.Options))
+                        return false;
+                }
 
                 seenIndexAssignment = this.SyntaxFacts.IsElementAccessInitializer(firstInit);
                 seenInvocation = !seenIndexAssignment;
 
-                // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
-                if (seenIndexAssignment && _analyzeForCollectionExpression)
+                // An indexer can't be used with a collection expression (except for dictionary expressions).  So fail
+                // out immediately if we see that.
+                if (_analyzeForCollectionExpression && seenIndexAssignment && !this.SyntaxFacts.SupportsKeyValuePairElement(_objectCreationExpression.SyntaxTree.Options))
                     return false;
             }
         }
@@ -182,21 +188,22 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                     requiredArgumentName: null,
                     forCollectionExpression: false,
                     cancellationToken,
-                    out var instance) &&
+                    out var instance,
+                    out var useKeyValue) &&
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false, useKeyValue);
             }
         }
 
         if (!seenInvocation)
         {
-            if (TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out var instance) &&
+            if (this.State.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out var instance) &&
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false, UseKeyValue: this.State.SyntaxFacts.SupportsKeyValuePairElement(statement.SyntaxTree.Options));
             }
         }
 
@@ -223,49 +230,5 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             name: WellKnownMemberNames.CollectionInitializerAddMethodName,
             includeReducedExtensionMethods: true);
         return addMethods.SelectAsArray(s => s is IMethodSymbol { Parameters: [_, ..] }, s => (IMethodSymbol)s);
-    }
-
-    private bool TryAnalyzeIndexAssignment(
-        TExpressionStatementSyntax statement,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out TExpressionSyntax? instance)
-    {
-        instance = null;
-        if (!this.SyntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
-            return false;
-
-        if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
-            return false;
-
-        this.SyntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-
-        if (!this.SyntaxFacts.IsElementAccessExpression(left))
-            return false;
-
-        // If we're initializing a variable, then we can't reference that variable on the right 
-        // side of the initialization.  Rewriting this into a collection initializer would lead
-        // to a definite-assignment error.
-        if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(right, cancellationToken))
-            return false;
-
-        // Can't reference the variable being initialized in the arguments of the indexing expression.
-        this.SyntaxFacts.GetPartsOfElementAccessExpression(left, out var elementInstance, out var argumentList);
-        var elementAccessArguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
-        foreach (var argument in elementAccessArguments)
-        {
-            if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
-                return false;
-
-            // An index/range expression implicitly references the value being initialized.  So it cannot be used in the
-            // indexing expression.
-            var argExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
-            argExpression = this.SyntaxFacts.WalkDownParentheses(argExpression);
-
-            if (this.SyntaxFacts.IsIndexExpression(argExpression) || this.SyntaxFacts.IsRangeExpression(argExpression))
-                return false;
-        }
-
-        instance = elementInstance as TExpressionSyntax;
-        return instance != null;
     }
 }

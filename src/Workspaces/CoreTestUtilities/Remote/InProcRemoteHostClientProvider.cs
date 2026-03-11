@@ -109,8 +109,8 @@ internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider
         }
     }
 
-    public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-        => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
+    public async Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
+        => _lazyClient.Value;
 
     public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
         => _clientCreationSource.Task.WithCancellation(cancellationToken);

@@ -37,7 +37,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
         await testLspServer.OpenDocumentAsync(looseFileUri, """
             class A
             {
@@ -59,7 +59,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         await testLspServer.OpenDocumentAsync(looseFileUri, string.Empty).ConfigureAwait(false);
@@ -96,7 +96,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
         await testLspServer.OpenDocumentAsync(looseFileUri, """
             class A
             {
@@ -130,7 +130,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open a file that is part of a registered workspace and verify it is not present in the misc workspace.
-        var document = await AddDocumentAsync(testLspServer, "C:\\SomeFile.cs", markup).ConfigureAwait(false);
+        var document = await AddDocumentAsync(testLspServer, TestHelpers.CreateAbsolutePath("SomeFile.cs"), markup).ConfigureAwait(false);
         var fileInWorkspaceUri = document.GetURI();
         await testLspServer.OpenDocumentAsync(fileInWorkspaceUri, markup).ConfigureAwait(false);
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
@@ -155,7 +155,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         // Include some Unicode characters to test URL handling.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri("C:\\\ue25b\ud86d\udeac.cs");
+        var looseFileUri = CreateAbsoluteDocumentUri("\ue25b\ud86d\udeac.cs");
         var looseFileTextDocumentIdentifier = new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri };
         await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
 
@@ -191,7 +191,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.razor");
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.razor");
         await testLspServer.OpenDocumentAsync(looseFileUri, "<div></div>").ConfigureAwait(false);
 
         // Trigger a request and assert we got a file in the misc workspace.
@@ -216,7 +216,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
         await testLspServer.OpenDocumentAsync(looseFileUri, """
             class A
             {

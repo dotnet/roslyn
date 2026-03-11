@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
                 OfType(Of TypeBlockSyntax)
         End Function
 
-        Protected Overrides Function GetMembers(typeDeclaration As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
+        Protected Overrides Function GetMembersIncludingExtensionBlockMembers(typeDeclaration As TypeBlockSyntax) As IEnumerable(Of StatementSyntax)
             Return typeDeclaration.Members
         End Function
 

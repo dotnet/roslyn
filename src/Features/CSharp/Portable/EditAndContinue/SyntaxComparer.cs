@@ -1082,8 +1082,8 @@ internal sealed class SyntaxComparer(
             case SyntaxKind.CatchClause:
                 var leftCatch = (CatchClauseSyntax)leftBlock.Parent;
                 var rightCatch = (CatchClauseSyntax)rightBlock.Parent;
-                if (leftCatch.Declaration == null && leftCatch.Filter == null &&
-                    rightCatch.Declaration == null && rightCatch.Filter == null)
+                if (leftCatch is { Declaration: null, Filter: null } &&
+                    rightCatch is { Declaration: null, Filter: null })
                 {
                     var leftTry = (TryStatementSyntax)leftCatch.Parent!;
                     var rightTry = (TryStatementSyntax)rightCatch.Parent!;

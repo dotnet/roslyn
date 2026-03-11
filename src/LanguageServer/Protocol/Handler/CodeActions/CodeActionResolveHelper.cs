@@ -211,7 +211,7 @@ internal sealed class CodeActionResolveHelper
 
         return new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
 
-        Task AddTextDocumentDeletionsAsync<TTextDocument>(
+        async Task AddTextDocumentDeletionsAsync<TTextDocument>(
             IEnumerable<DocumentId> removedDocuments,
             Func<DocumentId, TTextDocument?> getOldDocument)
             where TTextDocument : TextDocument
@@ -223,8 +223,6 @@ internal sealed class CodeActionResolveHelper
 
                 textDocumentEdits.Add(new DeleteFile { DocumentUri = oldTextDoc.GetURI() });
             }
-
-            return Task.CompletedTask;
         }
 
         async Task AddTextDocumentAdditionsAsync<TTextDocument>(

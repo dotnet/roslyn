@@ -672,7 +672,8 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
             AssertEx.Fail($"The document attributes on file {fileName} conflicted");
         }
 
-        var filePath = Path.Combine(TestWorkspace.RootDirectory, fileName);
+        var resolveFilePath = (bool?)documentElement.Attribute("ResolveFilePath");
+        var filePath = resolveFilePath is null or true ? Path.Combine(TestWorkspace.RootDirectory, fileName) : fileName;
 
         return CreateDocument(
             exportProvider, languageServiceProvider, code, fileName, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxNode? value = null;
             if (slot?.TryGetTarget(out value) == true)
             {
-                return value!;
+                return value;
             }
 
             return CreateWeakItem(ref slot, index);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis
                 WeakReference<SyntaxNode>? previousWeakReference = slot;
                 if (previousWeakReference?.TryGetTarget(out previousNode) == true)
                 {
-                    return previousNode!;
+                    return previousNode;
                 }
 
                 if (Interlocked.CompareExchange(ref slot, newWeakReference, previousWeakReference) == previousWeakReference)
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a list of ancestor nodes
+        /// Gets a list of ancestor nodes in order from the innermost containing syntactic ancestor to the outermost.
         /// </summary>
         public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia = true)
         {
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a list of ancestor nodes (including this node) 
+        /// Gets a list of ancestor nodes (including this node) in order from this node to the outermost ancestor.
         /// </summary>
         public IEnumerable<SyntaxNode> AncestorsAndSelf(bool ascendOutOfTrivia = true)
         {
@@ -832,7 +832,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the first node of type TNode that matches the predicate.
+        /// Gets the first node of type TNode that matches the predicate. Ancestors are searched in order from
+        /// this node to the outermost ancestor.
         /// </summary>
         public TNode? FirstAncestorOrSelf<TNode>(Func<TNode, bool>? predicate = null, bool ascendOutOfTrivia = true)
             where TNode : SyntaxNode
@@ -850,7 +851,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the first node of type TNode that matches the predicate.
+        /// Gets the first node of type TNode that matches the predicate. Ancestors are searched in order from
+        /// this node to the outermost ancestor.
         /// </summary>
         [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "Required for consistent API usage patterns.")]
         public TNode? FirstAncestorOrSelf<TNode, TArg>(Func<TNode, TArg, bool> predicate, TArg argument, bool ascendOutOfTrivia = true)

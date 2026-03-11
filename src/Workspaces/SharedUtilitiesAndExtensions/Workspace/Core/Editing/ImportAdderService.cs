@@ -137,7 +137,7 @@ internal abstract class ImportAdderService : ILanguageService
                 continue;
 
             var namespaceSyntax = GenerateNamespaceImportDeclaration(namespaceSymbol, generator);
-            if (addImportsService.HasExistingImport(model.Compilation, root, node, namespaceSyntax, generator))
+            if (addImportsService.HasExistingImport(model, root, node, namespaceSyntax, generator, cancellationToken))
                 continue;
 
             if (IsInsideNamespace(node, namespaceSymbol, model, cancellationToken))
@@ -162,7 +162,7 @@ internal abstract class ImportAdderService : ILanguageService
         var context = first.GetCommonRoot(last);
 
         root = addImportsService.AddImports(
-            model.Compilation, root, context, importsToAdd, generator, options, cancellationToken);
+            model, root, context, importsToAdd, generator, options, cancellationToken);
 
         return document.WithSyntaxRoot(root);
     }
@@ -216,7 +216,7 @@ internal abstract class ImportAdderService : ILanguageService
                         continue;
 
                     var namespaceSyntax = GenerateNamespaceImportDeclaration(namespaceSymbol, generator);
-                    if (addImportsService.HasExistingImport(model.Compilation, root, annotatedNode, namespaceSyntax, generator))
+                    if (addImportsService.HasExistingImport(model, root, annotatedNode, namespaceSyntax, generator, cancellationToken))
                         continue;
 
                     if (IsInsideNamespace(annotatedNode, namespaceSymbol, model, cancellationToken))
@@ -248,7 +248,7 @@ internal abstract class ImportAdderService : ILanguageService
         if (importsToAdd.Length == 0)
             return document;
 
-        root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, options, cancellationToken);
+        root = addImportsService.AddImports(model, root, context, importsToAdd, generator, options, cancellationToken);
         return document.WithSyntaxRoot(root);
     }
 

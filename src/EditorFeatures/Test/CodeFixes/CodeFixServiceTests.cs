@@ -394,7 +394,7 @@ public sealed class CodeFixServiceTests
             get { return [Id]; }
         }
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Called = true;
             ContextDiagnosticsCount = context.Diagnostics.Length;
@@ -403,11 +403,9 @@ public sealed class CodeFixServiceTests
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         _registerFixWithTitle,
-                        createChangedDocument: _ => Task.FromResult(context.Document)),
+                        createChangedDocument: async _ => context.Document),
                     context.Diagnostics);
             }
-
-            return Task.CompletedTask;
         }
     }
 
@@ -556,16 +554,16 @@ public sealed class CodeFixServiceTests
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-            public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
+            public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
             {
                 ReceivedCallback = true;
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                return ImmutableArray<Diagnostic>.Empty;
             }
 
-            public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
+            public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
             {
                 ReceivedCallback = true;
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                return ImmutableArray<Diagnostic>.Empty;
             }
         }
 
@@ -781,11 +779,10 @@ public sealed class CodeFixServiceTests
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var fixableDiagnostics = context.Diagnostics.WhereAsArray(d => FixableDiagnosticIds.Contains(d.Id));
-            context.RegisterCodeFix(CodeAction.Create(_name, ct => Task.FromResult(context.Document)), fixableDiagnostics);
-            return Task.CompletedTask;
+            context.RegisterCodeFix(CodeAction.Create(_name, async ct => context.Document), fixableDiagnostics);
         }
     }
 
@@ -816,13 +813,11 @@ public sealed class CodeFixServiceTests
 
         public override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             // Register duplicate code actions with same equivalence key, but different title.
             RegisterCodeFix(context, titleSuffix: "1");
             RegisterCodeFix(context, titleSuffix: "2");
-
-            return Task.CompletedTask;
         }
 
         private void RegisterCodeFix(CodeFixContext context, string titleSuffix)
@@ -830,7 +825,7 @@ public sealed class CodeFixServiceTests
             context.RegisterCodeFix(
                 CodeAction.Create(
                     nameof(CodeFixProviderWithDuplicateEquivalenceKeyActions) + titleSuffix,
-                    ct => Task.FromResult(context.Document),
+                    async ct => context.Document,
                     _equivalenceKey),
                 context.Diagnostics);
         }
@@ -909,7 +904,7 @@ public sealed class CodeFixServiceTests
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => [AdditionalFileAnalyzer.DiagnosticId];
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(CodeAction.Create(Title,
                 createChangedSolution: async ct =>
@@ -921,8 +916,6 @@ public sealed class CodeFixServiceTests
                 },
                 equivalenceKey: Title),
                 context.Diagnostics[0]);
-
-            return Task.CompletedTask;
         }
     }
 
@@ -1205,14 +1198,13 @@ public sealed class CodeFixServiceTests
         public static readonly string Title = $"Fix {DeprioritizedAnalyzer.Descriptor.Id}";
         public override ImmutableArray<string> FixableDiagnosticIds => [DeprioritizedAnalyzer.Descriptor.Id];
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
                 CodeAction.Create(Title,
-                    createChangedDocument: _ => Task.FromResult(context.Document),
+                    createChangedDocument: async _ => context.Document,
                     equivalenceKey: nameof(FixerForDeprioritizedAnalyzer)),
                 context.Diagnostics);
-            return Task.CompletedTask;
         }
     }
 }

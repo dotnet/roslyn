@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// in some cases even at the expense of full compatibility. Such differences typically arise when
         /// earlier versions of the compiler failed to enforce the full language specification.
         /// </summary>
-        internal bool FeatureStrictEnabled => Feature("strict") != null;
+        internal bool FeatureStrictEnabled => HasFeature(CodeAnalysis.Feature.Strict);
 
         /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
@@ -250,13 +251,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
-        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
+        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || HasFeature(CodeAnalysis.Feature.PEVerifyCompat);
 
         /// <summary>
         /// True when the "disable-length-based-switch" feature flag is set.
         /// When this flag is set, the compiler will not emit length-based switch for string dispatches.
         /// </summary>
-        internal bool FeatureDisableLengthBasedSwitch => Feature("disable-length-based-switch") != null;
+        internal bool FeatureDisableLengthBasedSwitch => HasFeature(CodeAnalysis.Feature.DisableLengthBasedSwitch);
 
         /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool? GetNullableAnalysisValue()
         {
-            return Feature("run-nullable-analysis") switch
+            return Feature(CodeAnalysis.Feature.RunNullableAnalysis) switch
             {
                 "always" => true,
                 "never" => false,
@@ -349,29 +350,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (symbol is not MethodSymbol method)
+            if (symbol is not MethodSymbol { IsAsync: true } method)
             {
                 return false;
             }
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
+            Debug.Assert(method.IsDefinition);
 
-            var methodReturn = method.ReturnType.OriginalDefinition;
-            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
-                    InternalSpecialType.System_Threading_Tasks_Task or
-                    InternalSpecialType.System_Threading_Tasks_Task_T or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
+            var runtimeAsyncEnabledInMethod = symbol switch
+            {
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
+                _ => Feature(CodeAnalysis.Feature.RuntimeAsync) == "on"
+            };
+
+            if (!runtimeAsyncEnabledInMethod)
             {
                 return false;
             }
 
-            return symbol switch
+            var methodReturn = method.ReturnType.OriginalDefinition;
+            if ((object)methodReturn == LambdaSymbol.ReturnTypeIsBeingInferred)
             {
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
-                _ => Feature("runtime-async") == "on"
-            };
+                // During lambda return type inference we have not yet established whether
+                // the return type is Task/ValueTask, so we assume runtime async to allow
+                // caching to be used for the majority case when the return type is indeed
+                // Task/ValueTask-based. If the return type ends up not being Task/ValueTask,
+                // that will bust the cache and ensure the body is re-bound with the correct
+                // handling
+                return true;
+            }
+
+            return ((InternalSpecialType)methodReturn.ExtendedSpecialType) is (
+                InternalSpecialType.System_Threading_Tasks_Task or
+                InternalSpecialType.System_Threading_Tasks_Task_T or
+                InternalSpecialType.System_Threading_Tasks_ValueTask or
+                InternalSpecialType.System_Threading_Tasks_ValueTask_T);
         }
 
         /// <summary>
@@ -4810,7 +4825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_lazyEmitNullablePublicOnly.HasValue())
                 {
-                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey("nullablePublicOnly") == true;
+                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.HasFeature(CodeAnalysis.Feature.NullablePublicOnly) == true;
                     _lazyEmitNullablePublicOnly = value.ToThreeState();
                 }
                 return _lazyEmitNullablePublicOnly.Value();

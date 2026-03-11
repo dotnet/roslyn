@@ -349,10 +349,10 @@ internal static partial class Extensions
     /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
     /// As such, it is not usable across different sessions of a particular host.
     /// </remarks>
-    public static Task<Checksum> GetDiagnosticChecksumAsync(this Project? project, CancellationToken cancellationToken)
+    public static async Task<Checksum> GetDiagnosticChecksumAsync(this Project? project, CancellationToken cancellationToken)
     {
         if (project is null)
-            return SpecializedTasks.Default<Checksum>();
+            return default(Checksum);
 
         var lazyChecksum = s_projectToDiagnosticChecksum.GetValue(
             project,
@@ -360,7 +360,7 @@ internal static partial class Extensions
                 static (project, cancellationToken) => ComputeDiagnosticChecksumAsync(project, cancellationToken),
                 project));
 
-        return lazyChecksum.GetValueAsync(cancellationToken);
+        return await lazyChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
         static async Task<Checksum> ComputeDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
         {

@@ -1100,7 +1100,7 @@ namespace System.Linq
 
 #endif
 
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
         public static IEnumerable<(int Index, TSource Item)> Index<TSource>(IEnumerable<TSource> source)
              => Enumerable.Index(source);
 #else

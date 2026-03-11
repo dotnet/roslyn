@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 
@@ -17,6 +19,7 @@ public abstract class TestWorkspaceFixture : IDisposable
 {
     public int Position;
     public string Code;
+    public ImmutableArray<TextSpan> Spans;
 
     private EditorTestWorkspace _workspace;
     private EditorTestHostDocument _currentDocument;
@@ -42,12 +45,13 @@ public abstract class TestWorkspaceFixture : IDisposable
             _workspace = EditorTestWorkspace.CreateWorkspace(XElement.Parse(markup), composition: composition, workspaceKind: workspaceKind);
             _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
             Position = _currentDocument.CursorPosition.Value;
+            Spans = [.. CurrentDocument.SelectedSpans];
             Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
             return _workspace;
         }
         else
         {
-            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out Code, out Position);
+            MarkupTestFile.GetPositionAndSpans(markup.NormalizeLineEndings(), out Code, out Position, out Spans);
             var workspace = GetWorkspace(composition);
             _currentDocument = workspace.Documents.Single();
             return workspace;

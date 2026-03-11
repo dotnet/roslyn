@@ -84,7 +84,8 @@ namespace Microsoft.CodeAnalysis
             SecurityAction,
             SystemType,
             DeprecationType,
-            Platform
+            Platform,
+            ExtendedLayoutKind,
         }
 
         internal readonly struct TypeHandleTargetInfo
@@ -129,6 +130,7 @@ namespace Microsoft.CodeAnalysis
                 ,new TypeHandleTargetInfo(system,"Type", SerializationTypeCode.Type)
                 ,new TypeHandleTargetInfo("Windows.Foundation.Metadata","DeprecationType", SerializationTypeCode.Int32)
                 ,new TypeHandleTargetInfo("Windows.Foundation.Metadata","Platform", SerializationTypeCode.Int32)
+                ,new TypeHandleTargetInfo(interopServices,"ExtendedLayoutKind", SerializationTypeCode.Int32)
             }).AsImmutable();
         }
 
@@ -193,6 +195,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Platform = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.Platform };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Type = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.SystemType };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_String = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, String };
+
+        private static readonly byte[] s_signature_HasThis_Void_ExtendedLayoutKind = [(byte)SignatureAttributes.Instance, 1, Void, TypeHandle, (byte)TypeHandleTarget.ExtendedLayoutKind];
 
         private static readonly byte[][] s_signatures_HasThis_Void_Only = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signatures_HasThis_Void_String_Only = { s_signature_HasThis_Void_String };
@@ -339,6 +343,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfNativeIntegerAttribute = { s_signature_HasThis_Void, s_signature_HasThis_Void_SzArray_Boolean };
         private static readonly byte[][] s_signaturesOfInterpolatedStringArgumentAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
         private static readonly byte[][] s_signaturesOfCollectionBuilderAttribute = { s_signature_HasThis_Void_Type_String };
+        private static readonly byte[][] s_signaturesOfExtendedLayoutAttribute = { s_signature_HasThis_Void_ExtendedLayoutKind };
 
         // early decoded attributes:
         internal static readonly AttributeDescription OptionalAttribute = new AttributeDescription("System.Runtime.InteropServices", "OptionalAttribute", s_signatures_HasThis_Void_Only);
@@ -479,6 +484,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription NativeIntegerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NativeIntegerAttribute", s_signaturesOfNativeIntegerAttribute);
         internal static readonly AttributeDescription ScopedRefAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ScopedRefAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription RefSafetyRulesAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RefSafetyRulesAttribute", s_signatures_HasThis_Void_Int32_Only);
+        internal static readonly AttributeDescription MemorySafetyRulesAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MemorySafetyRulesAttribute", s_signatures_HasThis_Void_Int32_Only);
+        internal static readonly AttributeDescription RequiresUnsafeAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiresUnsafeAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ModuleInitializerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ModuleInitializerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription UnmanagedCallersOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnmanagedCallersOnlyAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerAttribute", s_signatures_HasThis_Void_Only);
@@ -494,5 +501,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription ExtensionMarkerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ExtensionMarkerAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription RuntimeAsyncMethodGenerationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeAsyncMethodGenerationAttribute", s_signatures_HasThis_Void_Boolean_Only);
         internal static readonly AttributeDescription MetadataUpdateDeletedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MetadataUpdateDeletedAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription ExtendedLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "ExtendedLayoutAttribute", s_signaturesOfExtendedLayoutAttribute);
+        internal static readonly AttributeDescription UnionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "UnionAttribute", s_signatures_HasThis_Void_Only);
     }
 }

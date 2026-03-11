@@ -24,8 +24,8 @@ internal sealed class InteractiveDocumentNavigationService : AbstractDocumentNav
         _threadingContext = threadingContext;
     }
 
-    public override Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
-        => SpecializedTasks.True;
+    public override async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+        => true;
 
     public override async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
     {

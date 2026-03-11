@@ -49,9 +49,7 @@ namespace Roslyn.Utilities
 
                 if (newTail != null)
                 {
-                    // Suppress false positive CS8717 reported for MaybeNull assignment to AllowNull
-                    // https://github.com/dotnet/roslyn/issues/38926
-                    _current = currentTail._head!;
+                    _current = currentTail._head;
                     _tail = newTail;
                     return true;
                 }

@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -230,6 +228,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             return members;
         }
+
+        public static ImmutableArray<T> GetMembersByQualifiedName<T>(this NamespaceOrTypeSymbol container, string qualifiedName) where T : Symbol
+            => GetMembersByQualifiedName(container, qualifiedName).SelectAsArray(s => (T)s);
+
+        public static ImmutableArray<Symbol> GetMembersByQualifiedName(this NamespaceOrTypeSymbol container, string qualifiedName)
+            => GetMembers(container, qualifiedName, lastContainer: out _);
 
         private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
         {

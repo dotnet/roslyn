@@ -15,7 +15,7 @@ internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReference
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
 
-    protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
+    protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
@@ -26,7 +26,6 @@ internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReference
         CancellationToken cancellationToken)
     {
         // An explicit method can't be referenced anywhere.
-        return Task.CompletedTask;
     }
 
     protected sealed override void FindReferencesInDocument<TData>(

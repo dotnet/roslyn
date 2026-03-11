@@ -8,13 +8,13 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -34,7 +34,7 @@ internal sealed class InlineRenameAdornmentProvider : IWpfTextViewConnectionList
     private readonly IThreadingContext _threadingContext;
 
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-    private readonly Lazy<ISmartRenameSessionFactoryWrapper>? _smartRenameSessionFactory;
+    private readonly Lazy<ISmartRenameSessionFactory>? _smartRenameSessionFactory;
 #pragma warning restore CS0618
 
     public const string AdornmentLayerName = "RoslynRenameDashboard";
@@ -61,7 +61,7 @@ internal sealed class InlineRenameAdornmentProvider : IWpfTextViewConnectionList
         IAsynchronousOperationListenerProvider listenerProvider,
         IThreadingContext threadingContext,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-        [Import(ISmartRenameSessionFactoryWrapper.WrappedTypeName, AllowDefault = true)] Lazy<object>? smartRenameSessionFactory)
+        [Import(AllowDefault = true)] Lazy<ISmartRenameSessionFactory>? smartRenameSessionFactory)
 #pragma warning restore CS0618
     {
         _renameService = renameService;
@@ -70,11 +70,7 @@ internal sealed class InlineRenameAdornmentProvider : IWpfTextViewConnectionList
         _globalOptionService = globalOptionService;
         _asyncQuickInfoBroker = asyncQuickInfoBroker;
         _listenerProvider = listenerProvider;
-        if (smartRenameSessionFactory is not null)
-        {
-            _smartRenameSessionFactory = new Lazy<ISmartRenameSessionFactoryWrapper>(() => ISmartRenameSessionFactoryWrapper.FromInstance(smartRenameSessionFactory.Value));
-        }
-
+        _smartRenameSessionFactory = smartRenameSessionFactory;
         _threadingContext = threadingContext;
     }
 

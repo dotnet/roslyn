@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    private const string FeatureName = "FileBasedProgram";
+    private const string FeatureName = CodeAnalysis.Feature.FileBasedProgram;
 
     [Theory, CombinatorialData]
     public void FeatureFlag(bool script)

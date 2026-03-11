@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Prefer_implicitly_typed_lambda_expression">
         <source>Prefer implicitly typed lambda expression</source>
-        <target state="new">Prefer implicitly typed lambda expression</target>
+        <target state="translated">암시적으로 형식화된 람다 식 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

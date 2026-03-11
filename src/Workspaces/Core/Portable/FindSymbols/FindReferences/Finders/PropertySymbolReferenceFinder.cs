@@ -27,7 +27,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
     protected override bool CanFind(IPropertySymbol symbol)
         => true;
 
-    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         IPropertySymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
@@ -40,7 +40,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
         CascadeToAccessors(symbol, result);
         CascadeToPrimaryConstructorParameters(symbol, result, cancellationToken);
 
-        return new(result.ToImmutable());
+        return result.ToImmutable();
     }
 
     private static void CascadeToOtherPartOfPartial(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)

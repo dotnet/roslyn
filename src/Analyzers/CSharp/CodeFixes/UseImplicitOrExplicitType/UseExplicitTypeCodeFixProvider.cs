@@ -34,13 +34,12 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseExplicitTypeDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(
             context,
             CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
             context.Diagnostics.First().Properties[CSharpTypeStyleUtilities.EquivalenceyKey]!);
-        return Task.CompletedTask;
     }
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)

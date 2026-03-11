@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
@@ -27,6 +28,11 @@ internal sealed class BuildHost : IBuildHost
     /// The global properties to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
     /// </summary>
     private ImmutableDictionary<string, string>? _globalMSBuildProperties;
+
+    /// <summary>
+    /// Should not be changed once the <see cref="_buildManager"/> is initialized.
+    /// </summary>
+    private ImmutableArray<string> _knownCommandLineParserLanguages;
 
     /// <summary>
     /// The binary log path to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
@@ -140,7 +146,7 @@ internal sealed class BuildHost : IBuildHost
                 _logger.LogInformation($"Logging builds to {_binaryLogPath}");
             }
 
-            _buildManager = new ProjectBuildManager(_globalMSBuildProperties, logger);
+            _buildManager = new ProjectBuildManager(_knownCommandLineParserLanguages, _globalMSBuildProperties, logger);
             _buildManager.StartBatchBuild(_globalMSBuildProperties);
         }
     }
@@ -160,7 +166,7 @@ internal sealed class BuildHost : IBuildHost
         Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
     }
 
-    public void ConfigureGlobalState(ImmutableDictionary<string, string> globalProperties, string? binlogPath)
+    public void ConfigureGlobalState(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath)
     {
         lock (_gate)
         {
@@ -169,6 +175,7 @@ internal sealed class BuildHost : IBuildHost
 
             _globalMSBuildProperties = globalProperties;
             _binaryLogPath = binlogPath;
+            _knownCommandLineParserLanguages = knownCommandLineParserLanguages;
         }
     }
 
@@ -198,16 +205,10 @@ internal sealed class BuildHost : IBuildHost
     {
         CreateBuildManager();
 
-        ProjectFileLoader projectLoader = languageName switch
-        {
-            LanguageNames.CSharp => new CSharpProjectFileLoader(),
-            LanguageNames.VisualBasic => new VisualBasicProjectFileLoader(),
-            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
-        };
-
         _logger.LogInformation($"Loading {projectFilePath}");
-        var projectFile = await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false);
-        return _server.AddTarget(projectFile);
+
+        var (project, log) = await _buildManager.LoadProjectAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
+        return AddProjectFileTarget(project, languageName, log);
     }
 
     // When using the Mono runtime, the MSBuild types used in this method must be available
@@ -218,16 +219,24 @@ internal sealed class BuildHost : IBuildHost
     {
         CreateBuildManager();
 
-        ProjectFileLoader projectLoader = languageName switch
-        {
-            LanguageNames.CSharp => new CSharpProjectFileLoader(),
-            LanguageNames.VisualBasic => new VisualBasicProjectFileLoader(),
-            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
-        };
-
         _logger.LogInformation($"Loading an in-memory project with the path {projectFilePath}");
-        var projectFile = projectLoader.LoadProject(projectFilePath, projectContent, _buildManager);
-        return _server.AddTarget(projectFile);
+
+        // We expect MSBuild to consume this stream with a utf-8 encoding.
+        // This is because we expect the stream we create to not include a BOM nor an an encoding declaration a la `<?xml encoding="..."?>`.
+        // In this scenario, the XML standard requires XML processors to consume the document with a UTF-8 encoding.
+        // https://www.w3.org/TR/xml/#d0e4623
+        // Theoretically we could also enforce that 'projectContent' does not contain an encoding declaration with non-UTF-8 encoding.
+        // But it seems like a very unlikely scenario to actually get into--this is not something people generally put on real project files.
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(projectContent));
+
+        var (project, log) = _buildManager.LoadProject(projectFilePath, stream);
+        return AddProjectFileTarget(project, languageName, log);
+    }
+
+    private int AddProjectFileTarget(Build.Evaluation.Project? project, string languageName, DiagnosticLog log)
+    {
+        Contract.ThrowIfNull(_buildManager);
+        return _server.AddTarget(new ProjectFile(languageName, project, _buildManager, log));
     }
 
     public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)
@@ -238,12 +247,10 @@ internal sealed class BuildHost : IBuildHost
         return _buildManager.TryGetOutputFilePathAsync(projectFilePath, cancellationToken);
     }
 
-    public Task ShutdownAsync()
+    public async Task ShutdownAsync()
     {
         _buildManager?.EndBatchBuild();
 
         _server.Shutdown();
-
-        return Task.CompletedTask;
     }
 }

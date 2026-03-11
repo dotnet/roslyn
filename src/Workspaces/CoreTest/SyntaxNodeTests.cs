@@ -28,10 +28,10 @@ public sealed partial class SyntaxNodeTests : TestBase
         var root = tree.GetRoot();
 
         var node = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        var newRoot = await root.ReplaceNodesAsync([node], (o, n, c) =>
+        var newRoot = await root.ReplaceNodesAsync([node], async (o, n, c) =>
         {
             var decl = (VariableDeclaratorSyntax)n;
-            return Task.FromResult<SyntaxNode>(decl.WithIdentifier(SyntaxFactory.Identifier("Y")));
+            return decl.WithIdentifier(SyntaxFactory.Identifier("Y"));
         }, CancellationToken.None);
 
         var actual = newRoot.ToString();
@@ -48,22 +48,22 @@ public sealed partial class SyntaxNodeTests : TestBase
 
         var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax or ClassDeclarationSyntax).ToList();
         var computations = 0;
-        var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
+        var newRoot = await root.ReplaceNodesAsync(nodes, async (o, n, c) =>
         {
             computations++;
             if (n is ClassDeclarationSyntax classDecl)
             {
                 var id = classDecl.Identifier;
-                return Task.FromResult<SyntaxNode>(classDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
+                return classDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia));
             }
 
             if (n is VariableDeclaratorSyntax varDecl)
             {
                 var id = varDecl.Identifier;
-                return Task.FromResult<SyntaxNode>(varDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
+                return varDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia));
             }
 
-            return Task.FromResult(n);
+            return n;
         }, CancellationToken.None);
 
         var actual = newRoot.ToString();

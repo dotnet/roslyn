@@ -19,7 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
                 // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
-                Debug.Assert(this.WasCompilerGenerated || this.Syntax is InvocationExpressionSyntax or ConstructorInitializerSyntax or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } },
+                Debug.Assert(this.WasCompilerGenerated ||
+                    this.Syntax is InvocationExpressionSyntax
+                                or ConstructorInitializerSyntax
+                                or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } }
+                                or WithElementSyntax
+                                or CollectionExpressionSyntax,
                     $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
 
                 if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
@@ -157,6 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
+    internal partial class BoundCollectionBuilderElementsPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
+    }
+
     internal partial class BoundInterpolatedStringHandlerPlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false;
@@ -223,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(false); // Getting here is unexpected.
+                Debug.Fail("Getting here is unexpected.");
                 return false;
             }
         }
@@ -485,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion UpdateOperand(BoundExpression operand)
         {
-            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type);
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.InConversionGroupFlags, this.Type);
         }
 
         /// <summary>
@@ -684,6 +694,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     action(argument, args);
                 }
+            }
+        }
+    }
+
+    internal partial class BoundValueForNullableAnalysis
+    {
+        public sealed override bool IsEquivalentToThisReference
+        {
+            get
+            {
+                Debug.Fail("Getting here is unexpected.");
+                return false;
             }
         }
     }

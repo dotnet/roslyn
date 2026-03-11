@@ -124,13 +124,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (produceDetailedSequencePoints)
                         result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
-                    var throwCall =
-                        (implicitConversionExists(savedInputExpression, objectType) &&
-                                _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
-                            ? ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression)) :
-                        (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol)
-                            ? ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory) :
-                        ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+                    BoundStatement? throwCall;
+                    if (tryGetImplicitConversion(savedInputExpression, objectType) is Conversion c &&
+                        _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
+                    {
+                        Debug.Assert(c.IsImplicit);
+                        Debug.Assert(c.IsBoxing || c.IsReference || c.IsIdentity);
+                        throwCall = ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression, c));
+                    }
+                    else
+                    {
+                        throwCall = (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol) ?
+                                         ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory) :
+                                         ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+                    }
 
                     result.Add(throwCall);
                 }
@@ -145,11 +152,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(_tempAllocator.AllTemps());
                 return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
 
-                bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
+                Conversion? tryGetImplicitConversion(BoundExpression expression, TypeSymbol type)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, isChecked: false, ref discardedUseSiteInfo);
-                    return c.IsImplicit;
+                    if (c.IsImplicit)
+                    {
+                        return c;
+                    }
+
+                    return null;
                 }
             }
 

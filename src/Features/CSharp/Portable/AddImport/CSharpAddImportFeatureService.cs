@@ -317,7 +317,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
             namespaceOrTypeSymbol, semanticModel, contextNode);
 
         var (usingDirective, hasExistingUsing) = GetUsingDirective(
-            document, options, namespaceOrTypeSymbol, semanticModel, root, contextNode);
+            document, options, namespaceOrTypeSymbol, semanticModel, root, contextNode, cancellationToken);
 
         var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
         var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) : null;
@@ -372,7 +372,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
             namespaceOrTypeSymbol, semanticModel, contextNode);
 
         var (usingDirective, hasExistingUsing) = GetUsingDirective(
-            document, options, namespaceOrTypeSymbol, semanticModel, root, contextNode);
+            document, options, namespaceOrTypeSymbol, semanticModel, root, contextNode, cancellationToken);
 
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var newImports);
 
@@ -394,7 +394,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
         var addImportService = document.GetLanguageService<IAddImportsService>();
         var generator = SyntaxGenerator.GetGenerator(document);
         var newRoot = addImportService.AddImports(
-            semanticModel.Compilation, root, contextNode, newImports, generator, options, cancellationToken);
+            semanticModel, root, contextNode, newImports, generator, options, cancellationToken);
         return (CompilationUnitSyntax)newRoot;
     }
 
@@ -407,11 +407,11 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
         var usingDirective = UsingDirective(
             CreateNameSyntax(namespaceParts, namespaceParts.Count - 1));
 
-        var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var service = document.GetLanguageService<IAddImportsService>();
         var generator = SyntaxGenerator.GetGenerator(document);
         var newRoot = service.AddImport(
-            compilation, root, contextNode, usingDirective, generator, options, cancellationToken);
+            semanticModel, root, contextNode, usingDirective, generator, options, cancellationToken);
 
         return document.WithSyntaxRoot(newRoot);
     }
@@ -452,7 +452,8 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
         INamespaceOrTypeSymbol namespaceOrTypeSymbol,
         SemanticModel semanticModel,
         CompilationUnitSyntax root,
-        SyntaxNode contextNode)
+        SyntaxNode contextNode,
+        CancellationToken cancellationToken)
     {
         var addImportService = document.GetLanguageService<IAddImportsService>();
         var generator = SyntaxGenerator.GetGenerator(document);
@@ -501,7 +502,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
             ? usingDirective
             : usingDirective.WithStaticKeyword(StaticKeyword);
 
-        return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective, generator));
+        return (usingDirective, addImportService.HasExistingImport(semanticModel, root, contextNode, usingDirective, generator, cancellationToken));
     }
 
     private static NameSyntax RemoveGlobalAliasIfUnnecessary(

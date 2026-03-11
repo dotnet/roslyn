@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Os arquivos InternalAPI.txt devem ter `#nullable enable` para rastrear informações de nulidade ou esse diagnóstico deve ser suprimido. Com a nulidade habilitada, InternalAPI.txt registra quais tipos são anuláveis ​​(sufixo `?` no tipo) ou não anuláveis ​​(sufixo `!`). Ele também rastreia qualquer API que ainda esteja usando um tipo de referência inconsciente (prefixo `~` on line).</target>
+        <target state="translated">Os arquivos InternalAPI.txt devem ter `#nullable enable` para rastrear informações de nulidade ou esse diagnóstico deve ser suprimido. Com a nulidade habilitada, InternalAPI.txt registra quais tipos são anuláveis ​​(sufixo `?` no tipo) ou não anuláveis ​​(sufixo `!`). Ele também rastreia qualquer API que ainda esteja usando um tipo de referência inconsciente (prefixo `~` na linha).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Os arquivos PublicAPI.txt devem ter `#nullable enable` para controlar as informações de nulidade ou esse diagnóstico deve ser suprimido. Com a nulidade habilitada, o PublicAPI.txt registra quais tipos são anuláveis (sufixo `?` no tipo) ou não anuláveis (sufixo `!`). Ele também rastreia APIs que ainda estejam usando um tipo de referência alheio (prefixo `~` na linha).</target>
+        <target state="translated">Os arquivos PublicAPI.txt devem ter `#nullable enable` para controlar as informações de nulidade ou esse diagnóstico deve ser suprimido. Com a nulidade habilitada, o PublicAPI.txt registra quais tipos são anuláveis (sufixo `?` no tipo) ou não anuláveis (sufixo `!`). Ele também rastreia qualquer API que ainda esteja usando um tipo de referência inconsciente (prefixo `~` na linha).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

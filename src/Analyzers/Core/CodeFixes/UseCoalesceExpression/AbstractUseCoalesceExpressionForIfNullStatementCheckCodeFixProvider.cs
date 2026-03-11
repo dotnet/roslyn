@@ -3,26 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression;
 
-internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider()
+    : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
-        return Task.CompletedTask;
-    }
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        => RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
 
     protected virtual ITypeSymbol? TryGetExplicitCast(
         SemanticModel semanticModel, SyntaxNode expressionToCoalesce,
@@ -49,9 +49,36 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
                 generator.CoalesceExpression(
                     TryAddExplicitCast(expressionToCoalesce, whenTrueStatement).WithoutTrivia(),
                     GetWhenNullExpression(whenTrueStatement).WithoutTrailingTrivia()).WithTriviaFrom(expressionToCoalesce));
+
+            var ifStatementLeadingTrivia = GetLeadingComments(ifStatement);
+            var whenTrueStatementLeadingTrivia = GetLeadingComments(whenTrueStatement);
+            var containingStatement = expressionToCoalesce.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+
+            if ((ifStatementLeadingTrivia.Length >= 0 || whenTrueStatementLeadingTrivia.Length >= 0) &&
+                containingStatement != null)
+            {
+                var finalTrivia = containingStatement
+                    .GetLeadingTrivia()
+                    .Concat(ifStatementLeadingTrivia)
+                    .Concat(whenTrueStatementLeadingTrivia);
+                editor.ReplaceNode(
+                    containingStatement,
+                    (current, _) => current.WithLeadingTrivia(finalTrivia).WithAdditionalAnnotations(Formatter.Annotation));
+            }
         }
 
         return;
+
+        ImmutableArray<SyntaxTrivia> GetLeadingComments(SyntaxNode node)
+        {
+            foreach (var trivia in node.GetLeadingTrivia())
+            {
+                if (syntaxFacts.IsSingleLineCommentTrivia(trivia) || syntaxFacts.IsMultiLineCommentTrivia(trivia))
+                    return [.. node.GetLeadingTrivia().SkipWhile(syntaxFacts.IsWhitespaceOrEndOfLineTrivia)];
+            }
+
+            return [];
+        }
 
         SyntaxNode TryAddExplicitCast(SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement)
         {
@@ -68,12 +95,9 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
             syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out var right);
 
             var castTo = TryGetExplicitCast(semanticModel, expressionToCoalesce, left, right, cancellationToken);
-            if (castTo is null)
-            {
-                return expressionToCoalesce;
-            }
-
-            return generator.CastExpression(castTo, expressionToCoalesce);
+            return castTo is null
+                ? expressionToCoalesce
+                : generator.CastExpression(castTo, expressionToCoalesce);
         }
 
         SyntaxNode GetWhenNullExpression(SyntaxNode whenTrueStatement)

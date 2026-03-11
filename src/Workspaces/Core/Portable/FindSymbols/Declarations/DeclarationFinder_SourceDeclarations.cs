@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -228,7 +228,7 @@ internal static partial class DeclarationFinder
 
         // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
         // pattern as well.
-        using var containerPatternMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(containerPart);
+        using var containerPatternMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(containerPart, includeMatchedSpans: false);
 
         return symbolAndProjectIds.WhereAsArray(t =>
             containerPatternMatcher.Matches(GetContainer(t)));

@@ -183,7 +183,7 @@ internal sealed partial class SymbolTreeInfo
                         arg.services,
                         arg.solutionKey,
                         arg.checksum,
-                        createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, GetMetadataNoThrow(arg.reference)).Create()),
+                        createAsync: async checksum => new MetadataInfoCreator(checksum, GetMetadataNoThrow(arg.reference)).Create(),
                         keySuffix: GetMetadataKeySuffix(arg.reference),
                         cancellationToken),
                     arg: (services, solutionKey, checksum, reference)));

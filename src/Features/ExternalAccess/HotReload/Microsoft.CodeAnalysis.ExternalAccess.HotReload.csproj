@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <!--
-      ⚠ ONLY Microsoft.DotNet.HotReload.Watch and Microsoft.DotNet.HotReload.Utils.Generator ASSEMBLIES MAY BE ADDED HERE ⚠
+      ⚠ ONLY Microsoft.DotNet.HotReload.Watch and Microsoft.DotNet.HotReload.Utils.Generator ASSEMBLIES AND TESTS  MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.DotNet.HotReload.Watch" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="Microsoft.DotNet.HotReload.Utils.Generator" Key="$(MicrosoftSharedPublicKey)" />
@@ -28,7 +28,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+ 
+    <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Aliases="BuildHost" />
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="Contracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="Runtime" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

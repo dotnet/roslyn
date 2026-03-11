@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -202,10 +203,12 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            Stream? sourceLinkStream = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, sourceLinkStream, resources, options);
         }
 
         internal string GetDeterministicKey(
@@ -214,18 +217,24 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            Stream? sourceLinkStream = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
-            => GetDeterministicKey(
+        {
+            return GetDeterministicKey(
                 Options,
                 CommonSyntaxTrees,
-                ExternalReferences.Concat(DirectiveReferences),
+                References.AsImmutable(),
                 Assembly.Identity.PublicKey,
                 additionalTexts,
                 analyzers,
                 generators,
                 pathMap,
                 emitOptions,
+                sourceLinkStream,
+                resources,
                 options);
+        }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
@@ -2191,7 +2200,7 @@ namespace Microsoft.CodeAnalysis
         internal bool SignUsingBuilder =>
             string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
             !StrongNameKeys.HasCounterSignature &&
-            !_features.ContainsKey("UseLegacyStrongNameProvider");
+            !HasFeature(CodeAnalysis.Feature.UseLegacyStrongNameProvider);
 
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
@@ -3582,8 +3591,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal bool HasFeature(string feature)
+        {
+            return Feature(feature) is not null;
+        }
+
         internal string? Feature(string p)
         {
+            CodeAnalysis.Feature.AssertValidFeature(p);
             string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
@@ -3596,13 +3611,13 @@ namespace Microsoft.CodeAnalysis
         /// False when the "debug-analyzers" feature flag is set.
         /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
-        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
+        internal bool CatchAnalyzerExceptions => !HasFeature(CodeAnalysis.Feature.DebugAnalyzers);
 
         internal int? DataSectionStringLiteralThreshold => _lazyDataSectionStringLiteralThreshold.Value;
 
         private int? ComputeDataSectionStringLiteralThreshold()
         {
-            if (Feature("experimental-data-section-string-literals") is { } s)
+            if (Feature(CodeAnalysis.Feature.ExperimentalDataSectionStringLiterals) is { } s)
             {
                 if (s == "off")
                 {

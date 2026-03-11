@@ -44,7 +44,7 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
     public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
         => GetTextDocumentCacheEntry(request);
 
-    public Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+    public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
     {
         var completionListCache = context.GetRequiredLspService<CompletionListCache>();
 
@@ -52,17 +52,17 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
         {
             // Don't have a cache associated with this completion item, cannot resolve.
             context.TraceWarning("No cache entry found for the provided completion item at resolve time.");
-            return Task.FromResult(completionItem);
+            return completionItem;
         }
 
         var document = context.GetRequiredDocument();
         var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
 
-        return ResolveCompletionItemAsync(
-            completionItem, cacheEntry.CompletionList, document, _globalOptions, capabilityHelper, cancellationToken);
+        return await ResolveCompletionItemAsync(
+            completionItem, cacheEntry.CompletionList, document, _globalOptions, capabilityHelper, cancellationToken).ConfigureAwait(false);
     }
 
-    public static Task<LSP.CompletionItem> ResolveCompletionItemAsync(
+    public static async Task<LSP.CompletionItem> ResolveCompletionItemAsync(
         LSP.CompletionItem completionItem,
         Document document,
         IGlobalOptionService globalOptions,
@@ -73,11 +73,11 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
         if (!completionListCache.TryGetCompletionListCacheEntry(completionItem, out var cacheEntry))
         {
             // Don't have a cache associated with this completion item, cannot resolve.
-            return Task.FromResult(completionItem);
+            return completionItem;
         }
 
-        return ResolveCompletionItemAsync(
-            completionItem, cacheEntry.CompletionList, document, globalOptions, capabilityHelper, cancellationToken);
+        return await ResolveCompletionItemAsync(
+            completionItem, cacheEntry.CompletionList, document, globalOptions, capabilityHelper, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<LSP.CompletionItem> ResolveCompletionItemAsync(

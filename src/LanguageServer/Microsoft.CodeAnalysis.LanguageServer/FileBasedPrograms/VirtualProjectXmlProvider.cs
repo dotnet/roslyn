@@ -13,8 +13,9 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
@@ -120,8 +121,14 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         return false;
     }
 
-    internal static async Task<bool> HasTopLevelStatementsAsync(SyntaxTree tree, CancellationToken cancellationToken)
+    internal static async Task<bool> ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
     {
+        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
+            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        {
+            return false;
+        }
+
         var root = await tree.GetRootAsync(cancellationToken);
         if (root is CompilationUnitSyntax compilationUnit)
             return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
@@ -137,7 +144,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(text);
             byte[] hash = SHA256.HashData(bytes);
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
             return Convert.ToHexStringLower(hash);
 #else
             return Convert.ToHexString(hash).ToLowerInvariant();

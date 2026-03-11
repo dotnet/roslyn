@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -80,10 +81,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsNativeIntegerType { get; }
 
-        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.IsExtension)} instead.")]
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         bool IsExtension { get; }
 
-        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.ExtensionParameter)} instead.")]
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IParameterSymbol? ExtensionParameter { get; }
 
         /// <summary>
@@ -139,6 +142,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns false for record structs in metadata since they don't have any distinctive marker.
         /// </remarks>
         bool IsRecord { get; }
+
+        // https://github.com/dotnet/roslyn/issues/82636: Add bool IsUnion { get; } ?
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

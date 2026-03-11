@@ -38,6 +38,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14]);
 
+        protected static readonly string IUnionSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+#nullable enable
+#line 100000
+        object? Value { get; }
+#nullable disable
+    }
+}
+";
+        protected static readonly string UnionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public class UnionAttribute : System.Attribute
+    {
+    }
+}
+";
+
         protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -679,6 +700,26 @@ namespace System.Runtime.CompilerServices
         protected static MetadataReference RefSafetyRulesAttributeLib =>
             CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
 
+        protected static readonly string MemorySafetyRulesAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class MemorySafetyRulesAttribute : Attribute
+                {
+                    public MemorySafetyRulesAttribute(int version) { Version = version; }
+                    public int Version;
+                }
+            }
+            """;
+
+        // https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
+        protected static readonly string RequiresUnsafeAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                public sealed class RequiresUnsafeAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -1291,20 +1332,23 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
             namespace System.Runtime.CompilerServices;
 
+            #pragma warning disable CS9113 // Unread primary constructor parameter
+
             [AttributeUsage(AttributeTargets.Method)]
             public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+            #pragma warning restore CS9113 // Unread primary constructor parameter
             """;
 
-        protected static T GetSyntax<T>(SyntaxTree tree, string text)
+        protected static T GetSyntax<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
             where T : notnull
         {
-            return GetSyntaxes<T>(tree, text).Single();
+            return GetSyntaxes<T>(tree, text, descendIntoTrivia).Single();
         }
 
-        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text)
+        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
             where T : notnull
         {
-            return tree.GetRoot().DescendantNodes().OfType<T>().Where(e => e.ToString() == text);
+            return tree.GetRoot().DescendantNodes(descendIntoTrivia: descendIntoTrivia).OfType<T>().Where(e => e.ToString() == text);
         }
 
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions? options = null)
@@ -3204,7 +3248,7 @@ namespace System.Runtime.CompilerServices
 
         #region Runtime Async
 
-        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
+        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature(Feature.RuntimeAsync, "on");
 
         internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, bool includeSuppression = true)
         {
@@ -3247,5 +3291,46 @@ namespace System
     }
 }
 ";
+
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0, bool forLowering = false)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            BoundDecisionDag decisionDag;
+
+            switch (node)
+            {
+                case SwitchStatementSyntax n:
+                    {
+                        var b = (BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case SwitchExpressionSyntax n:
+                    {
+                        var b = (BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case IsPatternExpressionSyntax n:
+                    {
+                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
     }
 }

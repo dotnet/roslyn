@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {
             builderArgument = null;

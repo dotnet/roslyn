@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                Visit(node.CollectionCreation);
+
                 bool hasElementType = node.CollectionTypeKind is not CollectionExpressionTypeKind.None;
                 foreach (var element in node.Elements)
                 {
@@ -144,6 +146,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Visit(element);
                     }
                 }
+                return null;
+            }
+
+            public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
+            {
+                Visit(node.Expression);
+
+                if (node.Conversion is BoundConversion conversion)
+                {
+                    Visit(conversion);
+                }
+
                 return null;
             }
 

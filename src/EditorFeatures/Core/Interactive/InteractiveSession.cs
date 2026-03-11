@@ -132,7 +132,7 @@ internal sealed class InteractiveSession : IDisposable
     {
         Contract.ThrowIfFalse(result.InitializationResult != null);
 
-        _workQueue.AddWork(() =>
+        _workQueue.AddWork(async () =>
         {
             _workspace.ResetSolution();
 
@@ -153,7 +153,6 @@ internal sealed class InteractiveSession : IDisposable
             }
 
             _pendingBuffers.Clear();
-            return Task.CompletedTask;
         });
     }
 
@@ -163,10 +162,9 @@ internal sealed class InteractiveSession : IDisposable
     internal void AddSubmissionProject(ITextBuffer submissionBuffer)
     {
         _workQueue.AddWork(
-            () =>
+            async () =>
             {
                 AddSubmissionProjectNoLock(submissionBuffer, _languageInfo.LanguageName);
-                return Task.CompletedTask;
             });
     }
 

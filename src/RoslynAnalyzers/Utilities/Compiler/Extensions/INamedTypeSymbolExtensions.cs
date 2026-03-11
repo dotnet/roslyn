@@ -7,9 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.Extensions

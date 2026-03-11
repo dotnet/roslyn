@@ -8,10 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -141,18 +141,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                if (this.MightContainExtensionMethods)
-                {
-                    this.PrimaryModule.LoadCustomAttributesFilterExtensions(_assembly.Handle,
-                        ref _lazyCustomAttributes);
-                }
-                else
-                {
-                    this.PrimaryModule.LoadCustomAttributes(_assembly.Handle,
-                        ref _lazyCustomAttributes);
-                }
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadAndFilterAttributes());
             }
+
             return _lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes()
+            {
+                var containingModule = this.PrimaryModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_assembly.Handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                var mightContainExtensions = this.MightContainExtensions;
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (mightContainExtensions && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         /// <summary>
@@ -246,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
+            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: true);
             return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
         }
 
@@ -276,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {

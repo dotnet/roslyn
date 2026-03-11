@@ -15,7 +15,7 @@
     <Compile Include="..\..\..\Features\VisualBasicTest\Utils.vb" Link="Utils.vb" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- Directly reference the Workspaces project so we always test against the latest Roslyn bits -->

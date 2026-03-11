@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -682,13 +683,33 @@ internal static partial class INamedTypeSymbolExtensions
     public static bool IsCollectionBuilderAttribute([NotNullWhen(true)] this INamedTypeSymbol? type)
         => type is
         {
-            Name: "CollectionBuilderAttribute",
+            Name: nameof(CollectionBuilderAttribute),
             ContainingNamespace:
             {
                 Name: nameof(System.Runtime.CompilerServices),
                 ContainingNamespace:
                 {
                     Name: nameof(System.Runtime),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System),
+                        ContainingNamespace.IsGlobalNamespace: true,
+                    }
+                }
+            }
+        };
+
+    public static bool IsIEnumerableOfT([NotNullWhen(true)] this INamedTypeSymbol? type)
+        => type is
+        {
+            Name: nameof(IEnumerable<>),
+            TypeArguments.Length: 1,
+            ContainingNamespace:
+            {
+                Name: nameof(System.Collections.Generic),
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Collections),
                     ContainingNamespace:
                     {
                         Name: nameof(System),

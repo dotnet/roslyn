@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Soubory InternalAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, InternalAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používá typ odkazu, který se nepoužívá (předpona ~na řádku).</target>
+        <target state="translated">Soubory InternalAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, InternalAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používá typ odkazu, který se nepoužívá (předpona ~007E;na řádku).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Soubory PublicAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, PublicAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používají typy bez určení možnosti použití hodnoty null (předpona ~ na řádku).</target>
+        <target state="translated">Soubory PublicAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, PublicAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používá typ odkazu, který se nepoužívá (předpona ~007E;na řádku).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

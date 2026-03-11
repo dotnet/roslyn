@@ -468,6 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool UseUpdatedEscapeRules => false;
 
+        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal ResultProperties ResultProperties
         {
             get { return _lazyResultProperties; }
@@ -581,6 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     Debug.Assert(!diagnostics.HasAnyErrors());
                     Debug.Assert(!body.HasErrors);
+                    PipelinePhaseValidator.AssertAfterInitialBinding(body);
 
                     body = LocalRewriter.Rewrite(
                         compilation: this.DeclaringCompilation,
@@ -690,6 +693,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     localsSet.Free();
                 }
+
+                PipelinePhaseValidator.AssertAfterClosureConversion(body);
 
                 // Insert locals from the original method,
                 // followed by any new locals.

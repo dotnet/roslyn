@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
@@ -831,6 +832,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameter.ContainingSymbol is SourceExtensionImplementationMethodSymbol implementationMethod
                 && !implementationMethod.UnderlyingMethod.IsStatic
                 && parameter.Ordinal == 0;
+        }
+
+        internal static ImmutableArray<TypeWithAnnotations> GetAllTypeArgumentsNoUseSiteDiagnostics(this NamedTypeSymbol symbol)
+        {
+            var count = 0;
+            for (var current = symbol; current is not null; current = current.ContainingType)
+                count += current.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length;
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(count);
+            symbol.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
+            return builder.ToImmutableAndFree();
         }
     }
 }

@@ -261,7 +261,7 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     protected sealed class TestWorkspaceNavigateToSearchHostService() : IWorkspaceNavigateToSearcherHostService
     {
-        public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
-            => new(true);
+        public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+            => true;
     }
 }

@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _lazyKnownCircularStruct;
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
 
-        private ThreeState _lazyContainsExtensionMethods;
+        private ThreeState _lazyContainsExtensions;
         private ThreeState _lazyAnyMemberHasAttributes;
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                         allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
 
-                        if (!this.IsRecordStruct)
+                        if (!this.IsRecordStruct && !this.IsUnionDeclaration)
                         {
                             allowedModifiers |= DeclarationModifiers.Ref;
                         }
@@ -965,6 +965,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsUnionDeclaration
+        {
+            get
+            {
+                return this.declaration.Declarations[0].Kind is DeclarationKind.Union;
+            }
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get
@@ -1548,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
+            if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.Union)
             {
                 return GetMembers(name);
             }
@@ -1840,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
+        protected virtual void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = GetFirstLocation();
@@ -1953,6 +1961,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Verify ExtensionAttribute is available.
                 SourceOrdinaryMethodSymbol.CheckExtensionAttributeAvailability(DeclaringCompilation, location, diagnostics);
+            }
+
+            if (IsUnionDeclaration)
+            {
+                var fields = this.GetFieldsToEmit();
+                foreach (var field in fields)
+                {
+                    if (!field.IsStatic && field.AssociatedSymbol is not SynthesizedUnionValuePropertySymbol)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InstanceFieldInUnion, field.GetFirstLocation());
+                    }
+                }
+
+                foreach (var ctor in InstanceConstructors)
+                {
+                    if (ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
+                    }
+                }
             }
 
             return;
@@ -3035,7 +3063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckSequentialOnPartialType(BindingDiagnosticBag diagnostics)
         {
-            if (!IsPartial || this.Layout.Kind != LayoutKind.Sequential)
+            if (!IsPartial || (this.Layout.Kind != LayoutKind.Sequential && this.Layout.Kind != LayoutKind.Extended))
             {
                 return;
             }
@@ -3260,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AssertInitializers(instanceInitializers, compilation);
 
                 Debug.Assert(!nonTypeMembersWithPartialImplementations.Any(static s => s is TypeSymbol));
-                Debug.Assert(declarationWithParameters is object == primaryConstructor is object);
+                Debug.Assert(declarationWithParameters is object || primaryConstructor is null);
 
                 this.NonTypeMembersWithPartialImplementations = nonTypeMembersWithPartialImplementations;
                 this.StaticInitializers = staticInitializers;
@@ -3456,6 +3484,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isNullableEnabled = isNullableEnabled || compilation.IsNullableAnalysisEnabledIn(syntax);
             }
 
+            public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, bool value)
+            {
+                ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
+                isNullableEnabled = isNullableEnabled || value;
+            }
+
             private ref bool GetIsNullableEnabledForConstructorsAndFields(bool useStatic)
             {
                 return ref useStatic ? ref IsNullableEnabledForStaticConstructorsAndFields : ref IsNullableEnabledForInstanceConstructorsAndFields;
@@ -3535,7 +3569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddDeclarationDiagnostics(diagnostics);
                 diagnostics.Free();
 
-                return declaredMembersAndInitializers!;
+                return declaredMembersAndInitializers;
             }
 
             // Builds explicitly declared members (as opposed to synthesized members).
@@ -3746,6 +3780,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<Symbol> GetMembersToMatchAgainstDeclarationSpan()
         {
+            Debug.Assert(HasPrimaryConstructor);
+
             var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
             if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
             {
@@ -3762,6 +3798,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<Symbol> GetCandidateMembersForLookup(string name)
         {
+            Debug.Assert(HasPrimaryConstructor);
+
             if (this is { IsRecord: true } or { IsRecordStruct: true } ||
                 this.state.HasComplete(CompletionPart.Members))
             {
@@ -3908,6 +3946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.UnionDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.ExtensionBlockDeclaration:
@@ -3935,20 +3974,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (builder.DeclarationWithParameters is null)
                     {
                         builder.DeclarationWithParameters = syntax;
-                        var ctor = new SynthesizedPrimaryConstructor(this, syntax);
 
-                        if (this.IsStatic)
+                        if (syntax.Kind() is SyntaxKind.UnionDeclaration)
                         {
-                            diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, syntax.Identifier.GetLocation());
+                            builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: false, DeclaringCompilation, parameterList);
                         }
-
-                        builder.PrimaryConstructor = ctor;
-
-                        var compilation = DeclaringCompilation;
-                        builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
-                        if (syntax is { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
+                        else
                         {
-                            builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
+                            var ctor = new SynthesizedPrimaryConstructor(this, syntax);
+
+                            if (this.IsStatic)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, syntax.Identifier.GetLocation());
+                            }
+
+                            builder.PrimaryConstructor = ctor;
+
+                            var compilation = DeclaringCompilation;
+                            builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
+                            if (syntax is { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
+                            {
+                                builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
+                            }
                         }
                     }
                     else
@@ -4716,7 +4763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (builder.DeclarationWithParameters is not null)
             {
                 Debug.Assert(builder.DeclarationWithParameters is TypeDeclarationSyntax { ParameterList: not null } type
-                    && type.Kind() is (SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration));
+                    && type.Kind() is (SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.UnionDeclaration));
                 return;
             }
 
@@ -4748,7 +4795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedTypeMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
-            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct) && declaredMembersAndInitializers.PrimaryConstructor is null)
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.Union) && declaredMembersAndInitializers.PrimaryConstructor is null)
             {
                 return;
             }
@@ -4756,7 +4803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var membersSoFar = builder.GetNonTypeMembers(this, declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
 
-            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct))
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.Union))
             {
                 // primary ctor
                 var ctor = declaredMembersAndInitializers.PrimaryConstructor;
@@ -4771,6 +4818,87 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(declaredMembersAndInitializers.PrimaryConstructor?.GetBackingFields().Any() != true);
+            CSharpCompilation compilation = this.DeclaringCompilation;
+
+            if (declaration.Kind is DeclarationKind.Union)
+            {
+                // Synthesize Value property
+                var valuePropertySyntax = (TypeDeclarationSyntax)declaration.Declarations[0].SyntaxReference.GetSyntax();
+                var valueProperty = new SynthesizedUnionValuePropertySymbol(this, valuePropertySyntax, diagnostics);
+                members.Add(valueProperty);
+                Debug.Assert(valueProperty.GetMethod is object);
+                Debug.Assert(valueProperty.SetMethod is null);
+                members.Add(valueProperty.GetMethod);
+                var backingField = valueProperty.DeclaredBackingField;
+                Debug.Assert(backingField is object);
+                members.Add(backingField);
+
+                builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: false, value: true);
+
+                bool report_ERR_UnionDeclarationNeedsCaseTypes = true;
+                if (declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList is { } parameterList)
+                {
+                    // Synthesize Union type constructors
+
+                    var binderFactory = compilation.GetBinderFactory(declaredMembersAndInitializers.DeclarationWithParameters.SyntaxTree);
+                    var signatureBinder = binderFactory.GetBinder(parameterList, declaredMembersAndInitializers.DeclarationWithParameters, this);
+
+                    // Constraints are checked in AfterAddingTypeMembersChecks.
+                    signatureBinder = signatureBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+                    var typesBuilder = ArrayBuilder<TypeSyntax>.GetInstance(parameterList.Parameters.Count);
+
+                    foreach (var parameterSyntax in parameterList.Parameters)
+                    {
+                        report_ERR_UnionDeclarationNeedsCaseTypes = false;
+
+                        if (parameterSyntax.IsArgList)
+                        {
+                            // CS1669: __arglist is not valid in this context
+                            diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, parameterSyntax.Identifier.GetLocation());
+                            continue;
+                        }
+
+                        // https://github.com/dotnet/roslyn/issues/82636: Complain for anything but a type syntax in the parameter syntax
+
+                        Debug.Assert(parameterSyntax.Type != null);
+                        typesBuilder.Add(parameterSyntax.Type);
+                    }
+
+                    int memberOffset = members.Count + typesBuilder.Count; // In order to keep the same relative order between constructors during emit we assign offset in decreasing order
+                    foreach (var typeSyntax in typesBuilder)
+                    {
+                        var parameterType = signatureBinder.BindType(typeSyntax, diagnostics, suppressUseSiteDiagnostics: false);
+
+                        // Check that conversion to object is possible
+
+                        var useSiteInfo = signatureBinder.GetNewCompoundUseSiteInfo(diagnostics);
+                        Conversion c = compilation.Conversions.ClassifyImplicitConversionFromType(parameterType.Type, compilation.GetSpecialType(SpecialType.System_Object), ref useSiteInfo);
+                        diagnostics.Add(typeSyntax, useSiteInfo);
+
+                        if (!SynthesizedUnionCtor.IsValidParameterTypeConversion(c) && !parameterType.Type.IsErrorType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, typeSyntax, parameterType.Type);
+                        }
+
+                        var ctor = new SynthesizedUnionCtor(this, typeSyntax.Location, parameterType, memberOffset: --memberOffset);
+                        members.Add(ctor);
+                    }
+
+                    Debug.Assert(memberOffset == members.Count - typesBuilder.Count);
+
+                    typesBuilder.Free();
+                }
+
+                if (report_ERR_UnionDeclarationNeedsCaseTypes)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, valuePropertySyntax.Identifier.GetLocation());
+                }
+
+                members.AddRange(membersSoFar);
+                builder.SetNonTypeMembers(members);
+
+                return;
+            }
 
             ParameterListSyntax? paramList = declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList;
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
@@ -4799,7 +4927,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CSharpCompilation compilation = this.DeclaringCompilation;
             bool isRecordClass = declaration.Kind == DeclarationKind.Record;
 
             // Positional record
@@ -5516,12 +5643,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             // Lang version check for ref-fields is done inside SourceMemberFieldSymbol;
                             _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRefInField(out var refKind);
-
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 fieldSyntax,
+                                 fieldSyntax.Declaration.Variables.First().Identifier,
+                                 reportMisplacedGlobalCode);
 
                             bool modifierErrors;
                             var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, isRefField: refKind != RefKind.None, diagnostics, out modifierErrors);
@@ -5561,11 +5686,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.MethodDeclaration:
                         {
                             var methodSyntax = (MethodDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(methodSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 methodSyntax,
+                                 methodSyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             var method = SourceOrdinaryMethodSymbol.CreateMethodSymbol(this, bodyBinder, methodSyntax, compilation.IsNullableAnalysisEnabledIn(methodSyntax), diagnostics);
                             builder.NonTypeMembersWithPartialImplementations.Add(method);
@@ -5575,11 +5699,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ConstructorDeclaration:
                         {
                             var constructorSyntax = (ConstructorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(constructorSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 constructorSyntax,
+                                 constructorSyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             bool isNullableEnabled = compilation.IsNullableAnalysisEnabledIn(constructorSyntax);
                             var constructor = SourceConstructorSymbol.CreateConstructorSymbol(this, constructorSyntax, isNullableEnabled, diagnostics);
@@ -5594,11 +5717,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.DestructorDeclaration:
                         {
                             var destructorSyntax = (DestructorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(destructorSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 destructorSyntax,
+                                 destructorSyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             // CONSIDER: if this doesn't (directly or indirectly) override object.Finalize, the
                             // runtime won't consider it a finalizer and it will not be marked as a destructor
@@ -5612,11 +5734,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.PropertyDeclaration:
                         {
                             var propertySyntax = (PropertyDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(propertySyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 propertySyntax,
+                                 propertySyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics);
                             builder.NonTypeMembersWithPartialImplementations.Add(property);
@@ -5663,12 +5784,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.EventFieldDeclaration:
                         {
                             var eventFieldSyntax = (EventFieldDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(
-                                    ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(eventFieldSyntax.Declaration.Variables.First().Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 eventFieldSyntax,
+                                 eventFieldSyntax.Declaration.Variables.First().Identifier,
+                                 reportMisplacedGlobalCode);
 
                             foreach (VariableDeclaratorSyntax declarator in eventFieldSyntax.Declaration.Variables)
                             {
@@ -5717,11 +5836,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.EventDeclaration:
                         {
                             var eventSyntax = (EventDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(eventSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                eventSyntax,
+                                eventSyntax.Identifier,
+                                reportMisplacedGlobalCode);
 
                             var @event = new SourceCustomEventSymbol(this, bodyBinder, eventSyntax, diagnostics);
 
@@ -5737,11 +5855,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.IndexerDeclaration:
                         {
                             var indexerSyntax = (IndexerDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(indexerSyntax.ThisKeyword));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                indexerSyntax,
+                                indexerSyntax.ThisKeyword,
+                                reportMisplacedGlobalCode);
 
                             var indexer = SourcePropertySymbol.Create(this, bodyBinder, indexerSyntax, diagnostics);
                             builder.HaveIndexers = true;
@@ -5754,11 +5871,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ConversionOperatorDeclaration:
                         {
                             var conversionOperatorSyntax = (ConversionOperatorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(conversionOperatorSyntax.OperatorKeyword));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                conversionOperatorSyntax,
+                                conversionOperatorSyntax.OperatorKeyword,
+                                reportMisplacedGlobalCode);
 
                             var method = SourceUserDefinedConversionSymbol.CreateUserDefinedConversionSymbol(
                                 this, bodyBinder, conversionOperatorSyntax, compilation.IsNullableAnalysisEnabledIn(conversionOperatorSyntax), diagnostics);
@@ -5769,11 +5885,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.OperatorDeclaration:
                         {
                             var operatorSyntax = (OperatorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(operatorSyntax.OperatorKeyword));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                operatorSyntax,
+                                operatorSyntax.OperatorKeyword,
+                                reportMisplacedGlobalCode);
 
                             var method = SourceUserDefinedOperatorSymbol.CreateUserDefinedOperatorSymbol(
                                 this, bodyBinder, operatorSyntax, compilation.IsNullableAnalysisEnabledIn(operatorSyntax), diagnostics);
@@ -5849,6 +5964,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
+
+            void reportMisplacedMemberInNamespace(SyntaxNode member, SyntaxToken locationSyntax, bool reportMisplacedGlobalCode)
+            {
+                if (IsImplicitClass && reportMisplacedGlobalCode)
+                {
+                    var parentSyntax = member.Parent;
+                    var errorCode = parentSyntax.IsKind(SyntaxKind.CompilationUnit)
+                        ? ErrorCode.ERR_CompilationUnitUnexpected
+                        : ErrorCode.ERR_NamespaceUnexpected;
+                    diagnostics.Add(errorCode, new SourceLocation(locationSyntax));
+                }
+            }
         }
 
         private void AddAccessorIfAvailable(ArrayBuilder<Symbol> symbols, MethodSymbol? accessorOpt)
@@ -5963,18 +6090,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Extension Methods
 
-        internal bool ContainsExtensionMethods
+        internal bool ContainsExtensions
         {
             get
             {
-                if (!_lazyContainsExtensionMethods.HasValue())
+                if (!_lazyContainsExtensions.HasValue())
                 {
-                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) &&
+                    bool containsExtensions = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) &&
                                                     (this.declaration.ContainsExtensionMethods || this.declaration.ContainsExtensionDeclarations);
-                    _lazyContainsExtensionMethods = containsExtensionMethods.ToThreeState();
+                    _lazyContainsExtensions = containsExtensions.ToThreeState();
                 }
 
-                return _lazyContainsExtensionMethods.Value();
+                return _lazyContainsExtensions.Value();
             }
         }
 
@@ -5992,11 +6119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
-                return this.ContainsExtensionMethods;
+                return this.ContainsExtensions;
             }
         }
 

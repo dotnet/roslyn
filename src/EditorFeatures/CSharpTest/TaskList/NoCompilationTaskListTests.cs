@@ -57,11 +57,11 @@ internal sealed class NoCompilationTaskListService : ITaskListService
     {
     }
 
-    public Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
-        => Task.FromResult(ImmutableArray.Create(new TaskListItem(
+    public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
+        => ImmutableArray.Create(new TaskListItem(
             descriptors.First().Priority,
             "Message",
             document.Id,
             Span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
-            MappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
+            MappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3))));
 }

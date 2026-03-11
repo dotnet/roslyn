@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         }
 
         internal abstract TAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, ImmutableArray<TypedConstant> constructorArguments, ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+        internal abstract TAttributeData CreateSynthesizedAttribute(SpecialMember constructor, ImmutableArray<TypedConstant> constructorArguments, ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
         internal abstract bool TryGetAttributeArguments(TAttributeData attrData, out ImmutableArray<TypedConstant> constructorArguments, out ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
         internal abstract void ReportIndirectReferencesToLinkedAssemblies(TAssemblySymbol assembly, DiagnosticBag diagnostics);
 

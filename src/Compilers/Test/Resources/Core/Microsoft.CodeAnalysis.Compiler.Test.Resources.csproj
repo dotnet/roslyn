@@ -12,6 +12,7 @@
     <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
     <NoWarn>$(NoWarn),NU5100,NU5106,CS1591</NoWarn>
     <IsTestUtilityProject>true</IsTestUtilityProject>
+    <DefineConstants Condition="'$(DotNetBuildFromVMR)' == 'true'">$(DefineConstants);DOTNET_BUILD_FROM_VMR</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -60,8 +61,6 @@
     <Content Include="MetadataTests\Invalid\LongTypeFormInSignature.cs" />
     <EmbeddedResource Include="MetadataTests\Invalid\LongTypeFormInSignature.dll" />
     <EmbeddedResource Include="MetadataTests\Invalid\ManyMethodSpecs.vb" />
-    <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated.dll" />
-    <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated2.dll" />
     <Content Include="MetadataTests\Invalid\Signatures\build.bat" />
     <Content Include="MetadataTests\Invalid\Signatures\munge.csx" />
     <Content Include="MetadataTests\Invalid\Signatures\SignatureCycle2.il" />

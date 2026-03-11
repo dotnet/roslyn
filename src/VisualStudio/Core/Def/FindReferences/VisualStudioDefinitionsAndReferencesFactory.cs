@@ -28,7 +28,7 @@ internal sealed class VisualStudioDefinitionsAndReferencesFactory(
     SVsServiceProvider serviceProvider,
     IThreadingContext threadingContext) : IExternalDefinitionItemProvider
 {
-    public async Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
+    public async ValueTask<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
         Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
     {
         var symbolNavigationService = solution.Services.GetRequiredService<ISymbolNavigationService>();

@@ -194,7 +194,7 @@ internal partial class ITypeSymbolExtensions
 
             if (symbol.TypeParameters.Length == 0)
             {
-                if (symbol.TypeKind == TypeKind.Error && symbol.Name == "var")
+                if (symbol is { TypeKind: TypeKind.Error, Name: "var" })
                     return SystemObjectType;
 
                 return symbol.Name.ToIdentifierName();

@@ -8,11 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -25,15 +26,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
 /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
 /// </summary>
-internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
+internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices, IGlobalOptionService globalOptionService)
     : Workspace(hostServices, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider, ILspWorkspace
 {
     public bool SupportsMutation => true;
 
-    public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
     {
         // In this case, the only documents ever created live in the Miscellaneous Files workspace (which is this object directly), so we can just compare to 'this'.
-        return ValueTask.FromResult(document.Project.Solution.Workspace == this);
+        return document.Project.Solution.Workspace == this;
     }
 
     /// <summary>
@@ -42,8 +43,8 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     /// Calls to this method and <see cref="TryRemoveMiscellaneousDocumentAsync(DocumentUri)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
-        => ValueTask.FromResult(AddMiscellaneousDocument(uri, documentText, languageId, logger));
+    public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
+        => AddMiscellaneousDocument(uri, documentText, languageId, logger);
 
     private TextDocument? AddMiscellaneousDocument(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
@@ -63,8 +64,9 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
 
         var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
 
+        var enableFileBasedPrograms = globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, []);
+            this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, [], enableFileBasedPrograms);
         OnProjectAdded(projectInfo);
 
         if (languageInformation.LanguageName == "Razor")
@@ -83,7 +85,7 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     /// Calls to this method and <see cref="AddMiscellaneousDocument(DocumentUri, SourceText, string, ILspLogger)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
+    public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
         // We'll only ever have a single document matching this URI in the misc solution.
         var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
@@ -103,16 +105,15 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
             var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
             OnProjectRemoved(project.Id);
 
-            return ValueTask.FromResult(true);
+            return true;
         }
 
-        return ValueTask.FromResult(false);
+        return false;
     }
 
-    public ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
+    public async ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
     {
         this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
-        return ValueTask.CompletedTask;
     }
 
     private sealed class StaticSourceTextContainer(SourceText text) : SourceTextContainer

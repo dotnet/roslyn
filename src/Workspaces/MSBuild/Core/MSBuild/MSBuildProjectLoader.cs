@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
@@ -21,6 +23,7 @@ public partial class MSBuildProjectLoader
 {
     // the services for the projects and solutions are intended to be loaded into.
     private readonly SolutionServices _solutionServices;
+    private readonly ImmutableArray<string> _knownCommandLineParserLanguages;
 
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
@@ -33,15 +36,14 @@ public partial class MSBuildProjectLoader
     internal MSBuildProjectLoader(
         SolutionServices solutionServices,
         DiagnosticReporter diagnosticReporter,
-        Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
-        ProjectFileExtensionRegistry projectFileExtensionRegistry,
         ImmutableDictionary<string, string>? properties)
     {
         _solutionServices = solutionServices;
+        _knownCommandLineParserLanguages = solutionServices.GetSupportedLanguages<ICommandLineParserService>();
         _diagnosticReporter = diagnosticReporter;
-        _loggerFactory = loggerFactory;
+        _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
         _pathResolver = new PathResolver(_diagnosticReporter);
-        _projectFileExtensionRegistry = projectFileExtensionRegistry;
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(diagnosticReporter);
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -58,20 +60,18 @@ public partial class MSBuildProjectLoader
     /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
     /// These are the same properties that are passed to MSBuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
     public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
+        : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), properties)
     {
-        _solutionServices = workspace.Services.SolutionServices;
-        _diagnosticReporter = new DiagnosticReporter(workspace);
-        _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
-        _pathResolver = new PathResolver(_diagnosticReporter);
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
-
-        Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        if (properties != null)
-        {
-            Properties = Properties.AddRange(properties);
-        }
     }
+
+    internal DiagnosticReporter Reporter
+        => _diagnosticReporter;
+
+    internal ProjectFileExtensionRegistry ProjectFileExtensionRegistry
+        => _projectFileExtensionRegistry;
+
+    internal Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
+        => _loggerFactory;
 
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
@@ -161,47 +161,38 @@ public partial class MSBuildProjectLoader
         CancellationToken cancellationToken = default)
     {
         if (solutionFilePath == null)
-        {
             throw new ArgumentNullException(nameof(solutionFilePath));
-        }
 
         var reportingMode = GetReportingModeForUnrecognizedProjects();
-
         var reportingOptions = new DiagnosticReportingOptions(
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
         var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, reportingMode, cancellationToken).ConfigureAwait(false);
-        var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
+
+        // TryGetAbsoluteSolutionPath should not return an invalid path
+        var solutionDir = Path.GetDirectoryName(absoluteSolutionPath)!;
+
+        var projectPaths =
+            from project in projects
+            let fullPath = _pathResolver.TryGetAbsoluteProjectPath(project.ProjectPath, solutionDir, reportingMode, out var absoluteProjectPath) ? absoluteProjectPath : null
+            where fullPath != null
+            select fullPath;
 
         using (_dataGuard.DisposableWait(cancellationToken))
         {
             SetSolutionProperties(absoluteSolutionPath);
         }
 
-        var binLogPathProvider = IsBinaryLogger(msbuildLogger, out var fileName)
-            ? new BinLogPathProvider(fileName)
-            : null;
-
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
-        await using var _ = buildHostProcessManager.ConfigureAwait(false);
-
-        var worker = new Worker(
-            _solutionServices,
-            _diagnosticReporter,
-            _pathResolver,
-            _projectFileExtensionRegistry,
-            buildHostProcessManager,
-            projectPaths,
-            // TryGetAbsoluteSolutionPath should not return an invalid path
-            baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
+        var projectInfos = await LoadInfoAsync(
+            [.. projectPaths],
             projectMap: null,
             progress,
+            msbuildLogger,
             requestedProjectOptions: reportingOptions,
             discoveredProjectOptions: reportingOptions,
-            preferMetadataForReferencesOfDiscoveredProjects: false);
-
-        var projectInfos = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+            preferMetadataForReferencesOfDiscoveredProjects: false,
+            cancellationToken).ConfigureAwait(false);
 
         // construct workspace from loaded project infos
         return SolutionInfo.Create(
@@ -222,7 +213,7 @@ public partial class MSBuildProjectLoader
     /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is loaded.</param>
     /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
     /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
-    public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
+    public Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
         string projectFilePath,
         ProjectMap? projectMap = null,
         IProgress<ProjectLoadProgress>? progress = null,
@@ -230,42 +221,99 @@ public partial class MSBuildProjectLoader
         CancellationToken cancellationToken = default)
     {
         if (projectFilePath == null)
-        {
             throw new ArgumentNullException(nameof(projectFilePath));
-        }
-
-        var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
 
         var reportingMode = GetReportingModeForUnrecognizedProjects();
-
+        var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
         var discoveredProjectOptions = new DiagnosticReportingOptions(
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
+        if (!_pathResolver.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteProjectPath))
+        {
+            return Task.FromResult(ImmutableArray<ProjectInfo>.Empty);
+        }
+
+        return LoadInfoAsync(
+            [absoluteProjectPath],
+            projectMap,
+            progress,
+            msbuildLogger,
+            requestedProjectOptions,
+            discoveredProjectOptions,
+            LoadMetadataForReferencedProjects,
+            cancellationToken);
+    }
+
+    private async Task<ImmutableArray<ProjectInfo>> LoadInfoAsync(
+        ImmutableArray<string> projectPaths,
+        ProjectMap? projectMap,
+        IProgress<ProjectLoadProgress>? progress,
+        ILogger? msbuildLogger,
+        DiagnosticReportingOptions requestedProjectOptions,
+        DiagnosticReportingOptions discoveredProjectOptions,
+        bool preferMetadataForReferencesOfDiscoveredProjects,
+        CancellationToken cancellationToken)
+    {
         var binLogPathProvider = IsBinaryLogger(msbuildLogger, out var fileName)
             ? new BinLogPathProvider(fileName)
             : null;
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
+        var buildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
+
+        var projectFileProvider = new BuildHostProjectFileInfoProvider(
+            buildHostProcessManager,
+            _projectFileExtensionRegistry,
+            _diagnosticReporter,
+            progress);
 
         var worker = new Worker(
             _solutionServices,
             _diagnosticReporter,
             _pathResolver,
             _projectFileExtensionRegistry,
-            buildHostProcessManager,
-            requestedProjectPaths: [projectFilePath],
-            baseDirectory: Directory.GetCurrentDirectory(),
+            projectFileProvider,
+            projectPaths,
             projectMap,
             progress,
             requestedProjectOptions,
             discoveredProjectOptions,
-            this.LoadMetadataForReferencedProjects);
+            preferMetadataForReferencesOfDiscoveredProjects);
 
         return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    internal Task<ImmutableArray<ProjectInfo>> LoadInfosAsync(
+        ImmutableArray<string> projectFilePaths,
+        IProjectFileInfoProvider projectFileInfoProvider,
+        ProjectMap? projectMap,
+        IProgress<ProjectLoadProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        Debug.Assert(projectFilePaths.All(PathUtilities.IsAbsolute));
+
+        var reportingMode = GetReportingModeForUnrecognizedProjects();
+        var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
+        var discoveredProjectOptions = new DiagnosticReportingOptions(
+            onPathFailure: reportingMode,
+            onLoaderFailure: reportingMode);
+
+        var worker = new Worker(
+            _solutionServices,
+            _diagnosticReporter,
+            _pathResolver,
+            _projectFileExtensionRegistry,
+            projectFileInfoProvider,
+            projectFilePaths,
+            projectMap,
+            progress,
+            requestedProjectOptions,
+            discoveredProjectOptions,
+            LoadMetadataForReferencedProjects);
+
+        return worker.LoadAsync(cancellationToken);
+    }
     private static bool IsBinaryLogger([NotNullWhen(returnValue: true)] ILogger? logger, out string? fileName)
     {
         // We validate the type name to avoid taking a dependency on the Microsoft.Build package

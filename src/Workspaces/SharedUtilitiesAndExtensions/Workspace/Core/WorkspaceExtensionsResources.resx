@@ -145,7 +145,7 @@
     <value>Project of ID {0} is required to accomplish the task but is not available from the solution</value>
   </data>
   <data name="The_solution_does_not_contain_the_specified_document" xml:space="preserve">
-    <value>The solution does not contain the specified document.</value>
+    <value>The solution does not contain the specified document: '{0}'.</value>
   </data>
   <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
     <value>Warning: Declaration changes scope and may change meaning.</value>

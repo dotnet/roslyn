@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -572,6 +572,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
         System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
 
+        System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor,
+        System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor,
+
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpan_String,
@@ -727,6 +730,7 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlyMemory_T__Slice_Int_Int,
         System_Memory_T__Slice_Int,
         System_ReadOnlyMemory_T__Slice_Int,
+        System_Runtime_CompilerServices_UnionAttribute__ctor,
 
         Count,
 

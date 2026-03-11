@@ -55,7 +55,7 @@ stages:
       - task: BatchScript@1
         displayName: Rehydrate RunTests
         inputs:
-          filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net9.0/rehydrate.cmd
+          filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
       
@@ -69,9 +69,9 @@ stages:
 
       # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
       - task: BatchScript@1
-        displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net9.0)
+        displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net10.0)
         inputs:
-          filename: ./artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests/${{ parameters.configuration }}/net9.0/rehydrate.cmd
+          filename: ./artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
@@ -80,6 +80,13 @@ stages:
         displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net472)
         inputs:
           filename: ./artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
+        inputs:
+          filename: ./artifacts\bin\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 

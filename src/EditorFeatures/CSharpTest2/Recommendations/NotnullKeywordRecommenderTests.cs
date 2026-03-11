@@ -19,7 +19,7 @@ public sealed class NotNullKeywordRecommenderTests : RecommenderTests
 
     public NotNullKeywordRecommenderTests()
     {
-        this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
+        this.RecommendKeywordsAsync = async (position, context) => _recommender.RecommendKeywords(position, context, CancellationToken.None);
     }
 
     [Fact]

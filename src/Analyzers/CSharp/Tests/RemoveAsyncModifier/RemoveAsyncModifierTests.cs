@@ -1,0 +1,1204 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer,
+    CSharpRemoveAsyncModifierCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+public sealed class RemoveAsyncModifierTests
+{
+    [Fact]
+    public Task Method_Task_MultipleAndNested()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task Goo()
+                {
+                    if (DateTime.Now.Ticks > 0)
+                    {
+                        return;
+                    }
+                }
+
+                {|IDE0390:async|} Task Foo()
+                {
+                    Console.WriteLine(1);
+                }
+
+                {|IDE0390:async|} Task Bar()
+                {
+                    {|IDE0390:async|} Task Baz()
+                    {
+                        Func<Task<int>> g = {|IDE0390:async|} () => 5;
+                    }
+                }
+
+                {|IDE0390:async|} Task<string> Tur()
+                {
+                    {|IDE0390:async|} Task<string> Duck()
+                    {
+                        {|IDE0390:async|} Task<string> En()
+                        {
+                            return "Developers!";
+                        }
+
+                        return "Developers! Developers!";
+                    }
+
+                    return "Developers! Developers! Developers!";
+                }
+
+                {|IDE0390:async|} Task Nurk()
+                {
+                    Func<Task<int>> f = {|IDE0390:async|} () => 4;
+
+                    if (DateTime.Now.Ticks > f().Result)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
+                {
+                    if (DateTime.Now.Ticks > 0)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    return Task.CompletedTask;
+                }
+
+                Task Foo()
+                {
+                    Console.WriteLine(1);
+                    return Task.CompletedTask;
+                }
+
+                Task Bar()
+                {
+                    Task Baz()
+                    {
+                        Func<Task<int>> g = () => Task.FromResult(5);
+                        return Task.CompletedTask;
+                    }
+
+                    return Task.CompletedTask;
+                }
+
+                Task<string> Tur()
+                {
+                    Task<string> Duck()
+                    {
+                        Task<string> En()
+                        {
+                            return Task.FromResult("Developers!");
+                        }
+
+                        return Task.FromResult("Developers! Developers!");
+                    }
+
+                    return Task.FromResult("Developers! Developers! Developers!");
+                }
+
+                Task Nurk()
+                {
+                    Func<Task<int>> f = () => Task.FromResult(4);
+
+                    if (DateTime.Now.Ticks > f().Result)
+                    {
+                    }
+
+                    return Task.CompletedTask;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_Task_EmptyBlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task Goo(){}
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
+                {
+                    return Task.CompletedTask;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return;
+                    }
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_ValueTask_BlockBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} ValueTask Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return;
+                    }
+                }
+            }
+            """,
+            FixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                ValueTask Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return new ValueTask();
+                    }
+
+                    return new ValueTask();
+                }
+            }
+            """,
+        }.RunAsync();
+
+    [Fact]
+    public Task Method_ValueTaskOfT_BlockBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} ValueTask<int> Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return 2;
+                    }
+
+                    return 3;
+                }
+            }
+            """,
+            FixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                ValueTask<int> Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return new ValueTask<int>(2);
+                    }
+
+                    return new ValueTask<int>(3);
+                }
+            }
+            """,
+        }.RunAsync();
+
+    [Fact]
+    public Task Method_ValueTask_ExpressionBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} ValueTask Goo() => System.Console.WriteLine(1);
+            }
+            """,
+            FixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                ValueTask Goo()
+                {
+                    System.Console.WriteLine(1);
+                    return new ValueTask();
+                }
+            }
+            """,
+        }.RunAsync();
+
+    [Fact]
+    public Task Method_ValueTaskOfT_ExpressionBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} ValueTask<int> Goo() => 3;
+            }
+            """,
+            FixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                ValueTask<int> Goo() => new ValueTask<int>(3);
+            }
+            """,
+        }.RunAsync();
+
+    [Fact]
+    public Task Method_Task_BlockBody_Throws()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return;
+                    }
+
+                    throw new System.ApplicationException();
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    throw new System.ApplicationException();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_Task_BlockBody_WithLocalFunction()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task Goo()
+                {
+                    if (GetTicks() > 0)
+                    {
+                        return;
+                    }
+
+                    long GetTicks()
+                    {
+                        return System.DateTime.Now.Ticks;
+                    }
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
+                {
+                    if (GetTicks() > 0)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    long GetTicks()
+                    {
+                        return System.DateTime.Now.Ticks;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_Task_BlockBody_WithLambda()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task Goo()
+                {
+                    System.Func<long> getTicks = () => {
+                        return System.DateTime.Now.Ticks;
+                    };
+
+                    if (getTicks() > 0)
+                    {
+                        return;
+                    }
+
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
+                {
+                    System.Func<long> getTicks = () => {
+                        return System.DateTime.Now.Ticks;
+                    };
+
+                    if (getTicks() > 0)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task<int> Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return 2;
+                    }
+
+                    return 3;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task<int> Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return Task.FromResult(2);
+                    }
+
+                    return Task.FromResult(3);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task<int> Goo() => 2;
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task<int> Goo() => Task.FromResult(2);
+            }
+            """);
+
+    [Fact]
+    public Task Method_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} Task Goo() => Console.WriteLine("Hello");
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
+                {
+                    Console.WriteLine("Hello");
+                    return Task.CompletedTask;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task LocalFunction_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    {|IDE0390:async|} Task Goo()
+                    {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Task Goo()
+                    {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return Task.CompletedTask;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task LocalFunction_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    {|IDE0390:async|} Task Goo() => Console.WriteLine(1);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Task Goo() { Console.WriteLine(1); return Task.CompletedTask; }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task LocalFunction_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    {|IDE0390:async|} Task<int> Goo()
+                    {
+                        return 1;
+                    }
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Task<int> Goo()
+                    {
+                        return Task.FromResult(1);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task LocalFunction_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    {|IDE0390:async|} Task<int> Goo() => 1;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Task<int> Goo() => Task.FromResult(1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task AnonymousFunction_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task> foo = (Func<Task>){|IDE0390:async|} delegate {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return;
+                        }
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task> foo = (Func<Task>)delegate
+                    {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return Task.CompletedTask;
+                        }
+
+                        return Task.CompletedTask;
+                    };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task AnonymousFunction_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task<int>> foo = (Func<Task<int>>){|IDE0390:async|} delegate
+                    {
+                        return 1;
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task<int>> foo = (Func<Task<int>>)delegate
+                    {
+                        return Task.FromResult(1);
+                    };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SimpleLambda_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task<int>> foo = {|IDE0390:async|} x => 1;
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task<int>> foo = x => Task.FromResult(1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SimpleLambda_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task<int>> foo = {|IDE0390:async|} x => {
+                        return 1;
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task<int>> foo = x =>
+                    {
+                        return Task.FromResult(1);
+                    };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SimpleLambda_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task> foo = {|IDE0390:async|} x => Console.WriteLine(1);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task> foo = x => { Console.WriteLine(1); return Task.CompletedTask; };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task SimpleLambda_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task> foo = {|IDE0390:async|} x =>
+                    {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return;
+                        }
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<int, Task> foo = x =>
+                    {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return Task.CompletedTask;
+                        }
+
+                        return Task.CompletedTask;
+                    };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task ParenthesizedLambda_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task<int>> foo = {|IDE0390:async|} () => 1;
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task<int>> foo = () => Task.FromResult(1);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task ParenthesizedLambda_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task<int>> foo = {|IDE0390:async|} () => {
+                        return 1;
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task<int>> foo = () =>
+                    {
+                        return Task.FromResult(1);
+                    };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task ParenthesizedLambda_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task> foo = {|IDE0390:async|} () => Console.WriteLine(1);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task> foo = () => { Console.WriteLine(1); return Task.CompletedTask; };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task ParenthesizedLambda_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task> foo = {|IDE0390:async|} () =>
+                    {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return;
+                        }
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public void M1()
+                {
+                    Func<Task> foo = () =>
+                    {
+                        if (System.DateTime.Now.Ticks > 0)
+                        {
+                            return Task.CompletedTask;
+                        }
+
+                        return Task.CompletedTask;
+                    };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_Task_BlockBody_FullyQualified()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            class C
+            {
+                {|IDE0390:async|} System.Threading.Tasks.Task Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                System.Threading.Tasks.Task Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return System.Threading.Tasks.Task.CompletedTask;
+                    }
+
+                    return System.Threading.Tasks.Task.CompletedTask;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Method_TaskOfT_BlockBody_FullyQualified()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            class C
+            {
+                {|IDE0390:async|} System.Threading.Tasks.Task<int> Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return 1;
+                    }
+
+                    return 2;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                System.Threading.Tasks.Task<int> Goo()
+                {
+                    if (System.DateTime.Now.Ticks > 0)
+                    {
+                        return System.Threading.Tasks.Task.FromResult(1);
+                    }
+
+                    return System.Threading.Tasks.Task.FromResult(2);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65536")]
+    public Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
+        => VerifyCS.VerifyCodeFixAsync("""
+            using System.Threading.Tasks;
+            using System.Collections.Generic;
+
+            class C
+            {
+                public {|IDE0390:async|} Task<IReadOnlyCollection<int>> M()
+                {
+                    return new int[0];
+                }
+            }
+            """, """
+            using System.Threading.Tasks;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                public Task<IReadOnlyCollection<int>> M()
+                {
+                    return Task.FromResult<IReadOnlyCollection<int>>(new int[0]);
+                }
+            }
+            """);
+
+    [Fact]
+    public async Task IAsyncEnumerable_Missing()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using System.Collections.Generic;
+
+            class C
+            {
+                {|IDE0390:async|} IAsyncEnumerable<int> M()
+                {
+                    yield return 1;
+                }
+            }
+            """ + CSharpTestBase.AsyncStreamsTypes;
+
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = source,
+            FixedCode = source,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task Method_AsyncVoid_Missing()
+    {
+        var source = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0390:async|} void M()
+                {
+                    System.Console.WriteLine(1);
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = source,
+            FixedCode = source,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ParenthesizedLambda_AsyncVoid_Missing()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void M()
+                {
+                    Action a = {|IDE0390:async|} () => Console.WriteLine(1);
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = source,
+            FixedCode = source,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task SimpleLambda_AsyncVoid_Missing()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void M()
+                {
+                    Action<int> a = {|IDE0390:async|} x => Console.WriteLine(x);
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = source,
+            FixedCode = source,
+        }.RunAsync();
+    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65380")]
+    public Task TestCloseBraceTrivia()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            public class Class1
+            {
+                public {|IDE0390:async|} Task Goo()
+                {
+                    //Hello 
+                    Console.WriteLine("Goo");
+                    //World
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            public class Class1
+            {
+                public Task Goo()
+                {
+                    //Hello 
+                    Console.WriteLine("Goo");
+                    return Task.CompletedTask;
+                    //World
+                }
+            }
+            """);
+}

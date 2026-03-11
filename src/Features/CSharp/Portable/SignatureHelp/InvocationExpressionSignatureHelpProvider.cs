@@ -36,19 +36,10 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
 
     private async Task<InvocationExpressionSyntax?> TryGetInvocationExpressionAsync(Document document, int position, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var expression = await CommonSignatureHelpUtilities.TryGetSyntaxAsync<InvocationExpressionSyntax>(
+            document, position, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken).ConfigureAwait(false);
 
-        if (!CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out InvocationExpressionSyntax? expression))
-        {
-            return null;
-        }
-
-        if (expression.ArgumentList is null)
-            return null;
-
-        return expression;
+        return expression?.ArgumentList is null ? null : expression;
     }
 
     private bool IsTriggerToken(SyntaxToken token)
@@ -98,7 +89,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
 
         // guess the best candidate if needed and determine parameter index
         var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
+        var (currentSymbol, parameterIndexOverride) = new CSharpLightweightOverloadResolution(semanticModel, invocationExpression.ArgumentList.Arguments, position)
             .RefineOverloadAndPickParameter(symbolInfo, methods);
 
         // if the symbol could be bound, replace that item in the symbol list
@@ -145,7 +136,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
         }
 
         // determine parameter index
-        var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
+        var parameterIndexOverride = new CSharpLightweightOverloadResolution(semanticModel, invocationExpression.ArgumentList.Arguments, position)
             .FindParameterIndexIfCompatibleMethod(currentSymbol);
 
         // present item and select

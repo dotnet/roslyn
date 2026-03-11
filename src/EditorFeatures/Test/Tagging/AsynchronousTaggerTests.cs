@@ -259,13 +259,11 @@ public sealed class AsynchronousTaggerTests
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
             => eventSource;
 
-        protected override Task ProduceTagsAsync(
+        protected override async Task ProduceTagsAsync(
             TaggerContext<TextMarkerTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             foreach (var tag in callback(context, snapshotSpan))
                 context.AddTag(tag);
-
-            return Task.CompletedTask;
         }
 
         protected override bool TagEquals(TextMarkerTag tag1, TextMarkerTag tag2)

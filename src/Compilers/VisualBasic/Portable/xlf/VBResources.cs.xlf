@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">{0} nelze použít ručně.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -62,9 +62,19 @@
         <target state="translated">Nelze aktualizovat {0}; chybí atribut {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="translated">Aktualizace vyžaduje vygenerování explicitní implementace rozhraní, kterou modul runtime nepodporuje bez restartování aplikace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">Argument diagnosticId atributu Experimental musí být platný identifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">Cílový modul runtime nepodporuje rozšířené typy rozložení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -79,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <target state="translated">MethodImplAttribute.Async nelze u metod použít ručně.</target>
         <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -137,6 +147,11 @@
         <target state="translated">Události sdílených proměnných WithEvents se nedají zpracovat metodami v jiném typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">Použití StructLayoutAttribute a ExtendedLayoutAttribute u stejného typu není povolené.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">{0} je definováno v sestavení {1}.</target>
@@ -144,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">Kombinovaná délka uživatelských řetězců používaných programem překračuje povolený limit. Přidání řetězce nebo literálu XML vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -326,7 +341,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
+                                  SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -376,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Možnosti kompilátoru Visual Basic
+        <target state="translated">                  Možnosti kompilátoru Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
 -out:&lt;file&gt;                       Určuje název výstupního souboru.
@@ -389,8 +404,8 @@
 -target:appcontainerexe           Vytvoří aplikaci systému Windows, která běží v
                                   AppContainer.
 -target:winmdobj                  Vytvoří pomocný soubor metadat systému Windows
--doc[+|-]                         Generuje soubor dokumentace XML.
--doc:&lt;file&gt;                       Generuje soubor dokumentace XML do souboru &lt;file&gt;.
+-doc[+|-]                         Vygeneruje soubor dokumentace XML.
+-doc:&lt;file&gt;                       Vygeneruje soubor dokumentace XML do souboru &lt;file&gt;.
 -refout:&lt;file&gt;                    Výstup referenčního sestavení, který se má vygenerovat
 
                                   - VSTUPNÍ SOUBORY -
@@ -411,13 +426,13 @@
                                   - PROSTŘEDKY -
 -linkresource:&lt;resinfo&gt;           Propojuje zadaný soubor jako externí
                                   prostředek sestavení.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,veřejný|soukromý]]
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Krátký tvar: -linkres)
 -nowin32manifest                  Výchozí manifest by neměl být vložený
                                   v oddílu manifestu výstupních dat PE.
 -resource:&lt;resinfo&gt;               Přidá zadaný soubor jako vložený
                                   prostředek sestavení.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,veřejný|soukromý]]
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Krátký tvar: -res)
 -win32icon:&lt;file&gt;                 Určuje soubor ikony Win32 (.ico) pro
                                   výchozí prostředky Win32.
@@ -428,11 +443,11 @@
                                   - GENEROVÁNÍ KÓDU -
 -optimize[+|-]                    Povolí optimalizace.
 -removeintchecks[+|-]             Odebere kontroly dat typu integer. Výchozí hodnota je vypnutá.
--debug[+|-]                       Generuje ladicí informace.
--debug:full                       Generuje úplné ladicí informace (výchozí).
--debug:pdbonly                    Generuje úplné ladicí informace.
--debug:portable                   Generuje ladicí informace pro různé platformy.
--debug:embedded                   Generuje ladicí informace pro různé platformy do
+-debug[+|-]                       Vygeneruje ladicí informace.
+-debug:full                       Vygeneruje úplné ladicí informace (výchozí).
+-debug:pdbonly                    Vygeneruje úplné ladicí informace.
+-debug:portable                   Vygeneruje ladicí informace pro různé platformy.
+-debug:embedded                   Vygeneruje ladicí informace pro různé platformy do
                                   cílového souboru .dll nebo .exe.
 -deterministic                    Vytvoří deterministické sestavení
                                   (včetně verze modulu GUID a časového razítka)
@@ -466,9 +481,9 @@
                                   import_list:namespace,...
 -langversion:?                    Zobrazí povolené hodnoty pro verzi jazyka
 -langversion:&lt;string&gt;             Určuje verzi jazyka, například
-                                  výchozí (nejnovější hlavní verze) nebo
-                                  nejnovější (nejnovější verze včetně podverzí),
-                                  nebo konkrétní verze jako 14 nebo 15.3.
+                                  `default` (nejnovější hlavní verze) nebo
+                                  `latest` (nejnovější verze včetně podverzí),
+                                  případně konkrétní verze jako `14` nebo `15.3`
 -optionexplicit[+|-]              Vyžaduje explicitní deklaraci proměnných.
 -optioninfer[+|-]                 Povolí odvozování typů proměnných.
 -rootnamespace:&lt;string&gt;           Určuje kořenový obor názvů pro všechny deklarace
@@ -494,7 +509,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
                                   zdrojového souboru uloženého v souboru PDB. Podporované hodnoty:
-                                  SHA1 nebo SHA256 (výchozí).
+                                  SHA1, SHA256 (výchozí), SHA384 nebo SHA512.
 -codepage:&lt;number&gt;                Určuje znakovou stránku, která se má použít při otevírání
                                   zdrojových souborů.
 -delaysign[+|-]                   Zpožděné podepsání sestavení pouze pomocí veřejné
@@ -533,11 +548,10 @@
 -reportivts[+|-]                  Výstupní informace o všech IVT udělených tomuto
                                   sestavení podle všech závislostí a opatřit poznámkami cizí sestavení
                                   chyby přístupnosti s tím, z jakého sestavení pocházejí.
--sdkpath:&lt;path&gt;                   Umístění adresáře sady SDK .NET Framework
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Cesta použitá k vyhledání standardních sestavení knihovny.
 -subsystemversion:&lt;version&gt;       Určuje verzi subsystému výstupních dat PE.
                                   verze:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Generuje výstup kompilátoru ve znaku UTF-8
+-utf8output[+|-]                  Vygeneruje výstup kompilátoru ve znaku UTF-8
                                   UTF-8.
 @&lt;file&gt;                           Vloží nastavení příkazového řádku z textového souboru
 -vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime Visual Basic nebo
@@ -639,12 +653,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Sestavení analyzátoru {0} odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
+        <target state="translated">Sestavení analyzátoru{0} nelze použít, protože odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Sestavení analyzátoru odkazuje na novější verzi kompilátoru, než je aktuálně spuštěná verze.</target>
+        <target state="translated">Sestavení analyzátoru nelze použít, protože odkazuje na novější verzi kompilátoru než aktuálně spuštěná verze.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

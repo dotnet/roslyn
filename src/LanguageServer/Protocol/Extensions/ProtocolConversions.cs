@@ -483,21 +483,35 @@ internal static partial class ProtocolConversions
             {
                 var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
                 var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
-                var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-                foreach (var (filePath, textChange) in mappedTextChanges)
-                {
-                    var mappedDocId = oldSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == oldDocument.Id.ProjectId);
-                    // Can't map to an edit in an unknown document
-                    if (mappedDocId is null)
-                        continue;
 
-                    var mappedDoc = oldSolution.GetRequiredTextDocument(mappedDocId);
-                    var mappedText = await mappedDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    uriToTextEdits.Add((CreateAbsoluteDocumentUri(filePath), new LSP.TextEdit
+                if (sourceGeneratedDocumentMappingService.CanMapSpans(oldDocument))
+                {
+                    var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                    foreach (var (filePath, textChange) in mappedTextChanges)
                     {
-                        Range = TextSpanToRange(textChange.Span, mappedText),
-                        NewText = textChange.NewText ?? string.Empty
-                    }));
+                        var mappedDocId = oldSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == oldDocument.Id.ProjectId);
+                        // Can't map to an edit in an unknown document
+                        if (mappedDocId is null)
+                            continue;
+
+                        var mappedDoc = oldSolution.GetRequiredTextDocument(mappedDocId);
+                        var mappedText = await mappedDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        uriToTextEdits.Add((CreateAbsoluteDocumentUri(filePath), new LSP.TextEdit
+                        {
+                            Range = TextSpanToRange(textChange.Span, mappedText),
+                            NewText = textChange.NewText ?? string.Empty
+                        }));
+                    }
+                }
+                else
+                {
+                    // There's no span mapping available, just create text edits from the original text changes.
+                    var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    var textChanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                    foreach (var textChange in textChanges)
+                    {
+                        uriToTextEdits.Add((oldDocument.GetURI(), TextChangeToTextEdit(textChange, oldText)));
+                    }
                 }
             }
         }

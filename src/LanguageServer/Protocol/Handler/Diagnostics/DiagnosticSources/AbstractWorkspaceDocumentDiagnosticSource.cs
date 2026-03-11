@@ -94,7 +94,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
     private sealed class CodeAnalysisDiagnosticSource(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
         {
@@ -104,7 +104,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             // user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
             // that has been produced.
             diagnostics = ProtocolConversions.AddBuildTagIfNotPresent(diagnostics);
-            return Task.FromResult(diagnostics);
+            return diagnostics;
         }
     }
 }

@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">I file InternalAPI.txt devono includere `#nullable enable` per tenere traccia delle informazioni sul supporto dei valori Null, in caso contrario questa diagnostica deve essere eliminata. Se il supporto dei valori Null è abilitato, InternalAPI.txt registra i tipi nullable (suffisso `?` nel tipo) o non nullable (suffisso `!`). Tiene inoltre traccia di eventuali API che usano ancora un tipo riferimento senza annotazioni nullable (prefisso `~` nella riga).</target>
+        <target state="translated">I file InternalAPI.txt devono includere '#nullable enable' per tenere traccia delle informazioni sul supporto dei valori Null; in caso contrario, questa diagnostica deve essere eliminata. Se il supporto dei valori Null è abilitato, InternalAPI.txt registra i tipi che ammettono valori Null (suffisso '?' nel tipo) o che non ammettono valori Null (suffisso '!'). Tiene inoltre traccia di eventuali API che usano ancora un tipo riferimento oblivious (prefisso '~' nella riga).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">I file PublicAPI.txt devono includere `#nullable enable` per tenere traccia delle informazioni sul supporto dei valori Null, in caso contrario questa diagnostica deve essere eliminata. Se il supporto dei valori Null è abilitato, PublicAPI.txt registra i tipi nullable (suffisso `?` nel tipo) o non nullable (suffisso `!`). Tiene inoltre traccia di eventuali API che usano ancora un tipo riferimento senza annotazioni nullable (prefisso `~` nella riga).</target>
+        <target state="translated">I file PublicAPI.txt devono includere '#nullable enable' per tenere traccia delle informazioni sul supporto dei valori Null; in caso contrario, questa diagnostica deve essere eliminata. Se il supporto dei valori Null è abilitato, PublicAPI.txt registra i tipi che ammettono valori Null (suffisso '?' nel tipo) o che non ammettono valori Null (suffisso '!'). Tiene inoltre traccia di eventuali API che usano ancora un tipo riferimento oblivious (prefisso '~' nella riga).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

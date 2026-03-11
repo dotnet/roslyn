@@ -238,7 +238,7 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
         // those changes in.  Note: we should generally always be producing edits that are safe to merge in.  However,
         // as we do not control this code, we cannot guarantee this.  Telemetry will let us know how often this happens
         // and if there's something we need to look into.
-        var result = Proposal.TryCreateProposal(proposal, finalEdits);
+        var result = Proposal.TryCreateProposal(proposal, finalEdits.ToArray()); // Copy edits as TryCreateProposal doesn't deep copy
         if (result is null)
             return default;
 

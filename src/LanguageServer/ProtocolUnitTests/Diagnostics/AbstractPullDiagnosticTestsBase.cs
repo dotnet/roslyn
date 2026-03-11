@@ -372,10 +372,10 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray.Create(
-                Diagnostic.Create(Descriptor, Location.Create(document.FilePath!, default, default))));
+            return ImmutableArray.Create(
+                Diagnostic.Create(Descriptor, Location.Create(document.FilePath!, default, default)));
         }
     }
 }

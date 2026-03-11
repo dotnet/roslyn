@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Sort_Namespaces">
         <source>Sort Namespaces</source>
-        <target state="new">Sort Namespaces</target>
+        <target state="translated">名前空間の並べ替え</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Namespaces_with_accelerator">
         <source>&amp;Sort Namespaces</source>
-        <target state="new">&amp;Sort Namespaces</target>
+        <target state="translated">名前空間の並べ替え(&amp;S)</target>
         <note />
       </trans-unit>
     </body>

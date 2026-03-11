@@ -4273,6 +4273,51 @@ public sealed partial class SpreadElementSyntax : CollectionElementSyntax
     public SpreadElementSyntax WithExpression(ExpressionSyntax expression) => Update(this.OperatorToken, expression);
 }
 
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.WithElement"/></description></item>
+/// </list>
+/// </remarks>
+[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
+public sealed partial class WithElementSyntax : CollectionElementSyntax
+{
+    private ArgumentListSyntax? argumentList;
+
+    internal WithElementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken WithKeyword => new SyntaxToken(this, ((InternalSyntax.WithElementSyntax)this.Green).withKeyword, Position, 0);
+
+    public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.argumentList, 1)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.argumentList : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithElement(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWithElement(this);
+
+    public WithElementSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    {
+        if (withKeyword != this.WithKeyword || argumentList != this.ArgumentList)
+        {
+            var newNode = SyntaxFactory.WithElement(withKeyword, argumentList);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public WithElementSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(withKeyword, this.ArgumentList);
+    public WithElementSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.WithKeyword, argumentList);
+
+    public WithElementSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+}
+
 public abstract partial class QueryClauseSyntax : CSharpSyntaxNode
 {
     internal QueryClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -10270,7 +10315,7 @@ public abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSyntax
     {
     }
 
-    /// <summary>Gets the type keyword token ("class", "struct", "interface", "record", "extension").</summary>
+    /// <summary>Gets the type keyword token ("class", "struct", "interface", "record", "extension", "union").</summary>
     public abstract SyntaxToken Keyword { get; }
     public TypeDeclarationSyntax WithKeyword(SyntaxToken keyword) => WithKeywordCore(keyword);
     internal abstract TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword);
@@ -10485,6 +10530,7 @@ public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
 /// <para>This node is associated with the following syntax kinds:</para>
 /// <list type="bullet">
 /// <item><description><see cref="SyntaxKind.StructDeclaration"/></description></item>
+/// <item><description><see cref="SyntaxKind.UnionDeclaration"/></description></item>
 /// </list>
 /// </remarks>
 public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
@@ -10512,7 +10558,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    /// <summary>Gets the struct keyword token.</summary>
+    /// <summary>Gets the struct or union keyword token.</summary>
     public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
     public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
@@ -10585,7 +10631,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var newNode = SyntaxFactory.StructDeclaration(this.Kind(), attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }

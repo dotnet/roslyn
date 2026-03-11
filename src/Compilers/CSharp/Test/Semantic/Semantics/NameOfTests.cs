@@ -2348,7 +2348,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2()
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2_01()
         {
             var source = @"
 class C
@@ -2362,6 +2362,50 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
                 //     [Attr(nameof(Method<C>().Method))]
                 Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method<C>()'
+                //     [Attr(nameof(Method<C>().Method))]
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method<C>").WithArguments("C.Method<C>()").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2_02()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(P.P))]
+    C P => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     [Attr(nameof(P.P))]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "P").WithArguments("instance member in 'nameof'", "12.0").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2_03()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(this.P.P))]
+    C P => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            var expectedDiagnostics = new[]
+            {
+                // (4,18): error CS0027: Keyword 'this' is not available in the current context
+                //     [Attr(nameof(this.P.P))]
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 18)
             };
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
@@ -3251,6 +3295,49 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 // (14,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //             nameof(r[0]);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(14, 22));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_FieldInitializer([CombinatorialValues("", "static")] string modifier)
+        {
+            var source = $$"""
+                #pragma warning disable CS0169, CS0414, CS0649 // unused field
+                class C
+                {
+                    string F = nameof(D.M);
+                    D D;
+                }
+                class D
+                {
+                    public {{modifier}} void M() { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_Attribute([CombinatorialValues("", "static")] string modifier)
+        {
+            var source = $$"""
+                #pragma warning disable CS0169 // unused field
+                [A(nameof(D.M))] class C
+                {
+                    D D;
+                }
+                class D
+                {
+                    public {{modifier}} void M() { }
+                }
+                class A : System.Attribute
+                {
+                    public A(string s) { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
         }
     }
 }

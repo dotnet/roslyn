@@ -22,11 +22,10 @@ internal sealed class UpdateLogLevelHandler(ServerConfiguration serverConfigurat
 
     public bool RequiresLSPSolution => false;
 
-    public Task HandleNotificationAsync(UpdateLogLevelParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(UpdateLogLevelParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         var level = Enum.Parse<LogLevel>(request.LogLevelValue);
         serverConfiguration.LogConfiguration.UpdateLogLevel(level);
-        return Task.CompletedTask;
     }
 }
 

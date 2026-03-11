@@ -21,6 +21,8 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
     <!-- CodeLens provider is not part of Roslyn ServiceHub, we just use the existing ServiceHub package as a delivery vehicle -->
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\VisualStudio\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\SemanticSearch\Extensions\Microsoft.CodeAnalysis.SemanticSearch.Extensions.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,6 +70,7 @@
       <_R2RAssemblies Include="Microsoft.VisualStudio.Telemetry.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Threading.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch.dll" />
+
       <_R2RAssemblies Include="MessagePack.dll" />
       <_R2RAssemblies Include="Nerdback.Streams.dll" />
       <_R2RAssemblies Include="Newtonsoft.Json.dll" />

@@ -11,16 +11,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation;
 
-[ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Default)]
-[Shared]
-internal sealed class DefaultNavigateToLinkService : INavigateToLinkService
+[ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Default), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DefaultNavigateToLinkService() : INavigateToLinkService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DefaultNavigateToLinkService()
-    {
-    }
-
-    public Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
-        => SpecializedTasks.False;
+    public async Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
+        => false;
 }

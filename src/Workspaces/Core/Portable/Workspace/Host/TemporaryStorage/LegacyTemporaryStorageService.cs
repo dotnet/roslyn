@@ -50,9 +50,9 @@ internal sealed class LegacyTemporaryStorageService : ITemporaryStorageService
             return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
         }
 
-        public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
+        public async Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(ReadStream(cancellationToken));
+            return ReadStream(cancellationToken);
         }
 
         public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
@@ -92,8 +92,8 @@ internal sealed class LegacyTemporaryStorageService : ITemporaryStorageService
         public SourceText ReadText(CancellationToken cancellationToken = default)
             => _sourceText ?? throw new InvalidOperationException();
 
-        public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(ReadText(cancellationToken));
+        public async Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
+            => ReadText(cancellationToken);
 
         public void WriteText(SourceText text, CancellationToken cancellationToken = default)
         {
@@ -107,10 +107,9 @@ internal sealed class LegacyTemporaryStorageService : ITemporaryStorageService
             }
         }
 
-        public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
+        public async Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
         {
             WriteText(text, cancellationToken);
-            return Task.CompletedTask;
         }
     }
 }

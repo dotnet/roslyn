@@ -62,7 +62,7 @@ internal static partial class ISolutionExtensions
         }
 #endif
 
-        return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
     }
 
 #if WORKSPACE
@@ -82,7 +82,7 @@ internal static partial class ISolutionExtensions
         var project = solution.GetRequiredProject(documentId.ProjectId);
         var sourceGeneratedDocument = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
         if (sourceGeneratedDocument == null)
-            throw CreateDocumentNotFoundException();
+            throw CreateDocumentNotFoundException(documentId);
 
         return sourceGeneratedDocument;
     }
@@ -91,17 +91,17 @@ internal static partial class ISolutionExtensions
         => GetRequiredDocumentAsync(solution, documentId, includeSourceGenerated: false, cancellationToken);
 
     public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated, CancellationToken cancellationToken)
-        => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
+        => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
-        => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
+        => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException(documentId);
 #endif
 
     public static TextDocument GetRequiredAdditionalDocument(this Solution solution, DocumentId documentId)
-        => solution.GetAdditionalDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        => solution.GetAdditionalDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredAnalyzerConfigDocument(this Solution solution, DocumentId documentId)
-        => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredTextDocument(this Solution solution, DocumentId documentId)
     {
@@ -114,11 +114,18 @@ internal static partial class ISolutionExtensions
             throw new InvalidOperationException($"Use {nameof(GetRequiredTextDocumentAsync)} to get the {nameof(TextDocument)} for a `.{nameof(DocumentId.IsSourceGenerated)}=true` {nameof(DocumentId)}");
 #endif
 
-        throw CreateDocumentNotFoundException();
+        throw CreateDocumentNotFoundException(documentId);
     }
 
-    private static Exception CreateDocumentNotFoundException()
-        => new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+    public static Exception CreateDocumentNotFoundException(DocumentId? documentId)
+#if WORKSPACE
+        => CreateDocumentNotFoundException(documentId?.DebugName);
+#else
+        => CreateDocumentNotFoundException(documentId?.ToString());
+#endif
+
+    public static Exception CreateDocumentNotFoundException(string? debugName)
+        => new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, debugName ?? "Unknown"));
 
 #if WORKSPACE
     public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, IEnumerable<ProjectId> projectIds)

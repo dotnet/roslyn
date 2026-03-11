@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -259,6 +260,9 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
 
     public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => SemanticFacts.TryGetPrimaryConstructor(typeSymbol, out primaryConstructor);
+
+    public CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination)
+        => SemanticFacts.ClassifyConversion(semanticModel, expression, destination);
 
 #if WORKSPACE
 

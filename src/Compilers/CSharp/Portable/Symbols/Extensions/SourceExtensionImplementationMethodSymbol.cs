@@ -65,12 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            // Copy ORPA from the property onto the implementation accessors
+            // Copy some attributes from the property onto the implementation accessors
             if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
                 foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
                 {
-                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) ||
+                        attr.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
                     {
                         AddSynthesizedAttribute(ref attributes, attr);
                     }
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol
+        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbolBase
         {
             public ExtensionMetadataMethodParameterSymbol(SourceExtensionImplementationMethodSymbol containingMethod, ParameterSymbol sourceParameter) :
                 base(containingMethod, sourceParameter)
@@ -205,8 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     valueParameter.AddSynthesizedFlowAnalysisAttributes(ref attributes);
                 }
 
-                // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here
-                // as that would delegate to underlying parameter symbol
                 SourceParameterSymbolBase.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
             }
 

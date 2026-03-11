@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -185,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnderlyingMethod.IsImplicitlyDeclared;
             }
         }
+
+        internal override CallerUnsafeMode CallerUnsafeMode => UnderlyingMethod.CallerUnsafeMode;
 
         internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
@@ -364,5 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => UnderlyingMethod.HasUnscopedRefAttribute;
 
         internal sealed override bool UseUpdatedEscapeRules => UnderlyingMethod.UseUpdatedEscapeRules;
+
+        internal abstract override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes);
     }
 }

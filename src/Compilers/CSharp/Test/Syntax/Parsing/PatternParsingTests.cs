@@ -13299,5 +13299,1513 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void DesignatorBeforePropertyPattern()
+        {
+            UsingExpression("o is string s { Length: 5 }",
+                // (1,13): error CS8525: A variable designator must come after a property pattern.
+                // o is string s { Length: 5 }
+                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "s").WithLocation(1, 13));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Length");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void NotDesignatorBeforePropertyPattern1()
+        {
+            UsingExpression("o is string or { Length: 5 }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.NameColon);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Length");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void NotDesignatorBeforePropertyPattern2()
+        {
+            UsingExpression("o is string or { Length: 5 }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.NameColon);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Length");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void NotDesignatorBeforePropertyPattern3()
+        {
+            UsingExpression("o is string _ or { Length: 5 }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.DiscardDesignation);
+                        {
+                            N(SyntaxKind.UnderscoreToken);
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.NameColon);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Length");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void DiscardBeforePropertyPattern2()
+        {
+            UsingExpression("o is string _ { Length: 5 }",
+                // (1,13): error CS8525: A variable designator must come after a property pattern.
+                // o is string _ { Length: 5 }
+                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "_").WithLocation(1, 13));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Length");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void DesignatorBeforePropertyPatternInSwitchArm1()
+        {
+            UsingStatement("""
+                switch (x)
+                {
+                case M m { }:
+                    break;
+                }
+                """,
+                // (3,8): error CS8525: A variable designator must come after a property pattern.
+                // case M m { }:
+                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "m").WithLocation(3, 8));
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void DesignatorBeforePropertyPatternInSwitchArm2()
+        {
+            // Here, it's more likely that 'when' starts a when clause than being the name of a pattern designator.
+            UsingStatement("""
+                switch (x)
+                {
+                    case M when
+                    {
+                        return;
+                    }
+                }
+                """,
+                // (3,16): error CS1525: Invalid expression term '{'
+                //     case M when
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("{").WithLocation(3, 16),
+                // (3,16): error CS1003: Syntax error, ':' expected
+                //     case M when
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 16));
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                        N(SyntaxKind.WhenClause);
+                        {
+                            N(SyntaxKind.WhenKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ReturnStatement);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void WhenAsIdentifierInPattern1()
+        {
+            UsingStatement("""
+                if (x is string when { Length: 5 }) ;
+                """,
+                // (1,17): error CS8525: A variable designator must come after a property pattern.
+                // if (x is string when { Length: 5 }) ;
+                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "when").WithLocation(1, 17));
+
+            N(SyntaxKind.IfStatement);
+            {
+                N(SyntaxKind.IfKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.NameColon);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Length");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
+        public void WhenAsIdentifierInPattern2()
+        {
+            UsingStatement("""
+                if (x is string { Length: 5 } when) ;
+                """);
+
+            N(SyntaxKind.IfStatement);
+            {
+                N(SyntaxKind.IfKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.NameColon);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Length");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "when");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant1()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo) when flag => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "flag");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant2()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    CustomEnum.EnumTwo when flag => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "CustomEnum");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "EnumTwo");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "flag");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant3()
+        {
+            UsingExpression("""
+                (reqs, true) switch
+                {
+                    (CustomEnum.EnumTwo, _) when flag => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "reqs");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.TrueLiteralExpression);
+                        {
+                            N(SyntaxKind.TrueKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DiscardPattern);
+                                {
+                                    N(SyntaxKind.UnderscoreToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "flag");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant4()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo) => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant5()
+        {
+            UsingExpression("""
+                ((int)reqs) switch
+                       {
+                           (1) when flag => "ok",
+                       }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CastExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "reqs");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "flag");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant6()
+        {
+            UsingExpression("""
+                x is (A.B)when
+                """);
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.CastExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "when");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant7()
+        {
+            UsingExpression("""
+                x is (A.B) or (A.B)when
+                """);
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.CastExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "when");
+                            }
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant8()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo) when => "ok",
+                }
+                """,
+                // (3,31): error CS1001: Identifier expected
+                //     (CustomEnum.EnumTwo) when => "ok",
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(3, 31),
+                // (3,38): error CS1003: Syntax error, '=>' expected
+                //     (CustomEnum.EnumTwo) when => "ok",
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(3, 38),
+                // (3,38): error CS1525: Invalid expression term ','
+                //     (CustomEnum.EnumTwo) when => "ok",
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(3, 38));
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.SimpleLambdaExpression);
+                        {
+                            M(SyntaxKind.Parameter);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.StringLiteralExpression);
+                            {
+                                N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant9()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    ((CustomEnum.EnumTwo)when) => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CastExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "when");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant10()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when) => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ParenthesizedPattern);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                }
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "when");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant11()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant12()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) other => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "other");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant13()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                }
+                """,
+                // (3,61): error CS1001: Identifier expected
+                //     (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(3, 61),
+                // (3,68): error CS1003: Syntax error, '=>' expected
+                //     (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(3, 68),
+                // (3,68): error CS1525: Invalid expression term ','
+                //     (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(3, 68));
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.SimpleLambdaExpression);
+                        {
+                            M(SyntaxKind.Parameter);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.StringLiteralExpression);
+                            {
+                                N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant14()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when true => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.TrueLiteralExpression);
+                        {
+                            N(SyntaxKind.TrueKeyword);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
     }
 }

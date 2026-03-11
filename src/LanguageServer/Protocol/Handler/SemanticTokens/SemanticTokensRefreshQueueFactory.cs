@@ -10,26 +10,18 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(SemanticTokensRefreshQueue)), Shared]
-internal sealed class SemanticTokensRefreshQueueFactory : ILspServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SemanticTokensRefreshQueueFactory(
+    IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+    FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
-    private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
-    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SemanticTokensRefreshQueueFactory(
-        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-    {
-        _asyncListenerProvider = asynchronousOperationListenerProvider;
-        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-    }
-
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
 
-        return new SemanticTokensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager);
+        return new SemanticTokensRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher);
     }
 }

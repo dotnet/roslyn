@@ -656,10 +656,7 @@ namespace Microsoft.CodeAnalysis.Text
                         hash.Append(MemoryMarshal.AsBytes(charSpan));
                     }
 
-                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
-                    Span<byte> destination = stackalloc byte[128 / 8];
-                    hash.GetHashAndReset(destination);
-                    return destination.ToImmutableArray();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset());
                 }
                 finally
                 {
@@ -1322,6 +1319,41 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             throw new IOException(CodeAnalysisResources.StreamIsTooLong);
+        }
+
+        /// <returns>
+        /// If <paramref name="checksumAlgorithm"/> is <see cref="SourceHashAlgorithm.None"/>, returns this instance without modification.
+        /// Otherwise, returns a <see cref="SourceText"/> with the same <see cref="ChecksumAlgorithm"/> as <paramref name="checksumAlgorithm"/>, potentially by wrapping this instance.
+        /// </returns>
+        internal SourceText WithChecksumAlgorithmIfAny(SourceHashAlgorithm checksumAlgorithm)
+        {
+            if (checksumAlgorithm == SourceHashAlgorithm.None || checksumAlgorithm == ChecksumAlgorithm)
+                return this;
+
+            return new SourceTextWithAlgorithm(this, checksumAlgorithm);
+        }
+
+        private sealed class SourceTextWithAlgorithm : SourceText
+        {
+            private readonly SourceText _underlying;
+
+            public SourceTextWithAlgorithm(SourceText underlying, SourceHashAlgorithm checksumAlgorithm) : base(checksumAlgorithm: checksumAlgorithm)
+            {
+                Debug.Assert(checksumAlgorithm != SourceHashAlgorithm.None);
+                Debug.Assert(checksumAlgorithm != underlying.ChecksumAlgorithm);
+                _underlying = underlying;
+            }
+
+            public override char this[int position] => _underlying[position];
+
+            public override Encoding? Encoding => _underlying.Encoding;
+
+            public override int Length => _underlying.Length;
+
+            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+            {
+                _underlying.CopyTo(sourceIndex, destination, destinationIndex, count);
+            }
         }
     }
 }

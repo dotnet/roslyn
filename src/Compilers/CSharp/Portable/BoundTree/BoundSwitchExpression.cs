@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = this.DefaultLabel;
 
             BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
-            if (decisionDag.ContainsAnySynthesizedNodes())
+            if (!decisionDag.SuitableForLowering)
             {
                 decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(
                     compilation,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultLabel ??= new GeneratedLabelSymbol("default"),
                     BindingDiagnosticBag.Discarded,
                     forLowering: true);
-                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+                Debug.Assert(decisionDag.SuitableForLowering);
             }
 
             return decisionDag;

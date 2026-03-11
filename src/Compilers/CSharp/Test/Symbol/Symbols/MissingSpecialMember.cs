@@ -572,6 +572,7 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
+                    || special == SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
                     )
                 {
                     Assert.Null(symbol); // Not available
@@ -646,6 +647,8 @@ namespace System
                     case WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute:
                     case WellKnownType.System_MemoryExtensions:
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
@@ -654,6 +657,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_UnionAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IUnion:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray2:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray3:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray4:
@@ -1034,6 +1039,8 @@ namespace System
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
                     case WellKnownMember.System_MemoryExtensions__AsSpan_String:
@@ -1093,6 +1100,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:

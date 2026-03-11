@@ -25,10 +25,9 @@ internal sealed partial class CSharpUseDefaultLiteralCodeFixProvider() : SyntaxE
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseDefaultLiteralDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_default_expression, nameof(CSharpAnalyzersResources.Simplify_default_expression));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

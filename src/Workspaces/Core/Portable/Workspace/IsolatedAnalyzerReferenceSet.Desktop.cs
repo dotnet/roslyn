@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 internal sealed partial class IsolatedAnalyzerReferenceSet
 {
-    public static partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ImmutableArray<AnalyzerReference> references,
         SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
-        return ValueTask.FromResult(references);
+        return references;
     }
 
     public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(

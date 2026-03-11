@@ -41,13 +41,12 @@ internal abstract class AbstractUseCompoundAssignmentCodeFixProvider<
     protected abstract TExpressionSyntax Decrement(TExpressionSyntax left, bool postfix);
     protected abstract SyntaxTriviaList PrepareRightExpressionLeadingTrivia(SyntaxTriviaList initialTrivia);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_compound_assignment, nameof(AnalyzersResources.Use_compound_assignment));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -91,8 +90,6 @@ internal abstract class AbstractUseCompoundAssignmentCodeFixProvider<
                         (TExpressionSyntax)rightExpr);
                 });
         }
-
-        return Task.CompletedTask;
     }
 
     protected virtual bool PreferPostfix(ISyntaxFactsService syntaxFacts, TAssignmentSyntax currentAssignment)

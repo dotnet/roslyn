@@ -2160,6 +2160,21 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
+    public Task UnionTypeDeclaration1(TestHost testHost)
+        => TestAsync("union Union1(int, Union1) { }",
+            testHost,
+            TestOptions.RegularNext,
+            Keyword("union"),
+            Struct("Union1"),
+            Punctuation.OpenParen,
+            Keyword("int"),
+            Punctuation.Comma,
+            Identifier("Union1"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
     public Task InterfaceDeclaration1(TestHost testHost)
         => TestAsync("interface I1 { }",
             testHost,

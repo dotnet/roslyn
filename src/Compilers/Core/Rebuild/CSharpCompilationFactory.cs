@@ -9,6 +9,7 @@ using System.IO;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using CS = Microsoft.CodeAnalysis.CSharp;
 

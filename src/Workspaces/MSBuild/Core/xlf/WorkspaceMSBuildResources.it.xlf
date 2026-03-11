@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Failed_to_load_solution_0">
         <source>Failed to load solution: '{0}'</source>
-        <target state="new">Failed to load solution: '{0}'</target>
+        <target state="translated">Non è possibile caricare la soluzione: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_load_solution_filter_0">

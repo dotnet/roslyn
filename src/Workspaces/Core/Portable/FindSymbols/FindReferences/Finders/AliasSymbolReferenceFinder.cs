@@ -21,7 +21,7 @@ internal sealed class AliasSymbolReferenceFinder : AbstractReferenceFinder<IAlia
     protected override bool CanFind(IAliasSymbol symbol)
         => true;
 
-    protected override Task DetermineDocumentsToSearchAsync<TData>(
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
         IAliasSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
@@ -37,8 +37,6 @@ internal sealed class AliasSymbolReferenceFinder : AbstractReferenceFinder<IAlia
             if (document?.Project == project)
                 processResult(document, processResultData);
         }
-
-        return Task.CompletedTask;
     }
 
     protected override void FindReferencesInDocument<TData>(

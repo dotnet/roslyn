@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -604,6 +603,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     for (var current = symbol; current is not null; current = current.ContainingSymbol)
                     {
+start:
                         foreach (var attribute in current.GetAttributes())
                         {
                             if (attribute.AttributeClass is { Name: "ExperimentalAttribute", ContainingSymbol: INamespaceSymbol { Name: nameof(System.Diagnostics.CodeAnalysis), ContainingNamespace: { Name: nameof(System.Diagnostics), ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true } } } })
@@ -612,8 +612,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                     return "???";
 
                                 return diagnosticId;
-
                             }
+                        }
+
+                        if (current is IMethodSymbol { AssociatedSymbol: { } associatedSymbol })
+                        {
+                            current = associatedSymbol;
+                            goto start;
                         }
                     }
 
@@ -1039,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 private static bool CheckTypeParameterConstraints(ITypeParameterSymbol symbol)
                 {
-                    if (symbol.HasReferenceTypeConstraint() &&
+                    if (symbol.HasReferenceTypeConstraint &&
                         symbol.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.None)
                     {
                         // where T : class~

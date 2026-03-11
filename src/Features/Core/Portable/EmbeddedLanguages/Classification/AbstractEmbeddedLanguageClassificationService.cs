@@ -121,13 +121,14 @@ internal abstract class AbstractEmbeddedLanguageClassificationService :
         {
             if (token.Span.IntersectsWith(_textSpan) && _owner.SyntaxTokenKinds.Contains(token.RawKind))
             {
+                var (classifiers, identifier) = _owner.GetServices(_semanticModel, token, _cancellationToken);
                 var context = new EmbeddedLanguageClassificationContext(
-                    _solutionServices, _project, _semanticModel, token, _textSpan, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
+                    _solutionServices, _project, _semanticModel, token, _textSpan, _options, _owner.Info.VirtualCharService,
+                    languageIdentifier: identifier, _result, _cancellationToken);
 
-                var classifiers = _owner.GetServices(_semanticModel, token, _cancellationToken);
                 foreach (var classifier in classifiers)
                 {
-                    // If this classifier added values then need to check the other ones.
+                    // If this classifier added values then no need to check the other ones.
                     if (TryClassify(classifier.Value, context))
                         return;
                 }

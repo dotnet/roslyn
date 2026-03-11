@@ -28,10 +28,9 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider() : SyntaxEditorBas
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseDeconstructionDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Deconstruct_variable_declaration, nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration));
-        return Task.CompletedTask;
     }
 
     protected override Task FixAllAsync(

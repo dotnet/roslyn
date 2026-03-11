@@ -878,9 +878,9 @@ internal abstract partial class AbstractChangeNamespaceService<
                 ? container.DescendantNodes().First()
                 : container;
 
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, options, cancellationToken);
+            root = addImportService.AddImports(semanticModel, root, contextLocation, imports, generator, options, cancellationToken);
             document = document.WithSyntaxRoot(root);
         }
 

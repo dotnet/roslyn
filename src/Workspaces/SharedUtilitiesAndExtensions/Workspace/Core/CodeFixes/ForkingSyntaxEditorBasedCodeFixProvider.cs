@@ -45,11 +45,10 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         // Never try to fix the secondary diagnostics that were produced just to fade out code.
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var (title, equivalenceKey) = GetTitleAndEquivalenceKey(context);
         RegisterCodeFix(context, title, equivalenceKey);
-        return Task.CompletedTask;
     }
 
     protected sealed override async Task FixAllAsync(

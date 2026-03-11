@@ -39,6 +39,8 @@ internal sealed class TestSerializerService(
     private static readonly ImmutableDictionary<string, MetadataReference> s_wellKnownReferences = ImmutableDictionary.Create<string, MetadataReference>()
         .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePair.Create(pair.Value!, pair.Key)));
 
+    private static readonly ConcurrentDictionary<string, AnalyzerFileReference> s_cachedAnalyzerFileReferences = new();
+
     private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 
     protected override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer)
@@ -108,6 +110,22 @@ internal sealed class TestSerializerService(
         {
             return base.ReadAnalyzerReferenceFrom(reader);
         }
+    }
+
+    protected override AnalyzerFileReference GetOrCreateAnalyzerFileReference(string filePath)
+    {
+        if (!s_cachedAnalyzerFileReferences.TryGetValue(filePath, out var analyzerFileReference))
+        {
+            analyzerFileReference = base.GetOrCreateAnalyzerFileReference(filePath);
+            s_cachedAnalyzerFileReferences.TryAdd(filePath, analyzerFileReference);
+        }
+
+        return analyzerFileReference;
+    }
+
+    public static void ClearCachedTestReferences()
+    {
+        s_cachedAnalyzerFileReferences.Clear();
     }
 
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Test), Shared, PartNotDiscoverable]

@@ -31,6 +31,9 @@ parameters:
   - name: sha
     type: string
     default: 'None'
+  - name: EnforceLatestCommit
+    type: boolean
+    default: true
   # Set to 'stop' if you want to keep the test machines around for investigation after test completion.
   - name: testMachineCleanUpStrategy
     displayName: Test Machine Clean Up Strategy
@@ -93,6 +96,13 @@ stages:
     - checkout: RoslynMirror
       fetchDepth: 1
       fetchTags: false
+    - ${{ if ne(parameters.prNumber, 'None') }}:
+      - task: PowerShell@2
+        displayName: Setup branch for validation
+        inputs:
+          filePath: 'eng\setup-pr-validation.ps1'
+          arguments: "-sourceBranchName $(Build.SourceBranch) -prNumber ${{ parameters.prNumber }} -commitSHA ${{ parameters.sha }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
+        condition: succeeded()
     - template: eng/pipelines/test-integration-job.yml
       parameters:
         configuration: $(_configuration)

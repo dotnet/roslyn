@@ -22,7 +22,7 @@ public sealed partial class AsyncLazyTests
         // Note, this test may pass even if GetValueAsync posted a task to the threadpool, since the 
         // current thread may context switch out and allow the threadpool to complete the task before
         // we check the state.  However, a failure here definitely indicates a bug in AsyncLazy.
-        var lazy = AsyncLazy.Create(static c => Task.FromResult(5));
+        var lazy = AsyncLazy.Create(static async c => 5);
         var t = lazy.GetValueAsync(CancellationToken.None);
         Assert.Equal(TaskStatus.RanToCompletion, t.Status);
         Assert.Equal(5, t.Result);
@@ -241,7 +241,7 @@ public sealed partial class AsyncLazyTests
         };
 
         var lazy = AsyncLazy.Create(
-            static (synchronousComputation, c) => Task.FromResult(synchronousComputation(c)),
+            static async (synchronousComputation, c) => synchronousComputation(c),
             includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation(c) : null,
             arg: synchronousComputation);
 
@@ -263,7 +263,7 @@ public sealed partial class AsyncLazyTests
     [Fact]
     public void SynchronousRequestShouldCacheValueWithAsynchronousComputeFunction()
     {
-        var lazy = AsyncLazy.Create(static c => Task.FromResult(new object()));
+        var lazy = AsyncLazy.Create(static async c => new object());
 
         var firstRequestResult = lazy.GetValue(CancellationToken.None);
         var secondRequestResult = lazy.GetValue(CancellationToken.None);
@@ -339,7 +339,7 @@ public sealed partial class AsyncLazyTests
         Assert.Equal(TaskStatus.Canceled, asynchronousRequestToBeCancelled.Status);
 
         // Step 3: let's now let an async request run normally, producing a value
-        asynchronousComputation = _ => Task.FromResult("Returned from asynchronous computation: " + Guid.NewGuid());
+        asynchronousComputation = async _ => "Returned from asynchronous computation: " + Guid.NewGuid();
 
         var asynchronousRequest = lazy.GetValueAsync(CancellationToken.None);
 
@@ -369,7 +369,7 @@ public sealed partial class AsyncLazyTests
         var asynchronousRequestCancellationToken = new CancellationTokenSource();
 
         var lazy = AsyncLazy.Create(
-            asynchronousComputeFunction: static (arg, ct) =>
+            asynchronousComputeFunction: static async (arg, ct) =>
             {
                 arg.asynchronousRequestCancellationToken.Cancel();
 
@@ -381,7 +381,7 @@ public sealed partial class AsyncLazyTests
                 arg.asynchronousComputationReadyToComplete.Set();
                 arg.asynchronousComputationShouldCompleteEvent.WaitOne();
 
-                return Task.FromResult("Returned from asynchronous computation: " + Guid.NewGuid());
+                return "Returned from asynchronous computation: " + Guid.NewGuid();
             },
             synchronousComputeFunction: static (arg, _) =>
             {

@@ -10800,7 +10800,7 @@ public unsafe class C
                            typeInfo.Type.ToTestDisplayString(includeNonNullable: false));
             AssertEx.Equal("System.Func<delegate*<System.Int32, System.Void>>",
                            typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
-            Assert.Equal(Conversion.NoConversion, conversion);
+            Assert.False(conversion.Exists);
 
             typeInfo = model.GetTypeInfo(lambdas[1]);
             conversion = model.GetConversion(lambdas[1]);

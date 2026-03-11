@@ -24,7 +24,7 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
     protected sealed override bool CanFind(TSymbol symbol)
         => true;
 
-    protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
+    protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
         TSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
@@ -36,17 +36,16 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
     {
         var location = symbol.Locations.FirstOrDefault();
         if (location == null || !location.IsInSource)
-            return Task.CompletedTask;
+            return;
 
         var document = project.GetDocument(location.SourceTree);
         if (document == null)
-            return Task.CompletedTask;
+            return;
 
         if (documents != null && !documents.Contains(document))
-            return Task.CompletedTask;
+            return;
 
         processResult(document, processResultData);
-        return Task.CompletedTask;
     }
 
     protected sealed override void FindReferencesInDocument<TData>(

@@ -27,6 +27,15 @@ internal abstract class EditAndContinueTestVerifier
 {
     public const EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
 
+    public const EditAndContinueCapabilities NetFrameworkCapabilities =
+        EditAndContinueCapabilities.Baseline |
+        EditAndContinueCapabilities.AddInstanceFieldToExistingType |
+        EditAndContinueCapabilities.AddStaticFieldToExistingType |
+        EditAndContinueCapabilities.AddMethodToExistingType |
+        EditAndContinueCapabilities.NewTypeDefinition |
+        EditAndContinueCapabilities.ChangeCustomAttributes |
+        EditAndContinueCapabilities.UpdateParameters;
+
     public const EditAndContinueCapabilities Net5RuntimeCapabilities =
         EditAndContinueCapabilities.Baseline |
         EditAndContinueCapabilities.AddInstanceFieldToExistingType |
@@ -267,7 +276,7 @@ internal abstract class EditAndContinueTestVerifier
         }
 
         var duplicateNonPartial = allEdits
-            .Where(e => e.PartialType == null && e.DeletedSymbolContainer is null)
+            .Where(e => e is { PartialType: null, DeletedSymbolContainer: null })
             .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
             .Where(g => g.Count() > 1)
             .Select(g => g.Key);

@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -27,7 +29,8 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         MemberDeclarationSyntax,
         BaseNamespaceDeclarationSyntax,
         EnumDeclarationSyntax,
-        TypeDeclarationSyntax>
+        TypeDeclarationSyntax,
+        LocalFunctionStatementSyntax>
 {
     protected override SyntaxList<MemberDeclarationSyntax> GetMembers(CompilationUnitSyntax root)
         => root.Members;
@@ -37,6 +40,21 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
 
     protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax typeDeclaration)
         => typeDeclaration.Members;
+
+    protected override void AddNamespace(
+        DocumentId documentId, BaseNamespaceDeclarationSyntax namespaceDeclaration, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
+    {
+        var name = namespaceDeclaration.Name;
+        nameBuilder.Append(name.ToString());
+
+        items.Add(new(
+            documentId,
+            nameBuilder.ToStringAndClear(),
+            Glyph.Namespace,
+            hasItems: namespaceDeclaration.Members.Count > 0,
+            namespaceDeclaration,
+            name.GetFirstToken()));
+    }
 
     protected override bool TryAddType(
         DocumentId documentId, MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
@@ -186,11 +204,13 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
             var glyph = GlyphExtensions.GetGlyph(
                 isExtension ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method, accessibility);
 
+            var hasItems = HasDescendentLocalFunctions(methodDeclaration);
+
             items.Add(new(
                 documentId,
                 nameBuilder.ToStringAndClear(),
                 glyph,
-                hasItems: false,
+                hasItems: hasItems,
                 methodDeclaration,
                 methodDeclaration.Identifier));
         }
@@ -204,9 +224,20 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
 
                 var accessibility = GetAccessibility(fieldDeclaration.GetRequiredParent(), fieldDeclaration.Modifiers);
-                var kind = fieldDeclaration is EventFieldDeclarationSyntax
-                    ? DeclaredSymbolInfoKind.Event
-                    : DeclaredSymbolInfoKind.Field;
+                var isConst = fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword);
+                DeclaredSymbolInfoKind kind;
+                if (fieldDeclaration is EventFieldDeclarationSyntax)
+                {
+                    kind = DeclaredSymbolInfoKind.Event;
+                }
+                else if (isConst)
+                {
+                    kind = DeclaredSymbolInfoKind.Constant;
+                }
+                else
+                {
+                    kind = DeclaredSymbolInfoKind.Field;
+                }
 
                 items.Add(new(
                     documentId,
@@ -233,7 +264,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 documentId,
                 nameBuilder.ToStringAndClear(),
                 glyph,
-                hasItems: false,
+                hasItems: HasDescendentLocalFunctions(operatorDeclaration),
                 operatorDeclaration,
                 operatorDeclaration.OperatorToken));
         }
@@ -253,7 +284,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 documentId,
                 nameBuilder.ToStringAndClear(),
                 glyph,
-                hasItems: false,
+                hasItems: HasDescendentLocalFunctions(operatorDeclaration),
                 operatorDeclaration,
                 operatorDeclaration.Type.GetFirstToken()));
         }
@@ -273,7 +304,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 documentId,
                 nameBuilder.ToStringAndClear(),
                 glyph,
-                hasItems: false,
+                hasItems: HasDescendentLocalFunctions(declaration),
                 declaration,
                 identifier));
         }
@@ -291,7 +322,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 documentId,
                 nameBuilder.ToStringAndClear(),
                 glyph,
-                hasItems: false,
+                hasItems: HasDescendentLocalFunctions(propertyDeclaration),
                 propertyDeclaration,
                 propertyDeclaration.Identifier));
         }
@@ -354,6 +385,39 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 member,
                 member.Identifier));
         }
+    }
+
+    protected override ImmutableArray<LocalFunctionStatementSyntax> GetMemberDeclarationMembers(MemberDeclarationSyntax memberDeclaration)
+        => GetLocalFunctions(memberDeclaration);
+
+    protected override ImmutableArray<LocalFunctionStatementSyntax> GetMemberStatementMembers(LocalFunctionStatementSyntax memberDeclaration)
+        => GetLocalFunctions(memberDeclaration);
+
+    protected override void AddMemberStatement(DocumentId documentId, LocalFunctionStatementSyntax statement, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
+    {
+        nameBuilder.Append(statement.Identifier.ValueText);
+        AppendTypeParameterList(nameBuilder, statement.TypeParameterList);
+        AppendParameterList(nameBuilder, statement.ParameterList);
+        nameBuilder.Append(" : ");
+        AppendType(statement.ReturnType, nameBuilder);
+
+        items.Add(new(
+            documentId,
+            nameBuilder.ToStringAndClear(),
+            Glyph.MethodPrivate,
+            hasItems: HasDescendentLocalFunctions(statement),
+            statement,
+            statement.Identifier));
+    }
+
+    private static bool HasDescendentLocalFunctions(SyntaxNode node) => GetLocalFunctions(node).Any();
+
+    private static ImmutableArray<LocalFunctionStatementSyntax> GetLocalFunctions(SyntaxNode node)
+    {
+        var localFunctions = node.DescendantNodes(descendIntoChildren: (n) =>
+            // Always descend from the original node even if its a local function, but do not descend further into descendent local functions.
+            n == node || n is not LocalFunctionStatementSyntax).OfType<LocalFunctionStatementSyntax>().ToImmutableArray();
+        return localFunctions;
     }
 
     private static void AppendTypeParameterList(

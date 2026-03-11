@@ -3263,7 +3263,7 @@ public " + keyword + @" Test2(
     int M1() => P1;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             var test1 = comp.GetTypeByMetadataName("Test1");
             var ctor = test1.InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
 
@@ -5429,7 +5429,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(literal.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(literal.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle2(SyntaxNodeAnalysisContext context)
@@ -5447,7 +5447,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle3(SyntaxNodeAnalysisContext context)
@@ -5465,7 +5465,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle4(SyntaxNodeAnalysisContext context)
@@ -5494,7 +5494,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(record.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(record.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle7(SyntaxNodeAnalysisContext context)
@@ -6965,7 +6965,7 @@ public class Derived(int X) : Base(X);
 class Attr : System.Attribute {}
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -6991,7 +6991,7 @@ public class Derived() : Base(M(out var y))
 class Attr : System.Attribute {}
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

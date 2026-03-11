@@ -10,6 +10,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -55,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
-                return _underlyingType.MightContainExtensionMethods;
+                return _underlyingType.MightContainExtensions;
             }
         }
 
@@ -258,5 +260,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingType.GetGuidString(out guidString);
         }
+
+        // If we need to un-seal this method, we should make it abstract.
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

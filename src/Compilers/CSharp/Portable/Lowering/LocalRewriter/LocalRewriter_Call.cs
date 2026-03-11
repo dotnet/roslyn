@@ -614,6 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
+                                case ConversionKind.Union: // https://github.com/dotnet/roslyn/issues/82636: Add coverage
                                 // expression trees rewrite this later.
                                 // it is a kind of user defined conversions on IntPtr and in some cases can fail
                                 case ConversionKind.IntPtr:
@@ -689,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (methodOrIndexer.IsExtensionBlockMember())
                 {
-                    refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
+                    refKind = GetExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
                 }
                 else
                 {
@@ -946,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private RefKind GetNewExtensionMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
+        private RefKind GetExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
         {
             Debug.Assert(rewrittenReceiver.Type is { });
             Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });

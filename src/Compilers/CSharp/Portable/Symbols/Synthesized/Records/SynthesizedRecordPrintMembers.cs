@@ -216,10 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (!value.Type.IsRestrictedType())
                     {
                         // Otherwise, an error has been reported elsewhere (SourceMemberFieldSymbol.TypeChecks)
+                        var objectType = F.SpecialType(SpecialType.System_Object);
+                        Conversion c = F.ClassifyEmitConversion(value, objectType);
+                        Debug.Assert(c.IsImplicit);
+                        Debug.Assert(c.IsIdentity || c.IsReference || c.IsBoxing);
                         block.Add(F.ExpressionStatement(
                             F.Call(receiver: builder,
                                 F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
-                                F.Convert(F.SpecialType(SpecialType.System_Object), value))));
+                                F.Convert(objectType, value, c))));
                     }
                 }
 
