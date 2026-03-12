@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -46,16 +47,16 @@ internal sealed class AutoLoadProjectsInitializer(
             return;
         }
 
-        var solutionLoadSettings = TryGetSolutionToLoadFromVSCodeSettings(workspaceFolders, _logger);
-        if (solutionLoadSettings.IsDefaultSolutionLoadDisabled)
+        var (isLoadingDisabled, solutionPath) = TryGetVSCodeSolutionSettings(workspaceFolders, _logger);
+        if (isLoadingDisabled)
         {
             _logger.LogInformation("Using VS Code settings to disable auto loading solution on startup.");
             return;
         }
-        else if (solutionLoadSettings.DefaultSolutionPath is not null)
+        else if (solutionPath is not null)
         {
-            _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionLoadSettings.DefaultSolutionPath);
-            projectSystem.OpenSolutionAsync(solutionLoadSettings.DefaultSolutionPath).ReportNonFatalErrorAsync().Forget();
+            _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
+            await StartAndReportProgressAsync(() => projectSystem.OpenSolutionAsync(solutionPath));
             return;
         }
 
@@ -63,21 +64,17 @@ internal sealed class AutoLoadProjectsInitializer(
         if (workspaceFolders.Length == 1)
         {
             var folder = workspaceFolders[0];
-            if (folder.DocumentUri.ParsedUri is not null && folder.DocumentUri.ParsedUri.Scheme == Uri.UriSchemeFile)
+            if (TryGetFolderPath(folder, _logger, out var folderPath))
             {
-                var folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.ParsedUri);
-                if (Directory.Exists(folderPath))
-                {
-                    var solutionFiles = Directory.EnumerateFiles(folderPath, "*.sln", SearchOption.TopDirectoryOnly)
-                        .Concat(Directory.EnumerateFiles(folderPath, "*.slnx", SearchOption.TopDirectoryOnly))
-                        .ToArray();
+                var solutionFiles = Directory.EnumerateFiles(folderPath, "*.sln", SearchOption.TopDirectoryOnly)
+                    .Concat(Directory.EnumerateFiles(folderPath, "*.slnx", SearchOption.TopDirectoryOnly))
+                    .ToArray();
 
-                    if (solutionFiles.Length == 1)
-                    {
-                        _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
-                        await StartAndReportProgressAsync(() => projectSystem.OpenSolutionAsync(solutionFiles[0]));
-                        return;
-                    }
+                if (solutionFiles.Length == 1)
+                {
+                    _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
+                    await StartAndReportProgressAsync(() => projectSystem.OpenSolutionAsync(solutionFiles[0]));
+                    return;
                 }
             }
         }
@@ -86,20 +83,10 @@ internal sealed class AutoLoadProjectsInitializer(
         foreach (var folder in workspaceFolders)
         {
             _logger.LogTrace("Searching for projects to load in workspace folder: {FolderUri}", folder.DocumentUri);
-            if (folder.DocumentUri.ParsedUri is null || folder.DocumentUri.ParsedUri.Scheme != Uri.UriSchemeFile)
+            if (TryGetFolderPath(folder, _logger, out var folderPath))
             {
-                _logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping.", folder.DocumentUri);
-                continue;
+                projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", SearchOption.AllDirectories));
             }
-
-            var folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.ParsedUri);
-            if (!Directory.Exists(folderPath))
-            {
-                _logger.LogWarning("Workspace folder path {FolderPath} does not exist, skipping.", folderPath);
-                continue;
-            }
-
-            projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", SearchOption.AllDirectories));
         }
 
         _logger.LogInformation("Discovered {count} projects to auto load", projectFiles.Count);
@@ -131,47 +118,58 @@ internal sealed class AutoLoadProjectsInitializer(
         }
     }
 
-    internal static VSCodeSolutionLoadSettings TryGetSolutionToLoadFromVSCodeSettings(WorkspaceFolder[] workspaceFolders, ILogger logger)
+    internal static bool TryGetFolderPath(WorkspaceFolder folder, ILogger logger, [NotNullWhen(returnValue: true)] out string? folderPath)
     {
-        Contract.ThrowIfTrue(workspaceFolders.Length == 0);
-
-        for (var i = 0; i < workspaceFolders.Length; i++)
+        if (folder.DocumentUri.ParsedUri is null || folder.DocumentUri.ParsedUri.Scheme != Uri.UriSchemeFile)
         {
-            var folder = workspaceFolders[i];
-            if (folder.DocumentUri.ParsedUri is null || folder.DocumentUri.ParsedUri.Scheme != Uri.UriSchemeFile)
-            {
-                logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping VS Code settings lookup.", folder.DocumentUri);
-                continue;
-            }
+            logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping.", folder.DocumentUri);
+            folderPath = null;
+            return false;
+        }
 
-            var folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.ParsedUri);
-            if (!Directory.Exists(folderPath))
-            {
-                logger.LogWarning("Workspace folder path {FolderPath} does not exist, skipping VS Code settings lookup.", folderPath);
-                continue;
-            }
+        folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.ParsedUri);
+        if (!Directory.Exists(folderPath))
+        {
+            logger.LogWarning("Workspace folder path {FolderPath} does not exist, skipping.", folderPath);
+            return false;
+        }
 
-            var settings = VSCodeSettings.Read(Path.Combine(folderPath, ".vscode", "settings.json"), logger);
-            if (workspaceFolders.Length == 1 && settings.IsDefaultSolutionLoadDisabled)
-            {
-                return VSCodeSolutionLoadSettings.Disabled;
-            }
+        return true;
+    }
 
-            var solutionPath = settings.ResolveDefaultSolutionPath(folderPath);
-            if (solutionPath is not null)
+    internal static (bool isLoadingDisabled, string? solutionPath) TryGetVSCodeSolutionSettings(WorkspaceFolder[] workspaceFolders, ILogger logger)
+    {
+        foreach (var folder in workspaceFolders)
+        {
+            logger.LogTrace("Searching for VS Code settings to load in workspace folder: {FolderUri}", folder.DocumentUri);
+
+            if (TryGetFolderPath(folder, logger, out var folderPath)
+                && VSCodeSettings.TryRead(Path.Combine(folderPath, ".vscode", "settings.json"), logger, out var settings)
+                && settings.TryGetStringSetting(VSCodeSettings.Names.DefaultSolution) is { Length: > 0 } defaultSolution)
             {
-                return new VSCodeSolutionLoadSettings(isDefaultSolutionLoadDisabled: false, defaultSolutionPath: solutionPath);
+                var isLoadingDisabled = string.Equals(defaultSolution, "disable", StringComparison.Ordinal);
+                if (isLoadingDisabled)
+                {
+                    if (workspaceFolders.Length == 1)
+                        return (isLoadingDisabled: true, solutionPath: null);
+
+                    continue;
+                }
+
+                var solutionPath = Path.IsPathRooted(defaultSolution)
+                    ? defaultSolution
+                    : Path.GetFullPath(Path.Combine(folderPath, defaultSolution));
+
+                if (!File.Exists(solutionPath))
+                {
+                    logger.LogWarning("Default solution path {SolutionPath} does not exist, skipping.", solutionPath);
+                    continue;
+                }
+
+                return (isLoadingDisabled: false, solutionPath);
             }
         }
 
         return default;
-    }
-
-    internal readonly struct VSCodeSolutionLoadSettings(bool isDefaultSolutionLoadDisabled, string? defaultSolutionPath)
-    {
-        public static VSCodeSolutionLoadSettings Disabled => new(isDefaultSolutionLoadDisabled: true, defaultSolutionPath: null);
-
-        public bool IsDefaultSolutionLoadDisabled { get; } = isDefaultSolutionLoadDisabled;
-        public string? DefaultSolutionPath { get; } = defaultSolutionPath;
     }
 }

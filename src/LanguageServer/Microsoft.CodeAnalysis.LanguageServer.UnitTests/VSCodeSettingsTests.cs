@@ -17,61 +17,44 @@ public sealed class VSCodeSettingsTests : IDisposable
         => _tempRoot.Dispose();
 
     [Fact]
-    public void Parse_ReadsDotnetDefaultSolution()
+    public void TryRead_ReadsDotnetDefaultSolution()
     {
-        var settings = VSCodeSettings.Parse("""
+        var settings = TryReadSettings("""
             {
               "dotnet.defaultSolution": "src/App.sln"
             }
             """);
 
-        Assert.Equal("src/App.sln", settings.DefaultSolution);
-        Assert.False(settings.IsDefaultSolutionLoadDisabled);
+        Assert.Equal("src/App.sln", settings.TryGetStringSetting(VSCodeSettings.Names.DefaultSolution));
     }
 
     [Fact]
-    public void Parse_AllowsJsonCommentsAndTrailingCommas()
+    public void TryRead_AllowsJsonCommentsAndTrailingCommas()
     {
-        var settings = VSCodeSettings.Parse("""
+        var settings = TryReadSettings("""
             {
               // comment
               "dotnet.defaultSolution": "src/App.sln",
             }
             """);
 
-        Assert.Equal("src/App.sln", settings.DefaultSolution);
+        Assert.Equal("src/App.sln", settings.TryGetStringSetting(VSCodeSettings.Names.DefaultSolution));
     }
 
     [Fact]
-    public void Parse_DisableSuppressesDefaultSolution()
+    public void TryRead_ReadsDisableDefaultSolutionValue()
     {
-        var settings = VSCodeSettings.Parse("""
+        var settings = TryReadSettings("""
             {
               "dotnet.defaultSolution": "disable"
             }
             """);
 
-        Assert.Null(settings.DefaultSolution);
-        Assert.True(settings.IsDefaultSolutionLoadDisabled);
+        Assert.Equal("disable", settings.TryGetStringSetting(VSCodeSettings.Names.DefaultSolution));
     }
 
     [Fact]
-    public void ResolveDefaultSolutionPath_ResolvesRelativePathAgainstWorkspaceFolder()
-    {
-        var workspaceFolder = _tempRoot.CreateDirectory();
-        var settings = VSCodeSettings.Parse("""
-            {
-              "dotnet.defaultSolution": "src/App.sln"
-            }
-            """);
-
-        var resolvedPath = settings.ResolveDefaultSolutionPath(workspaceFolder.Path);
-
-        Assert.Equal(Path.Combine(workspaceFolder.Path, "src", "App.sln"), resolvedPath);
-    }
-
-    [Fact]
-    public void TryGetSolutionToLoadFromVSCodeSettings_SingleFolderDisableSuppressesAutoLoad()
+    public void TryGetVSCodeSolutionSettings_SingleFolderDisableSuppressesAutoLoad()
     {
         var workspaceFolder = CreateWorkspaceFolder("single", """
             {
@@ -79,14 +62,14 @@ public sealed class VSCodeSettingsTests : IDisposable
             }
             """);
 
-        var solutionPath = AutoLoadProjectsInitializer.TryGetSolutionToLoadFromVSCodeSettings([workspaceFolder], NullLogger.Instance);
+        var (isLoadingDisabled, solutionPath) = AutoLoadProjectsInitializer.TryGetVSCodeSolutionSettings([workspaceFolder], NullLogger.Instance);
 
-        Assert.True(solutionPath.IsDefaultSolutionLoadDisabled);
-        Assert.Null(solutionPath.DefaultSolutionPath);
+        Assert.True(isLoadingDisabled);
+        Assert.Null(solutionPath);
     }
 
     [Fact]
-    public void TryGetSolutionToLoadFromVSCodeSettings_MultiFolderUsesFirstConfiguredSolution()
+    public void TryGetVSCodeSolutionSettings_MultiFolderUsesFirstConfiguredSolution()
     {
         var firstFolder = CreateWorkspaceFolder("first", """
             {
@@ -98,22 +81,47 @@ public sealed class VSCodeSettingsTests : IDisposable
               "dotnet.defaultSolution": "eng/App.slnx"
             }
             """);
+        CreateSolutionFile(secondFolder, "eng/App.slnx");
 
-        var solutionPath = AutoLoadProjectsInitializer.TryGetSolutionToLoadFromVSCodeSettings([firstFolder, secondFolder], NullLogger.Instance);
+        var (isLoadingDisabled, solutionPath) = AutoLoadProjectsInitializer.TryGetVSCodeSolutionSettings([firstFolder, secondFolder], NullLogger.Instance);
 
-        Assert.Equal(Path.Combine(ProtocolConversions.GetDocumentFilePathFromUri(secondFolder.DocumentUri.GetRequiredParsedUri()), "eng", "App.slnx"), solutionPath.DefaultSolutionPath);
+        Assert.False(isLoadingDisabled);
+        Assert.Equal(Path.Combine(ProtocolConversions.GetDocumentFilePathFromUri(secondFolder.DocumentUri.GetRequiredParsedUri()), "eng", "App.slnx"), solutionPath);
+    }
+
+    private string WriteSettingsFile(string settingsJson)
+    {
+        var folder = _tempRoot.CreateDirectory();
+        var settingsDirectory = folder.CreateDirectory(".vscode");
+        var settingsPath = Path.Combine(settingsDirectory.Path, "settings.json");
+        File.WriteAllText(settingsPath, settingsJson);
+        return settingsPath;
+    }
+
+    private VSCodeSettings TryReadSettings(string settingsJson)
+    {
+        var settingsPath = WriteSettingsFile(settingsJson);
+        Assert.True(VSCodeSettings.TryRead(settingsPath, NullLogger.Instance, out var settings));
+        return settings;
     }
 
     private WorkspaceFolder CreateWorkspaceFolder(string name, string settingsJson)
     {
-        var folder = _tempRoot.CreateDirectory();
-        var settingsDirectory = folder.CreateDirectory(".vscode");
-        File.WriteAllText(Path.Combine(settingsDirectory.Path, "settings.json"), settingsJson);
+        var settingsPath = WriteSettingsFile(settingsJson);
+        var folder = Path.GetDirectoryName(Path.GetDirectoryName(settingsPath));
 
         return new WorkspaceFolder
         {
             Name = name,
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.Path),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder),
         };
+    }
+
+    private static void CreateSolutionFile(WorkspaceFolder folder, string relativePath)
+    {
+        var folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.GetRequiredParsedUri());
+        var solutionPath = Path.Combine(folderPath, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(solutionPath)!);
+        File.WriteAllText(solutionPath, string.Empty);
     }
 }
