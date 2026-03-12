@@ -103,7 +103,7 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
 
             var splicedDocument = forkedSolution.GetRequiredDocument(document.Id);
 
-            // Use debugger-specific completion options, matching the overrides applied by the LSP DebuggerCompletionHandler.
+            // Use debugger-specific completion options, matching the Visual Studio debugger completion path.
             var completionOptions = Completion.CompletionOptions.Default.WithDebuggerOverrides();
 
             var completionService = splicedDocument.GetRequiredLanguageService<Completion.CompletionService>();
