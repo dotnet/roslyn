@@ -108,7 +108,7 @@ public sealed class VSCodeSettingsTests : IDisposable
     private WorkspaceFolder CreateWorkspaceFolder(string name, string settingsJson)
     {
         var settingsPath = WriteSettingsFile(settingsJson);
-        var folder = Path.GetDirectoryName(Path.GetDirectoryName(settingsPath));
+        var folder = Path.GetDirectoryName(Path.GetDirectoryName(settingsPath))!;
 
         return new WorkspaceFolder
         {
