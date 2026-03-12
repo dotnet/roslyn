@@ -9236,11 +9236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Tries to bind an implicit Index/Range pattern via extensions.
+        /// Tries to bind an implicit Index/Range pattern including extension scopes.
         /// Returns true if found applicable candidates (an implicit indexer is considered applicable when
         /// we have an applicable Length/Count and an applicable this[int]/Slice(int, int)).
         /// </summary>
-        private bool TryBindExtensionImplicitIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments,
+        private bool TryBindImplicitIndexerInAnyScope(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? extensionIndexerAccess)
         {
             Debug.Assert(left is not null);
@@ -9259,7 +9259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments? actualExtensionLengthOrCountArguments = null;
             AnalyzedArguments? actualExtensionIntIndexerOrSliceArguments = null;
 
-            bool result = tryBindExtensionImplicitIndexer(
+            bool result = tryBindImplicitIndexerInAnyScope(
                 syntax, left, analyzedArguments, binder: this, ref useSiteInfo, diagnostics,
                 ref analyzedIntIndexerOrSliceArguments, ref intIndexerOrSliceArgumentPlaceholders,
                 ref actualExtensionLengthOrCountArguments, ref actualExtensionIntIndexerOrSliceArguments,
@@ -9272,7 +9272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
 
             // Returns true if we should stop searching after the implicit pattern lookup.
-            static bool tryBindExtensionImplicitIndexer(
+            static bool tryBindImplicitIndexerInAnyScope(
                 SyntaxNode syntax,
                 BoundExpression receiver,
                 AnalyzedArguments arguments,
@@ -10842,7 +10842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? fallbackIndexerAccess = null;
             bool foundApplicableImplicitIndexer = false;
-            bool foundApplicableExtensionIndexer = false;
+            bool foundApplicableFallbackIndexer = false;
             if (!foundApplicableRealInstanceIndexer)
             {
                 var instanceImplicitIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
@@ -10855,21 +10855,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var extensionIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                    foundApplicableExtensionIndexer = TryBindExtensionRealIndexer(node, expr, analyzedArguments, ref useSiteInfo, extensionIndexerDiagnostics, out fallbackIndexerAccess);
-                    if (!foundApplicableExtensionIndexer)
+                    // Now start consider extensions
+                    var fallbackIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                    foundApplicableFallbackIndexer = TryBindExtensionRealIndexer(node, expr, analyzedArguments, ref useSiteInfo, fallbackIndexerDiagnostics, out fallbackIndexerAccess);
+                    if (!foundApplicableFallbackIndexer)
                     {
-                        foundApplicableExtensionIndexer = TryBindExtensionImplicitIndexer(node, expr, analyzedArguments, ref useSiteInfo, extensionIndexerDiagnostics, out fallbackIndexerAccess);
+                        foundApplicableFallbackIndexer = TryBindImplicitIndexerInAnyScope(node, expr, analyzedArguments, ref useSiteInfo, fallbackIndexerDiagnostics, out fallbackIndexerAccess);
                     }
 
-                    if (foundApplicableExtensionIndexer)
+                    if (foundApplicableFallbackIndexer)
                     {
                         foundApplicableRealInstanceIndexer = true;
                         indexerAccessExpression = fallbackIndexerAccess;
-                        diagnostics.AddRange(extensionIndexerDiagnostics);
+                        diagnostics.AddRange(fallbackIndexerDiagnostics);
                     }
 
-                    extensionIndexerDiagnostics.Free();
+                    fallbackIndexerDiagnostics.Free();
                 }
 
                 instanceImplicitIndexerDiagnostics.Free();

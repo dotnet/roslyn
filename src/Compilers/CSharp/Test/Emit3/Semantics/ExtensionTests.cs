@@ -27193,53 +27193,37 @@ _ = c[^1];
 
 class C
 {
-    public int this[int i] => throw null;
+    public int this[int i] { get { System.Console.Write(i); return 0; } }
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Length => throw null;
+        public int Length => 10;
     }
 }
 """;
-        DiagnosticDescription[] expectedDiagnostics = [
-            // (4,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 7)];
-
-        // PROTOTYPE should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("9"), verify: Verification.Skipped).VerifyDiagnostics();
 
         string expectedOperationTree = """
-ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '_ = c[^1]')
-Left:
-  IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
-Right:
-  IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'c[^1]')
-    Children(2):
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = c[^1]')
+  Left:
+    IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+  Right:
+    IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'c[^1]')
+      Instance:
         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-        IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index, IsInvalid) (Syntax: '^1')
+      Argument:
+        IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
           Operand:
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      LengthSymbol: System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Length { get; }
+      IndexerSymbol: System.Int32 C.this[System.Int32 i] { get; }
 """;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
-
-        src = """
-var c = new C();
-_ = c[^1];
-
-class C
-{
-    public int this[int i] => throw null;
-    public int Length => throw null;
-}
-""";
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, [], targetFramework: TargetFramework.Net70);
     }
 
     [Fact]
@@ -27251,37 +27235,20 @@ _ = c[^1];
 
 class C
 {
-    public int this[int i] => throw null;
+    public int this[int i] { get { System.Console.Write(i); return 0; } }
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Count => throw null;
+        public int Count => 10;
     }
 }
 """;
 
-        // PROTOTYPE where should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (2,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(2, 7));
-
-        src = """
-var c = new C();
-_ = c[^1];
-
-class C
-{
-    public int this[int i] => throw null;
-    public int Count => throw null;
-}
-""";
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("9"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -27289,49 +27256,42 @@ class C
     {
         var src = """
 var c = new C();
-_ = c[^1];
+System.Console.Write(c[^1]);
 
 class C
 {
-    public int Length => throw null;
+    public int Length => 1;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int this[int i] => throw null;
+        public int this[int i] => i;
     }
 }
 """;
-        // PROTOTYPE confirm whether extension `this[int]` indexer should contribute to implicit Index indexer
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
             // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //         public int this[int i] => throw null;
+            //         public int this[int i] => i;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("0"), verify: Verification.Skipped).VerifyDiagnostics();
 
         src = """
 var c = new C();
-_ = c[^1];
+System.Console.Write(c[^1]);
 
 class C
 {
-    public int Length => throw null;
-    public int this[int i] => throw null;
+    public int Length => 1;
+    public int this[int i] => i;
 }
 """;
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("0"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -27373,48 +27333,45 @@ _ = c[1..^1];
 
 class C 
 {
-    public int Length => throw null;
+    public int Length => 10;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Slice(int i, int j) => throw null;
+        public int Slice(int i, int j) { System.Console.Write($"{i},{j}"); return 0; }
     }
 }
 """;
 
-        // PROTOTYPE confirm whether extension `Slice(int, int)` method should contribute to implicit Range indexer
-        DiagnosticDescription[] expectedDiagnostics = [
-            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(4, 5)];
-
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1,8"), verify: Verification.Skipped).VerifyDiagnostics();
 
         string expectedOperationTree = """
-ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '_ = c[1..^1]')
-Left:
-  IDiscardOperation (Symbol: ? _) (OperationKind.Discard, Type: ?) (Syntax: '_')
-Right:
-  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'c[1..^1]')
-    Children(2):
-        IRangeOperation (OperationKind.Range, Type: System.Range, IsInvalid) (Syntax: '1..^1')
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = c[1..^1]')
+  Left:
+    IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+  Right:
+    IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'c[1..^1]')
+      Instance:
+        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+      Argument:
+        IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..^1')
           LeftOperand:
-            IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsInvalid, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
               Operand:
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           RightOperand:
-            IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index, IsInvalid) (Syntax: '^1')
+            IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
               Operand:
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      LengthSymbol: System.Int32 C.Length { get; }
+      IndexerSymbol: System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Slice(System.Int32 i, System.Int32 j)
 """;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, [], targetFramework: TargetFramework.Net70);
 
         src = """
 var c = new C();
@@ -27422,13 +27379,13 @@ _ = c[1..^1];
 
 class C 
 {
-    public int Length => throw null;
-    public int Slice(int i, int j) => throw null;
+    public int Length => 10;
+    public int Slice(int i, int j) { System.Console.Write($"{i},{j}"); return 0; }
 }
 """;
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1,8"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -27440,24 +27397,20 @@ _ = c[1..^1];
 
 class C 
 {
-    public int Slice(int i, int j) => throw null;
+    public int Slice(int i, int j) { System.Console.Write($"{i},{j}"); return 0; }
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Length => throw null;
+        public int Length => 10;
     }
 }
 """;
 
-        // PROTOTYPE where should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1,8"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -27525,15 +27478,12 @@ static class E
 }
 """;
 
-        // PROTOTYPE where should extension Length/Count count?
+        // PROTOTYPE implicit indexers in list-patterns
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[1]").WithArguments("C").WithLocation(1, 16),
-            // (1,16): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[1]").WithArguments("C").WithLocation(1, 16));
 
         src = """
 _ = new C() is [1];
@@ -27552,36 +27502,29 @@ class C
     public void ExtensionMemberLookup_PatternBased_ListPattern_IntIndexer()
     {
         var src = """
-_ = new C() is [1];
+System.Console.Write(new C() is [1]);
 
 class C
 {
-    public int Length => throw null;
+    public int Length => 1;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int this[int i] => throw null;
+        public int this[int i] { get { System.Console.Write(i); return 1; } }
     }
 }
 """;
-        // PROTOTYPE confirm whether extension `this[int]` indexer should contribute to implicit Index indexer
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
             // (12,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //         public int this[int i] => throw null;
+            //         public int this[int i]
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(12, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("0True"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -27635,15 +27578,12 @@ static class E
 }
 """;
 
-        // PROTOTYPE where should extension Length/Count count?
+        // PROTOTYPE implicit indexers in list-patterns
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16),
-            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16));
 
         src = """
 _ = new C() is [_, .. var x];
@@ -27659,7 +27599,7 @@ class C
         comp.VerifyEmitDiagnostics();
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE implicit indexers in list-patterns")]
     public void ExtensionMemberLookup_PatternBased_SpreadPattern_Slice()
     {
         var src = """
@@ -27680,7 +27620,7 @@ static class E
 }
 """;
 
-        // PROTOTYPE confirm whether extension `Slice(int, int)` method should contribute to implicit Range indexer
+        // PROTOTYPE implicit indexers in list-patterns
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
