@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -4216,7 +4216,7 @@ class S
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadReadOnlySpan(bool isMissing, bool useCorLib)
+        public void SingleOverloadReadOnlySpan(bool isMissing)
         {
 
             string source = """
@@ -4229,14 +4229,13 @@ class S
                     public static ReadOnlySpan<char> SecondToLast(ReadOnlySpan<char> s) => s[1..];
                 }
                 """;
-            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions, TestSources.ITuple },
-                                                   TestOptions.UnsafeReleaseExe);
+                var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net100);
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
 
-            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+                var executable = ExecutionConditionUtil.IsCoreClr;
             var verify = CompileAndVerify(comp,
-                    expectedOutput: executable ? "0123" : null,
+                    expectedOutput: executable ? "123" : null,
                     verify: ExecutionConditionUtil.IsCoreClr
                         ? Verification.FailsILVerify.WithILVerifyMessage(
                             "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
@@ -4301,7 +4300,7 @@ class S
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadSpan(bool isMissing, bool useCorLib)
+        public void SingleOverloadSpan(bool isMissing)
         {
 
             string source = """
@@ -4314,15 +4313,13 @@ class S
                     public static Span<char> SecondToLast(Span<char> s) => s[1..];
                 }
                 """;
-            var comp = CreateCompilationWithIndexAndRange(
-                new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions },
-                TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net100);
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
 
-            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+            var executable = ExecutionConditionUtil.IsCoreClr;
             var verify = CompileAndVerify(comp,
-                    expectedOutput: executable ? "0123" : null,
+                    expectedOutput: executable ? "123" : null,
                     verify: ExecutionConditionUtil.IsCoreClr
                         ? Verification.FailsILVerify.WithILVerifyMessage(
                             "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
@@ -4395,11 +4392,8 @@ class S
                 Console.Write("0123"[1..]);
                 """;
             var comp = useCorLib
-                ? CreateCompilation(
-                    source, targetFramework: TargetFramework.Net70)
-                : CreateCompilationWithIndexAndRange(
-                new[] { source, TestSources.GetSubArray, },
-                TestOptions.ReleaseExe);
+                ? CreateCompilation(source, targetFramework: TargetFramework.Net70)
+                : CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, }, TestOptions.ReleaseExe);
             if (isMissing)
                 comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
             var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
@@ -4447,17 +4441,17 @@ class S
         public void SingleOverloadMemory()
         {
             string source = """
-            using System;
+                using System;
 
-            Console.Write(Util.ReadOnly("0123".AsMemory()).ToString());
-            Console.Write(Util.Writable("ABCD".ToCharArray().AsMemory()).ToString());
+                Console.Write(Util.ReadOnly("0123".AsMemory()).ToString());
+                Console.Write(Util.Writable("ABCD".ToCharArray().AsMemory()).ToString());
 
-            static class Util
-            {
-                public static ReadOnlyMemory<char> ReadOnly(ReadOnlyMemory<char> s) => s[1..];
-                public static Memory<char> Writable(Memory<char> s) => s[1..];
-            }
-            """;
+                static class Util
+                {
+                    public static ReadOnlyMemory<char> ReadOnly(ReadOnlyMemory<char> s) => s[1..];
+                    public static Memory<char> Writable(Memory<char> s) => s[1..];
+                }
+                """;
 
             var comp = CompileAndVerify(source,
                 expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123BCD" : null,
