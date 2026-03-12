@@ -1028,6 +1028,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
         });
 
     [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_NoExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // G.*W is a valid regex but G and W are single-char literals — no 2+ char literals
+            // can be extracted for pre-filtering, so the regex search is skipped entirely.
+            var items = await _aggregator.GetItemsAsync("G.*W");
+            Assert.Empty(items);
+        });
+
+    [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_WithExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // Ge.*Wo has 2+ char literals ("ge", "wo") so the regex search runs.
+            // Matches any symbol containing "Ge" followed eventually by "Wo" (case-insensitive).
+            var items = await _aggregator.GetItemsAsync("Ge.*Wo");
+            Assert.Equal(4, items.Count());
+            Assert.Contains(items, i => i.Name == "GetKeyWord");
+            Assert.Contains(items, i => i.Name == "get_key_word");
+            Assert.Contains(items, i => i.Name == "get_keyword");
+            Assert.Contains(items, i => i.Name == "getkeyword");
+        });
+
+    [Theory, CombinatorialData]
     public Task TestIndexer1(TestHost testHost, Composition composition)
         => TestAsync(testHost, composition, """
             class C
