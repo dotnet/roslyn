@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.FindSymbols;
 
-public class RegexPreFilterTests
+public sealed class RegexPreFilterTests
 {
     private static NavigateToSearchIndex CreateIndex(params (string name, string container)[] symbols)
     {

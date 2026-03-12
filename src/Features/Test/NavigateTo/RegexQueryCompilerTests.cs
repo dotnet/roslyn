@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.NavigateTo;
 
-public class RegexQueryCompilerTests
+public sealed class RegexQueryCompilerTests
 {
     #region Compilation — positive (produces Literal nodes)
 

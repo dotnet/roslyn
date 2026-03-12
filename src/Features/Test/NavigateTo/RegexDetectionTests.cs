@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.NavigateTo;
 
-public class RegexDetectionTests
+public sealed class RegexDetectionTests
 {
     #region IsRegexPattern — positive (is regex)
 
