@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.DebuggerCompletion;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Xunit.Abstractions;
@@ -17,6 +19,18 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
 {
     private const string MemberAccessExpression = "myLocalVar.";
     private const string LocalVariableExpression = "x";
+
+    private static Task<DebuggerCompletionResult?> GetDebuggerCompletionsAsync(
+        TestContext context,
+        string expression,
+        int cursorOffset)
+        => context.Service.GetDebuggerCompletionsAsync(
+            context.SourceFilePath,
+            context.StatementEndLine,
+            context.StatementEndCharacter,
+            expression,
+            cursorOffset,
+            CancellationToken.None);
 
     [Fact]
     public async Task GetDebuggerCompletionsAsync_01()
@@ -154,6 +168,155 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
         Assert.Null(result);
     }
 
+    [Fact]
+    public async Task GetDebuggerCompletionsAsync_06()
+    {
+        // Returns completions for parameters in scope.
+        var markup = """
+            class C
+            {
+                void M(string param)
+                {
+                    System.Console.WriteLine(param);/*caret*/
+                }
+            }
+            """;
+
+        await using var context = await CreateTestContextAsync(markup);
+
+        var result = await GetDebuggerCompletionsAsync(context, "param.", cursorOffset: 6);
+
+        Assert.Contains(result.Items, static item => item.Label == "Length");
+    }
+
+    [Fact]
+    public async Task GetDebuggerCompletionsAsync_07()
+    {
+        // Returns completions for fields in scope.
+        var markup = """
+            class C
+            {
+                private string _field = "hello";
+
+                void M()
+                {
+                    System.Console.WriteLine(_field);/*caret*/
+                }
+            }
+            """;
+
+        await using var context = await CreateTestContextAsync(markup);
+
+        var result = await GetDebuggerCompletionsAsync(context, "_field.", cursorOffset: 7);
+
+        Assert.Contains(result.Items, static item => item.Label == "Length");
+    }
+
+    [Fact]
+    public async Task GetDebuggerCompletionsAsync_08()
+    {
+        // Returns type completions that rely on existing using directives.
+        var markup = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    int x = 1;/*caret*/
+                }
+            }
+            """;
+
+        await using var context = await CreateTestContextAsync(markup);
+
+        var result = await GetDebuggerCompletionsAsync(context, "List", cursorOffset: 4);
+
+        Assert.Contains(result.Items, static item => item.Label.StartsWith("List", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetDebuggerCompletionsAsync_09()
+    {
+        // Returns completions for locals declared in a for-loop scope.
+        var markup = """
+            class C
+            {
+                void M()
+                {
+                    for (int i = 0; i < 10; i++)
+                        System.Console.WriteLine(i);/*caret*/
+                }
+            }
+            """;
+
+        await using var context = await CreateTestContextAsync(markup);
+
+        var result = await GetDebuggerCompletionsAsync(context, "i", cursorOffset: 1);
+
+        Assert.Contains(result.Items, static item => item.Label == "i");
+    }
+
+    [Fact]
+    public async Task GetDebuggerCompletionsAsync_10()
+    {
+        // Returns completions for generic types and member access.
+        var markup = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var list = new List<int>();
+                    list.Add(1);/*caret*/
+                }
+            }
+            """;
+
+        await using var context = await CreateTestContextAsync(markup);
+
+        var result = await GetDebuggerCompletionsAsync(context, "list.", cursorOffset: 5);
+
+        Assert.Contains(result.Items, static item => item.Label == "Add");
+        Assert.Contains(result.Items, static item => item.Label == "Count");
+    }
+
+    [Fact]
+    public async Task GetDebuggerCompletionsAsync_11()
+    {
+        // Debugger completion should not offer extension methods from unimported namespaces.
+        var markup = """
+            namespace NS2
+            {
+                public static class ExtensionClass
+                {
+                    public static bool ExtensionMethod(this object o) => true;
+                }
+            }
+
+            namespace NS1
+            {
+                class C
+                {
+                    void M(object o)
+                    {
+                        System.Console.WriteLine(o);/*caret*/
+                    }
+                }
+            }
+            """;
+
+        await using var context = await CreateTestContextAsync(markup);
+        context.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true);
+        context.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, true);
+
+        var result = await GetDebuggerCompletionsAsync(context, "o.", cursorOffset: 2);
+
+        Assert.Contains(result.Items, static item => item.Label == "ToString");
+        Assert.DoesNotContain(result.Items, static item => item.Label == "ExtensionMethod");
+    }
+
     private async Task<TestContext> CreateTestContextAsync(string markup)
     {
         const string caretMarker = "/*caret*/";
@@ -219,6 +382,7 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
         int statementEndCharacter) : IAsyncDisposable
     {
         public IDebuggerCompletionService Service { get; } = service;
+        public IGlobalOptionService GlobalOptions { get; } = exportProvider.GetExportedValue<IGlobalOptionService>();
         public string SourceFilePath { get; } = sourceFilePath;
         public int StatementEndLine { get; } = statementEndLine;
         public int StatementEndCharacter { get; } = statementEndCharacter;
