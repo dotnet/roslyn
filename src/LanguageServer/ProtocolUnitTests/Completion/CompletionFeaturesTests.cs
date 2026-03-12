@@ -96,7 +96,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.NotEmpty(results.Items);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/68791")]
     public async Task TestImportCompletionForType(bool mutatingLspWorkspace, bool isInUsingStatement)
     {
@@ -173,7 +173,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/69576")]
     public async Task TestImportCompletionForExtensionMethod(bool mutatingLspWorkspace)
     {
@@ -508,7 +508,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         }
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/26488")]
     public async Task TestCompletionForObsoleteSymbol(bool mutatingLspWorkspace)
     {

@@ -562,7 +562,7 @@ class C
             """.ReplaceLineEndings(), result.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
     public async Task TestGetHoverAsync_EscapesAngleBracketsInGenerics(bool mutatingLspWorkspace)
     {
         var markup =

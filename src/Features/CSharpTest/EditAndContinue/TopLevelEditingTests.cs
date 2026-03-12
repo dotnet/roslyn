@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -2038,7 +2038,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Update [struct X { }]@0 -> [readonly struct X { }]@0");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ModifiersUpdate, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "readonly struct X", GetResource("struct")));
     }
 
     [Theory]
@@ -7448,7 +7448,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Diagnostic(RudeEditKind.Delete, "static class Ext1", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Delete, "static class Ext1", "extension block 'Ext1.extension(object)'"),
+            Diagnostic(RudeEditKind.Delete, "static class Ext1", DeletedSymbolDisplay(GetResource("extension block"), "Ext1.extension(object)")),
             Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block"))
         );
@@ -8064,7 +8064,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Insert [C b]@90"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(C a, C b)", "operator"),
+            Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(C a, C b)", GetResource("operator")),
             Diagnostic(RudeEditKind.Update, "public static int operator +(C a, C b)", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "C b", GetResource("extension block"))
@@ -9573,7 +9573,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ModifiersUpdate, "struct S", "struct"));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "struct S", GetResource("struct")));
     }
 
     [Fact]
@@ -17162,7 +17162,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)],
             [
                 Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "static int a", GetResource("auto-property")),
-                Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "class C", "static constructor 'C()'")
+                Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "class C", DeletedSymbolDisplay(GetResource("static constructor"), "C()"))
             ]);
     }
 
@@ -23444,7 +23444,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            [Diagnostic(RudeEditKind.Delete, "class C", "event field 'E'")],
+            [Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(GetResource("event field"), "E"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
     }
 
