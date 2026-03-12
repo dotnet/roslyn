@@ -162,8 +162,8 @@
       packages, when not in SourceBuild we will keep it untied to the MicrosoftCodeAnalysisAnalyzersVersion
       we use for other analyzers to ensure it stays on a release version.
     -->
-    <PackageVersion Condition="Condition="'$(DotNetBuildSourceOnly)' != 'true'" Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0" />
-    <PackageVersion Condition="Condition="'$(DotNetBuildSourceOnly)' == 'true'" Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageVersion Condition="'$(DotNetBuildSourceOnly)' != 'true'" Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0" />
+    <PackageVersion Condition="'$(DotNetBuildSourceOnly)' == 'true'" Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
