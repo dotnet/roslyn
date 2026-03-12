@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -4216,268 +4216,316 @@ class S
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadReadOnlySpan(bool isMissing)
+        public void SliceStart_01(bool isMissing)
         {
-
+            // ReadOnlySpan
             string source = """
-                using System;
-                
-                Console.Write(Util.SecondToLast("0123").ToString());
+using System;
 
-                static class Util
-                {
-                    public static ReadOnlySpan<char> SecondToLast(ReadOnlySpan<char> s) => s[1..];
-                }
-                """;
-                var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net100);
+Console.Write(Util.M("0123").ToString());
+
+static class Util
+{
+    public static ReadOnlySpan<char> M(ReadOnlySpan<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
 
-                var executable = ExecutionConditionUtil.IsCoreClr;
-            var verify = CompileAndVerify(comp,
-                    expectedOutput: executable ? "123" : null,
-                    verify: ExecutionConditionUtil.IsCoreClr
-                        ? Verification.FailsILVerify.WithILVerifyMessage(
-                            "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
-                            + (isMissing ? "12" : "8")
-                            + """
-                             }
-                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
-                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
-                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
-                            [get_Item]: Unexpected type on the stack. { Offset = 0x15, Found = readonly address of 'T', Expected = address of 'T' }
-                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
-                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
-                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
-                            [CastUp]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1a }
-                            [ToArray]: Unmanaged pointers are not a verifiable type. { Offset = 0x0 }
-                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
-                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1d }
-                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
-                            """)
-                        : Verification.FailsPEVerify);
+            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null, verify: Verification.Skipped);
             verify.VerifyDiagnostics();
-            verify.VerifyIL("Util.SecondToLast",
-                isMissing
-                ? """
-            {
-              // Code size       19 (0x13)
-              .maxstack  4
-              .locals init (System.ReadOnlySpan<char>& V_0)
-              IL_0000:  ldarga.s   V_0
-              IL_0002:  stloc.0
-              IL_0003:  ldloc.0
-              IL_0004:  ldc.i4.1
-              IL_0005:  ldloc.0
-              IL_0006:  call       "int System.ReadOnlySpan<char>.Length.get"
-              IL_000b:  ldc.i4.1
-              IL_000c:  sub
-              IL_000d:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)"
-              IL_0012:  ret
-            }
-            """
-                : """
-            {
-              // Code size        9 (0x9)
-              .maxstack  2
-              IL_0000:  ldarga.s   V_0
-              IL_0002:  ldc.i4.1
-              IL_0003:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)"
-              IL_0008:  ret
-            }
-            """);
+            verify.VerifyIL("Util.M",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.ReadOnlySpan<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.ReadOnlySpan<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
         }
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadSpan(bool isMissing)
+        public void SliceStart_02(bool isMissing)
         {
-
+            // Span
             string source = """
-                using System;
-                
-                Console.Write(Util.SecondToLast("0123".ToCharArray()).ToString());
+using System;
 
-                static class Util
-                {
-                    public static Span<char> SecondToLast(Span<char> s) => s[1..];
-                }
-                """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net100);
+Console.Write(Util.M("0123".ToCharArray()).ToString());
+
+static class Util
+{
+    public static Span<char> M(Span<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
 
-            var executable = ExecutionConditionUtil.IsCoreClr;
-            var verify = CompileAndVerify(comp,
-                    expectedOutput: executable ? "123" : null,
-                    verify: ExecutionConditionUtil.IsCoreClr
-                        ? Verification.FailsILVerify.WithILVerifyMessage(
-                            "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
-                            + (isMissing ? "12" : "8")
-                            + """
-                             }
-                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
-                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
-                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
-                            [get_Item]: Unexpected type on the stack. { Offset = 0x15, Found = readonly address of 'T', Expected = address of 'T' }
-                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
-                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
-                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
-                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
-                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
-                            [CastUp]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1a }
-                            [ToArray]: Unmanaged pointers are not a verifiable type. { Offset = 0x0 }
-                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
-                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1d }
-                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
-                            """)
-                        : Verification.FailsPEVerify);
+            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null, verify: Verification.Skipped);
             verify.VerifyDiagnostics();
-            verify.VerifyIL("Util.SecondToLast",
-                isMissing
-                ? """
-            {
-              // Code size       19 (0x13)
-              .maxstack  4
-              .locals init (System.Span<char>& V_0)
-              IL_0000:  ldarga.s   V_0
-              IL_0002:  stloc.0
-              IL_0003:  ldloc.0
-              IL_0004:  ldc.i4.1
-              IL_0005:  ldloc.0
-              IL_0006:  call       "int System.Span<char>.Length.get"
-              IL_000b:  ldc.i4.1
-              IL_000c:  sub
-              IL_000d:  call       "System.Span<char> System.Span<char>.Slice(int, int)"
-              IL_0012:  ret
-            }
-            """
-                : """
-            {
-              // Code size        9 (0x9)
-              .maxstack  2
-              IL_0000:  ldarga.s   V_0
-              IL_0002:  ldc.i4.1
-              IL_0003:  call       "System.Span<char> System.Span<char>.Slice(int)"
-              IL_0008:  ret
-            }
-            """);
+            verify.VerifyIL("Util.M",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.Span<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.Span<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.Span<char> System.Span<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.Span<char> System.Span<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
         }
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadString(bool isMissing, bool useCorLib)
+        public void SliceStart_03(bool isMissing)
         {
+            // string
             string source = """
-                using System;
-                
-                Console.Write("0123"[1..]);
-                """;
-            var comp = useCorLib
-                ? CreateCompilation(source, targetFramework: TargetFramework.Net70)
-                : CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, }, TestOptions.ReleaseExe);
+System.Console.Write("0123"[1..]);
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             if (isMissing)
                 comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
-            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
-            var verify = CompileAndVerify(comp,
-                    expectedOutput: executable ? "123" : null,
-                    verify: executable
-                        ? default
-                        : Verification.FailsPEVerify);
+
+            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null, verify: Verification.Skipped);
+
             verify.VerifyDiagnostics();
             verify.VerifyIL("<top-level-statements-entry-point>",
-                isMissing
-                ? """
-            {
-              // Code size       27 (0x1b)
-              .maxstack  4
-              .locals init (string V_0)
-              IL_0000:  ldstr      "0123"
-              IL_0005:  stloc.0
-              IL_0006:  ldloc.0
-              IL_0007:  ldc.i4.1
-              IL_0008:  ldloc.0
-              IL_0009:  callvirt   "int string.Length.get"
-              IL_000e:  ldc.i4.1
-              IL_000f:  sub
-              IL_0010:  callvirt   "string string.Substring(int, int)"
-              IL_0015:  call       "void System.Console.Write(string)"
-              IL_001a:  ret
-            }
-            """
-                : """
-            {
-              // Code size       17 (0x11)
-              .maxstack  2
+                isMissing ? """
+{
+  // Code size       27 (0x1b)
+  .maxstack  4
+  .locals init (string V_0)
+  IL_0000:  ldstr      "0123"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  callvirt   "int string.Length.get"
+  IL_000e:  ldc.i4.1
+  IL_000f:  sub
+  IL_0010:  callvirt   "string string.Substring(int, int)"
+  IL_0015:  call       "void System.Console.Write(string)"
+  IL_001a:  ret
+}
+""" : """
+{
+  // Code size       17 (0x11)
+  .maxstack  2
 
-              IL_0000:  ldstr      "0123"
-              IL_0005:  ldc.i4.1
-              IL_0006:  callvirt   "string string.Substring(int)"
-              IL_000b:  call       "void System.Console.Write(string)"
-              IL_0010:  ret
+  IL_0000:  ldstr      "0123"
+  IL_0005:  ldc.i4.1
+  IL_0006:  callvirt   "string string.Substring(int)"
+  IL_000b:  call       "void System.Console.Write(string)"
+  IL_0010:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SliceStart_04(bool isMissing)
+        {
+            // Memory/ReadOnlyMemory
+            string source = """
+using System;
+
+Console.Write(Util.ReadOnly("0123".AsMemory()).ToString());
+Console.Write(Util.Writable("ABCD".ToCharArray().AsMemory()).ToString());
+
+static class Util
+{
+    public static ReadOnlyMemory<char> ReadOnly(ReadOnlyMemory<char> s) => s[1..];
+    public static Memory<char> Writable(Memory<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            if (isMissing)
+            {
+                comp.MakeMemberMissing(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int);
+                comp.MakeMemberMissing(WellKnownMember.System_Memory_T__Slice_Int);
             }
-            """);
+
+            var verify = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123BCD" : null,
+                verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.FailsPEVerify);
+
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.ReadOnly",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.ReadOnlyMemory<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.ReadOnlyMemory<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.ReadOnlyMemory<char> System.ReadOnlyMemory<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.ReadOnlyMemory<char> System.ReadOnlyMemory<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
+
+            verify.VerifyIL("Util.Writable",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.Memory<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.Memory<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.Memory<char> System.Memory<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.Memory<char> System.Memory<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
         }
 
         [Fact]
-        public void SingleOverloadMemory()
+        public void SliceStart_05()
         {
+            // Object initializer with `[start..] =`
             string source = """
-                using System;
+System.Console.Write(Util.M());
 
-                Console.Write(Util.ReadOnly("0123".AsMemory()).ToString());
-                Console.Write(Util.Writable("ABCD".ToCharArray().AsMemory()).ToString());
+static class Util
+{
+    public static C M() => new C() { [1..] = 42 };
+}
 
-                static class Util
-                {
-                    public static ReadOnlyMemory<char> ReadOnly(ReadOnlyMemory<char> s) => s[1..];
-                    public static Memory<char> Writable(Memory<char> s) => s[1..];
-                }
-                """;
+public class C
+{
+    private readonly int[] _values = new int[3];
 
-            var comp = CompileAndVerify(source,
-                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123BCD" : null,
-                targetFramework: TargetFramework.Net70,
-                verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.FailsPEVerify);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Util.ReadOnly", """
-            {
-              // Code size        9 (0x9)
-              .maxstack  2
-              IL_0000:  ldarga.s   V_0
-              IL_0002:  ldc.i4.1
-              IL_0003:  call       "System.ReadOnlyMemory<char> System.ReadOnlyMemory<char>.Slice(int)"
-              IL_0008:  ret
-            }
-            """);
-            comp.VerifyIL("Util.Writable", """
-            {
-              // Code size        9 (0x9)
-              .maxstack  2
-              IL_0000:  ldarga.s   V_0
-              IL_0002:  ldc.i4.1
-              IL_0003:  call       "System.Memory<char> System.Memory<char>.Slice(int)"
-              IL_0008:  ret
-            }
-            """);
+    public int Length { get { System.Console.Write("Length "); return _values.Length; } }
+
+    public ref int Slice(int start) => throw null;
+
+    public ref int Slice(int start, int length) { System.Console.Write("SliceStartLength "); return ref _values[start]; }
+
+    public override string ToString() => _values[1].ToString();
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "Length SliceStartLength 42" : null, verify: Verification.Skipped);
+
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.M", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  callvirt   "int C.Length.get"
+  IL_000e:  pop
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  callvirt   "ref int C.Slice(int, int)"
+  IL_0016:  ldc.i4.s   42
+  IL_0018:  stind.i4
+  IL_0019:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_06()
+        {
+            // `with` expression with `[start..] =`
+            string source = """
+_ = new C() with { [1..] = 42 };
+
+public record class C
+{
+    public int Length => throw null;
+    public ref int Slice(int start) => throw null;
+    public ref int Slice(int start, int length) => throw null;
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            comp.VerifyEmitDiagnostics(
+                // (1,20): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new C() with { [1..] = 42 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[1..]").WithLocation(1, 20),
+                // (1,20): error CS0747: Invalid initializer member declarator
+                // _ = new C() with { [1..] = 42 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[1..] = 42").WithLocation(1, 20));
         }
     }
 }

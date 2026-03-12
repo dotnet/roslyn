@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -100,16 +100,6 @@ namespace System
         public Span<T> Slice(int offset, int length) => new Span<T>(this.arr, offset, length);
 
         public Span<T> Slice(int offset) => Slice(offset, Length - offset);
-
-        public new string ToString()
-        {
-            if (typeof(T) == typeof(char))
-            {
-                return new string((char[])(object)this.arr);
-            }
-
-            return ""System.Span<"" + typeof(T).Name + "">["" + Length + ""]"";
-        }
     }
 
     public readonly ref struct ReadOnlySpan<T>
@@ -209,16 +199,6 @@ namespace System
             return new ReadOnlySpan<T>(items.arr, items.start, items.Length);
         }
 #nullable restore
-
-        public new string ToString()
-        {
-            if (typeof(T) == typeof(char))
-            {
-                return new string((char[])(object)this.arr);
-            }
-
-            return ""System.ReadOnlySpan<"" + typeof(T).Name + "">["" + Length + ""]"";
-        }
     }
 
     public readonly ref struct SpanLike<T>

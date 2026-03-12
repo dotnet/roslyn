@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -5229,71 +5229,71 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
 
                 // System_Span_T__Slice_Int
-                (byte)(MemberFlags.Method),                                                                               // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),       // DeclaringTypeId
+                (byte)(MemberFlags.Method),                                                                                 // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Span_T - WellKnownType.ExtSentinel),
                     1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_ReadOnlySpan_T__Slice_Int
-                (byte)(MemberFlags.Method),                                                                               // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel), // DeclaringTypeId
+                (byte)(MemberFlags.Method),                                                                                 // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),
                     1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_Memory_T__Slice_Int_Int
-                (byte)(MemberFlags.Method),                                                                               // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
+                (byte)(MemberFlags.Method),                                                                                 // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),         // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),
                     1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_ReadOnlyMemory_T__Slice_Int_Int
-                (byte)(MemberFlags.Method),                                                                               // Flags
+                (byte)(MemberFlags.Method),                                                                                 // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),
                     1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_Memory_T__Slice_Int
-                (byte)(MemberFlags.Method),                                                                               // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),     // DeclaringTypeId
+                (byte)(MemberFlags.Method),                                                                                 // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),         // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),
                     1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_ReadOnlyMemory_T__Slice_Int
-                (byte)(MemberFlags.Method),                                                                               // Flags
+                (byte)(MemberFlags.Method),                                                                                 // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
                     (byte)WellKnownType.ExtSentinel, (WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel),
                     1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,              // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_Runtime_CompilerServices_UnionAttribute__ctor
@@ -5301,7 +5301,7 @@ namespace Microsoft.CodeAnalysis
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_UnionAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
