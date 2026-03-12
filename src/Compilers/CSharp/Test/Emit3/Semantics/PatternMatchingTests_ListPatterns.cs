@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3500,9 +3500,8 @@ public class C
             "_ = new C()[..];"
         };
 
-        for (int i = 0; i < sources.Length; i++)
+        foreach (string source in sources)
         {
-            string source = sources[i];
             var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference(), rangeRef });
             comp.VerifyDiagnostics();
             var used = comp.GetUsedAssemblyReferences();
