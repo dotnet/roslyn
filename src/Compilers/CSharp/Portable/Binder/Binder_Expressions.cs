@@ -2058,7 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
-                AssertNotUnsafeMemberAccess(symbol); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node);
             }
 
             switch (symbol.Kind)
@@ -8083,7 +8083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
-                        AssertNotUnsafeMemberAccess(type);
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, type, node);
 
                         return new BoundTypeExpression(node, null, type);
                     }
@@ -8693,7 +8693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
-                    AssertNotUnsafeMemberAccess(symbol); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node);
                 }
 
                 switch (symbol.Kind)
