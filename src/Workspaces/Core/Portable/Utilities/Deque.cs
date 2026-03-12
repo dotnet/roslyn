@@ -3,7 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
+#if NET
+using System.Runtime.CompilerServices;
+#endif
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Utilities;
@@ -23,7 +27,7 @@ internal sealed class Deque<T> : IPooled
 
     private Deque()
     {
-        _array = Array.Empty<T>();
+        _array = [];
     }
 
     public int Count => _count;
@@ -66,7 +70,8 @@ internal sealed class Deque<T> : IPooled
     {
         Debug.Assert(_count > 0);
         var item = _array[_head];
-        _array[_head] = default!;
+        if (MustClearReferences())
+            _array[_head] = default!;
         _head = (_head + 1) % _array.Length;
         _count--;
         return item;
@@ -78,7 +83,8 @@ internal sealed class Deque<T> : IPooled
         _count--;
         var index = (_head + _count) % _array.Length;
         var item = _array[index];
-        _array[index] = default!;
+        if (MustClearReferences())
+            _array[index] = default!;
         return item;
     }
 
@@ -91,7 +97,7 @@ internal sealed class Deque<T> : IPooled
         while (newCapacity < min)
             newCapacity *= 2;
 
-        var newArray = new T[newCapacity];
+        var newArray = ArrayPool<T>.Shared.Rent(newCapacity);
         if (_count > 0)
         {
             if (_head + _count <= _array.Length)
@@ -106,33 +112,32 @@ internal sealed class Deque<T> : IPooled
             }
         }
 
+        ReturnArray();
         _array = newArray;
         _head = 0;
     }
 
-    private void Clear()
+    private void ReturnArray()
     {
-        if (_count > 0)
-        {
-            if (_head + _count <= _array.Length)
-            {
-                Array.Clear(_array, _head, _count);
-            }
-            else
-            {
-                var firstPart = _array.Length - _head;
-                Array.Clear(_array, _head, firstPart);
-                Array.Clear(_array, 0, _count - firstPart);
-            }
-        }
+        if (_array.Length > 0)
+            ArrayPool<T>.Shared.Return(_array, clearArray: MustClearReferences());
+    }
 
-        _head = 0;
-        _count = 0;
+    private static bool MustClearReferences()
+    {
+#if NET
+        return RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+#else
+        return true;
+#endif
     }
 
     void IPooled.Free(bool discardLargeInstances)
     {
-        Clear();
+        ReturnArray();
+        _array = [];
+        _head = 0;
+        _count = 0;
         s_pool.Free(this);
     }
 
