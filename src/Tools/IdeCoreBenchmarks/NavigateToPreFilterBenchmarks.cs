@@ -26,7 +26,7 @@ public class NavigateToPreFilterBenchmarks
     private NavigateToSearchIndex _stressAll = null!;
     private NavigateToSearchIndex _stressHump = null!;
     private NavigateToSearchIndex _stressPrefix = null!;
-    private NavigateToSearchIndex _stressTrigram = null!;
+    private NavigateToSearchIndex _stressNgram = null!;
     private NavigateToSearchIndex _stressContainer = null!;
     private string[] _realisticSymbolNames = null!;
 
@@ -37,7 +37,7 @@ public class NavigateToPreFilterBenchmarks
         _stressAll = CreateStressAllIndex();
         _stressHump = CreateStressHumpSetIndex();
         _stressPrefix = CreateStressHumpPrefixIndex();
-        _stressTrigram = CreateStressTrigramIndex();
+        _stressNgram = CreateStressNgramIndex();
         _stressContainer = CreateStressContainerIndex();
     }
 
@@ -125,30 +125,29 @@ public class NavigateToPreFilterBenchmarks
         => _realistic.CouldContainNavigateToMatch("getapp", null) != PatternMatcherKind.None;
 
     // "foozy" → all-lowercase → DP can't split into any stored hump prefixes (no name starts
-    // with "foo...") → hump miss. Trigrams "foo","ooz","ozy" not stored either → miss.
+    // with "foo...") → hump miss. N-grams not stored either → miss.
     [Benchmark(Description = "Realistic: lowercase miss (hump-prefix DP)")]
     public bool Realistic_Lowercase_Miss()
         => _realistic.CouldContainNavigateToMatch("foozy", null) != PatternMatcherKind.None;
 
-    // "context" → all-lowercase, len 7 → trigrams "con","ont","nte","tex","ext" all stored
-    // from "GetApplicationContext" → hit.
-    [Benchmark(Description = "Realistic: lowercase trigram hit")]
-    public bool Realistic_Lowercase_Trigram_Hit()
+    // "context" → all-lowercase, len 7 → n-grams stored from "GetApplicationContext" → hit.
+    [Benchmark(Description = "Realistic: lowercase ngram hit")]
+    public bool Realistic_Lowercase_Ngram_Hit()
         => _realistic.CouldContainNavigateToMatch("context", null) != PatternMatcherKind.None;
 
     // "Context" → mixed-case → MixedCaseHumpCheckPasses → single hump 'C' in hump set → hit.
-    [Benchmark(Description = "Realistic: CamelCase trigram hit")]
-    public bool Realistic_CamelCase_Trigram_Hit()
+    [Benchmark(Description = "Realistic: CamelCase ngram hit")]
+    public bool Realistic_CamelCase_Ngram_Hit()
         => _realistic.CouldContainNavigateToMatch("Context", null) != PatternMatcherKind.None;
 
-    // "zqjxw" → all-lowercase, len 5 → trigrams "zqj","qjx","jxw" none stored → miss.
-    [Benchmark(Description = "Realistic: lowercase trigram miss")]
-    public bool Realistic_Lowercase_Trigram_Miss()
+    // "zqjxw" → all-lowercase, len 5 → n-grams none stored → miss.
+    [Benchmark(Description = "Realistic: lowercase ngram miss")]
+    public bool Realistic_Lowercase_Ngram_Miss()
         => _realistic.CouldContainNavigateToMatch("zqjxw", null) != PatternMatcherKind.None;
 
     // "Zqjxw" → mixed-case → MixedCaseHumpCheckPasses → single hump 'Z' not in hump set → miss.
-    [Benchmark(Description = "Realistic: CamelCase trigram miss")]
-    public bool Realistic_CamelCase_Trigram_Miss()
+    [Benchmark(Description = "Realistic: CamelCase ngram miss")]
+    public bool Realistic_CamelCase_Ngram_Miss()
         => _realistic.CouldContainNavigateToMatch("Zqjxw", null) != PatternMatcherKind.None;
 
     // "GetApp" hits name check. "System.Collections" → humps S,C match container chars
@@ -188,7 +187,7 @@ public class NavigateToPreFilterBenchmarks
 
     /// <summary>
     /// Saturates every structure at once: all 676 CamelCase bigrams, 500 long-hump names for prefix
-    /// bloom, 500 long-word names for trigram bloom, and containers spanning all 26 uppercase initials.
+    /// bloom, 500 long-word names for n-gram bloom, and containers spanning all 26 uppercase initials.
     /// </summary>
     private static NavigateToSearchIndex CreateStressAllIndex()
     {
@@ -215,7 +214,7 @@ public class NavigateToPreFilterBenchmarks
             infos.Add(MakeInfo(stringTable, sb.ToString(), "All.Stress"));
         }
 
-        // 500 single-word names with long varied sequences → many trigrams.
+        // 500 single-word names with long varied sequences → many n-grams.
         for (var i = 0; i < 500; i++)
         {
             sb.Clear().Append((char)('A' + (i % 26)));
@@ -250,7 +249,7 @@ public class NavigateToPreFilterBenchmarks
     /// <summary>
     /// 5,000 names with 3 humps each, systematically varying initials across A-Z.
     /// Names like "AabAcdAef", "BabAcdAef", ..., covering many unique bigram pairs.
-    /// Word-parts kept short (3 chars each) to minimize trigram/prefix noise.
+    /// Word-parts kept short (3 chars each) to minimize n-gram/prefix noise.
     /// </summary>
     private static NavigateToSearchIndex CreateStressHumpSetIndex()
     {
@@ -323,15 +322,15 @@ public class NavigateToPreFilterBenchmarks
         => _stressPrefix.CouldContainNavigateToMatch("zzzzqqqq", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  Stress _trigramFilter: dense bloom of 3-char sliding windows
+    //  Stress _ngramFilter: dense bloom of sparse n-grams
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
     /// 2,000 names each with a long single word-part (25 lowercase chars after the initial).
-    /// Each produces ~23 trigrams, flooding the bloom filter with ~46,000 distinct trigram
+    /// Each produces many sparse n-grams, flooding the bloom filter with many distinct n-gram
     /// strings. Character sequences use (i*11 + j*17) % 26 for variety.
     /// </summary>
-    private static NavigateToSearchIndex CreateStressTrigramIndex()
+    private static NavigateToSearchIndex CreateStressNgramIndex()
     {
         var stringTable = new StringTable();
         var infos = new DeclaredSymbolInfo[2000];
@@ -348,17 +347,17 @@ public class NavigateToPreFilterBenchmarks
         return NavigateToSearchIndex.TestAccessor.CreateIndex(infos.ToImmutableArray());
     }
 
-    // "aahub" → all-lowercase, len 5 → trigrams "aah","ahu","hub" checked against dense bloom.
-    // With 46k trigrams stored, common 3-char sequences are likely present → hit.
-    [Benchmark(Description = "StressTrigram: lowercase hit")]
-    public bool StressTrigram_Hit()
-        => _stressTrigram.CouldContainNavigateToMatch("aahub", null) != PatternMatcherKind.None;
+    // "aahub" → all-lowercase, len 5 → n-grams checked against dense bloom.
+    // With many n-grams stored, common sequences are likely present → hit.
+    [Benchmark(Description = "StressNgram: lowercase hit")]
+    public bool StressNgram_Hit()
+        => _stressNgram.CouldContainNavigateToMatch("aahub", null) != PatternMatcherKind.None;
 
-    // "zqxjw" → all-lowercase, len 5 → trigrams "zqx","qxj","xjw" are rare 3-char sequences
+    // "zqxjw" → all-lowercase, len 5 → n-grams are rare sequences
     // unlikely to appear even in a dense bloom → miss.
-    [Benchmark(Description = "StressTrigram: lowercase miss")]
-    public bool StressTrigram_Miss()
-        => _stressTrigram.CouldContainNavigateToMatch("zqxjw", null) != PatternMatcherKind.None;
+    [Benchmark(Description = "StressNgram: lowercase miss")]
+    public bool StressNgram_Miss()
+        => _stressNgram.CouldContainNavigateToMatch("zqxjw", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Stress _containerCharSet: all 26 A-Z initials in frozen char set
