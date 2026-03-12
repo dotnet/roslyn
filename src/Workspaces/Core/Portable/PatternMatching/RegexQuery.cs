@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching;
 /// </summary>
 internal abstract class RegexQuery
 {
-    // Private constructor prevents external subclassing, ensuring the closed set of
-    // All/Any/Literal/None is exhaustive for pattern matching.
     private RegexQuery() { }
 
     /// <summary>
@@ -39,22 +37,20 @@ internal abstract class RegexQuery
     /// Conjunction: all children must be satisfied. Produced from regex concatenation
     /// (<c>AB</c> = A followed by B).
     /// </summary>
-    internal sealed class All(ImmutableArray<RegexQuery> children) : RegexQuery
+    public sealed class All(ImmutableArray<RegexQuery> children) : RegexQuery
     {
-        public ImmutableArray<RegexQuery> Children { get; } = children;
+        public readonly ImmutableArray<RegexQuery> Children = children;
         public override bool HasLiterals => Children.Any(static c => c.HasLiterals);
-        public override string ToString() => $"All({string.Join(", ", Children)})";
     }
 
     /// <summary>
     /// Disjunction: at least one child must be satisfied. Produced from regex alternation
     /// (<c>A|B</c>).
     /// </summary>
-    internal sealed class Any(ImmutableArray<RegexQuery> children) : RegexQuery
+    public sealed class Any(ImmutableArray<RegexQuery> children) : RegexQuery
     {
-        public ImmutableArray<RegexQuery> Children { get; } = children;
+        public readonly ImmutableArray<RegexQuery> Children = children;
         public override bool HasLiterals => Children.Any(static c => c.HasLiterals);
-        public override string ToString() => $"Any({string.Join(", ", Children)})";
     }
 
     /// <summary>
@@ -62,11 +58,10 @@ internal abstract class RegexQuery
     /// At pre-filter time, the literal's lowercased bigrams and trigrams are checked
     /// against the document's indexed bitset and Bloom filter.
     /// </summary>
-    internal sealed class Literal(string text) : RegexQuery
+    public sealed class Literal(string text) : RegexQuery
     {
-        public string Text { get; } = text;
+        public readonly string Text = text;
         public override bool HasLiterals => true;
-        public override string ToString() => $"Literal(\"{Text}\")";
     }
 
     /// <summary>
@@ -74,12 +69,11 @@ internal abstract class RegexQuery
     /// character classes). Always evaluates to <see langword="true"/> in the pre-filter,
     /// meaning "I can't tell — don't reject on my account."
     /// </summary>
-    internal sealed class None : RegexQuery
+    public sealed class None : RegexQuery
     {
         public static readonly None Instance = new();
         private None() { }
         public override bool HasLiterals => false;
-        public override string ToString() => "None";
     }
 
     /// <summary>
@@ -109,7 +103,11 @@ internal abstract class RegexQuery
             {
                 var optimized = Optimize(child);
 
-                // None in an All is vacuously true — drop it.
+                // None in an All is vacuously true — drop it. For example, in the regex `Goo.*Bar`,
+                // `.*` compiles to None (matches anything). The All becomes All(Literal("Goo"), None,
+                // Literal("Bar")). Since we AND all children, None (= "anything could be here") doesn't
+                // restrict the match, so dropping it yields All(Literal("Goo"), Literal("Bar")), which
+                // correctly requires both "Goo" and "Bar" bigrams to be present.
                 if (optimized is None)
                     continue;
 

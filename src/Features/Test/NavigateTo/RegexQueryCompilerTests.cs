@@ -18,41 +18,40 @@ public class RegexQueryCompilerTests
     {
         var query = RegexQueryCompiler.Compile("ReadLine");
         var literal = Assert.IsType<RegexQuery.Literal>(query);
-        Assert.Equal("ReadLine", literal.Text);
+        Assert.Equal("readline", literal.Text);
     }
 
     [Fact]
     public void Alternation_ProducesAny()
     {
-        // (Read|Write)Line -> All(Any(Literal("Read"), Literal("Write")), Literal("Line"))
+        // (Read|Write)Line -> All(Any(Literal("read"), Literal("write")), Literal("line"))
         var query = RegexQueryCompiler.Compile("(Read|Write)Line");
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
 
         var any = Assert.IsType<RegexQuery.Any>(all.Children[0]);
         Assert.Equal(2, any.Children.Length);
-        Assert.Equal("Read", Assert.IsType<RegexQuery.Literal>(any.Children[0]).Text);
-        Assert.Equal("Write", Assert.IsType<RegexQuery.Literal>(any.Children[1]).Text);
+        Assert.Equal("read", Assert.IsType<RegexQuery.Literal>(any.Children[0]).Text);
+        Assert.Equal("write", Assert.IsType<RegexQuery.Literal>(any.Children[1]).Text);
 
-        Assert.Equal("Line", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
+        Assert.Equal("line", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     [Fact]
     public void Sequence_ProducesAll()
     {
-        // Goo.*Bar -> All(Literal("Goo"), Literal("Bar"))  (the .* becomes None, pruned by optimizer)
+        // Goo.*Bar -> All(Literal("goo"), Literal("bar"))  (the .* becomes None, pruned by optimizer)
         var query = RegexQueryCompiler.Compile("Goo.*Bar");
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
-        Assert.Equal("Bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
+        Assert.Equal("goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     [Fact]
     public void OneOrMore_PreservesInner()
     {
         // Goo+ -> the parser sees "Go" as text, then o+ as OneOrMore(text("o"))
-        // Result: All(Literal("Go"), Literal("o")) or just Literal("Go") + Literal("o")
         var query = RegexQueryCompiler.Compile("Goo+");
         Assert.True(query!.HasLiterals);
     }
@@ -78,12 +77,12 @@ public class RegexQueryCompilerTests
     [Fact]
     public void NonCapturingGroup_RecursesInto()
     {
-        // (?:Read|Write) -> Any(Literal("Read"), Literal("Write"))
+        // (?:Read|Write) -> Any(Literal("read"), Literal("write"))
         var query = RegexQueryCompiler.Compile("(?:Read|Write)");
         var any = Assert.IsType<RegexQuery.Any>(query);
         Assert.Equal(2, any.Children.Length);
-        Assert.Equal("Read", Assert.IsType<RegexQuery.Literal>(any.Children[0]).Text);
-        Assert.Equal("Write", Assert.IsType<RegexQuery.Literal>(any.Children[1]).Text);
+        Assert.Equal("read", Assert.IsType<RegexQuery.Literal>(any.Children[0]).Text);
+        Assert.Equal("write", Assert.IsType<RegexQuery.Literal>(any.Children[1]).Text);
     }
 
     [Fact]
@@ -207,7 +206,6 @@ public class RegexQueryCompilerTests
     [Fact]
     public void Optimizer_FlattenNestedAll()
     {
-        // Manually construct All(All(a, b), c) and verify it flattens
         var inner = new RegexQuery.All([new RegexQuery.Literal("a"), new RegexQuery.Literal("b")]);
         var outer = new RegexQuery.All([inner, new RegexQuery.Literal("c")]);
 
@@ -233,7 +231,6 @@ public class RegexQueryCompilerTests
     [Fact]
     public void Optimizer_PruneNoneFromAll()
     {
-        // All(Literal("a"), None, Literal("b")) -> All(Literal("a"), Literal("b"))
         var query = new RegexQuery.All([
             new RegexQuery.Literal("a"),
             RegexQuery.None.Instance,
@@ -250,7 +247,6 @@ public class RegexQueryCompilerTests
     [Fact]
     public void Optimizer_NoneInAny_CollapsesToNone()
     {
-        // Any(Literal("a"), None) -> None (OR with unknown = could match anything)
         var query = new RegexQuery.Any([
             new RegexQuery.Literal("a"),
             RegexQuery.None.Instance,
@@ -328,7 +324,6 @@ public class RegexQueryCompilerTests
     [Fact]
     public void EndToEnd_AlternationWithSharedSuffix()
     {
-        // (Read|Write)Line -> All(Any(Literal("Read"), Literal("Write")), Literal("Line"))
         var query = RegexQueryCompiler.Compile("(Read|Write)Line")!;
         Assert.True(query.HasLiterals);
 
@@ -341,42 +336,39 @@ public class RegexQueryCompilerTests
     [Fact]
     public void EndToEnd_OptionalSuffix()
     {
-        // Read(Line)? -> "Read" is required, "(Line)?" is optional (None)
-        // After optimization: Literal("Read")
+        // Read(Line)? -> "read" is required, "(Line)?" is optional (None)
+        // After optimization: Literal("read")
         var query = RegexQueryCompiler.Compile("Read(Line)?")!;
         Assert.True(query.HasLiterals);
-        Assert.Equal("Read", Assert.IsType<RegexQuery.Literal>(query).Text);
+        Assert.Equal("read", Assert.IsType<RegexQuery.Literal>(query).Text);
     }
 
     [Fact]
     public void EndToEnd_DotStarBetweenLiterals()
     {
-        // Goo.*Bar -> All(Literal("Goo"), Literal("Bar"))
+        // Goo.*Bar -> All(Literal("goo"), Literal("bar"))
         var query = RegexQueryCompiler.Compile("Goo.*Bar")!;
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
-        Assert.Equal("Bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
+        Assert.Equal("goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     [Fact]
     public void EndToEnd_DotPlusBetweenLiterals()
     {
-        // Goo.+Bar -> All(Literal("Goo"), Literal("Bar"))
-        // The .+ is OneOrMore(Wildcard) -> Wildcard compiles to None -> OneOrMore preserves inner -> None
-        // After optimization: All(Literal("Goo"), Literal("Bar"))
+        // Goo.+Bar -> All(Literal("goo"), Literal("bar"))
         var query = RegexQueryCompiler.Compile("Goo.+Bar")!;
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
-        Assert.Equal("Bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
+        Assert.Equal("goo", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("bar", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     [Fact]
     public void EndToEnd_ComplexPattern()
     {
-        // (Get|Set)(Value|Item)s? -> All(Any("Get","Set"), Any("Value","Item"))
-        // The s? is optional (None), pruned from All
+        // (Get|Set)(Value|Item)s? -> All(Any("get","set"), Any("value","item"))
         var query = RegexQueryCompiler.Compile("(Get|Set)(Value|Item)s?")!;
         Assert.True(query.HasLiterals);
 
@@ -384,12 +376,12 @@ public class RegexQueryCompilerTests
         Assert.Equal(2, all.Children.Length);
 
         var first = Assert.IsType<RegexQuery.Any>(all.Children[0]);
-        Assert.Equal("Get", Assert.IsType<RegexQuery.Literal>(first.Children[0]).Text);
-        Assert.Equal("Set", Assert.IsType<RegexQuery.Literal>(first.Children[1]).Text);
+        Assert.Equal("get", Assert.IsType<RegexQuery.Literal>(first.Children[0]).Text);
+        Assert.Equal("set", Assert.IsType<RegexQuery.Literal>(first.Children[1]).Text);
 
         var second = Assert.IsType<RegexQuery.Any>(all.Children[1]);
-        Assert.Equal("Value", Assert.IsType<RegexQuery.Literal>(second.Children[0]).Text);
-        Assert.Equal("Item", Assert.IsType<RegexQuery.Literal>(second.Children[1]).Text);
+        Assert.Equal("value", Assert.IsType<RegexQuery.Literal>(second.Children[0]).Text);
+        Assert.Equal("item", Assert.IsType<RegexQuery.Literal>(second.Children[1]).Text);
     }
 
     [Fact]
@@ -403,22 +395,20 @@ public class RegexQueryCompilerTests
     [Fact]
     public void EndToEnd_AnchorWithLiteral()
     {
-        // ^Goo$ -> All(Literal("Goo")) -> Literal("Goo")
-        // Anchors become None, pruned from All
+        // ^Goo$ -> All(Literal("goo")) -> Literal("goo")
         var query = RegexQueryCompiler.Compile("^Goo$")!;
-        Assert.Equal("Goo", Assert.IsType<RegexQuery.Literal>(query).Text);
+        Assert.Equal("goo", Assert.IsType<RegexQuery.Literal>(query).Text);
     }
 
     [Fact]
     public void EndToEnd_MixedLiteralsAndWildcards()
     {
-        // Read.Line -> All(Literal("Read"), Literal("Line"))
-        // The bare '.' is a wildcard (None), pruned from All
+        // Read.Line -> All(Literal("read"), Literal("line"))
         var query = RegexQueryCompiler.Compile("Read.Line")!;
         var all = Assert.IsType<RegexQuery.All>(query);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("Read", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
-        Assert.Equal("Line", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
+        Assert.Equal("read", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("line", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     #endregion

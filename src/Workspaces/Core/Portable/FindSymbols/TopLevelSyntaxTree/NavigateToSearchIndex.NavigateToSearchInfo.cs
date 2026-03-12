@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -820,33 +821,38 @@ internal sealed partial class NavigateToSearchIndex
                 case PatternMatching.RegexQuery.Literal literal:
                     return RegexLiteralCheckPasses(literal.Text);
 
+                // None means "this node can't tell us anything" — we must conservatively assume
+                // the document could match. Returning false here would incorrectly reject documents
+                // that a wildcard/character-class branch could still match.
                 default:
                     return true;
             }
         }
 
         /// <summary>
-        /// Checks whether the lowercased bigrams of a literal string are present in this document's
-        /// bigram bitset. Uses only bigrams (not trigrams) because the trigram index is segmented by
-        /// camelCase word-parts, while regex literals are continuous strings that may span word-part
-        /// boundaries (e.g. "ReadLine" has cross-boundary trigrams "adl"/"dli" that aren't indexed).
-        /// The bigram bitset covers the full symbol name and is sufficient for filtering.
+        /// Checks whether the bigrams of a literal string are present in this document's bigram bitset.
+        /// Uses only bigrams (not trigrams) because the trigram index is segmented by camelCase
+        /// word-parts, while regex literals are continuous strings that may span word-part boundaries
+        /// (e.g. "ReadLine" has cross-boundary trigrams "adl"/"dli" that aren't indexed). The bigram
+        /// bitset covers the full symbol name and is sufficient for filtering.
+        /// <para/>
+        /// The literal text is expected to already be lowercased at compile time by the regex query
+        /// compiler.
         /// </summary>
         private bool RegexLiteralCheckPasses(string text)
         {
+            Debug.Assert(text == text.ToLowerInvariant());
+
             if (text.Length <= 1)
                 return true;
 
             if (_fuzzyBigramBitset.IsDefault)
                 return true;
 
-            Span<char> lowered = stackalloc char[text.Length];
-            text.AsSpan().ToLowerInvariant(lowered);
-
-            for (var i = 0; i < lowered.Length - 1; i++)
+            for (var i = 0; i < text.Length - 1; i++)
             {
-                var idx = FuzzyBigramCharIndex(lowered[i]) * FuzzyBigramAlphabetSize
-                        + FuzzyBigramCharIndex(lowered[i + 1]);
+                var idx = FuzzyBigramCharIndex(text[i]) * FuzzyBigramAlphabetSize
+                        + FuzzyBigramCharIndex(text[i + 1]);
                 if ((_fuzzyBigramBitset[idx >> 6] & (1UL << (idx & 63))) == 0)
                     return false;
             }

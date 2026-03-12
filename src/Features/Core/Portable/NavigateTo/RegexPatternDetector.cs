@@ -72,22 +72,25 @@ internal static class RegexPatternDetector
     {
         var sequence = VirtualCharSequence.Create(0, pattern);
         var tree = RegexParser.TryParse(sequence, RegexOptions.None);
-        if (tree is null || tree.Diagnostics.Length > 0)
+        if (tree is not { Diagnostics: [] })
             return (null, pattern);
 
         // The Roslyn regex parser wraps the root in an alternation node even when there's no `|`.
         // We only split at the top-level sequence — a dot inside an alternation branch (e.g.
         // `Goo.Bar|Baz.Quux`) is ambiguous and doesn't make sense as a single container/name split.
         var rootExpr = tree.Root.Expression;
-        if (rootExpr is not RegexAlternationNode alternation || alternation.SequenceList.Length != 1)
+        if (rootExpr is not RegexAlternationNode { SequenceList: [var topSequence] })
             return (null, pattern);
 
-        var topSequence = alternation.SequenceList[0];
-
-        // Walk right-to-left to find the last bare dot. A RegexWildcardNode that appears directly
-        // as a child of the top-level sequence (not wrapped in a quantifier) represents a bare `.`.
-        // If it were quantified (e.g. `.*`), the parser would wrap it in a quantifier node and it
-        // wouldn't appear directly as a RegexWildcardNode child.
+        // Walk right-to-left to find the last bare dot. The direction is mostly arbitrary, but it
+        // mirrors how qualified names work: for `A.B.C`, the last dot separates the container `A.B`
+        // from the name `C`, which is consistent with how `PatternMatcher.GetNameAndContainer` uses
+        // `LastIndexOf('.')`.
+        //
+        // A RegexWildcardNode that appears directly as a child of the top-level sequence (not
+        // wrapped in a quantifier) represents a bare `.`. If it were quantified (e.g. `.*`), the
+        // parser would wrap it in a quantifier node and it wouldn't appear directly as a
+        // RegexWildcardNode child.
         for (var i = topSequence.Children.Length - 1; i >= 0; i--)
         {
             if (topSequence.Children[i] is RegexWildcardNode wildcard)

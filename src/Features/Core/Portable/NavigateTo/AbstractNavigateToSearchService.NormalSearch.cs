@@ -57,7 +57,7 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
-        var (patternName, patternContainerOpt, isRegex, regexQuery) = ProcessSearchPattern(searchPattern);
+        var patternInfo = ProcessSearchPattern(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // In parallel, search both the document requested, and any relevant 'related documents' we find for it. For the
@@ -73,9 +73,9 @@ internal abstract partial class AbstractNavigateToSearchService
                 documentAndSpans,
                 produceItems: static async (documentAndSpan, onItemFound, args, cancellationToken) =>
                 {
-                    var (patternName, patternContainerOpt, isRegex, regexQuery, declaredSymbolInfoKindsSet, onItemsFound) = args;
+                    var (patternInfo, declaredSymbolInfoKindsSet, onItemsFound) = args;
                     await SearchSingleDocumentAsync(
-                        documentAndSpan.document, patternName, patternContainerOpt, isRegex, regexQuery, declaredSymbolInfoKindsSet,
+                        documentAndSpan.document, patternInfo, declaredSymbolInfoKindsSet,
                         item =>
                         {
                             // Ensure that the results found while searching the single document intersect the desired
@@ -88,7 +88,7 @@ internal abstract partial class AbstractNavigateToSearchService
                         cancellationToken).ConfigureAwait(false);
                 },
                 consumeItems: static (values, args, cancellationToken) => args.onItemsFound(values, default, cancellationToken),
-                args: (patternName, patternContainerOpt, isRegex, regexQuery, declaredSymbolInfoKindsSet, onItemsFound),
+                args: (patternInfo, declaredSymbolInfoKindsSet, onItemsFound),
                 cancellationToken);
 
         async Task SearchRelatedDocumentsInCurrentProcessAsync()
@@ -196,7 +196,7 @@ internal abstract partial class AbstractNavigateToSearchService
         // of potentially stale indices.
         ClearCachedData();
 
-        var (patternName, patternContainerOpt, isRegex, regexQuery) = ProcessSearchPattern(searchPattern);
+        var patternInfo = ProcessSearchPattern(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         using var _ = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
@@ -220,7 +220,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
-                    document, patternName, patternContainerOpt, isRegex, regexQuery, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+                    document, patternInfo, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
 
             await onProjectCompleted().ConfigureAwait(false);
         }

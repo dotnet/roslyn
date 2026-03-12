@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -39,9 +40,11 @@ internal static class RegexQueryCompiler
         // only gives us a compiled matcher, not the tree.
         var sequence = VirtualCharSequence.Create(0, pattern);
         var tree = RegexParser.TryParse(sequence, RegexOptions.None);
-        if (tree is null || tree.Diagnostics.Length > 0)
+        if (tree is not { Diagnostics: [] })
             return null;
 
+        // Walk the AST to extract literal requirements, then simplify the resulting boolean tree
+        // (flatten nested All/Any, prune None from All, collapse single-child wrappers).
         var raw = CompileNode(tree.Root.Expression);
         return RegexQuery.Optimize(raw);
     }
@@ -124,11 +127,21 @@ internal static class RegexQueryCompiler
         // Strip whitespace from text nodes because symbol names never contain whitespace.
         // This allows users to write readable patterns like `( Read | Write ) Line` —
         // the whitespace around alternation branches is purely for readability.
+        //
+        // Also lowercase the literal at compile time so that RegexLiteralCheckPasses doesn't
+        // need to allocate and lowercase on every call — the bigram index is already lowercased.
         var raw = chars.CreateString();
-        var literal = StripWhitespace(raw);
-        if (literal.Length == 0)
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        foreach (var ch in raw)
+        {
+            if (!char.IsWhiteSpace(ch))
+                builder.Append(char.ToLowerInvariant(ch));
+        }
+
+        if (builder.Length == 0)
             return RegexQuery.None.Instance;
 
+        var literal = builder.Length == raw.Length ? raw.ToLowerInvariant() : builder.ToString();
         return new RegexQuery.Literal(literal);
     }
 
@@ -136,11 +149,12 @@ internal static class RegexQueryCompiler
     {
         // The escaped character itself is a concrete character that must appear in any match.
         // For example, `\.` requires a literal dot, `\[` requires a literal bracket.
+        // Lowercase at compile time for the same reason as in CompileText.
         var chars = escape.TypeToken.VirtualChars;
         if (chars.Length == 0)
             return RegexQuery.None.Instance;
 
-        return new RegexQuery.Literal(chars.CreateString());
+        return new RegexQuery.Literal(chars.CreateString().ToLowerInvariant());
     }
 
     private static RegexQuery CompileNumericQuantifier(RegexExpressionNode expression, EmbeddedSyntaxToken<RegexKind> firstNumberToken)
@@ -152,26 +166,5 @@ internal static class RegexQueryCompiler
             return CompileNode(expression);
 
         return RegexQuery.None.Instance;
-    }
-
-    private static string StripWhitespace(string value)
-    {
-        for (var i = 0; i < value.Length; i++)
-        {
-            if (char.IsWhiteSpace(value[i]))
-            {
-                var chars = new char[value.Length];
-                var pos = 0;
-                for (var j = 0; j < value.Length; j++)
-                {
-                    if (!char.IsWhiteSpace(value[j]))
-                        chars[pos++] = value[j];
-                }
-
-                return new string(chars, 0, pos);
-            }
-        }
-
-        return value;
     }
 }

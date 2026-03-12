@@ -18,18 +18,10 @@ internal abstract partial class PatternMatcher
     /// as case-sensitive when the case-sensitive regex also matches. This is consistent with
     /// how standard NavigateTo works: find broadly, then rank case-sensitive matches higher.
     /// </summary>
-    internal sealed class RegexPatternMatcher : PatternMatcher
+    public sealed class RegexPatternMatcher(
+        Regex caseInsensitiveRegex, Regex caseSensitiveRegex, bool includeMatchedSpans, CultureInfo? culture)
+        : PatternMatcher(includeMatchedSpans, culture)
     {
-        private readonly Regex _caseInsensitiveRegex;
-        private readonly Regex _caseSensitiveRegex;
-
-        private RegexPatternMatcher(Regex caseInsensitiveRegex, Regex caseSensitiveRegex, bool includeMatchedSpans, CultureInfo? culture)
-            : base(includeMatchedSpans, culture)
-        {
-            _caseInsensitiveRegex = caseInsensitiveRegex;
-            _caseSensitiveRegex = caseSensitiveRegex;
-        }
-
         /// <summary>
         /// Tries to create a <see cref="RegexPatternMatcher"/> for the given pattern. Returns
         /// <see langword="null"/> if the pattern is not a valid .NET regex (e.g. unclosed groups,
@@ -37,64 +29,36 @@ internal abstract partial class PatternMatcher
         /// </summary>
         public static RegexPatternMatcher? TryCreate(string pattern, bool includeMatchedSpans, CultureInfo? culture = null)
         {
-            // Symbol names never contain whitespace, so strip it from the pattern to allow
-            // users to write readable regexes like `( Read | Write ) Line`.
-            var strippedPattern = StripWhitespace(pattern);
-
             try
             {
+                // IgnorePatternWhitespace lets users write readable patterns like `( Read | Write ) Line`
+                // without needing manual stripping. Symbol names never contain whitespace, so this is safe.
+                //
                 // Both regexes are compiled to native code on first use, amortizing the compilation
                 // cost across the many candidate strings checked during a single NavigateTo search.
-                var ci = new Regex(strippedPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
-                var cs = new Regex(strippedPattern, RegexOptions.CultureInvariant | RegexOptions.Compiled);
-                return new RegexPatternMatcher(ci, cs, includeMatchedSpans, culture);
+                const RegexOptions commonOptions = RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace;
+                var caseInsensitive = new Regex(pattern, commonOptions | RegexOptions.IgnoreCase);
+                var caseSensitive = new Regex(pattern, commonOptions);
+                return new RegexPatternMatcher(caseInsensitive, caseSensitive, includeMatchedSpans, culture);
             }
             catch (ArgumentException)
             {
-                // Pattern is syntactically invalid for System.Text.RegularExpressions.
                 return null;
             }
         }
 
-        private static string StripWhitespace(string pattern)
-        {
-            // Fast path: most patterns have no whitespace at all.
-            var firstWhitespace = -1;
-            for (var i = 0; i < pattern.Length; i++)
-            {
-                if (char.IsWhiteSpace(pattern[i]))
-                {
-                    firstWhitespace = i;
-                    break;
-                }
-            }
-
-            if (firstWhitespace < 0)
-                return pattern;
-
-            var chars = new char[pattern.Length];
-            var pos = 0;
-            for (var i = 0; i < pattern.Length; i++)
-            {
-                if (!char.IsWhiteSpace(pattern[i]))
-                    chars[pos++] = pattern[i];
-            }
-
-            return new string(chars, 0, pos);
-        }
-
         protected override bool AddMatchesWorker(string candidate, ref TemporaryArray<PatternMatch> matches)
         {
-            var ciMatch = _caseInsensitiveRegex.Match(candidate);
-            if (!ciMatch.Success)
+            var caseInsensitiveMatch = caseInsensitiveRegex.Match(candidate);
+            if (!caseInsensitiveMatch.Success)
                 return false;
 
             // Run the case-sensitive regex to determine categorization. The UI ranks
             // case-sensitive matches higher, so we report it when both match.
-            var csMatch = _caseSensitiveRegex.Match(candidate);
-            var isCaseSensitive = csMatch.Success;
+            var caseSensitiveMatch = caseSensitiveRegex.Match(candidate);
+            var isCaseSensitive = caseSensitiveMatch.Success;
 
-            var bestMatch = isCaseSensitive ? csMatch : ciMatch;
+            var bestMatch = isCaseSensitive ? caseSensitiveMatch : caseInsensitiveMatch;
 
             // Regex matching intentionally uses a simplified two-tier kind system (Exact vs
             // NonLowercaseSubstring) rather than the full CamelCase/Prefix/Substring hierarchy.

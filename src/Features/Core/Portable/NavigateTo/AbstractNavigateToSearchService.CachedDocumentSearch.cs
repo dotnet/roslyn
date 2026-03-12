@@ -120,7 +120,7 @@ internal abstract partial class AbstractNavigateToSearchService
         if (!ShouldSearchCachedDocuments(out _, out _, out _))
             return;
 
-        var (patternName, patternContainer, isRegex, regexQuery) = ProcessSearchPattern(searchPattern);
+        var patternInfo = ProcessSearchPattern(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // Process the documents by project group.  That way, when each project is done, we can
@@ -157,7 +157,7 @@ internal abstract partial class AbstractNavigateToSearchService
                     if (filterIndex == null)
                         return;
 
-                    if (!CouldContainMatch(filterIndex, patternName, patternContainer, isRegex, regexQuery, out var nameMatchKinds))
+                    if (!CouldContainMatch(filterIndex, patternInfo, out var nameMatchKinds))
                         return;
 
                     // The filter passed — now load the full index with all declared symbols.
@@ -166,7 +166,7 @@ internal abstract partial class AbstractNavigateToSearchService
                         return;
 
                     ProcessIndex(
-                        documentKey, document: null, patternName, patternContainer, isRegex, declaredSymbolInfoKindsSet,
+                        documentKey, document: null, patternInfo, declaredSymbolInfoKindsSet,
                         nameMatchKinds, index, linkedIndices: null, onItemFound, cancellationToken);
                 }).ConfigureAwait(false);
 

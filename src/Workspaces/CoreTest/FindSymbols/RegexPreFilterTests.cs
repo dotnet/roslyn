@@ -36,7 +36,7 @@ public class RegexPreFilterTests
     public void LiteralQuery_MatchingBigrams_Passes()
     {
         var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.Literal("ReadLine");
+        var query = new RegexQuery.Literal("readline");
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
@@ -44,18 +44,17 @@ public class RegexPreFilterTests
     public void LiteralQuery_SubstringPresent_Passes()
     {
         var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.Literal("Read");
+        var query = new RegexQuery.Literal("read");
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
     [Fact]
     public void AllQuery_BothLiteralsPresent_Passes()
     {
-        // "ReadLine" contains bigrams/trigrams for both "Read" and "Line"
         var index = CreateIndex(("ReadLine", ""));
         var query = new RegexQuery.All([
-            new RegexQuery.Literal("Read"),
-            new RegexQuery.Literal("Line"),
+            new RegexQuery.Literal("read"),
+            new RegexQuery.Literal("line"),
         ]);
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
@@ -65,8 +64,8 @@ public class RegexPreFilterTests
     {
         var index = CreateIndex(("ReadLine", ""));
         var query = new RegexQuery.Any([
-            new RegexQuery.Literal("Read"),
-            new RegexQuery.Literal("Write"),
+            new RegexQuery.Literal("read"),
+            new RegexQuery.Literal("write"),
         ]);
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
@@ -83,7 +82,7 @@ public class RegexPreFilterTests
     {
         var index = CreateIndex(("ReadLine", ""));
         var query = new RegexQuery.All([
-            new RegexQuery.Literal("Read"),
+            new RegexQuery.Literal("read"),
             RegexQuery.None.Instance,
         ]);
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
@@ -92,18 +91,19 @@ public class RegexPreFilterTests
     [Fact]
     public void CaseInsensitive_Passes()
     {
-        // Index stores lowercased bigrams; literal "READ" should be lowercased in the check
+        // RegexQueryCompiler lowercases literals at compile time, so the literal
+        // arriving here is already lowercase. The index stores lowercased bigrams,
+        // so the check succeeds.
         var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.Literal("READ");
+        var query = new RegexQuery.Literal("readline");
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
     [Fact]
     public void ShortLiteral_SingleChar_Passes()
     {
-        // Single character literal has no bigrams/trigrams to check — should pass
         var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.Literal("R");
+        var query = new RegexQuery.Literal("r");
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
@@ -118,15 +118,13 @@ public class RegexPreFilterTests
     [Fact]
     public void ComplexQuery_ReadOrWriteLine_Passes()
     {
-        // Document has "ReadLine" and "WriteLine"
-        // Query: All(Any(Literal("Read"), Literal("Write")), Literal("Line"))
         var index = CreateIndex(("ReadLine", ""), ("WriteLine", ""));
         var query = new RegexQuery.All([
             new RegexQuery.Any([
-                new RegexQuery.Literal("Read"),
-                new RegexQuery.Literal("Write"),
+                new RegexQuery.Literal("read"),
+                new RegexQuery.Literal("write"),
             ]),
-            new RegexQuery.Literal("Line"),
+            new RegexQuery.Literal("line"),
         ]);
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
@@ -134,13 +132,11 @@ public class RegexPreFilterTests
     [Fact]
     public void MultipleSymbols_BigramsAccumulate()
     {
-        // "Goo" contributes "fo","oo" bigrams; "Bar" contributes "ba","ar"
-        // Query All(Literal("Goo"), Literal("Bar")) should pass because each literal's
-        // bigrams are present across the accumulated index.
+        // "Goo" contributes "go","oo" bigrams; "Bar" contributes "ba","ar"
         var index = CreateIndex(("Goo", ""), ("Bar", ""));
         var query = new RegexQuery.All([
-            new RegexQuery.Literal("Goo"),
-            new RegexQuery.Literal("Bar"),
+            new RegexQuery.Literal("goo"),
+            new RegexQuery.Literal("bar"),
         ]);
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
@@ -153,7 +149,7 @@ public class RegexPreFilterTests
     public void LiteralQuery_NoMatchingBigrams_Fails()
     {
         var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.Literal("Xyz");
+        var query = new RegexQuery.Literal("xyz");
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
@@ -162,8 +158,8 @@ public class RegexPreFilterTests
     {
         var index = CreateIndex(("ReadLine", ""));
         var query = new RegexQuery.All([
-            new RegexQuery.Literal("Read"),
-            new RegexQuery.Literal("Xyz"),
+            new RegexQuery.Literal("read"),
+            new RegexQuery.Literal("xyz"),
         ]);
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
@@ -173,8 +169,8 @@ public class RegexPreFilterTests
     {
         var index = CreateIndex(("ReadLine", ""));
         var query = new RegexQuery.Any([
-            new RegexQuery.Literal("Xyz"),
-            new RegexQuery.Literal("Qwerty"),
+            new RegexQuery.Literal("xyz"),
+            new RegexQuery.Literal("qwerty"),
         ]);
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
@@ -183,14 +179,13 @@ public class RegexPreFilterTests
     public void EmptyIndex_FailsOnLiteral()
     {
         var index = CreateIndex();
-        var query = new RegexQuery.Literal("Goo");
+        var query = new RegexQuery.Literal("goo");
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
     [Fact]
     public void TrigramMismatch_Fails()
     {
-        // "abc" trigram "abc" — if the document has "xyz", the Bloom filter rejects
         var index = CreateIndex(("xyz", ""));
         var query = new RegexQuery.Literal("abc");
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
@@ -209,26 +204,24 @@ public class RegexPreFilterTests
     [Fact]
     public void FalsePositive_Baseline_ReorderedBigrams()
     {
-        // "GooBar" has bigrams: fo, oo, ob, ba, ar
-        // Query Literal("BarGoo") has bigrams: ba, ar, rf, fo, oo
-        // "rf" is not present, so bigram check should reject this.
+        // "GooBar" has bigrams: go, oo, ob, ba, ar
+        // Query Literal("bargoo") has bigrams: ba, ar, rg, go, oo
+        // "rg" is not present, so bigram check should reject this.
         var index = CreateIndex(("GooBar", ""));
-        var query = new RegexQuery.Literal("BarGoo");
-        // This should correctly fail because "rf" bigram is missing.
+        var query = new RegexQuery.Literal("bargoo");
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
     [Fact]
     public void FalsePositive_Baseline_SharedBigramsAcrossSymbols()
     {
-        // Two symbols "Goo" and "Bar" together contribute bigrams: fo, oo, ba, ar
+        // Two symbols "Goo" and "Bar" together contribute bigrams: go, oo, ba, ar
         // Query Literal("ooba") has bigrams: oo, ob, ba
         // "ob" is not from either "Goo" or "Bar" individually, but bigrams accumulate
         // across symbols. "Goo" has 'o' and "Bar" has 'b' but the bigram "ob" is only
         // present if some symbol has those two chars adjacent.
         var index = CreateIndex(("Goo", ""), ("Bar", ""));
         var query = new RegexQuery.Literal("ooba");
-        // "ob" bigram is NOT present (no symbol has 'o' followed by 'b')
         Assert.False(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
@@ -251,7 +244,6 @@ public class RegexPreFilterTests
         // "αβ" maps to (37,37). If we search for "γδ" it also maps to (37,37) → false positive.
         var index = CreateIndex(("αβ", ""));
         var query = new RegexQuery.Literal("γδ");
-        // This is a known false positive: both map to the "other" bigram bucket.
         Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
     }
 
