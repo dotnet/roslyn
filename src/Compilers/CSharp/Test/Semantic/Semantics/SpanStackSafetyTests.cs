@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1851,8 +1851,8 @@ public class Program
         // this is ok  (implicit boxing)
         default(Span<int>).GetType();
 
-        // this is not ok  (explicit boxing)
-        ((ValueType)default(Span<int>)).ToString();
+        // this is not ok  (implicit boxing)
+        default(Span<int>).ToString();
     }
 }
 ";
@@ -1863,9 +1863,9 @@ public class Program
                 // (12,9): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
                 //         default(Span<int>).GetType();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(Span<int>)").WithArguments("System.Span<int>", "object").WithLocation(12, 9),
-                // (15,10): error CS0029: Cannot convert type 'System.Span<int>' to 'System.ValueType'
-                //          ((ValueType)default(Span<int>)).ToString();
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ValueType)default(Span<int>)").WithArguments("System.Span<int>", "System.ValueType").WithLocation(15, 10)
+                // (15,9): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         default(Span<int>).ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(Span<int>)").WithArguments("System.Span<int>", "object").WithLocation(15, 9)
             );
         }
 
