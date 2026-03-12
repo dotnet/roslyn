@@ -12992,20 +12992,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is AsyncHelpers.Await. We can directly use `_visitResult`
                 SetResult(node, _visitResult, updateAnalyzedNullability: true, isLvalue: false);
             }
-            else if (node.Type.IsValueType || node.HasErrors || awaitableInfo.GetResult is null)
+            else if (awaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
             }
             else
             {
-                // It is possible for the awaiter type returned from GetAwaiter to not be a named type. e.g. it could be a type parameter.
-                // Proper handling of this is additional work which only benefits a very uncommon scenario,
-                // so we will just use the originally bound GetResult method in this case.
-                var getResult = awaitableInfo.GetResult;
-                var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType
-                    ? getResult.OriginalDefinition.AsMember(taskAwaiterType)
-                    : getResult;
-
+                var reinferredGetResult = (MethodSymbol)AsMemberOfType(_visitResult.RValueType.Type, awaitableInfo.GetResult);
                 SetResultType(node, reinferredGetResult.ReturnTypeWithAnnotations.ToTypeWithState());
             }
 
