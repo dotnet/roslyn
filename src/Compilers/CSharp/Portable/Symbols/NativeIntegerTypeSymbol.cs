@@ -360,6 +360,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
+        public override bool IsAsync => UnderlyingMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => UnderlyingMethod.RuntimeAsyncMethodGenerationAttributeSetting;
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get

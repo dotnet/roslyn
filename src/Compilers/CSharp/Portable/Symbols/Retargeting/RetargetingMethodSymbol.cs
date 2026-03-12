@@ -126,6 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override bool IsAsync => _underlyingMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => _underlyingMethod.RuntimeAsyncMethodGenerationAttributeSetting;
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get

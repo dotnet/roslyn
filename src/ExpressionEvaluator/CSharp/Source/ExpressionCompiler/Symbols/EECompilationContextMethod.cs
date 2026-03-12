@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _parameters; }
         }
 
+        public override bool IsAsync => _underlyingMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => _underlyingMethod.RuntimeAsyncMethodGenerationAttributeSetting;
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations => _underlyingMethod.ReturnTypeWithAnnotations;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
