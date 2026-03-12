@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -373,6 +374,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Static))
             {
                 diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);
+            }
+
+            if (!modifierErrors &&
+                typeKind == TypeKind.Delegate &&
+                (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                this.ContainingModule.UseUpdatedMemorySafetyRules)
+            {
+                diagnostics.Add(ErrorCode.WRN_UnsafeMeaningless, GetFirstLocation());
             }
 
             switch (typeKind)

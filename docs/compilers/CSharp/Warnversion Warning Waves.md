@@ -20,6 +20,7 @@ The compiler shipped with .NET 11 (the C# 15 compiler) contains the following wa
 | Warning ID | Description |
 |------------|-------------|
 | CS9368 | [RequiresUnsafeAttribute is only valid under the updated memory safety rules](https://github.com/dotnet/csharplang/issues/9704) |
+| CS9377 | [The 'unsafe' modifier does not have any effect here under the current rules](https://github.com/dotnet/csharplang/issues/9704) |
 
 ## Warning level 10
 

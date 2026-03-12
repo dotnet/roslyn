@@ -211,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules:
+                case ErrorCode.WRN_UnsafeMeaningless:
                     // Warning level 11 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 11 (C# 15) and that can be reported for pre-existing code.
                     return 11;
@@ -2587,6 +2588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InstanceCtorWithOneParameterInUnion
                 or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
+                or ErrorCode.WRN_UnsafeMeaningless
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
