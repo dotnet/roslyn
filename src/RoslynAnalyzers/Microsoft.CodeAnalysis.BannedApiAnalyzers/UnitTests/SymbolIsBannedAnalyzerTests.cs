@@ -569,6 +569,200 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
             await basicTest.RunAsync();
         }
 
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedDeclarationDoesNotSkipNonGeneratedPartialSymbolUsageAnalysisAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        namespace N
+                        {
+                            partial class C
+                            {
+                            }
+                        }
+                        """),
+                        ("Shared.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+                        }
+                        """),
+                        ("Test0.cs", """
+                        namespace N
+                        {
+                            partial class C
+                            {
+                                void M()
+                                {
+                                    var c = {|#0:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Namespace N
+                            Partial Class C
+                            End Class
+                        End Namespace
+                        """),
+                        ("Shared.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+                        End Namespace
+                        """),
+                        ("Test0.vb", """
+                        Namespace N
+                            Partial Class C
+                                Sub M()
+                                    Dim c = {|#0:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedDeclarationDoesNotSkipNonGeneratedPartialSymbolBaseTypeAnalysisAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        namespace N
+                        {
+                            partial class C
+                            {
+                            }
+                        }
+                        """),
+                        ("Shared.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+                        }
+                        """),
+                        ("Test0.cs", """
+                        namespace N
+                        {
+                            partial class C : {|#0:Banned|}
+                            {
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Namespace N
+                            Partial Class C
+                            End Class
+                        End Namespace
+                        """),
+                        ("Shared.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+                        End Namespace
+                        """),
+                        ("Test0.vb", """
+                        Namespace N
+                            Partial Class C
+                                Inherits {|#0:Banned|}
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
         #region Diagnostic tests
 
         [Fact]

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
 
-            var excludeGeneratedCodeMap = new ConcurrentDictionary<SyntaxTree, bool>();
+            var shouldAnalyzeInTreeMap = new ConcurrentDictionary<SyntaxTree, bool>();
 
             if (ShouldAnalyzeAttributes())
             {
@@ -246,28 +246,28 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             }
 
             bool ShouldSkipOperationAnalysis(OperationAnalysisContext context)
-                => context.IsGeneratedCode && ExcludesGeneratedCode(context.Operation.Syntax.SyntaxTree);
+                => !ShouldAnalyzeInTree(context.Operation.Syntax.SyntaxTree, context.CancellationToken);
 
             bool ShouldSkipSyntaxNodeAnalysis(SyntaxNodeAnalysisContext context)
-                => context.IsGeneratedCode && ExcludesGeneratedCode(context.Node.SyntaxTree);
+                => !ShouldAnalyzeInTree(context.Node.SyntaxTree, context.CancellationToken);
 
             bool ShouldSkipTreeAnalysis(SyntaxTree tree, CancellationToken cancellationToken)
-                => ExcludesGeneratedCode(tree) && IsGeneratedCode(tree, cancellationToken);
+                => !ShouldAnalyzeInTree(tree, cancellationToken);
 
-            bool ExcludesGeneratedCode(SyntaxTree tree)
-                => excludeGeneratedCodeMap.GetOrAdd(
+            bool ShouldAnalyzeInTree(SyntaxTree tree, CancellationToken cancellationToken)
+                => shouldAnalyzeInTreeMap.GetOrAdd(
                     tree,
                     tree =>
                     {
                         var options = compilationContext.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                        return options.TryGetValue(ExcludeGeneratedCodeOptionName, out var optionValue) &&
+                        var excludesGeneratedCode =
+                            options.TryGetValue(ExcludeGeneratedCodeOptionName, out var optionValue) &&
                             bool.TryParse(optionValue, out var excludeGeneratedCode) &&
                             excludeGeneratedCode;
+                        return !excludesGeneratedCode ||
+                            !(GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable() ??
+                              GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken));
                     });
-
-            bool IsGeneratedCode(SyntaxTree tree, CancellationToken cancellationToken)
-                => GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(compilationContext.Options.AnalyzerConfigOptionsProvider.GetOptions(tree)).ToNullable() ??
-                   GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken);
 
             void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
