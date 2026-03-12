@@ -57,7 +57,9 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
-        var patternInfo = ProcessSearchPattern(searchPattern);
+        if (ProcessSearchPattern(searchPattern) is not { } patternInfo)
+            return;
+
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // In parallel, search both the document requested, and any relevant 'related documents' we find for it. For the
@@ -196,7 +198,9 @@ internal abstract partial class AbstractNavigateToSearchService
         // of potentially stale indices.
         ClearCachedData();
 
-        var patternInfo = ProcessSearchPattern(searchPattern);
+        if (ProcessSearchPattern(searchPattern) is not { } patternInfo)
+            return;
+
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         using var _ = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);

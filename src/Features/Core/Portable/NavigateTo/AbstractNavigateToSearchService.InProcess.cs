@@ -9,7 +9,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -45,14 +48,37 @@ internal abstract partial class AbstractNavigateToSearchService
     /// <summary>
     /// Determines the name and container from a search pattern, using regex-aware splitting when
     /// the pattern contains regex metacharacters. Also compiles a <see cref="RegexQuery"/> for
-    /// pre-filtering when the pattern is a regex.
+    /// pre-filtering when the pattern is a regex. Returns <see langword="null"/> if the pattern
+    /// is detected as regex but is invalid or has no extractable literals for pre-filtering
+    /// (e.g. <c>.*</c>), since we refuse to run a regex search that can't be narrowed down.
     /// </summary>
-    private static SearchPatternInfo ProcessSearchPattern(string searchPattern)
+    private static SearchPatternInfo? ProcessSearchPattern(string searchPattern)
     {
         if (RegexPatternDetector.IsRegexPattern(searchPattern))
         {
-            var (container, name) = RegexPatternDetector.SplitOnContainerDot(searchPattern);
-            var regexQuery = RegexQueryCompiler.Compile(name);
+            var sequence = VirtualCharSequence.Create(0, searchPattern);
+            var tree = RegexParser.TryParse(sequence, RegexOptions.None);
+            if (tree is not { Diagnostics: [] })
+                return null;
+
+            var (container, name) = RegexPatternDetector.SplitOnContainerDot(searchPattern, tree);
+
+            // Reuse the already-parsed tree when the full pattern is the name (no split).
+            // When a split occurred, the name is a substring that needs its own parse.
+            var regexQuery = container is null
+                ? RegexQueryCompiler.Compile(tree)
+                : RegexQueryCompiler.Compile(name);
+
+            // Bail if the regex is invalid or has no extractable literals. We only run regex
+            // search when the compiled query tree can genuinely filter documents. After
+            // optimization, None never appears as a child of Any (it poisons the disjunction)
+            // or All (it's pruned as vacuously true), and the compiler only emits Literal nodes
+            // for strings of 2+ characters (which produce real bigram checks). So HasLiterals
+            // being true guarantees every Literal in the tree is reachable and can reject
+            // documents — the pre-filter will never degenerate to "accept everything."
+            if (regexQuery is null || !regexQuery.HasLiterals)
+                return null;
+
             return new SearchPatternInfo(name, container, IsRegex: true, regexQuery);
         }
 
@@ -99,15 +125,11 @@ internal abstract partial class AbstractNavigateToSearchService
     {
         if (patternInfo.IsRegex)
         {
-            // When the compiled query tree has extractable literals (HasLiterals is true), we can
-            // check if the document's indexed bigrams contain the required n-grams. This is the key
-            // optimization: most documents won't match a specific regex and can be skipped cheaply.
-            //
-            // When HasLiterals is false (e.g. the regex is `.*` which compiles to None), we can't
-            // reject any document — every document is a candidate and must be checked with the full
-            // regex. This is the "unsupported for pre-filtering" case: the regex is still run, but
-            // without the speed benefit of pre-filtering.
-            if (patternInfo.RegexQuery is { HasLiterals: true } regexQuery && !filterIndex.RegexQueryCheckPasses(regexQuery))
+            // ProcessSearchPattern guarantees that regex patterns always have a non-null query with
+            // extractable literals (HasLiterals). So we can unconditionally check the pre-filter.
+            // If the document's indexed bigrams lack the required n-grams, skip it entirely.
+            Debug.Assert(patternInfo.RegexQuery is { HasLiterals: true });
+            if (!filterIndex.RegexQueryCheckPasses(patternInfo.RegexQuery!))
             {
                 matchKinds = PatternMatcherKind.None;
                 return false;
@@ -135,21 +157,13 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        // Regex patterns get a RegexPatternMatcher that runs compiled System.Text.RegularExpressions.Regex.
-        // Non-regex patterns get the standard PatternMatcher which handles CamelCase, substring, fuzzy, etc.
-        // Both are used identically downstream — the caller doesn't know which kind it has.
-        //
-        // TryCreate returns null if the pattern is syntactically invalid (e.g. unclosed groups).
-        // In that case we silently produce no results for this document rather than crashing.
-        using var nameMatcher = patternInfo.IsRegex
-            ? PatternMatcher.RegexPatternMatcher.TryCreate(patternInfo.Name, includeMatchedSpans: true)
-            : PatternMatcher.CreatePatternMatcher(patternInfo.Name, includeMatchedSpans: true, matchKinds);
+        using var nameMatcher = PatternMatcher.CreateNameMatcher(
+            patternInfo.Name, patternInfo.IsRegex, includeMatchedSpans: true, matchKinds);
         if (nameMatcher is null)
             return;
 
-        using var containerMatcher = patternInfo.IsRegex
-            ? (patternInfo.Container != null ? PatternMatcher.RegexPatternMatcher.TryCreate(patternInfo.Container, includeMatchedSpans: true) : null)
-            : PatternMatcher.CreateDotSeparatedContainerMatcher(patternInfo.Container, includeMatchedSpans: true);
+        using var containerMatcher = PatternMatcher.CreateContainerMatcher(
+            patternInfo.Container, patternInfo.IsRegex, includeMatchedSpans: true);
 
         foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {

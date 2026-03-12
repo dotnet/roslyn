@@ -120,7 +120,9 @@ internal abstract partial class AbstractNavigateToSearchService
         if (!ShouldSearchCachedDocuments(out _, out _, out _))
             return;
 
-        var patternInfo = ProcessSearchPattern(searchPattern);
+        if (ProcessSearchPattern(searchPattern) is not { } patternInfo)
+            return;
+
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // Process the documents by project group.  That way, when each project is done, we can

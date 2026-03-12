@@ -35,16 +35,21 @@ internal static class RegexQueryCompiler
     /// </summary>
     public static RegexQuery? Compile(string pattern)
     {
-        // We use Roslyn's own regex parser (not System.Text.RegularExpressions) because it gives
-        // us a full AST we can walk to extract structural information. The System.Text parser
-        // only gives us a compiled matcher, not the tree.
         var sequence = VirtualCharSequence.Create(0, pattern);
         var tree = RegexParser.TryParse(sequence, RegexOptions.None);
         if (tree is not { Diagnostics: [] })
             return null;
 
-        // Walk the AST to extract literal requirements, then simplify the resulting boolean tree
-        // (flatten nested All/Any, prune None from All, collapse single-child wrappers).
+        return Compile(tree);
+    }
+
+    /// <summary>
+    /// Compiles an already-parsed regex AST into an optimized <see cref="RegexQuery"/> tree.
+    /// Walks the AST to extract literal requirements, then simplifies the resulting boolean tree
+    /// (flatten nested All/Any, prune None from All, collapse single-child wrappers).
+    /// </summary>
+    public static RegexQuery Compile(RegexTree tree)
+    {
         var raw = CompileNode(tree.Root.Expression);
         return RegexQuery.Optimize(raw);
     }
@@ -120,41 +125,32 @@ internal static class RegexQueryCompiler
 
     private static RegexQuery CompileText(RegexTextNode text)
     {
-        var chars = text.TextToken.VirtualChars;
-        if (chars.Length == 0)
-            return RegexQuery.None.Instance;
-
         // Strip whitespace from text nodes because symbol names never contain whitespace.
         // This allows users to write readable patterns like `( Read | Write ) Line` —
         // the whitespace around alternation branches is purely for readability.
         //
         // Also lowercase the literal at compile time so that RegexLiteralCheckPasses doesn't
         // need to allocate and lowercase on every call — the bigram index is already lowercased.
-        var raw = chars.CreateString();
+        var chars = text.TextToken.VirtualChars;
         using var _ = PooledStringBuilder.GetInstance(out var builder);
-        foreach (var ch in raw)
+        foreach (var ch in chars)
         {
-            if (!char.IsWhiteSpace(ch))
-                builder.Append(char.ToLowerInvariant(ch));
+            if (!char.IsWhiteSpace(ch.Value))
+                builder.Append(char.ToLowerInvariant(ch.Value));
         }
 
-        if (builder.Length == 0)
+        // Single characters can't form a bigram, so they provide no pre-filter value.
+        if (builder.Length < 2)
             return RegexQuery.None.Instance;
 
-        var literal = builder.Length == raw.Length ? raw.ToLowerInvariant() : builder.ToString();
-        return new RegexQuery.Literal(literal);
+        return new RegexQuery.Literal(builder.ToString());
     }
 
-    private static RegexQuery CompileSimpleEscape(RegexSimpleEscapeNode escape)
+    private static RegexQuery CompileSimpleEscape(RegexSimpleEscapeNode _)
     {
-        // The escaped character itself is a concrete character that must appear in any match.
-        // For example, `\.` requires a literal dot, `\[` requires a literal bracket.
-        // Lowercase at compile time for the same reason as in CompileText.
-        var chars = escape.TypeToken.VirtualChars;
-        if (chars.Length == 0)
-            return RegexQuery.None.Instance;
-
-        return new RegexQuery.Literal(chars.CreateString().ToLowerInvariant());
+        // A single escaped character (e.g. `\.`, `\[`) is just one character — it can't form
+        // a bigram and provides no pre-filter value, so treat it as None.
+        return RegexQuery.None.Instance;
     }
 
     private static RegexQuery CompileNumericQuantifier(RegexExpressionNode expression, EmbeddedSyntaxToken<RegexKind> firstNumberToken)

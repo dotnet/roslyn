@@ -68,6 +68,9 @@ internal static class RegexPatternDetector
     /// A tuple of (container substring, name substring). If no split point is found, container
     /// is <see langword="null"/> and name is the full pattern.
     /// </returns>
+    /// <summary>
+    /// Convenience overload that parses the pattern before splitting.
+    /// </summary>
     public static (string? container, string name) SplitOnContainerDot(string pattern)
     {
         var sequence = VirtualCharSequence.Create(0, pattern);
@@ -75,6 +78,11 @@ internal static class RegexPatternDetector
         if (tree is not { Diagnostics: [] })
             return (null, pattern);
 
+        return SplitOnContainerDot(pattern, tree);
+    }
+
+    public static (string? container, string name) SplitOnContainerDot(string pattern, RegexTree tree)
+    {
         // The Roslyn regex parser wraps the root in an alternation node even when there's no `|`.
         // We only split at the top-level sequence — a dot inside an alternation branch (e.g.
         // `Goo.Bar|Baz.Quux`) is ambiguous and doesn't make sense as a single container/name split.

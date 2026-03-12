@@ -12,7 +12,7 @@ public class RegexPatternMatcherTests
 {
     private static PatternMatch? GetMatch(string pattern, string candidate, bool includeMatchedSpans = false)
     {
-        using var matcher = PatternMatcher.RegexPatternMatcher.TryCreate(pattern, includeMatchedSpans);
+        using var matcher = PatternMatcher.CreateNameMatcher(pattern, isRegex: true, includeMatchedSpans);
         if (matcher is null)
             return null;
 
@@ -111,6 +111,35 @@ public class RegexPatternMatcherTests
         Assert.Single(match.Value.MatchedSpans);
         Assert.Equal(4, match.Value.MatchedSpans[0].Start);
         Assert.Equal(4, match.Value.MatchedSpans[0].Length);
+    }
+
+    [Fact]
+    public void MatchedSpans_RegexSubstring()
+    {
+        var match = GetMatch("Goo.*Bar", "MyGooSomethingBarEnd", includeMatchedSpans: true);
+        Assert.NotNull(match);
+        Assert.Single(match.Value.MatchedSpans);
+        // "GooSomethingBar" starts at index 2, length 15
+        Assert.Equal(2, match.Value.MatchedSpans[0].Start);
+        Assert.Equal(15, match.Value.MatchedSpans[0].Length);
+    }
+
+    [Fact]
+    public void MatchedSpans_ExactMatch_CoversFullString()
+    {
+        var match = GetMatch("GooBar", "GooBar", includeMatchedSpans: true);
+        Assert.NotNull(match);
+        Assert.Single(match.Value.MatchedSpans);
+        Assert.Equal(0, match.Value.MatchedSpans[0].Start);
+        Assert.Equal(6, match.Value.MatchedSpans[0].Length);
+    }
+
+    [Fact]
+    public void MatchedSpans_NotReported_WhenNotRequested()
+    {
+        var match = GetMatch("Line", "ReadLine", includeMatchedSpans: false);
+        Assert.NotNull(match);
+        Assert.True(match.Value.MatchedSpans.IsDefaultOrEmpty);
     }
 
     [Fact]

@@ -65,7 +65,9 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        var patternInfo = ProcessSearchPattern(pattern);
+        if (ProcessSearchPattern(pattern) is not { } patternInfo)
+            return;
+
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(

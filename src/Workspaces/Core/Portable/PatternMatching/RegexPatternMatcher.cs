@@ -18,7 +18,7 @@ internal abstract partial class PatternMatcher
     /// as case-sensitive when the case-sensitive regex also matches. This is consistent with
     /// how standard NavigateTo works: find broadly, then rank case-sensitive matches higher.
     /// </summary>
-    public sealed class RegexPatternMatcher(
+    private sealed class RegexPatternMatcher(
         Regex caseInsensitiveRegex, Regex caseSensitiveRegex, bool includeMatchedSpans, CultureInfo? culture)
         : PatternMatcher(includeMatchedSpans, culture)
     {

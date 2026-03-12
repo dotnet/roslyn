@@ -88,25 +88,28 @@ public sealed class RegexQueryCompilerTests
     [Fact]
     public void ExactNumericQuantifier_WithMinOne_PreservesInner()
     {
-        // a{3} -> Literal("a") (exact count >= 1, so at least one match required)
-        var query = RegexQueryCompiler.Compile("a{3}");
+        // (Go){3} -> the group "Go" produces Literal("go"), and exact count >= 1 preserves it
+        var query = RegexQueryCompiler.Compile("(Go){3}");
         Assert.True(query!.HasLiterals);
+        Assert.Equal("go", Assert.IsType<RegexQuery.Literal>(query).Text);
     }
 
     [Fact]
     public void OpenRangeQuantifier_WithMinOne_PreservesInner()
     {
-        // a{1,} -> Literal("a")
-        var query = RegexQueryCompiler.Compile("a{1,}");
+        // (Go){1,} -> Literal("go")
+        var query = RegexQueryCompiler.Compile("(Go){1,}");
         Assert.True(query!.HasLiterals);
+        Assert.Equal("go", Assert.IsType<RegexQuery.Literal>(query).Text);
     }
 
     [Fact]
     public void ClosedRangeQuantifier_WithMinOne_PreservesInner()
     {
-        // a{1,5} -> Literal("a")
-        var query = RegexQueryCompiler.Compile("a{1,5}");
+        // (Go){1,5} -> Literal("go")
+        var query = RegexQueryCompiler.Compile("(Go){1,5}");
         Assert.True(query!.HasLiterals);
+        Assert.Equal("go", Assert.IsType<RegexQuery.Literal>(query).Text);
     }
 
     #endregion
