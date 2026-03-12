@@ -171,22 +171,22 @@ public sealed class RegexQueryCompilerTests
     [Fact]
     public void Optimizer_FlattenNestedAll()
     {
-        var inner = new RegexQuery.All([new RegexQuery.Literal("a"), new RegexQuery.Literal("b")]);
-        var outer = new RegexQuery.All([inner, new RegexQuery.Literal("c")]);
+        var inner = new RegexQuery.All([new RegexQuery.Literal("aa"), new RegexQuery.Literal("bb")]);
+        var outer = new RegexQuery.All([inner, new RegexQuery.Literal("cc")]);
 
         var optimized = RegexQuery.Optimize(outer);
         var all = Assert.IsType<RegexQuery.All>(optimized);
         Assert.Equal(3, all.Children.Length);
-        Assert.Equal("a", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
-        Assert.Equal("b", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
-        Assert.Equal("c", Assert.IsType<RegexQuery.Literal>(all.Children[2]).Text);
+        Assert.Equal("aa", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("bb", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
+        Assert.Equal("cc", Assert.IsType<RegexQuery.Literal>(all.Children[2]).Text);
     }
 
     [Fact]
     public void Optimizer_FlattenNestedAny()
     {
-        var inner = new RegexQuery.Any([new RegexQuery.Literal("a"), new RegexQuery.Literal("b")]);
-        var outer = new RegexQuery.Any([inner, new RegexQuery.Literal("c")]);
+        var inner = new RegexQuery.Any([new RegexQuery.Literal("aa"), new RegexQuery.Literal("bb")]);
+        var outer = new RegexQuery.Any([inner, new RegexQuery.Literal("cc")]);
 
         var optimized = RegexQuery.Optimize(outer);
         var any = Assert.IsType<RegexQuery.Any>(optimized);
@@ -197,23 +197,23 @@ public sealed class RegexQueryCompilerTests
     public void Optimizer_PruneNoneFromAll()
     {
         var query = new RegexQuery.All([
-            new RegexQuery.Literal("a"),
+            new RegexQuery.Literal("aa"),
             RegexQuery.None.Instance,
-            new RegexQuery.Literal("b"),
+            new RegexQuery.Literal("bb"),
         ]);
 
         var optimized = RegexQuery.Optimize(query);
         var all = Assert.IsType<RegexQuery.All>(optimized);
         Assert.Equal(2, all.Children.Length);
-        Assert.Equal("a", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
-        Assert.Equal("b", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
+        Assert.Equal("aa", Assert.IsType<RegexQuery.Literal>(all.Children[0]).Text);
+        Assert.Equal("bb", Assert.IsType<RegexQuery.Literal>(all.Children[1]).Text);
     }
 
     [Fact]
     public void Optimizer_NoneInAny_CollapsesToNone()
     {
         var query = new RegexQuery.Any([
-            new RegexQuery.Literal("a"),
+            new RegexQuery.Literal("aa"),
             RegexQuery.None.Instance,
         ]);
 
@@ -224,17 +224,17 @@ public sealed class RegexQueryCompilerTests
     [Fact]
     public void Optimizer_SingleChildAll_Unwraps()
     {
-        var query = new RegexQuery.All([new RegexQuery.Literal("a")]);
+        var query = new RegexQuery.All([new RegexQuery.Literal("aa")]);
         var optimized = RegexQuery.Optimize(query);
-        Assert.Equal("a", Assert.IsType<RegexQuery.Literal>(optimized).Text);
+        Assert.Equal("aa", Assert.IsType<RegexQuery.Literal>(optimized).Text);
     }
 
     [Fact]
     public void Optimizer_SingleChildAny_Unwraps()
     {
-        var query = new RegexQuery.Any([new RegexQuery.Literal("a")]);
+        var query = new RegexQuery.Any([new RegexQuery.Literal("aa")]);
         var optimized = RegexQuery.Optimize(query);
-        Assert.Equal("a", Assert.IsType<RegexQuery.Literal>(optimized).Text);
+        Assert.Equal("aa", Assert.IsType<RegexQuery.Literal>(optimized).Text);
     }
 
     [Fact]
@@ -244,6 +244,22 @@ public sealed class RegexQueryCompilerTests
         var optimized = RegexQuery.Optimize(query);
         Assert.IsType<RegexQuery.None>(optimized);
     }
+
+    #endregion
+
+    #region Single-char literals are too short for pre-filtering
+
+    [Fact]
+    public void SingleCharLiteral_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("a"));
+
+    [Fact]
+    public void SingleCharAlternation_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("(a|b)"));
+
+    [Fact]
+    public void SingleCharWithWildcard_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("a.b"));
 
     #endregion
 
