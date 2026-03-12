@@ -43,17 +43,6 @@ internal abstract partial class AbstractNavigateToSearchService
         ];
 
     /// <summary>
-    /// Holds the result of parsing and analyzing a NavigateTo search pattern. Bundles the
-    /// split name/container, regex detection flag, and pre-compiled regex query so callers
-    /// can pass a single value through the search pipeline.
-    /// </summary>
-    private readonly record struct SearchPatternInfo(
-        string Name,
-        string? Container,
-        bool IsRegex,
-        RegexQuery? RegexQuery);
-
-    /// <summary>
     /// Determines the name and container from a search pattern, using regex-aware splitting when
     /// the pattern contains regex metacharacters. Also compiles a <see cref="RegexQuery"/> for
     /// pre-filtering when the pattern is a regex.
