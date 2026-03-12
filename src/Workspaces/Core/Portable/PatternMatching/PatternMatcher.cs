@@ -118,8 +118,11 @@ internal abstract partial class PatternMatcher : IDisposable
     public static PatternMatcher? CreateContainerMatcher(
         string? container, bool isRegex, bool includeMatchedSpans)
     {
+        if (container is null)
+            return null;
+
         return isRegex
-            ? (container != null ? RegexPatternMatcher.TryCreate(container, includeMatchedSpans) : null)
+            ? RegexPatternMatcher.TryCreate(container, includeMatchedSpans)
             : CreateDotSeparatedContainerMatcher(container, includeMatchedSpans);
     }
 

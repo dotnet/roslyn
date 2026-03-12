@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -68,19 +66,6 @@ internal static class RegexPatternDetector
     /// A tuple of (container substring, name substring). If no split point is found, container
     /// is <see langword="null"/> and name is the full pattern.
     /// </returns>
-    /// <summary>
-    /// Convenience overload that parses the pattern before splitting.
-    /// </summary>
-    public static (string? container, string name) SplitOnContainerDot(string pattern)
-    {
-        var sequence = VirtualCharSequence.Create(0, pattern);
-        var tree = RegexParser.TryParse(sequence, RegexOptions.None);
-        if (tree is not { Diagnostics: [] })
-            return (null, pattern);
-
-        return SplitOnContainerDot(pattern, tree);
-    }
-
     public static (string? container, string name) SplitOnContainerDot(string pattern, RegexTree tree)
     {
         // The Roslyn regex parser wraps the root in an alternation node even when there's no `|`.

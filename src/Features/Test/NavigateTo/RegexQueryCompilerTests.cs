@@ -114,102 +114,55 @@ public sealed class RegexQueryCompilerTests
 
     #endregion
 
-    #region Compilation — negative (produces None / no literals)
+    #region Compilation — negative (returns null: no extractable literals)
 
     [Fact]
-    public void DotStar_ProducesNone()
-    {
-        var query = RegexQueryCompiler.Compile(".*");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void DotStar_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile(".*"));
 
     [Fact]
-    public void SingleDot_ProducesNone()
-    {
-        var query = RegexQueryCompiler.Compile(".");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void SingleDot_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("."));
 
     [Fact]
-    public void CharacterClassEscape_ProducesNone()
-    {
-        // \d+ -> None (character class escapes cannot produce literals)
-        var query = RegexQueryCompiler.Compile(@"\d+");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void CharacterClassEscape_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile(@"\d+"));
 
     [Fact]
-    public void CharacterClass_ProducesNone()
-    {
-        // [abc] -> None
-        var query = RegexQueryCompiler.Compile("[abc]");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void CharacterClass_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("[abc]"));
 
     [Fact]
-    public void ZeroOrMore_DropsStar()
-    {
-        // a* -> None (zero matches is valid, can't require the literal)
-        var query = RegexQueryCompiler.Compile("a*");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void ZeroOrMore_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("a*"));
 
     [Fact]
-    public void ZeroOrOne_DropsQuestion()
-    {
-        // a? -> None
-        var query = RegexQueryCompiler.Compile("a?");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void ZeroOrOne_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("a?"));
 
     [Fact]
-    public void ZeroOrMoreLazy_DropsStarQuestion()
-    {
-        // a*? -> None
-        var query = RegexQueryCompiler.Compile("a*?");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void ZeroOrMoreLazy_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("a*?"));
 
     [Fact]
-    public void NumericQuantifier_WithMinZero_ProducesNone()
-    {
-        // a{0,5} -> None
-        var query = RegexQueryCompiler.Compile("a{0,5}");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void NumericQuantifier_WithMinZero_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("a{0,5}"));
 
     [Fact]
-    public void OpenRangeQuantifier_WithMinZero_ProducesNone()
-    {
-        // a{0,} -> None (equivalent to a*)
-        var query = RegexQueryCompiler.Compile("a{0,}");
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void OpenRangeQuantifier_WithMinZero_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("a{0,}"));
 
     [Fact]
     public void InvalidRegex_ReturnsNull()
-    {
-        // Unbalanced parenthesis
-        var query = RegexQueryCompiler.Compile("(abc");
-        Assert.Null(query);
-    }
+        => Assert.Null(RegexQueryCompiler.Compile("(abc"));
 
     [Fact]
-    public void AnchorOnly_ProducesNone()
-    {
-        // ^$ -> anchors only, no literal text
-        var query = RegexQueryCompiler.Compile("^$");
-        Assert.False(query!.HasLiterals);
-    }
+    public void AnchorOnly_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("^$"));
 
     [Fact]
-    public void WhitespaceOnlyText_ProducesNone()
-    {
-        // " " as a standalone text node becomes empty after whitespace stripping -> None.
-        // We test this via a pattern where the only "text" is whitespace around an anchor.
-        var query = RegexQueryCompiler.Compile("^ $");
-        Assert.False(query!.HasLiterals);
-    }
+    public void WhitespaceOnlyText_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("^ $"));
 
     #endregion
 
@@ -397,12 +350,8 @@ public sealed class RegexQueryCompilerTests
     }
 
     [Fact]
-    public void EndToEnd_AlternationOfPureDotStar_ProducesNone()
-    {
-        // (.*|.+) -> Any(None, None) -> None
-        var query = RegexQueryCompiler.Compile("(.*|.+)")!;
-        Assert.IsType<RegexQuery.None>(query);
-    }
+    public void EndToEnd_AlternationOfPureDotStar_ReturnsNull()
+        => Assert.Null(RegexQueryCompiler.Compile("(.*|.+)"));
 
     [Fact]
     public void EndToEnd_AnchorWithLiteral()

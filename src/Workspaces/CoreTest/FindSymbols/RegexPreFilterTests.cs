@@ -100,22 +100,6 @@ public sealed class RegexPreFilterTests
     }
 
     [Fact]
-    public void ShortLiteral_SingleChar_Passes()
-    {
-        var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.Literal("r");
-        Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
-    }
-
-    [Fact]
-    public void EmptyLiteral_Passes()
-    {
-        var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.Literal("");
-        Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
-    }
-
-    [Fact]
     public void ComplexQuery_ReadOrWriteLine_Passes()
     {
         var index = CreateIndex(("ReadLine", ""), ("WriteLine", ""));

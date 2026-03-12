@@ -46,12 +46,15 @@ internal static class RegexQueryCompiler
     /// <summary>
     /// Compiles an already-parsed regex AST into an optimized <see cref="RegexQuery"/> tree.
     /// Walks the AST to extract literal requirements, then simplifies the resulting boolean tree
-    /// (flatten nested All/Any, prune None from All, collapse single-child wrappers).
+    /// (flatten nested All/Any, prune None from All, collapse single-child wrappers). Returns
+    /// <see langword="null"/> if the optimized tree has no extractable literals, since such a
+    /// query cannot filter any documents and would degenerate to "accept everything."
     /// </summary>
-    public static RegexQuery Compile(RegexTree tree)
+    public static RegexQuery? Compile(RegexTree tree)
     {
         var raw = CompileNode(tree.Root.Expression);
-        return RegexQuery.Optimize(raw);
+        var optimized = RegexQuery.Optimize(raw);
+        return optimized.HasLiterals ? optimized : null;
     }
 
     private static RegexQuery CompileNode(RegexNode node)

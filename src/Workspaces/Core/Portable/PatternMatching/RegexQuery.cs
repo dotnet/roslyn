@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
@@ -56,12 +57,21 @@ internal abstract class RegexQuery
     /// <summary>
     /// A literal string that must appear somewhere in the document's symbol names.
     /// At pre-filter time, the literal's lowercased bigrams and trigrams are checked
-    /// against the document's indexed bitset and Bloom filter.
+    /// against the document's indexed bitset and Bloom filter. The text is always
+    /// lowercase and at least two characters long, guaranteeing that every literal
+    /// contributes at least one bigram to the pre-filter check.
     /// </summary>
-    public sealed class Literal(string text) : RegexQuery
+    public sealed class Literal : RegexQuery
     {
-        public readonly string Text = text;
+        public readonly string Text;
         public override bool HasLiterals => true;
+
+        public Literal(string text)
+        {
+            Debug.Assert(text.Length >= 2);
+            Debug.Assert(text == text.ToLowerInvariant());
+            Text = text;
+        }
     }
 
     /// <summary>

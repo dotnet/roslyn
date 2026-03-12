@@ -69,21 +69,22 @@ internal abstract partial class AbstractNavigateToSearchService
                 ? RegexQueryCompiler.Compile(tree)
                 : RegexQueryCompiler.Compile(name);
 
-            // Bail if the regex is invalid or has no extractable literals. We only run regex
-            // search when the compiled query tree can genuinely filter documents. After
-            // optimization, None never appears as a child of Any (it poisons the disjunction)
-            // or All (it's pruned as vacuously true), and the compiler only emits Literal nodes
-            // for strings of 2+ characters (which produce real bigram checks). So HasLiterals
-            // being true guarantees every Literal in the tree is reachable and can reject
-            // documents — the pre-filter will never degenerate to "accept everything."
-            if (regexQuery is null || !regexQuery.HasLiterals)
+            // Compile returns null if the regex is invalid or has no extractable literals.
+            // We only run regex search when the compiled query tree can genuinely filter
+            // documents. After optimization, None never appears as a child of Any (it poisons
+            // the disjunction) or All (it's pruned as vacuously true), and the compiler only
+            // emits Literal nodes for strings of 2+ characters (which produce real bigram
+            // checks). So a non-null result guarantees every Literal in the tree is reachable
+            // and can reject documents — the pre-filter will never degenerate to "accept
+            // everything."
+            if (regexQuery is null)
                 return null;
 
-            return new SearchPatternInfo(name, container, IsRegex: true, regexQuery);
+            return new SearchPatternInfo(name, container, regexQuery);
         }
 
         var (patternName, containerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
-        return new SearchPatternInfo(patternName, containerOpt, IsRegex: false, RegexQuery: null);
+        return new SearchPatternInfo(patternName, containerOpt, RegexQuery: null);
     }
 
     private static async ValueTask SearchSingleDocumentAsync(
@@ -123,23 +124,11 @@ internal abstract partial class AbstractNavigateToSearchService
         SearchPatternInfo patternInfo,
         out PatternMatcherKind matchKinds)
     {
-        if (patternInfo.IsRegex)
-        {
-            // ProcessSearchPattern guarantees that regex patterns always have a non-null query with
-            // extractable literals (HasLiterals). So we can unconditionally check the pre-filter.
-            // If the document's indexed bigrams lack the required n-grams, skip it entirely.
-            Debug.Assert(patternInfo.RegexQuery is { HasLiterals: true });
-            if (!filterIndex.RegexQueryCheckPasses(patternInfo.RegexQuery!))
-            {
-                matchKinds = PatternMatcherKind.None;
-                return false;
-            }
+        if (patternInfo.RegexQuery is { } regexQuery)
+            matchKinds = filterIndex.RegexQueryCheckPasses(regexQuery) ? PatternMatcherKind.Standard : PatternMatcherKind.None;
+        else
+            matchKinds = filterIndex.CouldContainNavigateToMatch(patternInfo.Name, patternInfo.Container);
 
-            matchKinds = PatternMatcherKind.Standard;
-            return true;
-        }
-
-        matchKinds = filterIndex.CouldContainNavigateToMatch(patternInfo.Name, patternInfo.Container);
         return matchKinds != PatternMatcherKind.None;
     }
 

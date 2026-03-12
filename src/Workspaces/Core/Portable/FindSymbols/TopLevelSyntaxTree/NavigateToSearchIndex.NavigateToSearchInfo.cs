@@ -842,12 +842,8 @@ internal sealed partial class NavigateToSearchIndex
         private bool RegexLiteralCheckPasses(string text)
         {
             Debug.Assert(text == text.ToLowerInvariant());
-
-            if (text.Length <= 1)
-                return true;
-
-            if (_fuzzyBigramBitset.IsDefault)
-                return true;
+            Debug.Assert(text.Length >= 2);
+            Debug.Assert(!_fuzzyBigramBitset.IsDefault);
 
             for (var i = 0; i < text.Length - 1; i++)
             {

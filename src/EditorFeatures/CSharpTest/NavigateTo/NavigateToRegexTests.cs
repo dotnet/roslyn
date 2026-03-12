@@ -72,8 +72,12 @@ public sealed class NavigateToRegexTests : AbstractNavigateToTests
         {
             var items = await _aggregator.GetItemsAsync("Goo.*Bar");
             Assert.Equal(2, items.Count());
-            Assert.Contains(items, i => i.Name == "GooBar");
-            Assert.Contains(items, i => i.Name == "MyGooBarEnd");
+
+            var gooBar = items.Single(i => i.Name == "GooBar");
+            VerifyNavigateToResultItem(gooBar, "GooBar", "[|GooBar|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+
+            var myGooBarEnd = items.Single(i => i.Name == "MyGooBarEnd");
+            VerifyNavigateToResultItem(myGooBarEnd, "MyGooBarEnd", "My[|GooBar|]End", PatternMatchKind.Substring, NavigateToItemKind.Class, Glyph.ClassInternal);
         });
 
     [Theory, CombinatorialData]
@@ -118,8 +122,12 @@ public sealed class NavigateToRegexTests : AbstractNavigateToTests
         {
             var items = await _aggregator.GetItemsAsync("Stream[RW]");
             Assert.Equal(2, items.Count());
-            Assert.Contains(items, i => i.Name == "StreamReader");
-            Assert.Contains(items, i => i.Name == "StreamWriter");
+
+            var reader = items.Single(i => i.Name == "StreamReader");
+            VerifyNavigateToResultItem(reader, "StreamReader", "[|StreamR|]eader", PatternMatchKind.Substring, NavigateToItemKind.Class, Glyph.ClassInternal);
+
+            var writer = items.Single(i => i.Name == "StreamWriter");
+            VerifyNavigateToResultItem(writer, "StreamWriter", "[|StreamW|]riter", PatternMatchKind.Substring, NavigateToItemKind.Class, Glyph.ClassInternal);
         });
 
     #endregion
