@@ -753,7 +753,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // https://github.com/dotnet/roslyn/issues/82546: validate the value of MemorySafetyRules?
-            // https://github.com/dotnet/roslyn/issues/82546: report LangVersion error if using updated rules in old LangVersion.
 
             // TODO: add check for 
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&

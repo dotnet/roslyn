@@ -612,6 +612,11 @@
         <target state="translated">이 컬렉션의 요소 형식은 ref 구조체 또는 ref 구조체를 허용하는 형식 매개 변수일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">컴파일 단위는 필드, 메서드 또는 속성과 같은 멤버를 직접 포함할 수 없습니다.</target>
@@ -1880,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">'warnings', 'annotations' 또는 지시문의 끝이 필요합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">C# {2}의 '{0}' 값 '{1}'이(가) 잘못되었습니다. 언어 버전 '{3}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">

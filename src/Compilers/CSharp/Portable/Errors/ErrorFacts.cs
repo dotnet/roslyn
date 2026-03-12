@@ -1975,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NullableUnconstrainedTypeParameter
                 or ErrorCode.ERR_AnnotationDisallowedInObjectCreation
                 or ErrorCode.WRN_NullableValueTypeMayBeNull
-                or ErrorCode.ERR_NullableOptionNotAvailable
+                or ErrorCode.ERR_CompilationOptionNotAvailable
                 or ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint
                 or ErrorCode.WRN_MissingNonNullTypesContextForAnnotation
                 or ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation

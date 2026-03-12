@@ -612,6 +612,11 @@
         <target state="translated">Der Elementtyp dieser Sammlung darf keine Referenzstruktur oder ein Typparameter sein, der Referenzstrukturen zulässt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">Eine Kompilierungseinheit darf keine Mitglieder wie Felder, Methoden oder Eigenschaften direkt enthalten.</target>
@@ -1880,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">Erwartet wurde "warnings", "annotations" oder das Ende der Anweisung.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Ungültiger Wert für "{0}": "{1}" für C# {2}. Verwenden Sie Sprachversion {3} oder höher.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
