@@ -4,17 +4,14 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Select callers within this type use this one.
             private static readonly PartVisitor s_parameterOrReturnTypeInstance = new PartVisitor(inParameterOrReturnType: true);
+
+            private static readonly char[] s_escapedMetadataNameChars = [':', '.', '<', '>'];
 
             private readonly bool _inParameterOrReturnType;
 
@@ -273,6 +272,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static string GetEscapedMetadataName(Symbol symbol)
             {
                 string metadataName = symbol.MetadataName;
+
+                if (metadataName.IndexOfAny(s_escapedMetadataNameChars) == -1)
+                {
+                    return metadataName;
+                }
 
                 int colonColonIndex = metadataName.IndexOf("::", StringComparison.Ordinal);
                 int startIndex = colonColonIndex < 0 ? 0 : colonColonIndex + 2;
