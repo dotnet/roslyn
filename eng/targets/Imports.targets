@@ -218,6 +218,30 @@
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(UseRoslynAnalyzersFromSource)' == 'true'
+                       and '$(MSBuildProjectName)' != 'Microsoft.CodeAnalysis.Analyzers'
+                       and '$(MSBuildProjectName)' != 'Microsoft.CodeAnalysis.CSharp.Analyzers'
+                       and '$(MSBuildProjectName)' != 'Microsoft.CodeAnalysis.VisualBasic.Analyzers'">
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\Core\Microsoft.CodeAnalysis.Analyzers.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer"
+                      PrivateAssets="all" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer"
+                      PrivateAssets="all" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseRoslynAnalyzersFromSource)' == 'true' and '$(IncludeRoslynAnalyzersPackageDependency)' == 'true' and '$(IsPackable)' == 'true' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <!-- Preserve package dependency shape while analyzer assets come from source project references -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers"
+                      ExcludeAssets="analyzers;build;buildTransitive" />
+  </ItemGroup>
+
   <!-- 
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.
   -->

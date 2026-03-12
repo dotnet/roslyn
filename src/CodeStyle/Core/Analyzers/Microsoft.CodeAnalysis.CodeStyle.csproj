@@ -11,12 +11,10 @@
 
     <!-- Package used for symbol publishing. The assembly ships in analyzer packages Microsoft.CodeAnalysis.(CSharp|VisualBasic).CodeStyle -->
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <UseRoslynAnalyzersFromSource>true</UseRoslynAnalyzersFromSource>
+    <IncludeRoslynAnalyzersPackageDependency>true</IncludeRoslynAnalyzersPackageDependency>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.Package.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"
-                      PrivateAssets="all" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
     <PackageReference Include="System.Threading.Channels" />

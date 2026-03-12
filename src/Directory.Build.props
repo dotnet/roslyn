@@ -1,0 +1,6 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <PropertyGroup>
+    <UseRoslynAnalyzersFromSource Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</UseRoslynAnalyzersFromSource>
+  </PropertyGroup>
+</Project>
