@@ -78,7 +78,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            return EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjects);
+            return EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.ToString(), runningProjects);
         }
     }
 
