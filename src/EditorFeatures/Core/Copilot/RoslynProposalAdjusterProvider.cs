@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -33,11 +34,13 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderBase
 {
     private readonly ImmutableHashSet<string> _allowableAdjustments;
+    private readonly EditorOptionsService _editorOptionsService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RoslynProposalAdjusterProvider(IGlobalOptionService globalOptions)
+    public RoslynProposalAdjusterProvider(IGlobalOptionService globalOptions, EditorOptionsService editorOptionsService)
     {
+        _editorOptionsService = editorOptionsService;
         var builder = ImmutableHashSet.CreateBuilder<string>();
         if (globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
             builder.Add(ProposalAdjusterKinds.AddMissingTokens);
@@ -202,12 +205,15 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
             // Checked in TryGetAffectedSolution
             Contract.ThrowIfNull(document);
 
+            var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
+
             var proposalAdjusterService = document.GetLanguageService<ICopilotProposalAdjusterService>();
             var (proposedEdits, formatGroup, adjustmentResults) = proposalAdjusterService is null
                 ? default
                 : await proposalAdjusterService.TryAdjustProposalAsync(
                     this._allowableAdjustments, document,
-                    CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
+                    CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup),
+                    lineFormattingOptions, cancellationToken).ConfigureAwait(false);
 
             if (proposedEdits.IsDefault || adjustmentResults.IsDefault)
             {
