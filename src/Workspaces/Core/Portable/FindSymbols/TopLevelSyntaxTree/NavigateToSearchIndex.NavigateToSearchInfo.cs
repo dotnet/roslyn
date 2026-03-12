@@ -258,23 +258,22 @@ internal sealed partial class NavigateToSearchIndex
                     }
                 }
 
+                // Index sparse n-grams over the full lowercased symbol name, not per-word-part.
+                // Per-word-part indexing would miss cross-boundary n-grams (e.g. "adl" from
+                // "ReadLine" spans the "Read"/"Line" boundary). Full-name indexing ensures
+                // regex literals that cross CamelCase boundaries can still be filtered via the
+                // Bloom filter, and makes the existing all-lowercase substring check more
+                // accurate (fewer fallbacks to the expensive hump-prefix DP).
                 void AddNgramData(ReadOnlySpan<char> loweredName)
                 {
-                    using var wordParts = TemporaryArray<TextSpan>.Empty;
-                    StringBreaker.AddWordParts(name, ref wordParts.AsRef());
+                    if (loweredName.Length < SparseNgramGenerator.MinNgramLength)
+                        return;
 
-                    foreach (var part in wordParts)
-                    {
-                        if (part.Length < SparseNgramGenerator.MinNgramLength)
-                            continue;
+                    using var ngrams = TemporaryArray<(int start, int length)>.Empty;
+                    SparseNgramGenerator.BuildAllNgrams(loweredName, ref ngrams.AsRef());
 
-                        var partSpan = loweredName.Slice(part.Start, part.Length);
-                        using var ngrams = TemporaryArray<(int start, int length)>.Empty;
-                        SparseNgramGenerator.BuildAllNgrams(partSpan, ref ngrams.AsRef());
-
-                        foreach (var (ngramStart, ngramLength) in ngrams)
-                            AddToSet(ngramStrings, partSpan.Slice(ngramStart, ngramLength));
-                    }
+                    foreach (var (ngramStart, ngramLength) in ngrams)
+                        AddToSet(ngramStrings, loweredName.Slice(ngramStart, ngramLength));
                 }
 
                 // Populate the fuzzy bigram bitset with lowercased bigrams (2-character sliding windows)
@@ -770,12 +769,16 @@ internal sealed partial class NavigateToSearchIndex
         }
 
         /// <summary>
-        /// Checks whether the bigrams of a literal string are present in this document's bigram bitset.
-        /// Uses only bigrams (not n-grams) because the n-gram index is segmented by camelCase
-        /// word-parts, while regex literals are continuous strings that may span word-part boundaries
-        /// (e.g. "ReadLine" has cross-boundary n-grams "adl"/"dli" that aren't indexed). The bigram
-        /// bitset covers the full symbol name and is sufficient for filtering.
-        /// <para/>
+        /// Checks whether a regex literal could be present in this document's indexed symbol names.
+        /// Applies two complementary filters (both must pass):
+        /// <list type="bullet">
+        /// <item><b>Bigram bitset (always)</b>: All adjacent character pairs must be present.
+        /// Effective for any literal length >= 2.</item>
+        /// <item><b>Sparse n-gram Bloom filter (length >= 3)</b>: The literal's covering n-grams must
+        /// all be present. Because we now index full symbol names (not per-word-part), n-grams that
+        /// span camelCase boundaries (e.g. "adl" from "ReadLine") are captured, making this filter
+        /// applicable to regex literals.</item>
+        /// </list>
         /// The literal text is expected to already be lowercased at compile time by the regex query
         /// compiler.
         /// </summary>
@@ -790,6 +793,12 @@ internal sealed partial class NavigateToSearchIndex
                 var idx = FuzzyBigramCharIndex(text[i]) * FuzzyBigramAlphabetSize
                         + FuzzyBigramCharIndex(text[i + 1]);
                 if ((_fuzzyBigramBitset[idx >> 6] & (1UL << (idx & 63))) == 0)
+                    return false;
+            }
+
+            if (text.Length >= SparseNgramGenerator.MinNgramLength && _ngramFilter != null)
+            {
+                if (!SparseNgramGenerator.CoveringNgramsProbablyContained(text.AsSpan(), _ngramFilter))
                     return false;
             }
 
