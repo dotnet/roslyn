@@ -3292,21 +3292,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
             }
 
-            var methodBodiesInTreeDiagnostics = cachedDiagnostics;
-            if (methodBodiesInTreeDiagnostics.Length >= MaxCachedMethodBodiesInTreeDiagnostics)
-            {
-                // Cache is full, evict the first half
-                var halfSize = MaxCachedMethodBodiesInTreeDiagnostics / 2;
-                methodBodiesInTreeDiagnostics = methodBodiesInTreeDiagnostics.RemoveRange(0, halfSize);
-            }
-
             var diagnostics = bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
-            methodBodiesInTreeDiagnostics = methodBodiesInTreeDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
-
-            // Only update the cache if it hasn't changed since we read it, otherwise we might lose diagnostics from another thread that is doing the same thing.
-            ImmutableInterlocked.InterlockedCompareExchange(ref _methodBodiesInTreeDiagnostics, methodBodiesInTreeDiagnostics, cachedDiagnostics);
+            updateCachedDiagnostics(diagnostics, tree, span);
 
             return diagnostics;
+
+            void updateCachedDiagnostics(ImmutableArray<Diagnostic> diagnostics, SyntaxTree tree, TextSpan? span)
+            {
+                bool needsUpdate = true;
+                while (needsUpdate)
+                {
+                    var cachedDiagnostics = _methodBodiesInTreeDiagnostics;
+                    foreach (var methodBodyDiagnostics in cachedDiagnostics)
+                    {
+                        if (methodBodyDiagnostics.Tree == tree && methodBodyDiagnostics.Span == span)
+                        {
+                            // Someone else already computed diagnostics for this tree/span and updated the cache while we were doing our work.
+                            Debug.Assert(methodBodyDiagnostics.Diagnostics.SequenceEqual(diagnostics));
+                            return;
+                        }
+                    }
+
+                    var newDiagnostics = cachedDiagnostics;
+                    if (newDiagnostics.Length >= MaxCachedMethodBodiesInTreeDiagnostics)
+                    {
+                        // Cache is full, evict the first half. Local testing usually indicates very few entries in the cache,
+                        // so this should be sufficient to keep the cache effective while avoiding unbounded memory growth.
+                        var halfSize = MaxCachedMethodBodiesInTreeDiagnostics / 2;
+                        newDiagnostics = newDiagnostics.RemoveRange(0, halfSize);
+                    }
+
+                    newDiagnostics = newDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
+
+                    // Only update the cache if it hasn't changed since we read it, otherwise we might lose diagnostics from another thread that is doing the same thing.
+                    var originalDiagnostics = ImmutableInterlocked.InterlockedCompareExchange(ref _methodBodiesInTreeDiagnostics, newDiagnostics, cachedDiagnostics);
+
+                    // If the original diagnostics are not what we did the compare exchange above, the call won't have updated _methodBodiesInTreeDiagnostics
+                    // and we'll need to do another iteration to make sure our diagnostics are in the cache.
+                    needsUpdate = (originalDiagnostics != cachedDiagnostics);
+                }
+            }
 
             void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
             {
