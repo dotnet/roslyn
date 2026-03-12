@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // [start..] can be simplified to .Substring(start) or .Slice(start) for some built-in types
             // e.g. string and (ReadOnly)Span
 
-            var rewrittenIndexerAccess = tryLowerToSliceStart(receiver, startExpr, sliceCall) ?? VisitExpression(sliceCall);
+            var rewrittenIndexerAccess = tryLowerToSliceStart(this, F, node.Syntax, endMakeOffsetInput is null, receiver, startExpr, sliceCall) ?? VisitExpression(sliceCall);
 
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
@@ -1037,18 +1037,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenIndexerAccess;
 
-            BoundExpression? tryLowerToSliceStart(BoundExpression receiverExpr, BoundExpression startArg, BoundCall currentSliceCall)
+            static BoundExpression? tryLowerToSliceStart(LocalRewriter rewriter, SyntheticBoundNodeFactory factory, SyntaxNode syntax, bool canLowerToSingleArgumentOverload, BoundExpression receiverExpr, BoundExpression startArg, BoundCall currentSliceCall)
             {
-                if (endMakeOffsetInput is not null)
+                if (!canLowerToSingleArgumentOverload)
                 {
                     return null;
                 }
 
-                if (TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringIntInt, out var stringSubstring, isOptional: true)
+                if (rewriter.TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringIntInt, out var stringSubstring, isOptional: true)
                     && ReferenceEquals(currentSliceCall.Method.OriginalDefinition, stringSubstring)
-                    && TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true))
+                    && rewriter.TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true))
                 {
-                    return F.Call(VisitExpression(receiverExpr), stringOverload, VisitExpression(startArg));
+                    return factory.Call(rewriter.VisitExpression(receiverExpr), stringOverload, rewriter.VisitExpression(startArg));
                 }
 
                 if (currentSliceCall.Method is not { Name: WellKnownMemberNames.SliceMethodName, ContainingType: NamedTypeSymbol typeWithElementType, OriginalDefinition: var methodDefinition })
@@ -1058,10 +1058,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var oneArgumentOverload = typeWithElementType.Name switch
                 {
-                    nameof(Span<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, methodDefinition, node.Syntax),
-                    nameof(ReadOnlySpan<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, methodDefinition, node.Syntax),
-                    nameof(Memory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, methodDefinition, node.Syntax),
-                    nameof(ReadOnlyMemory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, methodDefinition, node.Syntax),
+                    nameof(Span<>) => tryGetCorrespondingOneArgumentOverload(rewriter, WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, methodDefinition, syntax),
+                    nameof(ReadOnlySpan<>) => tryGetCorrespondingOneArgumentOverload(rewriter, WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, methodDefinition, syntax),
+                    nameof(Memory<>) => tryGetCorrespondingOneArgumentOverload(rewriter, WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, methodDefinition, syntax),
+                    nameof(ReadOnlyMemory<>) => tryGetCorrespondingOneArgumentOverload(rewriter, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, methodDefinition, syntax),
                     _ => null,
                 };
 
@@ -1070,14 +1070,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return F.Call(VisitExpression(receiverExpr), oneArgumentOverload.AsMember(typeWithElementType), VisitExpression(startArg));
+                return factory.Call(rewriter.VisitExpression(receiverExpr), oneArgumentOverload.AsMember(typeWithElementType), rewriter.VisitExpression(startArg));
             }
 
-            MethodSymbol? tryGetCorrespondingOneArgumentOverload(WellKnownMember twoArgumentOverloadMember, WellKnownMember oneArgumentOverloadMember, MethodSymbol methodDefinition, SyntaxNode syntax)
+            static MethodSymbol? tryGetCorrespondingOneArgumentOverload(LocalRewriter rewriter, WellKnownMember twoArgumentOverloadMember, WellKnownMember oneArgumentOverloadMember, MethodSymbol methodDefinition, SyntaxNode syntax)
             {
-                if (!TryGetWellKnownTypeMember(syntax, twoArgumentOverloadMember, out MethodSymbol? twoArgumentOverloadSymbol, isOptional: true)
+                if (!rewriter.TryGetWellKnownTypeMember(syntax, twoArgumentOverloadMember, out MethodSymbol? twoArgumentOverloadSymbol, isOptional: true)
                     || !ReferenceEquals(methodDefinition, twoArgumentOverloadSymbol)
-                    || !TryGetWellKnownTypeMember(syntax, oneArgumentOverloadMember, out MethodSymbol? oneArgumentOverloadSymbol, isOptional: true))
+                    || !rewriter.TryGetWellKnownTypeMember(syntax, oneArgumentOverloadMember, out MethodSymbol? oneArgumentOverloadSymbol, isOptional: true))
                 {
                     return null;
                 }
