@@ -606,7 +606,9 @@ internal sealed partial class NavigateToSearchIndex
 
         private bool NgramCheckPasses(ReadOnlySpan<char> pattern, bool isAllLowercase)
         {
-            if (_ngramFilter == null || !isAllLowercase || pattern.Length < SparseNgramGenerator.MinNgramLength)
+            Debug.Assert(_ngramFilter != null);
+
+            if (!isAllLowercase || pattern.Length < SparseNgramGenerator.MinNgramLength)
                 return false;
 
             return SparseNgramGenerator.CoveringNgramsProbablyContained(pattern, _ngramFilter);
@@ -796,7 +798,8 @@ internal sealed partial class NavigateToSearchIndex
                     return false;
             }
 
-            if (text.Length >= SparseNgramGenerator.MinNgramLength && _ngramFilter != null)
+            Debug.Assert(_ngramFilter != null);
+            if (text.Length >= SparseNgramGenerator.MinNgramLength)
             {
                 if (!SparseNgramGenerator.CoveringNgramsProbablyContained(text.AsSpan(), _ngramFilter))
                     return false;
