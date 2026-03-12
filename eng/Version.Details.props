@@ -66,6 +66,11 @@ This file should be imported by eng/Versions.props
     <!-- dotnet-roslyn dependencies -->
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisPackageVersion)</MicrosoftCodeAnalysisVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
+    <!--
+      Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
+      packages we will keep it untied to the MicrosoftCodeAnalysisAnalyzersPackageVersion we use for
+      SourceBuild to ensure it stays on a release version.
+    -->
     <MicrosoftCodeAnalysisAnalyzersVersion Condition="Condition="'$(DotNetBuildSourceOnly)' != 'true'">5.3.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>$(MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion)</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
