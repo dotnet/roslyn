@@ -221,17 +221,14 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
         var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
             document, range,
-            // Compute diagnostics for everything that is *NOT* an IDE analyzer
-            DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds),
+            // Compute diagnostics for everything that is *NOT* an IDE analyzer and not an implement-member diagnostic.
+            DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds.Union(s_implementMemberDiagnosticIds)),
             priority: null,
             DiagnosticKind.All,
             cancellationToken).ConfigureAwait(false);
 
         // We don't want code cleanup automatically cleaning suppressed diagnostics.
         diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
-
-        // We don't want code cleanup implementing members.
-        diagnostics = diagnostics.WhereAsArray(d => !s_implementMemberDiagnosticIds.Contains(d.Id));
 
         // ensure more than just known diagnostics were returned
         if (!diagnostics.Any())
