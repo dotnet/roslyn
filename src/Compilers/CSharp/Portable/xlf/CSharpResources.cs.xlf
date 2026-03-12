@@ -612,6 +612,11 @@
         <target state="translated">Typ elementu této kolekce nesmí být ref struct nebo parametr typu umožňující ref structs</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">Jednotka kompilace nemůže přímo obsahovat členy, jako jsou pole, metody nebo vlastnosti.</target>
@@ -904,7 +909,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
         <source>An expression tree may not contain a union conversion.</source>
-        <target state="new">An expression tree may not contain a union conversion.</target>
+        <target state="translated">Strom výrazů nesmí obsahovat převod typu union.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1244,12 +1249,12 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
         <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
-        <target state="new">Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</target>
+        <target state="translated">Explicitně deklarované veřejné konstruktory s jedním parametrem nejsou v deklaraci union povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceFieldInUnion">
         <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
-        <target state="new">Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</target>
+        <target state="translated">Pole instance, automatické vlastnosti ani události podobné polím nejsou v deklaraci union povoleny.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
@@ -1484,7 +1489,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
-        <target state="new">Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</target>
+        <target state="translated">Typ {0} nelze převést na object pomocí implicitní referenční nebo boxing převod.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
@@ -1880,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">Očekávala se možnost warnings nebo annotations nebo konec direktivy.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Neplatná hodnota {0}: {1} pro jazyk C# {2}. Použijte prosím verzi jazyka {3} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2699,17 +2699,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</target>
+        <target state="translated">Konstruktor deklarovaný v deklaraci union musí obsahovat inicializátor this, který volá syntetizovaný nebo explicitně deklarovaný konstruktor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
         <source>A union declaration must specify at least one case type.</source>
-        <target state="new">A union declaration must specify at least one case type.</target>
+        <target state="translated">Deklarace typu union musí specifikovat aspoň jeden typ případu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnionMatchingWrongPattern">
         <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</target>
+        <target state="translated">Výraz typu {0} nelze zpracovat tímto vzorem; další chyby viz toto umístění.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -2726,6 +2726,11 @@
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
         <target state="translated">{0} je definováno v modulu s nerozpoznanou verzí {1}, očekává se {2}.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
@@ -3129,7 +3134,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnions">
         <source>unions</source>
-        <target state="new">unions</target>
+        <target state="translated">sjednocení</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -7202,7 +7207,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
-        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</target>
+        <target state="translated">Částečné deklarace {0} musí být jen třídy, jen třídy záznamů, jen struktury, jen sjednocení, jen struktury záznamů nebo jen rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

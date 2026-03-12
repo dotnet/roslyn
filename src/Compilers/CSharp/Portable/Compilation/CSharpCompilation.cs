@@ -3093,9 +3093,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
                     _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
                 {
-                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CompilationOptionNotAvailable,
                                                  nameof(Options.NullableContextOptions), Options.NullableContextOptions, LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+                }
+
+                if (Options.UseUpdatedMemorySafetyRules && !this.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
+                {
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CompilationOptionNotAvailable,
+                        nameof(Options.MemorySafetyRules), Options.MemorySafetyRules, LanguageVersion.ToDisplayString(),
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion())), Location.None));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
