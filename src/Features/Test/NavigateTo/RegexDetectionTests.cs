@@ -194,5 +194,41 @@ public class RegexDetectionTests
         Assert.Equal("", name);
     }
 
+    [Fact]
+    public void NoSplit_DotAtStart()
+    {
+        // .Goo -> the bare dot is at position 0, so containerEnd == 0 -> skip it
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot(".Goo");
+        Assert.Null(container);
+        Assert.Equal(".Goo", name);
+    }
+
+    [Fact]
+    public void NoSplit_DotAtEnd()
+    {
+        // Goo. -> the bare dot is at the last position, so nameStart >= pattern.Length -> skip it
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Goo.");
+        Assert.Null(container);
+        Assert.Equal("Goo.", name);
+    }
+
+    [Fact]
+    public void Split_DotAtStartAndMiddle_SplitsOnMiddle()
+    {
+        // .Goo.Bar -> leading dot is skipped (containerEnd == 0), middle dot splits
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot(".Goo.Bar");
+        Assert.Equal(".Goo", container);
+        Assert.Equal("Bar", name);
+    }
+
+    [Fact]
+    public void Split_DotAtMiddleAndEnd_SplitsOnMiddle()
+    {
+        // Goo.Bar. -> trailing dot is skipped (nameStart >= Length), middle dot splits
+        var (container, name) = RegexPatternDetector.SplitOnContainerDot("Goo.Bar.");
+        Assert.Equal("Goo", container);
+        Assert.Equal("Bar.", name);
+    }
+
     #endregion
 }

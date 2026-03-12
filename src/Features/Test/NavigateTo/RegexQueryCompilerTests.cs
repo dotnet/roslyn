@@ -199,6 +199,15 @@ public class RegexQueryCompilerTests
         Assert.False(query!.HasLiterals);
     }
 
+    [Fact]
+    public void WhitespaceOnlyText_ProducesNone()
+    {
+        // " " as a standalone text node becomes empty after whitespace stripping -> None.
+        // We test this via a pattern where the only "text" is whitespace around an anchor.
+        var query = RegexQueryCompiler.Compile("^ $");
+        Assert.False(query!.HasLiterals);
+    }
+
     #endregion
 
     #region Optimization
