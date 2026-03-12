@@ -1676,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
-        ERR_NullableOptionNotAvailable = 8630,
+        ERR_CompilationOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
@@ -2480,6 +2480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InstanceFieldInUnion = 9373,
         ERR_InstanceCtorWithOneParameterInUnion = 9374,
         ERR_UnionConstructorCallsDefaultConstructor = 9375,
+
+        ERR_UnsafeConstructorConstraint = 9376,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

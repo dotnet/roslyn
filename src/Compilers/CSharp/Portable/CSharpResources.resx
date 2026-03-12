@@ -5795,7 +5795,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</value>
   </data>
-  <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
+  <data name="ERR_CompilationOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
@@ -8271,6 +8271,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_RequiresUnsafeAttributeLegacyRules_Title" xml:space="preserve">
     <value>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</value>
     <comment>'RequiresUnsafeAttribute' is not localizable</comment>
+  </data>
+  <data name="ERR_UnsafeConstructorConstraint" xml:space="preserve">
+    <value>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</value>
+    <comment>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</comment>
   </data>
   <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</value>

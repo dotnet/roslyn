@@ -612,6 +612,11 @@
         <target state="translated">Der Elementtyp dieser Sammlung darf keine Referenzstruktur oder ein Typparameter sein, der Referenzstrukturen zulässt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">Eine Kompilierungseinheit darf keine Mitglieder wie Felder, Methoden oder Eigenschaften direkt enthalten.</target>
@@ -1882,11 +1887,6 @@
         <target state="translated">Erwartet wurde "warnings", "annotations" oder das Ende der Anweisung.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Ungültiger Wert für "{0}": "{1}" für C# {2}. Verwenden Sie Sprachversion {3} oder höher.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
         <source>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</source>
         <target state="translated">Ein Parameter mit Nullable-Typ muss als Werttyp oder Nicht-Nullable-Verweistyp bekannt sein, es sei denn, die Sprachversion "{0}" oder höher wird verwendet. Erwägen Sie, die Sprachversion zu ändern oder eine class-, struct- oder type-Einschränkung hinzuzufügen.</target>
@@ -2726,6 +2726,11 @@
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
         <target state="translated">„{0}“ ist in einem Modul mit einer unbekannten Version von {1} definiert, erwartet wird „{2}“.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
