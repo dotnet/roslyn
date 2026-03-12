@@ -674,7 +674,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
 
                     // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
-                    BindExpressionForPatternContinued(originalExpression, unionType: null, inputType: unionMatchingInputType, patternExpression: innerExpression, ref hasErrors, diagnostics, constantValueOpt: out _, patternExpressionConversion: out _);
+                    if (originalExpression.Type is not null && !originalExpression.Type.Equals(unionMatchingInputType.StrippedType(), TypeCompareKind.AllIgnoreOptions))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, innerExpression.Location, unionMatchingInputType.StrippedType());
+                    }
 
                     unionType = unionTypeOnEntry;
                     return new BoundConstantPattern(
@@ -856,7 +859,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
             if (inputType.ContainsTypeParameter())
             {
-                // https://github.com/dotnet/roslyn/issues/82636: Make sure code in this block makes sense for union matching.
                 convertedExpression = expression;
                 // If the expression does not have a constant value, an error will be reported in the caller
                 if (!hasErrors && expression.ConstantValueOpt is object)
