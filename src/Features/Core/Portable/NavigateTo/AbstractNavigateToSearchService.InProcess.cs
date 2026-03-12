@@ -47,7 +47,7 @@ internal abstract partial class AbstractNavigateToSearchService
     /// split name/container, regex detection flag, and pre-compiled regex query so callers
     /// can pass a single value through the search pipeline.
     /// </summary>
-    internal readonly record struct SearchPatternInfo(
+    private readonly record struct SearchPatternInfo(
         string Name,
         string? Container,
         bool IsRegex,
@@ -58,7 +58,7 @@ internal abstract partial class AbstractNavigateToSearchService
     /// the pattern contains regex metacharacters. Also compiles a <see cref="RegexQuery"/> for
     /// pre-filtering when the pattern is a regex.
     /// </summary>
-    internal static SearchPatternInfo ProcessSearchPattern(string searchPattern)
+    private static SearchPatternInfo ProcessSearchPattern(string searchPattern)
     {
         if (RegexPatternDetector.IsRegexPattern(searchPattern))
         {

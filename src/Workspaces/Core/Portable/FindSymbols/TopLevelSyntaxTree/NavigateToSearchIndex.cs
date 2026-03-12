@@ -40,7 +40,7 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
     /// Evaluates a compiled <see cref="PatternMatching.RegexQuery"/> against this document's indexed
     /// bigrams to determine if a regex pattern could match any symbol in the document.
     /// </summary>
-    internal bool RegexQueryCheckPasses(PatternMatching.RegexQuery query)
+    public bool RegexQueryCheckPasses(PatternMatching.RegexQuery query)
         => _navigateToSearchInfo.RegexQueryCheckPasses(query);
 
     public static ValueTask<NavigateToSearchIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
