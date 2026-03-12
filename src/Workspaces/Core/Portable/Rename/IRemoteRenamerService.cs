@@ -136,7 +136,7 @@ internal sealed partial class SymbolicRenameLocations
             serializableLocations.Options,
             locations,
             implicitLocations,
-            referencedSymbols);
+            referencedSymbols!);
     }
 }
 
