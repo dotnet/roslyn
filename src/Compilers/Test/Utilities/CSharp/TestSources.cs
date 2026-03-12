@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -99,8 +99,6 @@ namespace System
 
         public Span<T> Slice(int offset, int length) => new Span<T>(this.arr, offset, length);
 
-        public Span<T> Slice(int offset) => Slice(offset, Length - offset);
-
         public new string ToString()
         {
             if (typeof(T) == typeof(char))
@@ -200,8 +198,6 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
-
-        public ReadOnlySpan<T> Slice(int offset) => Slice(offset, Length - offset);
 
 #nullable enable
         public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class?, T
