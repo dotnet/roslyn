@@ -13,7 +13,7 @@
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)eng\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.csproj"
+    <ProjectReference Include="..\..\..\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.Package.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all" />

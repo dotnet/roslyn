@@ -157,12 +157,6 @@
       Analyzers
     -->
 
-    <!--
-      Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
-      packages we will keep it untied to the RoslynDiagnosticsAnalyzersPackageVersion we use for
-      other analyzers to ensure it stays on a release version.
-    -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />

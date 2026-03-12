@@ -34,7 +34,7 @@
       Note: this project reference ensures analyzers from Microsoft.CodeAnalysis.Analyzers are
       applied while building Microsoft.CodeAnalysis.
     -->
-    <ProjectReference Include="$(RepoRoot)eng\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.csproj"
+    <ProjectReference Include="..\..\..\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.Package.csproj"
                       Condition="'$(DotNetBuildSourceOnly)' != 'true'"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false"

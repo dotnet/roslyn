@@ -42,7 +42,6 @@ This file should be imported by eng/Versions.props
     <SystemWindowsExtensionsPackageVersion>10.0.1</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet-roslyn dependencies -->
     <MicrosoftCodeAnalysisPackageVersion>5.6.0-2.26151.2</MicrosoftCodeAnalysisPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.6.0-2.26151.2</MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.6.0-2.26151.2</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>5.6.0-2.26151.2</MicrosoftNetCompilersToolsetPackageVersion>
     <!-- dotnet-symreader dependencies -->
@@ -87,7 +86,6 @@ This file should be imported by eng/Versions.props
     <SystemWindowsExtensionsVersion>$(SystemWindowsExtensionsPackageVersion)</SystemWindowsExtensionsVersion>
     <!-- dotnet-roslyn dependencies -->
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisPackageVersion)</MicrosoftCodeAnalysisVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>$(MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion)</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
     <!-- dotnet-symreader dependencies -->
