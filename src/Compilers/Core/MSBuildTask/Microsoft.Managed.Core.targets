@@ -57,6 +57,13 @@
     <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
       <UseSharedCompilation>true</UseSharedCompilation>
     </PropertyGroup>
+
+    <!-- Embed EditorConfigFiles into the binary log. This is done here (rather than a static ItemGroup)
+         to ensure EditorConfigFiles added by analyzer packages in BeforeTargets="CoreCompile" targets
+         (e.g. NetAnalyzers, CodeStyle) are captured. -->
+    <ItemGroup>
+      <EmbedInBinlog Include="@(EditorConfigFiles)" />
+    </ItemGroup>
   </Target>
 
   <!--
@@ -145,7 +152,6 @@
     <GlobalAnalyzerConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.globalconfig'))" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
     <EditorConfigFiles Include="@(GlobalAnalyzerConfigFiles->Exists())" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
 
-    <EmbedInBinlog Include="@(EditorConfigFiles)" />
   </ItemGroup>
 
   <!--

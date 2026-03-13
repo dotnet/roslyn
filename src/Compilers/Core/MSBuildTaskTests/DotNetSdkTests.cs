@@ -654,5 +654,44 @@ some_prop = some_val");
                     "mycustom.config"
                 }));
         }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
+        public void TestEditorConfigFilesAddedByAnalyzerPackagesAreEmbeddedInBinlog()
+        {
+            // Simulate the behavior of analyzer packages (e.g., NetAnalyzers, CodeStyle) that add
+            // EditorConfigFiles in a target that runs BeforeTargets="CoreCompile". Verify those files
+            // are included in @(EmbedInBinlog) so they are captured in the binary log.
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var analyzerGlobalConfig = ProjectDir.CreateFile("analyzer.globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+
+            VerifyValues(
+                customProps: @"
+  <PropertyGroup>
+    <!-- Disable automatic global .editorconfig generation by the SDK -->
+    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  </PropertyGroup>",
+                customTargets: $@"
+  <!-- Simulate an analyzer package (e.g. NetAnalyzers) adding an EditorConfigFile
+       in a target that runs before CoreCompile. -->
+  <Target Name=""AddAnalyzerPackageEditorConfigFile"" BeforeTargets=""CoreCompile"">
+    <ItemGroup>
+      <EditorConfigFiles Include=""{analyzerGlobalConfig.Path}"" />
+    </ItemGroup>
+  </Target>",
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EmbedInBinlog)"
+                },
+                expectedResults: AppendExtraEditorConfigs(new[]
+                {
+                    Path.Combine(ProjectDir.Path, ".editorconfig"),
+                    analyzerGlobalConfig.Path
+                }));
+        }
     }
 }
