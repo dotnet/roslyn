@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Design;
+using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -16,25 +19,37 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDisposable
+[Export(typeof(StackTraceExplorerCommandHandler))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class StackTraceExplorerCommandHandler(
+    IThreadingContext threadingContext,
+    IGlobalOptionService globalOptions,
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider) : IVsBroadcastMessageEvents, IDisposable
 {
-    private readonly RoslynPackage _package;
-    private readonly IThreadingContext _threadingContext;
-    private readonly IGlobalOptionService _globalOptions;
-    private static StackTraceExplorerCommandHandler? _instance;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private uint _vsShellBroadcastCookie;
+    private bool _initialized;
 
-    private StackTraceExplorerCommandHandler(RoslynPackage package)
+    /// <summary>
+    /// Called during solution load to ensure the handler is created and subscribes to broadcast
+    /// messages if the "open on focus" option is enabled.
+    /// </summary>
+    internal async Task EnsureInitializedAsync(CancellationToken cancellationToken)
     {
-        _package = package;
-        _threadingContext = package.ComponentModel.GetService<IThreadingContext>();
-        _globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
+        if (_initialized)
+            return;
+
+        _initialized = true;
 
         _globalOptions.AddOptionChangedHandler(this, GlobalOptionChanged);
 
         var enabled = _globalOptions.GetOption(StackTraceExplorerOptionsStorage.OpenOnFocus);
         if (enabled)
         {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             AdviseBroadcastMessages();
         }
     }
@@ -55,10 +70,10 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
             return VSConstants.S_OK;
         }
 
-        var window = GetOrInitializeWindow();
         _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
-            var shouldActivate = await window.ShouldShowOnActivatedAsync(default).ConfigureAwait(false);
+            var window = await GetOrInitializeWindowAsync().ConfigureAwait(true);
+            var shouldActivate = await window.ShouldShowOnActivatedAsync(default).ConfigureAwait(true);
 
             if (shouldActivate)
             {
@@ -76,7 +91,8 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
     {
         UnadviseBroadcastMessages();
 
-        _globalOptions.RemoveOptionChangedHandler(this, GlobalOptionChanged);
+        if (_initialized)
+            _globalOptions.RemoveOptionChangedHandler(this, GlobalOptionChanged);
     }
 
     private void AdviseBroadcastMessages()
@@ -86,9 +102,7 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
             return;
         }
 
-        var serviceProvider = (IServiceProvider)_package;
-        var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-
+        var vsShell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
         vsShell?.AdviseBroadcastMessages(this, out _vsShellBroadcastCookie);
     }
 
@@ -96,8 +110,7 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
     {
         if (_vsShellBroadcastCookie != 0)
         {
-            var serviceProvider = (IServiceProvider)_package;
-            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            var vsShell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
             if (vsShell is not null)
             {
                 vsShell.UnadviseBroadcastMessages(_vsShellBroadcastCookie);
@@ -131,11 +144,11 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
         }
     }
 
-    private void Execute(object sender, EventArgs e)
+    internal void OnExecute(object sender, EventArgs e)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        var window = GetOrInitializeWindow();
+        var window = _threadingContext.JoinableTaskFactory.Run(() => GetOrInitializeWindowAsync());
 
         var windowFrame = (IVsWindowFrame)window.Frame;
         ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -145,58 +158,34 @@ internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEven
         window.Root?.ViewModel.DoPasteSynchronously(default);
     }
 
-    private StackTraceExplorerToolWindow GetOrInitializeWindow()
+    private async Task<StackTraceExplorerToolWindow> GetOrInitializeWindowAsync()
     {
+        var package = await RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).ConfigureAwait(true);
+        Contract.ThrowIfNull(package);
+
         // Get the instance number 0 of this tool window. This window is single instance so this instance
         // is actually the only one.
         // The last flag is set to true so that if the tool window does not exists it will be created.
-        var window = _package.FindToolWindow(typeof(StackTraceExplorerToolWindow), 0, true) as StackTraceExplorerToolWindow;
+        var window = package.FindToolWindow(typeof(StackTraceExplorerToolWindow), 0, true) as StackTraceExplorerToolWindow;
         if (window is not { Frame: not null })
         {
             throw new NotSupportedException("Cannot create tool window");
         }
 
-        window.InitializeIfNeeded(_package);
+        window.InitializeIfNeeded(package);
 
         return window;
     }
 
-    private void Paste(object sender, EventArgs e)
+    internal void OnPaste(object sender, EventArgs e)
     {
-        RoslynDebug.AssertNotNull(_instance);
-
-        var window = _instance.GetOrInitializeWindow();
+        var window = _threadingContext.JoinableTaskFactory.Run(() => GetOrInitializeWindowAsync());
         window.Root?.ViewModel?.DoPasteSynchronously(default);
     }
 
-    private void Clear(object sender, EventArgs e)
+    internal void OnClear(object sender, EventArgs e)
     {
-        RoslynDebug.AssertNotNull(_instance);
-
-        var window = _instance.GetOrInitializeWindow();
+        var window = _threadingContext.JoinableTaskFactory.Run(() => GetOrInitializeWindowAsync());
         window.Root?.OnClear();
-    }
-
-    internal static void Initialize(OleMenuCommandService menuCommandService, RoslynPackage package)
-    {
-        if (_instance is not null)
-        {
-            return;
-        }
-
-        _instance = new(package);
-
-        var menuCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0100);
-        var menuItem = new MenuCommand(_instance.Execute, menuCommandId);
-        menuCommandService.AddCommand(menuItem);
-
-        var pasteCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0101);
-        var clearCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0102);
-
-        var pasteMenuItem = new MenuCommand(_instance.Paste, pasteCommandId);
-        var clearMenuItem = new MenuCommand(_instance.Clear, clearCommandId);
-
-        menuCommandService.AddCommand(pasteMenuItem);
-        menuCommandService.AddCommand(clearMenuItem);
     }
 }
