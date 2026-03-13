@@ -192,7 +192,6 @@
       <!-- Record that we'll write a file, and add it to the analyzerconfig inputs -->
       <FileWrites Include="$(GeneratedMSBuildEditorConfigFile)" />
       <EditorConfigFiles Include="$(GeneratedMSBuildEditorConfigFile)" />
-      <EmbedInBinlog Include="$(GeneratedMSBuildEditorConfigFile)" />
     </ItemGroup>
 
     <!-- Transform the collected properties and items into an editor config file -->
