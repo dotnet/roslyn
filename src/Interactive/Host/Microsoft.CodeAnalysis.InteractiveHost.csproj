@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.Interactive</RootNamespace>
     <TargetFrameworks>net472;$(NetVS)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
 
     <!-- Avoid dependency on System.Threading.Channels (unnecessary 32-bit NGEN'd binary) -->
     <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_THREADING_NO_CHANNELS</DefineConstants>
@@ -23,6 +22,9 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Aliases>global,Scripting</Aliases>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="InternalUtilities\PerformanceSensitiveAttribute.cs" Visible="false" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost32" />
