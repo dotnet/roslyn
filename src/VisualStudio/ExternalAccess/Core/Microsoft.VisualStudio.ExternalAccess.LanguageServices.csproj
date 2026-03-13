@@ -21,7 +21,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
 
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ExternalAccess.LanguageServices.UnitTests" />
 
     <!--
       ⚠ ONLY APEX ASSEMBLIES MAY BE ADDED HERE ⚠
