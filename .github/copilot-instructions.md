@@ -74,7 +74,8 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - **Immutability**: All syntax trees, documents, and solutions are immutable - create new instances for changes
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **MEF Lifecycle**: Use `[ImportingConstructor]` with obsolete attribute for MEF v2 compatibility
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch
+- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch. Do not add PROTOTYPE comments without asking for permission.
+- **TODO Comments**: Do not add TODO comments. Use TODO2 comments instead if needed. The CI correctness leg monitors those.
 - **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
 
 ## Common Gotchas

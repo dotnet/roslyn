@@ -14039,13 +14039,10 @@ static class Program
 
             comp = CreateCompilation(sourceC, references: new[] { refB });
             comp.VerifyEmitDiagnostics(
-                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '05867d3a-d497-48ef-b11e-9567f6786f5a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static object[] F(B b) => [..b];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34),
-                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static object[] F(B b) => [..b];
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34),
-                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '05867d3a-d497-48ef-b11e-9567f6786f5a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static object[] F(B b) => [..b];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34));
         }

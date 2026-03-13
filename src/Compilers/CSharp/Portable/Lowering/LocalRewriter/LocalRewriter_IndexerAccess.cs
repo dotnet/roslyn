@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(length > 0);
 
-                if (TypeSymbol.Equals(node.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions))
+                if (Binder.IsWellKnownSystemIndex(node.Argument.Type, _compilation))
                 {
                     BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
                     BoundExpression integerArgument = makePatternIndexOffsetExpression(makeOffsetInput, length, strategy);
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // createSpan(ref receiver, length).Slice(range converted to start, range converted to size)
 
                     Debug.Assert(receiverStore is null);
-                    Debug.Assert(TypeSymbol.Equals(node.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(Binder.IsWellKnownSystemRange(node.Argument.Type, _compilation));
 
                     MethodSymbol createSpan = getCreateSpanHelper(node, spanType: getItemOrSliceHelper.ContainingType, intType: (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type);
                     getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
@@ -471,19 +471,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
-            if (TypeSymbol.Equals(
-                node.Argument.Type,
-                _compilation.GetWellKnownType(WellKnownType.System_Index),
-                TypeCompareKind.ConsiderEverything))
+            var argumentType = node.Argument.Type;
+            if (Binder.IsWellKnownSystemIndex(argumentType, _compilation))
             {
                 return VisitIndexPatternIndexerAccess(node, isLeftOfAssignment: isLeftOfAssignment);
             }
             else
             {
-                Debug.Assert(TypeSymbol.Equals(
-                    node.Argument.Type,
-                    _compilation.GetWellKnownType(WellKnownType.System_Range),
-                    TypeCompareKind.ConsiderEverything));
+                Debug.Assert(Binder.IsWellKnownSystemRange(argumentType, _compilation));
                 Debug.Assert(!isLeftOfAssignment || node.IndexerOrSliceAccess.GetRefKind() == RefKind.Ref);
 
                 return VisitRangePatternIndexerAccess(node);
@@ -613,7 +608,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Tracked by https://github.com/dotnet/roslyn/issues/71056
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     // https://github.com/dotnet/roslyn/issues/78829 - PROTOTYPE Do we need to do something special for recievers of extension indexers here?
-                    Debug.Assert(!indexerAccess.Indexer.IsExtensionBlockMember());
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
                         forceReceiverCapturing: false,
@@ -714,10 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI:
                     Debug.Assert(loweredExpr is not null);
                     Debug.Assert(lengthAccess is not null);
-                    Debug.Assert(TypeSymbol.Equals(
-                        loweredExpr.Type,
-                        _compilation.GetWellKnownType(WellKnownType.System_Index),
-                        TypeCompareKind.ConsiderEverything));
+                    Debug.Assert(Binder.IsWellKnownSystemIndex(loweredExpr.Type, _compilation));
 
                     return _factory.Call(
                         loweredExpr,
@@ -812,10 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
             Debug.Assert(node.IndexerOrSliceAccess is BoundCall);
 
-            Debug.Assert(TypeSymbol.Equals(
-                node.Argument.Type,
-                _compilation.GetWellKnownType(WellKnownType.System_Range),
-                TypeCompareKind.ConsiderEverything));
+            Debug.Assert(Binder.IsWellKnownSystemRange(node.Argument.Type, _compilation));
 
             // Lowered code without optimizations:
             // var receiver = receiverExpr;

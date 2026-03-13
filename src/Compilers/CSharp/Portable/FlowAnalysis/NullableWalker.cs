@@ -5290,7 +5290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations result;
             if (node.Indices.Length == 1 &&
-                TypeSymbol.Equals(node.Indices[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
+                Binder.IsWellKnownSystemRange(node.Indices[0].Type, compilation))
             {
                 result = TypeWithAnnotations.Create(type);
             }
