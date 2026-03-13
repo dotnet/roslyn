@@ -172,6 +172,7 @@
   <Folder Name="/EditorFeatures/ExternalAccess/">
     <Project Path="src/EditorFeatures/ExternalAccess/Core/Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess.csproj" />
     <Project Path="src/EditorFeatures/ExternalAccess/Debugger/Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" />
+    <Project Path="src/EditorFeatures/ExternalAccess/Razor/Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
   </Folder>
   <Folder Name="/ExpressionEvaluator/" />
   <Folder Name="/ExpressionEvaluator/Core/">
@@ -325,7 +326,6 @@
     <Project Path="src/Tools/TestDiscoveryWorker/TestDiscoveryWorker.csproj" />
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">
-    <Project Path="src/Tools/ExternalAccess/Razor/EditorFeatures/Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompiler/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompilerTest/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj" />
   </Folder>

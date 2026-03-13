@@ -104,7 +104,7 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj">
+    <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
