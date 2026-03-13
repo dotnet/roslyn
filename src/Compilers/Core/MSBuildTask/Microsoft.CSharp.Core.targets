@@ -59,6 +59,7 @@
                    @(CustomAdditionalCompileOutputs)"
           Returns="@(CscCommandLineArgs)"
           DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile">
+
     <!-- Embed EditorConfigFiles into the binary log. This is done here (inside CoreCompile rather than
          a static ItemGroup) to ensure EditorConfigFiles added by analyzer packages in
          BeforeTargets="CoreCompile" targets (e.g. NetAnalyzers, CodeStyle) are captured. -->

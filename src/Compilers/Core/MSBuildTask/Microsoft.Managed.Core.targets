@@ -144,7 +144,6 @@
     
     <GlobalAnalyzerConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.globalconfig'))" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
     <EditorConfigFiles Include="@(GlobalAnalyzerConfigFiles->Exists())" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
-
   </ItemGroup>
 
   <!--
