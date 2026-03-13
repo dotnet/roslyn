@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="ERR_CompilationOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
+        <target state="translated">Valor de '{0}' inválido: '{1}' para C# {2}. Use a versão da linguagem '{3}' ou superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -2729,7 +2729,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
         <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <target state="translated">Um contexto não seguro é necessário para o construtor ''{0}'' marcado como ''RequiresUnsafe'' ou ''extern'' para satisfazer a restrição ''new()'' do parâmetro de tipo ''{1}'' em ''{2}''</target>
         <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
