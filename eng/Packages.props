@@ -18,7 +18,7 @@
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>3.0.2</SqliteVersion>
-    <SqliteNativeVersion>3.50.3</SqliteNativeVersion>
+    <SqliteNativeVersion>3.50.4.5</SqliteNativeVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
