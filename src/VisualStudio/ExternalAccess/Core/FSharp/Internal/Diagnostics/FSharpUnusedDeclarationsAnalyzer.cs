@@ -18,11 +18,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
 
 [Shared]
 [ExportLanguageService(typeof(FSharpUnusedDeclarationsDiagnosticAnalyzerService), LanguageNames.FSharp)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class FSharpUnusedDeclarationsDiagnosticAnalyzerService([Import(AllowDefault = true)] IFSharpUnusedDeclarationsDiagnosticAnalyzer analyzer) : ILanguageService
+internal class FSharpUnusedDeclarationsDiagnosticAnalyzerService : ILanguageService
 {
-    private readonly IFSharpUnusedDeclarationsDiagnosticAnalyzer _analyzer = analyzer;
+    private readonly IFSharpUnusedDeclarationsDiagnosticAnalyzer _analyzer;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpUnusedDeclarationsDiagnosticAnalyzerService(IFSharpUnusedDeclarationsDiagnosticAnalyzer analyzer)
+    {
+        _analyzer = analyzer;
+    }
 
     public Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(DiagnosticDescriptor descriptor, Document document, CancellationToken cancellationToken)
     {
