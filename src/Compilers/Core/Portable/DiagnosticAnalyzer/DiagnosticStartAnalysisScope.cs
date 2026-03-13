@@ -732,8 +732,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<OperationBlockAnalyzerAction> operationBlockActions,
             ImmutableArray<AnalyzerAction> syntaxNodeActions,
             ImmutableArray<OperationAnalyzerAction> operationActions,
-            bool concurrent,
-            bool isEmpty)
+            bool concurrent)
         {
             _compilationStartActions = compilationStartActions;
             _compilationEndActions = compilationEndActions;
@@ -753,7 +752,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _syntaxNodeActions = syntaxNodeActions;
             _operationActions = operationActions;
             _concurrent = concurrent;
-            IsEmpty = isEmpty;
+
+            IsEmpty = compilationStartActions.IsEmpty &&
+                      compilationEndActions.IsEmpty &&
+                      compilationActions.IsEmpty &&
+                      syntaxTreeActions.IsEmpty &&
+                      additionalFileActions.IsEmpty &&
+                      semanticModelActions.IsEmpty &&
+                      symbolActions.IsEmpty &&
+                      symbolStartActions.IsEmpty &&
+                      symbolEndActions.IsEmpty &&
+                      codeBlockStartActions.IsEmpty &&
+                      codeBlockEndActions.IsEmpty &&
+                      codeBlockActions.IsEmpty &&
+                      operationBlockStartActions.IsEmpty &&
+                      operationBlockEndActions.IsEmpty &&
+                      operationBlockActions.IsEmpty &&
+                      syntaxNodeActions.IsEmpty &&
+                      operationActions.IsEmpty;
         }
 
         public readonly int CompilationStartActionsCount { get { return _compilationStartActions.Length; } }
@@ -999,27 +1015,185 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(otherActions));
             }
 
-            AnalyzerActions actions = new AnalyzerActions(concurrent: _concurrent || otherActions.Concurrent);
-            actions._compilationStartActions = _compilationStartActions.AddRange(otherActions._compilationStartActions);
-            actions._compilationEndActions = _compilationEndActions.AddRange(otherActions._compilationEndActions);
-            actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);
-            actions._syntaxTreeActions = _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions);
-            actions._additionalFileActions = _additionalFileActions.AddRange(otherActions._additionalFileActions);
-            actions._semanticModelActions = _semanticModelActions.AddRange(otherActions._semanticModelActions);
-            actions._symbolActions = _symbolActions.AddRange(otherActions._symbolActions);
-            actions._symbolStartActions = appendSymbolStartAndSymbolEndActions ? _symbolStartActions.AddRange(otherActions._symbolStartActions) : _symbolStartActions;
-            actions._symbolEndActions = appendSymbolStartAndSymbolEndActions ? _symbolEndActions.AddRange(otherActions._symbolEndActions) : _symbolEndActions;
-            actions._codeBlockStartActions = _codeBlockStartActions.AddRange(otherActions._codeBlockStartActions);
-            actions._codeBlockEndActions = _codeBlockEndActions.AddRange(otherActions._codeBlockEndActions);
-            actions._codeBlockActions = _codeBlockActions.AddRange(otherActions._codeBlockActions);
-            actions._syntaxNodeActions = _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions);
-            actions._operationActions = _operationActions.AddRange(otherActions._operationActions);
-            actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
-            actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
-            actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
-            actions.IsEmpty = IsEmpty && otherActions.IsEmpty;
+            AnalyzerActions actions = new AnalyzerActions(
+                compilationStartActions: _compilationStartActions.AddRange(otherActions._compilationStartActions),
+                compilationEndActions: _compilationEndActions.AddRange(otherActions._compilationEndActions),
+                compilationActions: _compilationActions.AddRange(otherActions._compilationActions),
+                syntaxTreeActions: _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions),
+                additionalFileActions: _additionalFileActions.AddRange(otherActions._additionalFileActions),
+                semanticModelActions: _semanticModelActions.AddRange(otherActions._semanticModelActions),
+                symbolActions: _symbolActions.AddRange(otherActions._symbolActions),
+                symbolStartActions: appendSymbolStartAndSymbolEndActions ? _symbolStartActions.AddRange(otherActions._symbolStartActions) : _symbolStartActions,
+                symbolEndActions: appendSymbolStartAndSymbolEndActions ? _symbolEndActions.AddRange(otherActions._symbolEndActions) : _symbolEndActions,
+                codeBlockStartActions: _codeBlockStartActions.AddRange(otherActions._codeBlockStartActions),
+                codeBlockEndActions: _codeBlockEndActions.AddRange(otherActions._codeBlockEndActions),
+                codeBlockActions: _codeBlockActions.AddRange(otherActions._codeBlockActions),
+                operationBlockStartActions: _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions),
+                operationBlockEndActions: _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions),
+                operationBlockActions: _operationBlockActions.AddRange(otherActions._operationBlockActions),
+                syntaxNodeActions: _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions),
+                operationActions: _operationActions.AddRange(otherActions._operationActions),
+                concurrent: _concurrent || otherActions.Concurrent);
 
             return actions;
+        }
+
+        /// <summary>
+        /// Builder for <see cref="AnalyzerActions"/> that uses <see cref="ArrayBuilder{T}"/> to accumulate actions
+        /// and avoid intermediate allocations during construction.
+        /// On first Append of an array, stores ImmutableArray directly.
+        /// On subsequent Appends, promotes to ArrayBuilder for efficient merging.
+        /// </summary>
+        internal sealed class Builder
+        {
+            // Holds the ImmutableArray from first non-empty Append
+            private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActionsImmutable = [];
+            private ImmutableArray<CompilationAnalyzerAction> _compilationEndActionsImmutable = [];
+            private ImmutableArray<CompilationAnalyzerAction> _compilationActionsImmutable = [];
+            private ImmutableArray<SyntaxTreeAnalyzerAction> _syntaxTreeActionsImmutable = [];
+            private ImmutableArray<AdditionalFileAnalyzerAction> _additionalFileActionsImmutable = [];
+            private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelActionsImmutable = [];
+            private ImmutableArray<SymbolAnalyzerAction> _symbolActionsImmutable = [];
+            private ImmutableArray<SymbolStartAnalyzerAction> _symbolStartActionsImmutable = [];
+            private ImmutableArray<SymbolEndAnalyzerAction> _symbolEndActionsImmutable = [];
+            private ImmutableArray<AnalyzerAction> _codeBlockStartActionsImmutable = [];
+            private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActionsImmutable = [];
+            private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActionsImmutable = [];
+            private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActionsImmutable = [];
+            private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActionsImmutable = [];
+            private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActionsImmutable = [];
+            private ImmutableArray<AnalyzerAction> _syntaxNodeActionsImmutable = [];
+            private ImmutableArray<OperationAnalyzerAction> _operationActionsImmutable = [];
+
+            // Created only when merging multiple arrays
+            private ArrayBuilder<CompilationStartAnalyzerAction>? _compilationStartActionsBuilder;
+            private ArrayBuilder<CompilationAnalyzerAction>? _compilationEndActionsBuilder;
+            private ArrayBuilder<CompilationAnalyzerAction>? _compilationActionsBuilder;
+            private ArrayBuilder<SyntaxTreeAnalyzerAction>? _syntaxTreeActionsBuilder;
+            private ArrayBuilder<AdditionalFileAnalyzerAction>? _additionalFileActionsBuilder;
+            private ArrayBuilder<SemanticModelAnalyzerAction>? _semanticModelActionsBuilder;
+            private ArrayBuilder<SymbolAnalyzerAction>? _symbolActionsBuilder;
+            private ArrayBuilder<SymbolStartAnalyzerAction>? _symbolStartActionsBuilder;
+            private ArrayBuilder<SymbolEndAnalyzerAction>? _symbolEndActionsBuilder;
+            private ArrayBuilder<AnalyzerAction>? _codeBlockStartActionsBuilder;
+            private ArrayBuilder<CodeBlockAnalyzerAction>? _codeBlockEndActionsBuilder;
+            private ArrayBuilder<CodeBlockAnalyzerAction>? _codeBlockActionsBuilder;
+            private ArrayBuilder<OperationBlockStartAnalyzerAction>? _operationBlockStartActionsBuilder;
+            private ArrayBuilder<OperationBlockAnalyzerAction>? _operationBlockEndActionsBuilder;
+            private ArrayBuilder<OperationBlockAnalyzerAction>? _operationBlockActionsBuilder;
+            private ArrayBuilder<AnalyzerAction>? _syntaxNodeActionsBuilder;
+            private ArrayBuilder<OperationAnalyzerAction>? _operationActionsBuilder;
+
+            private bool _concurrent;
+
+            /// <summary>
+            /// Appends actions from another <see cref="AnalyzerActions"/> instance.
+            /// </summary>
+            public void Append(in AnalyzerActions otherActions, bool appendSymbolStartAndSymbolEndActions = true)
+            {
+                if (otherActions.IsDefault)
+                {
+                    throw new ArgumentNullException(nameof(otherActions));
+                }
+
+                if (otherActions.IsEmpty)
+                {
+                    return;
+                }
+
+                _concurrent = _concurrent || otherActions.Concurrent;
+
+                AppendActions(ref _compilationStartActionsImmutable, ref _compilationStartActionsBuilder, otherActions._compilationStartActions);
+                AppendActions(ref _compilationEndActionsImmutable, ref _compilationEndActionsBuilder, otherActions._compilationEndActions);
+                AppendActions(ref _compilationActionsImmutable, ref _compilationActionsBuilder, otherActions._compilationActions);
+                AppendActions(ref _syntaxTreeActionsImmutable, ref _syntaxTreeActionsBuilder, otherActions._syntaxTreeActions);
+                AppendActions(ref _additionalFileActionsImmutable, ref _additionalFileActionsBuilder, otherActions._additionalFileActions);
+                AppendActions(ref _semanticModelActionsImmutable, ref _semanticModelActionsBuilder, otherActions._semanticModelActions);
+                AppendActions(ref _symbolActionsImmutable, ref _symbolActionsBuilder, otherActions._symbolActions);
+
+                if (appendSymbolStartAndSymbolEndActions)
+                {
+                    AppendActions(ref _symbolStartActionsImmutable, ref _symbolStartActionsBuilder, otherActions._symbolStartActions);
+                    AppendActions(ref _symbolEndActionsImmutable, ref _symbolEndActionsBuilder, otherActions._symbolEndActions);
+                }
+
+                AppendActions(ref _codeBlockStartActionsImmutable, ref _codeBlockStartActionsBuilder, otherActions._codeBlockStartActions);
+                AppendActions(ref _codeBlockEndActionsImmutable, ref _codeBlockEndActionsBuilder, otherActions._codeBlockEndActions);
+                AppendActions(ref _codeBlockActionsImmutable, ref _codeBlockActionsBuilder, otherActions._codeBlockActions);
+                AppendActions(ref _syntaxNodeActionsImmutable, ref _syntaxNodeActionsBuilder, otherActions._syntaxNodeActions);
+                AppendActions(ref _operationActionsImmutable, ref _operationActionsBuilder, otherActions._operationActions);
+                AppendActions(ref _operationBlockStartActionsImmutable, ref _operationBlockStartActionsBuilder, otherActions._operationBlockStartActions);
+                AppendActions(ref _operationBlockEndActionsImmutable, ref _operationBlockEndActionsBuilder, otherActions._operationBlockEndActions);
+                AppendActions(ref _operationBlockActionsImmutable, ref _operationBlockActionsBuilder, otherActions._operationBlockActions);
+            }
+
+            private static void AppendActions<T>(
+                ref ImmutableArray<T> immutable,
+                ref ArrayBuilder<T>? builder,
+                ImmutableArray<T> actions)
+            {
+                if (actions.IsDefaultOrEmpty)
+                {
+                    return;
+                }
+
+                // First append for this array: just store the immutable array (zero-copy)
+                if (immutable.IsEmpty)
+                {
+                    immutable = actions;
+                    return;
+                }
+
+                // Additional appends for this array: promote to builder
+                if (builder is null)
+                {
+                    builder = ArrayBuilder<T>.GetInstance();
+                    builder.AddRange(immutable);
+                }
+
+                builder.AddRange(actions);
+            }
+
+            /// <summary>
+            /// Creates an <see cref="AnalyzerActions"/> from the accumulated actions.
+            /// This method should be called once after all Append operations are complete.
+            /// </summary>
+            public AnalyzerActions ToAnalyzerActionsAndFree()
+            {
+                return new AnalyzerActions(
+                    compilationStartActions: ToImmutableAndFree(ref _compilationStartActionsImmutable, ref _compilationStartActionsBuilder),
+                    compilationEndActions: ToImmutableAndFree(ref _compilationEndActionsImmutable, ref _compilationEndActionsBuilder),
+                    compilationActions: ToImmutableAndFree(ref _compilationActionsImmutable, ref _compilationActionsBuilder),
+                    syntaxTreeActions: ToImmutableAndFree(ref _syntaxTreeActionsImmutable, ref _syntaxTreeActionsBuilder),
+                    additionalFileActions: ToImmutableAndFree(ref _additionalFileActionsImmutable, ref _additionalFileActionsBuilder),
+                    semanticModelActions: ToImmutableAndFree(ref _semanticModelActionsImmutable, ref _semanticModelActionsBuilder),
+                    symbolActions: ToImmutableAndFree(ref _symbolActionsImmutable, ref _symbolActionsBuilder),
+                    symbolStartActions: ToImmutableAndFree(ref _symbolStartActionsImmutable, ref _symbolStartActionsBuilder),
+                    symbolEndActions: ToImmutableAndFree(ref _symbolEndActionsImmutable, ref _symbolEndActionsBuilder),
+                    codeBlockStartActions: ToImmutableAndFree(ref _codeBlockStartActionsImmutable, ref _codeBlockStartActionsBuilder),
+                    codeBlockEndActions: ToImmutableAndFree(ref _codeBlockEndActionsImmutable, ref _codeBlockEndActionsBuilder),
+                    codeBlockActions: ToImmutableAndFree(ref _codeBlockActionsImmutable, ref _codeBlockActionsBuilder),
+                    operationBlockStartActions: ToImmutableAndFree(ref _operationBlockStartActionsImmutable, ref _operationBlockStartActionsBuilder),
+                    operationBlockEndActions: ToImmutableAndFree(ref _operationBlockEndActionsImmutable, ref _operationBlockEndActionsBuilder),
+                    operationBlockActions: ToImmutableAndFree(ref _operationBlockActionsImmutable, ref _operationBlockActionsBuilder),
+                    syntaxNodeActions: ToImmutableAndFree(ref _syntaxNodeActionsImmutable, ref _syntaxNodeActionsBuilder),
+                    operationActions: ToImmutableAndFree(ref _operationActionsImmutable, ref _operationActionsBuilder),
+                    concurrent: _concurrent);
+            }
+
+            private static ImmutableArray<T> ToImmutableAndFree<T>(
+                ref ImmutableArray<T> immutable,
+                ref ArrayBuilder<T>? builder)
+            {
+                var result = builder is not null
+                    ? builder.ToImmutableAndFree()
+                    : immutable;
+
+                builder = null;
+                immutable = default;
+
+                return result;
+            }
         }
     }
 }

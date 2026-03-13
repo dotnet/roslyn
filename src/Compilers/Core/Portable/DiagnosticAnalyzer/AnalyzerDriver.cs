@@ -2048,7 +2048,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
-            var allAnalyzerActions = AnalyzerActions.Empty;
+            var allAnalyzerActions = new AnalyzerActions.Builder();
             var unsuppressedAnalyzersBuilder = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
             foreach (var analyzer in analyzers)
             {
@@ -2057,13 +2057,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     unsuppressedAnalyzersBuilder.Add(analyzer);
 
                     var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-                    allAnalyzerActions = allAnalyzerActions.Append(in analyzerActions);
+                    allAnalyzerActions.Append(in analyzerActions);
                 }
             }
 
             var unsuppressedAnalyzers = unsuppressedAnalyzersBuilder.ToImmutableHashSet();
             unsuppressedAnalyzersBuilder.Free();
-            return (allAnalyzerActions, unsuppressedAnalyzers);
+            return (allAnalyzerActions.ToAnalyzerActionsAndFree(), unsuppressedAnalyzers);
         }
 
         public bool HasSymbolStartedActions(AnalysisScope analysisScope)
