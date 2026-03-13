@@ -95,6 +95,12 @@ internal abstract class RegexQuery
     /// still constrain the match. In an <see cref="Any"/> (OR), it poisons the whole disjunction —
     /// if one branch can match anything, the entire <see cref="Any"/> can match anything, so it
     /// collapses to <see cref="None"/>.
+    /// <para/>
+    /// <b>Post-condition:</b> The returned tree contains <see cref="None"/> only as the top-level
+    /// result (meaning the entire regex is opaque). If the result is an <see cref="All"/>,
+    /// <see cref="Any"/>, or <see cref="Literal"/>, no <see cref="None"/> nodes exist anywhere
+    /// in the subtree. This allows consumers to assume only those three types appear when
+    /// traversing a non-None result.
     /// </summary>
     public static RegexQuery Optimize(RegexQuery query)
     {

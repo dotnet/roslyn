@@ -49,6 +49,11 @@ internal static class RegexQueryCompiler
     /// (flatten nested All/Any, prune None from All, collapse single-child wrappers). Returns
     /// <see langword="null"/> if the optimized tree has no extractable literals, since such a
     /// query cannot filter any documents and would degenerate to "accept everything."
+    /// <para/>
+    /// When non-null, the returned tree is guaranteed to contain only <see cref="RegexQuery.All"/>,
+    /// <see cref="RegexQuery.Any"/>, and <see cref="RegexQuery.Literal"/> nodes — no
+    /// <see cref="RegexQuery.None"/> nodes survive optimization (see
+    /// <see cref="RegexQuery.Optimize"/>). Callers can rely on this when traversing the tree.
     /// </summary>
     public static RegexQuery? Compile(RegexTree tree)
     {

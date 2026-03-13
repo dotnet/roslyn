@@ -821,11 +821,13 @@ internal sealed partial class NavigateToSearchIndex
                 case PatternMatching.RegexQuery.Literal literal:
                     return RegexLiteralCheckPasses(literal.Text);
 
-                // None means "this node can't tell us anything" — we must conservatively assume
-                // the document could match. Returning false here would incorrectly reject documents
-                // that a wildcard/character-class branch could still match.
+                // The optimizer removes all None nodes from the tree: None children are dropped
+                // from All (vacuously true), and Any collapses to None if any child is None. If
+                // the entire tree optimizes to None (no literals at all), Compile returns null and
+                // the caller never reaches this method. So the only nodes that can appear here are
+                // All, Any, and Literal — all handled above.
                 default:
-                    return true;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 

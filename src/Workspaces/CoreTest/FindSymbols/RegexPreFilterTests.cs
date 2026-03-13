@@ -71,24 +71,6 @@ public sealed class RegexPreFilterTests
     }
 
     [Fact]
-    public void NoneQuery_AlwaysPasses()
-    {
-        var index = CreateIndex(("Anything", ""));
-        Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(RegexQuery.None.Instance));
-    }
-
-    [Fact]
-    public void AllWithNone_PassesIfLiteralsPass()
-    {
-        var index = CreateIndex(("ReadLine", ""));
-        var query = new RegexQuery.All([
-            new RegexQuery.Literal("read"),
-            RegexQuery.None.Instance,
-        ]);
-        Assert.True(index.GetTestAccessor().RegexQueryCheckPasses(query));
-    }
-
-    [Fact]
     public void CaseInsensitive_Passes()
     {
         // RegexQueryCompiler lowercases literals at compile time, so the literal
