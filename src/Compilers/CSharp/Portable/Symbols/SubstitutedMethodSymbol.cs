@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync => OriginalDefinition.IsAsync;
 
-        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => OriginalDefinition.RuntimeAsyncMethodGenerationAttributeSetting;
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         public override TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {

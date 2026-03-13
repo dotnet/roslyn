@@ -46,7 +46,7 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     public override bool IsAsync => this.UnderlyingMethod.IsAsync;
     public override ImmutableArray<CustomModifier> RefCustomModifiers => this.UnderlyingMethod.RefCustomModifiers;
     public override TypeWithAnnotations ReturnTypeWithAnnotations => this.UnderlyingMethod.ReturnTypeWithAnnotations;
-    internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => this.UnderlyingMethod.RuntimeAsyncMethodGenerationAttributeSetting;
+    internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
     /// <summary>
     /// The projection method itself is intentionally not obsolete.  We don't want to report obsoletion errors when
