@@ -2965,6 +2965,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 """);
 
         [Fact]
+        public Task TestRequiresUnsafeApiOnExternMethodAsync()
+            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
+                using System.Runtime.CompilerServices;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    {{EnabledModifierCSharp}} extern void {|{{AddNewApiId}}:M1|}() { }
+                    [RequiresUnsafe]
+                    {{EnabledModifierCSharp}} extern void {|{{AddNewApiId}}:M2|}() { }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                extern C.M1() -> void
+                [RequiresUnsafe]extern C.M2() -> void
+                """);
+
+        [Fact]
         public Task TestRequiresUnsafeApiOnPropertyAsync()
             => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
                 using System.Runtime.CompilerServices;
@@ -2979,6 +2997,22 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 C.C() -> void
                 [RequiresUnsafe]C.Property.get -> int
                 [RequiresUnsafe]C.Property.set -> void
+                """);
+
+        [Fact]
+        public Task TestRequiresUnsafeApiOnPropertyAccessorsAsync()
+            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
+                using System.Runtime.CompilerServices;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    {{EnabledModifierCSharp}} int Property { [RequiresUnsafe] {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                C.Property.set -> void
+                [RequiresUnsafe]C.Property.get -> int
                 """);
 
         [Fact]
