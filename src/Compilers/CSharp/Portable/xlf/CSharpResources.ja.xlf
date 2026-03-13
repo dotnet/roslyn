@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="ERR_CompilationOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
+        <target state="translated">'{0}' 値が無効です: C# {2} に対する '{1}'。言語バージョン '{3}' 以上をご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
