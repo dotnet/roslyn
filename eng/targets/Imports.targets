@@ -173,8 +173,8 @@
           DestinationFolder="$(OutDir)" />
   </Target>
 
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
 
   <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild" Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
