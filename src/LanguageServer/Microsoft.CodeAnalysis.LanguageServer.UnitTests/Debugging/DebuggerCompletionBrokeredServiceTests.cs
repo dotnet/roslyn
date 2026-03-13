@@ -20,7 +20,7 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
     private const string MemberAccessExpression = "myLocalVar.";
     private const string LocalVariableExpression = "x";
 
-    private static Task<DebuggerCompletionResult?> GetDebuggerCompletionsAsync(
+    private static Task<DebuggerCompletionResult> GetDebuggerCompletionsAsync(
         TestContext context,
         string expression,
         int cursorOffset)
