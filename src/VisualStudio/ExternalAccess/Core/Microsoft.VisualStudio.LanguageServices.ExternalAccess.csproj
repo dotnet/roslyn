@@ -3,13 +3,13 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices.ExternalAccess</RootNamespace>
     <TargetFrameworks>net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.VisualStudio.ExternalAccess.LanguageServices</PackageId>
+    <PackageId>Microsoft.VisualStudio.LanguageServices.ExternalAccess</PackageId>
     <PackageDescription>
       A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>
@@ -21,7 +21,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
 
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ExternalAccess.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
 
     <!--
       ⚠ ONLY APEX ASSEMBLIES MAY BE ADDED HERE ⚠

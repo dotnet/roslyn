@@ -21,7 +21,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
   </ItemGroup>
   
   <ItemGroup>
