@@ -57,13 +57,6 @@
     <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
       <UseSharedCompilation>true</UseSharedCompilation>
     </PropertyGroup>
-
-    <!-- Embed EditorConfigFiles into the binary log. This is done here (rather than a static ItemGroup)
-         to ensure EditorConfigFiles added by analyzer packages in BeforeTargets="CoreCompile" targets
-         (e.g. NetAnalyzers, CodeStyle) are captured. -->
-    <ItemGroup>
-      <EmbedInBinlog Include="@(EditorConfigFiles)" />
-    </ItemGroup>
   </Target>
 
   <!--
