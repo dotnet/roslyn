@@ -255,7 +255,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 ' Simulate Elfie throwing when trying to make a database from the contents of that response
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Throws(New NotImplementedException())
 
                 ' Because the parsing failed we will expect to call into the 'UpdateFailedDelay' to
@@ -300,7 +300,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Successfully create a database from that response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Expect that we'll write the database to disk successfully.
@@ -349,7 +349,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Create a database from the client response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
@@ -402,7 +402,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are up to date.
@@ -447,7 +447,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are too old.
@@ -501,7 +501,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.
@@ -561,7 +561,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromStream(It.IsAny(Of Stream), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.

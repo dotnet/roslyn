@@ -273,7 +273,8 @@ internal sealed partial class SymbolSearchUpdateEngine
             // searching.
             try
             {
-                database = CreateAndSetInMemoryDatabase(bytes, isBinary: false);
+                using var stream = new MemoryStream(bytes);
+                database = CreateAndSetInMemoryDatabase(stream, isBinary: false);
             }
             catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
             {
@@ -391,18 +392,18 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             LogInfo("Reading in local database");
 
-            var (databaseBytes, isBinary) = GetDatabaseBytes(databaseFileInfo);
+            using var stream = GetDatabaseStream(databaseFileInfo, out var isBinary);
 
-            LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
+            LogInfo($"Reading in local database completed. isBinary={isBinary}");
 
-            // Make a database instance out of those bytes and set is as the current in memory database
-            // that searches will run against.  If we can't make a database instance from these bytes
+            // Make a database instance from the stream and set it as the current in memory database
+            // that searches will run against. If we can't make a database instance from the stream
             // then our local database is corrupt and we need to download the full database to get back
             // into a good state.
             AddReferenceDatabase database;
             try
             {
-                database = CreateAndSetInMemoryDatabase(databaseBytes, isBinary);
+                database = CreateAndSetInMemoryDatabase(stream, isBinary);
             }
             catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
             {
@@ -424,7 +425,8 @@ internal sealed partial class SymbolSearchUpdateEngine
                 databaseFileInfo,
                 element,
                 // We pass a delegate to get the database bytes so that we can avoid reading the bytes when we don't need them due to no patch to apply.
-                getDatabaseBytes: () => isBinary ? _service._ioService.ReadAllBytes(databaseFileInfo.FullName) : databaseBytes,
+                // Note: ApplyPatch requires byte[], so we must read into memory here.
+                getDatabaseBytes: () => _service._ioService.ReadAllBytes(isBinary ? GetBinaryFileInfo(databaseFileInfo).FullName : databaseFileInfo.FullName),
                 cancellationToken).ConfigureAwait(false);
 
             LogInfo("Downloading and processing patch file completed");
@@ -432,33 +434,35 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             return delayUntilUpdate;
 
-            (byte[] dataBytes, bool isBinary) GetDatabaseBytes(FileInfo databaseFileInfo)
+            Stream GetDatabaseStream(FileInfo databaseFileInfo, out bool isBinary)
             {
                 var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
 
                 try
                 {
                     // First attempt to read from the binary file. If that fails, fall back to the text file.
-                    return (_service._ioService.ReadAllBytes(databaseBinaryFileInfo.FullName), isBinary: true);
+                    isBinary = true;
+                    return _service._ioService.OpenRead(databaseBinaryFileInfo.FullName);
                 }
                 catch (Exception e) when (IOUtilities.IsNormalIOException(e))
                 {
                 }
 
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                return (_service._ioService.ReadAllBytes(databaseFileInfo.FullName), isBinary: false);
+                isBinary = false;
+                return _service._ioService.OpenRead(databaseFileInfo.FullName);
             }
         }
 
         /// <summary>
-        /// Creates a database instance with the bytes passed in.  If creating the database succeeds,
+        /// Creates a database instance with the stream passed in.  If creating the database succeeds,
         /// then it will be set as the current in memory version.  In the case of failure (which 
         /// indicates that our data is corrupt), the exception will bubble up and must be appropriately
         /// dealt with by the caller.
         /// </summary>
-        private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes, bool isBinary)
+        private AddReferenceDatabase CreateAndSetInMemoryDatabase(Stream stream, bool isBinary)
         {
-            var database = CreateDatabaseFromBytes(bytes, isBinary);
+            var database = CreateDatabaseFromStream(stream, isBinary);
             _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
             return database;
         }
@@ -520,7 +524,8 @@ internal sealed partial class SymbolSearchUpdateEngine
             LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
 
             // finalBytes is generated from the current database and the patch, not from the binary file.
-            database = CreateAndSetInMemoryDatabase(finalBytes, isBinary: false);
+            using var stream = new MemoryStream(finalBytes);
+            database = CreateAndSetInMemoryDatabase(stream, isBinary: false);
 
             // Attempt to persist the txt and binary forms of the index. It's ok if either of these writes
             // don't succeed. If the txt file fails to persist, a subsequent VS session will redownload the
@@ -560,11 +565,11 @@ internal sealed partial class SymbolSearchUpdateEngine
             }
         }
 
-        private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes, bool isBinary)
+        private AddReferenceDatabase CreateDatabaseFromStream(Stream stream, bool isBinary)
         {
-            LogInfo("Creating database from bytes");
-            var result = _service._databaseFactoryService.CreateDatabaseFromBytes(bytes, isBinary);
-            LogInfo("Creating database from bytes completed");
+            LogInfo("Creating database from stream");
+            var result = _service._databaseFactoryService.CreateDatabaseFromStream(stream, isBinary);
+            LogInfo("Creating database from stream completed");
             return result;
         }
 
