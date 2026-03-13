@@ -28,7 +28,7 @@
   <ItemGroup>
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
     <!--
       Following packages are being referenced to: 
         - exclude BCL library from the dependencies we need to deploy as part of Roslyn vsix.
@@ -243,4 +243,3 @@
 
   <Target Name="PublishVsixItems" DependsOnTargets="Publish;PublishedProjectOutputGroup;CompileReadyToRun" Returns="@(_VsixItem)" />
 </Project>
-

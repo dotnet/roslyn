@@ -17,7 +17,8 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.1</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
-    <SqliteVersion>2.1.6</SqliteVersion>
+    <SqliteVersion>3.0.2</SqliteVersion>
+    <SqliteNativeVersion>3.50.3</SqliteNativeVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
@@ -227,13 +228,10 @@
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteNativeVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3" Version="$(SqliteVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="9.1.0.7988" />
