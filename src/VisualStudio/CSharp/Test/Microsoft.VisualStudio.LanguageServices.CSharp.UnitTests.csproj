@@ -63,16 +63,16 @@
       <Private>true</Private>
     </Reference>
 
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="SourceGear.sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
+    <Content Include="$(PkgSourceGear_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
+    <Content Include="$(PkgSourceGear_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>Core\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

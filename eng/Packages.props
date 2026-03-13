@@ -229,7 +229,7 @@
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteNativeVersion)" />
+    <PackageVersion Include="SourceGear.sqlite3" Version="$(SqliteNativeVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3" Version="$(SqliteVersion)" />
 
