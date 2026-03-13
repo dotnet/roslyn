@@ -15,3 +15,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Debugger.DebuggerFindReferencesService.Fin
 Microsoft.VisualStudio.ExternalAccess.Debugger.DebuggerFindReferencesService
 Microsoft.VisualStudio.ExternalAccess.Debugger.DebuggerFindReferencesService.DebuggerFindReferencesService(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions, System.Lazy<Microsoft.CodeAnalysis.Editor.Host.IStreamingFindUsagesPresenter!>! streamingPresenter) -> void
 Microsoft.VisualStudio.ExternalAccess.Debugger.DebuggerFindReferencesService.FindSymbolReferencesAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.CanHandle(string! methodName) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.HandleNotificationAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task!>! sendNotification) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.HandleRequestAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!>! sendRequest) -> System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!
