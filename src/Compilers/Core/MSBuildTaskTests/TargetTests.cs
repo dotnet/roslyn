@@ -541,6 +541,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void GenerateEditorConfigIsEmbeddedInBinlog()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include=""prop"" />
+    </ItemGroup>
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var editorConfigItems = instance.GetItems("EditorConfigFiles");
+            var embedInBinlogItems = instance.GetItems("EmbedInBinlog");
+            Assert.Single(editorConfigItems);
+            Assert.Contains(embedInBinlogItems, item => item.EvaluatedInclude == editorConfigItems.Single().EvaluatedInclude);
+        }
+
+        [Fact]
         public void AdditionalFilesAreAddedToNoneWhenCopied()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"

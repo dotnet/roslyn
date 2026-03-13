@@ -144,6 +144,8 @@
     
     <GlobalAnalyzerConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.globalconfig'))" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
     <EditorConfigFiles Include="@(GlobalAnalyzerConfigFiles->Exists())" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
+
+    <EmbedInBinlog Include="@(EditorConfigFiles)" />
   </ItemGroup>
 
   <!--
@@ -192,6 +194,7 @@
       <!-- Record that we'll write a file, and add it to the analyzerconfig inputs -->
       <FileWrites Include="$(GeneratedMSBuildEditorConfigFile)" />
       <EditorConfigFiles Include="$(GeneratedMSBuildEditorConfigFile)" />
+      <EmbedInBinlog Include="$(GeneratedMSBuildEditorConfigFile)" />
     </ItemGroup>
 
     <!-- Transform the collected properties and items into an editor config file -->
