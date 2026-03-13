@@ -4628,7 +4628,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_DeleteAndAdd_WithAccessorBodies()
         {
             using var _ = new EditAndContinueTest()
@@ -4787,7 +4787,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_DeleteAndAdd_OneAccessor()
         {
             using var _ = new EditAndContinueTest()
@@ -5199,7 +5199,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
@@ -5442,7 +5442,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_Rename()
         {
             using var _ = new EditAndContinueTest()
@@ -5812,7 +5812,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Indexer_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
@@ -6495,7 +6495,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Event_Rename()
         {
             using var _ = new EditAndContinueTest()
@@ -17162,7 +17162,7 @@ class C
                     expectedErrors:
                     [
                         // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
-                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Constructor, "System.Exception..ctor(string)").WithLocation(1, 1)
                     ])
                 .Verify();
         }
@@ -17213,7 +17213,7 @@ class C
                     expectedErrors:
                     [
                         // error CS7043: Cannot emit update; method 'void System.Action<T>.Invoke(T arg)' is missing.
-                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("method", "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Method, "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
                     ])
                 .Verify();
         }
@@ -17296,7 +17296,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException()
         {
             var exceptionSource = """
@@ -17380,7 +17380,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException_Inserted()
         {
             var exceptionSource = """
@@ -17519,7 +17519,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
             var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
@@ -18431,7 +18431,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda()
         {
             using var _ = new EditAndContinueTest()
@@ -18680,7 +18680,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda_AddedMethod()
         {
             using var _ = new EditAndContinueTest()
@@ -18817,7 +18817,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda_MultipleGenerations()
         {
             var common = """
@@ -19147,7 +19147,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLocalFunction_MultipleGenerations()
         {
             var common = """
@@ -19557,7 +19557,7 @@ class C
             test.Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
@@ -19721,7 +19721,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
@@ -19893,7 +19893,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_InsertAndDeleteParameter()
         {
             using var _ = new EditAndContinueTest()

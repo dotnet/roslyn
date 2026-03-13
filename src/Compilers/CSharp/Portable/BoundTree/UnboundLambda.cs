@@ -836,11 +836,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't reuse the body if we're binding in an expression tree, because we didn't
             // know that we were binding for an expression tree when originally binding the lambda
             // for return inference.
+            // We also don't reuse the body if the value of CSharpCompilation.IsRuntimeAsyncEnabledInMethod
+            // changed after inference with the final return type, as that will change the binding of await
+            // calls within the lambda. For optimization purposes, we assume that if the lambda is async, it will
+            // end up resolving to Task/ValueTask types, as that's the 95% case for C# code. If that ends up not being
+            // true, then we need to bust the cache and rebind.
             if (!inExpressionTree &&
                 refKind == CodeAnalysis.RefKind.None &&
                 _returnInferenceCache!.TryGetValue(cacheKey, out BoundLambda? returnInferenceLambda) &&
                 GetLambdaExpressionBody(returnInferenceLambda.Body) is BoundExpression expression &&
                 (lambdaSymbol = (LambdaSymbol)returnInferenceLambda.Symbol).RefKind == refKind &&
+                !lambdaSymbol.RuntimeAsyncEnabledChangedDuringInference &&
                 (object)LambdaSymbol.InferenceFailureReturnType != lambdaSymbol.ReturnType &&
                 lambdaSymbol.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything) &&
                 lambdaSymbol.RefCustomModifiers.SequenceEqual(refCustomModifiers))
@@ -966,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (targetParameterTypes[i].Type.ContainsPointerOrFunctionPointer())
                     {
-                        this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
+                        this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     }
                 }
             }

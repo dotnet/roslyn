@@ -3962,6 +3962,21 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    
+                // System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                 // System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     0,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
                 // System_MemoryExtensions__SequenceEqual_Span_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                               // Flags
@@ -5212,6 +5227,13 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Return Type
                     (byte)SignatureTypeCode.Pointer, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,     // Argument: byte*
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
+
+                // System_Runtime_CompilerServices_UnionAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_UnionAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -5704,6 +5726,8 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ScopedRefAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_Span_T
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
                 "AsSpan",                                   // System_MemoryExtensions__AsSpan_String
@@ -5840,6 +5864,7 @@ namespace Microsoft.CodeAnalysis
                 "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
                 "get_UTF8",                                 // System_Text_Encoding__get_UTF8
                 "GetString",                                // System_Text_Encoding__GetString
+                ".ctor",                                    // System_Runtime_CompilerServices_UnionAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

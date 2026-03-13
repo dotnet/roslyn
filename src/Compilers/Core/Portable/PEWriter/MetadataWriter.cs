@@ -3461,14 +3461,9 @@ namespace Microsoft.Cci
         {
             Debug.Assert(fieldReference.RefCustomModifiers.Length == 0 || fieldReference.IsByReference);
 
-            // https://github.com/dotnet/roslyn/issues/61385: Use System.Reflection.Metadata.Ecma335.FieldTypeEncoder
-            // instead, since that type supports ref fields directly.
-            var typeEncoder = new BlobEncoder(builder).FieldSignature();
-            SerializeCustomModifiers(new CustomModifiersEncoder(builder), fieldReference.RefCustomModifiers);
-            if (fieldReference.IsByReference)
-            {
-                typeEncoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);
-            }
+            var fieldTypeEncoder = new BlobEncoder(builder).Field();
+            SerializeCustomModifiers(fieldTypeEncoder.CustomModifiers(), fieldReference.RefCustomModifiers);
+            var typeEncoder = fieldTypeEncoder.Type(fieldReference.IsByReference);
             SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
@@ -418,6 +419,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The required name for the <see cref="Nullable{T}.Value"/> property used in
         /// a ForEach statement when the collection is a nullable struct.
+        /// Also required name for the IUnion.Value property used in Union matching.
         /// </summary>
         public const string ValuePropertyName = "Value";
 
@@ -516,5 +518,17 @@ namespace Microsoft.CodeAnalysis
         /// The prefix for the marker type name.
         /// </summary>
         internal const string ExtensionMarkerTypePrefix = "<M>$";
+
+        /// <summary>
+        /// The name for the 'HasValue' property.
+        /// </summary>
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
+        public const string HasValuePropertyName = "HasValue";
+
+        /// <summary>
+        /// The name for the 'TryGetValue' method.
+        /// </summary>
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
+        public const string TryGetValueMethodName = "TryGetValue";
     }
 }

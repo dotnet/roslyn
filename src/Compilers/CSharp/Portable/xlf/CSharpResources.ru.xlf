@@ -387,6 +387,21 @@
         <target state="translated">Атрибут AsyncMethodBuilder запрещен для анонимных методов без явного типа возвращаемого значения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="translated">Небезопасный элемент "{0}" не может реализовывать безопасный элемент "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="translated">Небезопасный элемент "{0}" не может неявно реализовывать безопасный элемент "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="translated">Небезопасный элемент "{0}" не может переопределять безопасный элемент "{1}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">Невозможно использовать "OverloadResolutionPriorityAttribute" с этим членом.</target>
@@ -595,6 +610,11 @@
       <trans-unit id="ERR_CollectionRefLikeElementType">
         <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
         <target state="translated">Тип элемента этой коллекции не может быть ссылочной структурой или параметром типа, допускающим ссылочные структуры</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -885,6 +905,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">Дерево выражений не может содержать оператор == или != кортежа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="translated">Дерево выражений не может содержать преобразование объединения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1222,6 +1247,16 @@
         <target state="translated">Поле элемента встроенного массива нельзя объявить как обязательное, доступное только для чтения, переменное или как буфер фиксированного размера.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="translated">Явно объявленные общедоступные конструкторы с одним параметром не допускаются в объявлении "union".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="translated">Поля экземпляра, автоматические свойства или события, похожие на поля, не допускаются в объявлении "union".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">"{0}": невозможно объявить члены экземпляра в блоке расширения с параметром получателя без имени</target>
@@ -1451,6 +1486,16 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">"{0}" не содержит определение для "{1}", не найден доступный метод расширения "{1}", принимающий первый аргумент типа "{0}" (возможно, нужно было выполнить итерацию для синхронной коллекции с помощью "await foreach"?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="translated">Невозможно преобразовать тип "{0}" в "object" с помощью преобразования неявной ссылки или преобразования-упаковки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
+        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
+        <target state="translated">RequiresUnsafeAttribute невозможно применить к этому символу.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -1840,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">Ожидаемые значения: "warnings", "annotations" или конец директивы</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Недопустимое значение "{0}": "{1}" для C# {2}. Используйте версию языка "{3}" или более позднюю.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2657,6 +2697,21 @@
         <target state="translated">Неожиданный список параметров.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="translated">Конструктор, объявленный в объявлении "union", должен содержать инициализатор "this", который вызывает синтезированный или явно объявленный конструктор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="translated">В объявлении объединения должен быть указан как минимум один тип обращения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="translated">Выражение типа "{0}" невозможно обработать этим шаблоном. См. дополнительные ошибки в этом расположении.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может вызываться напрямую. Получите указатель на функцию для этого метода.</target>
@@ -2667,10 +2722,35 @@
         <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может быть преобразован в тип делегата. Получите указатель на функцию для этого метода.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">"{0}" определен в модуле с нераспознанной версией RefSafetyRulesAttribute. Ожидается "11".</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="translated">"{0}" определен в модуле с нераспознанной версией {1}, ожидается "{2}".</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperation">
+        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
+        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как он помечен как RequiresUnsafe или extern</target>
+        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperationCompat">
+        <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
+        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как в его сигнатуре есть указатели</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="translated">Эту операцию можно использовать только в небезопасном контексте</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
+        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
+        <target state="translated">Выражение stackalloc без инициализатора внутри SkipLocalsInit можно использовать только в небезопасном контексте</target>
+        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
@@ -3055,6 +3135,16 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">не привязанные универсальные типы в операторе nameof</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="translated">объединения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>updated memory safety rules</source>
+        <target state="translated">обновленные правила обеспечения безопасности памяти</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3842,6 +3932,16 @@
         <target state="translated">Элемент структуры возвращает "этот" или другие элементы экземпляра по ссылке</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Возвращаемое значение должно быть отлично от NULL, так как параметр "{0}" имеет значение, отличное от NULL.</target>
@@ -4095,7 +4195,7 @@
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
+                              SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
@@ -4156,7 +4256,7 @@
                               Itanium, x64, arm, arm64, anycpu32bitpreferred или
                               anycpu. По умолчанию используется anycpu.
 
-                       - ВХОДНЫЕ ФАЙЛЫ - 
+                       - ВХОДНЫЕ ФАЙЛЫ -
 --recurse:&lt;подстановочный знак&gt;           Включить все файлы в текущем каталоге и
                               вложенных каталогах в соответствии с подстановочными
                               знаками
@@ -4254,8 +4354,8 @@
                        - РАСШИРЕННЫЕ ПАРАМЕТРЫ - 
 -baseaddress:&lt;адрес&gt;        Базовый адрес для создаваемой библиотеки
 -checksumalgorithm:&lt;алгоритм&gt;      Указать алгоритм вычисления контрольной суммы исходного файла,
-                              хранящегося в PDB. Поддерживаемые значения:
-                              SHA1 или SHA256 (по умолчанию). 
+                              исходного файла, хранящегося в PDB. Поддерживаемые значения:
+                              SHA1, SHA256 (по умолчанию), SHA384 или SHA512.
 -codepage:&lt;n&gt;                 Указать кодовую страницу для использования при открытии исходных
                               файлов
 -utf8output                   Выводить сообщения компилятора в кодировке UTF-8
@@ -4272,7 +4372,7 @@
                               имя выходного файла с расширением .pdb)
 -errorendlocation             Строка вывода и столбец конечного расположения
                               каждой ошибки
--preferreduilang              Указать предпочитаемое имя языка вывода. 
+-preferreduilang              Указать предпочитаемое имя языка вывода.
 -nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию. 
 -sdkpath:&lt;путь&gt;         Путь, используемый для поиска стандартных сборок библиотек.
 -nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll)
@@ -4280,7 +4380,7 @@
 -lib:&lt;список файлов&gt;              Указать дополнительные каталоги для поиска
                               ссылок 
 -errorreport:&lt;строка&gt;         Указать, как обрабатывать внутренние ошибки компилятора:
-                              prompt (выводить запрос), send (отправлять), queue (ставить в очередь) или none (не выполнять никаких действий). Значение по умолчанию:
+                              prompt, send, queue или none. Значение по умолчанию:
                               queue.
 -appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
                               содержащий параметры привязки сборки 
@@ -7111,8 +7211,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Все разделяемые объявления "{0}" должны относиться к одному типу (классы, классы записей, записи, структуры, структуры записей или интерфейсы)</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="translated">Все разделяемые объявления "{0}" должны относиться к одному типу (классы, классы записей, записи, структуры, объединения, структуры записей или интерфейсы)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

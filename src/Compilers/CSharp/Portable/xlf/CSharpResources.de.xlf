@@ -387,6 +387,21 @@
         <target state="translated">Das AsyncMethodBuilder-Attribut ist für anonyme Methoden ohne expliziten Rückgabetyp unzulässig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="translated">Das unsichere Mitglied „{0}“ kann das sichere Mitglied „{1}“ nicht implementieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="translated">Das unsichere Mitglied „{0}“ kann das sichere Mitglied „{1}“ nicht implizit implementieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="translated">Das unsichere Mitglied „{0}“ kann das sichere Mitglied „{1}“ nicht überschreiben</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">„OverloadResolutionPriorityAttribute“ kann für dieses Element nicht verwendet werden.</target>
@@ -595,6 +610,11 @@
       <trans-unit id="ERR_CollectionRefLikeElementType">
         <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
         <target state="translated">Der Elementtyp dieser Sammlung darf keine Referenzstruktur oder ein Typparameter sein, der Referenzstrukturen zulässt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -885,6 +905,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">Eine Ausdrucksbaumstruktur darf keinen ==- oder !=-Tupeloperator enthalten.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="translated">Ein Ausdrucksbaum darf keine Union-Konvertierung enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1222,6 +1247,16 @@
         <target state="translated">Das Inlinearray-Elementfeld kann nicht als erforderlich, schreibgeschützt, flüchtig oder als Puffer fester Größe deklariert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="translated">Explizit deklarierte öffentliche Konstruktoren mit nur einem Parameter sind in einer „union“-Deklaration nicht erlaubt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="translated">Instanzfelder, automatische Eigenschaften oder feldähnliche Ereignisse sind in einer „union“-Deklaration nicht erlaubt.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">„{0}“: Instanzmitglieder können in einem Erweiterungsblock mit unbenanntem Empfängerparameter nicht deklariert werden.</target>
@@ -1451,6 +1486,16 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">„{0}“ enthält keine Definition für „{1}“, und es konnte keine zugängliche Erweiterungsmethode „{1}“ gefunden werden, die ein erstes Argument vom Typ „{0}“ akzeptiert (wollten Sie die asynchrone Sammlung mit „await foreach“ durchlaufen?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="translated">Der Typ „{0}“ kann nicht über eine implizite Referenz- oder Boxing-Konvertierung in "object" umgewandelt werden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
+        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
+        <target state="translated">RequiresUnsafeAttribute kann nicht auf dieses Symbol angewendet werden.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -1840,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">Erwartet wurde "warnings", "annotations" oder das Ende der Anweisung.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Ungültiger Wert für "{0}": "{1}" für C# {2}. Verwenden Sie Sprachversion {3} oder höher.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2657,6 +2697,21 @@
         <target state="translated">Unerwartete Parameterliste.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="translated">Ein in einer „union“-Deklaration deklarierter Konstruktor muss einen „this“-Initialisierer haben, der einen synthetisierten Konstruktor oder einen explizit deklarierten Konstruktor aufruft.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="translated">Eine „union“-Deklaration muss mindestens einen Anfragetyp angeben.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="translated">Ein Ausdruck vom Typ „{0}“ kann von diesem Muster nicht verarbeitet werden. Weitere Fehler finden Sie an dieser Stelle.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht direkt aufgerufen werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
@@ -2667,10 +2722,35 @@
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht in einen Delegattyp konvertiert werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">„{0}“ ist in einem Modul mit einer unbekannten RefSafetyRulesAttribute-Version definiert, erwartet wird „11“.</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="translated">„{0}“ ist in einem Modul mit einer unbekannten Version von {1} definiert, erwartet wird „{2}“.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperation">
+        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
+        <target state="translated">„{0}“ muss in einem unsicheren Kontext verwendet werden, da er als „RequiresUnsafe“ oder „extern“ gekennzeichnet ist</target>
+        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperationCompat">
+        <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
+        <target state="translated">„{0}“ muss in einem unsicheren Kontext verwendet werden, da die Signatur Zeiger enthält</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="translated">Dieser Vorgang darf nur in einem unsicheren Kontext verwendet werden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
+        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
+        <target state="translated">stackalloc-Ausdruck ohne Initialisierer in SkipLocalsInit darf nur in einem unsicheren Kontext verwendet werden</target>
+        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
@@ -3055,6 +3135,16 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">Ungebundene generische Typen im nameof-Operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="translated">Unions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>updated memory safety rules</source>
+        <target state="translated">Aktualisierte Speichersicherheitsregeln</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3842,6 +3932,16 @@
         <target state="translated">Der Strukturmember gibt "this" oder andere Instanzmember als Verweis zurück.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">RequiresUnsafeAttribute ist nur unter den aktualisierten Speichersicherheitsregeln gültig.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">RequiresUnsafeAttribute ist nur unter den aktualisierten Speichersicherheitsregeln gültig.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Der Rückgabewert muss ungleich NULL sein, weil der Parameter "{0}" nicht NULL ist.</target>
@@ -4095,7 +4195,7 @@
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
+                              SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
@@ -4225,11 +4325,11 @@
                               (Kurzform: -d)
 -langversion:?                Anzeigen der zulässigen Werte für die Sprachversion
 -langversion:&lt;string&gt;             Sprachversion angeben, z. B.
-                              „latest“ (neueste Version, einschließlich Nebenversionen),
-                              „default“ (identisch mit „latest“),
-                              „latestmajor“ (neueste Version, einschließlich Nebenversionen),
-                              „preview“ (neueste Version, einschließlich Features in nicht unterstützter Vorschau),
-                              oder bestimmte Versionen wie „6“ oder „7.1“
+                              `latest` (neueste Version, einschließlich Nebenversionen),
+                              `default` (identisch mit `latest`),
+                              `latestmajor` (neueste Version, einschließlich Nebenversionen),
+                              `preview` (neueste Version, einschließlich Features in nicht unterstützter Vorschau),
+                              oder bestimmte Versionen wie `6` oder `7.1`
 -nullable[+|-]                Gibt die „Nullwerte zulassend“-Kontextoption enable|disable an.
 -nullable:{enable|disable|warnings|annotations}
                               Gibt die „Nullwerte zulassend“-Kontextoption enable|disable|warnings|annotations an.
@@ -4255,7 +4355,7 @@
 -baseaddress:&lt;address&gt;        Basisadresse für die zu erstellende Bibliothek
 -checksumalgorithm:&lt;alg&gt;          Gibt einen Algorithmus zum Berechnen der Prüfsumme-Quelldatei
                               an, die in PDB gespeichert ist. Folgende Werte werden unterstützt:
-                              SHA1 oder SHA256 (Standard).
+                              SHA-1, SHA-256 (Standard), SHA-384 oder SHA-512.
 -codepage:&lt;n&gt;                 Gibt die beim Öffnen von Quelldateien
                               zu verwendende Codepage an
 -utf8output                   Ausgabecompilermeldungen in UTF-8-Codierung
@@ -4280,7 +4380,7 @@
 -lib:&lt;file list&gt;              Gibt zusätzliche Verzeichnisse an, in denen nach
                               Verweise gesucht werden soll
 -errorreport:&lt;string&gt;         Gibt an, wie interne Compiler-Fehler behandelt werden sollen:
-                              „prompt“, „send“, „queue“ oder „none“. Der Standardwert ist
+                              "prompt", "send", "queue" oder "none". Der Standardwert ist
                               „queue“.
 -appconfig:&lt;file&gt;             Gibt eine Anwendungskonfigurationsdatei an, die
                               Assemblybindungseinstellungen enthält
@@ -7111,8 +7211,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Partielle Deklarationen von "{0}" müssen entweder nur Klassen, nur Datensatzklassen, nur Strukturen, nur Datensatzstrukturen oder nur Schnittstellen sein.</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="translated">Partielle Deklarationen von „{0}“ müssen alle Klassen, alle Datensatzklassen, alle Strukturen, alle Unions, alle Datensatzstrukturen oder alle Schnittstellen sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

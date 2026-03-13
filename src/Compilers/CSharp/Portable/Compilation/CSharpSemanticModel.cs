@@ -3549,8 +3549,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.Conversion.OriginalUserDefinedConversions, out symbols, out resultKind);
                         }
+                        else if (conversion.ConversionKind.IsUnionConversion())
+                        {
+                            Debug.Assert(conversion.SymbolOpt is { });
+                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, originalCandidates: [], out symbols, out resultKind);
+                        }
                         else
                         {
+                            if (conversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                                conversion.Operand is BoundConversion { Conversion.IsUnion: true } unionConversion &&
+                                unionConversion.ConversionGroupOpt == conversion.ConversionGroupOpt)
+                            {
+                                Debug.Assert(unionConversion.SymbolOpt is { });
+                                GetSymbolsAndResultKind(unionConversion, unionConversion.SymbolOpt, originalCandidates: [], out symbols, out resultKind);
+                            }
+
                             goto default;
                         }
                     }

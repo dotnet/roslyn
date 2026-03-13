@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.Syntax,
                     this.Expression,
                     innerPattern,
+                    HasUnionMatching,
                     this.WhenTrueLabel,
                     this.WhenFalseLabel,
                     BindingDiagnosticBag.Discarded,

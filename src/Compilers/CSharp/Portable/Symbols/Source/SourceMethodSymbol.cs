@@ -4,11 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -95,6 +93,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        /// <summary>
+        /// Whether the method has the <see langword="unsafe"/> keyword in its signature.
+        /// Do not confuse with <see cref="CallerUnsafeMode"/>.
+        /// </summary>
+        internal abstract bool IsUnsafe { get; }
+
+        internal bool HasRequiresUnsafeAttribute => GetDecodedWellKnownAttributeData()?.HasRequiresUnsafeAttribute == true;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
+
+                    return HasRequiresUnsafeAttribute || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
+                }
+
+                return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+            }
+        }
+
+        protected bool NeedsSynthesizedRequiresUnsafeAttribute
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules &&
+                    !HasRequiresUnsafeAttribute &&
+                    (IsExtern || AssociatedSymbol?.IsExtern == true);
+            }
+        }
+
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
             return SourceMemberContainerTypeSymbol.HasAsyncMethodBuilderAttribute(this, out builderArgument);
@@ -116,6 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var compilation = target.DeclaringCompilation;
+
+            if (target is SourceMethodSymbol { NeedsSynthesizedRequiresUnsafeAttribute: true })
+            {
+                Debug.Assert(target.CallerUnsafeMode == CallerUnsafeMode.Explicit);
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor));
+            }
 
             if (compilation.ShouldEmitNullableAttributes(target) &&
                 target.ShouldEmitNullableContextValue(out byte nullableContextValue))

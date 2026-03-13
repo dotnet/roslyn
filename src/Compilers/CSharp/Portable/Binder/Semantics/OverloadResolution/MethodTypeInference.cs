@@ -3048,12 +3048,8 @@ OuterBreak:
                 return false;
             }
 
-            if (!conversions.HasTopLevelNullabilityImplicitConversion(sourceWithAnnotations, destinationWithAnnotations))
-            {
-                return false;
-            }
-
-            return conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(source, destination, ref useSiteInfo).Exists;
+            Conversion conversion = conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(source, destination, ref useSiteInfo);
+            return conversion.Exists && (conversion.IsUnion || conversion.IsUserDefined || conversions.HasTopLevelNullabilityImplicitConversion(sourceWithAnnotations, destinationWithAnnotations));
         }
 #nullable disable
 

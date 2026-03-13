@@ -211,6 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool IsUnionTypeCore => false;
+
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {

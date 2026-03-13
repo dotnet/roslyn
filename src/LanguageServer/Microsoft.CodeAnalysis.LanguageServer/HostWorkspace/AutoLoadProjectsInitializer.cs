@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -62,8 +62,7 @@ internal sealed class AutoLoadProjectsInitializer(
                     if (solutionFiles.Length == 1)
                     {
                         _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
-                        // We don't want to block initialization on loading the solution - fire and forget.
-                        projectSystem.OpenSolutionAsync(solutionFiles[0]).ReportNonFatalErrorAsync().Forget();
+                        await StartAndReportProgressAsync(() => projectSystem.OpenSolutionAsync(solutionFiles[0]));
                         return;
                     }
                 }
@@ -92,7 +91,30 @@ internal sealed class AutoLoadProjectsInitializer(
 
         _logger.LogInformation("Discovered {count} projects to auto load", projectFiles.Count);
 
-        // We don't want to block initialization on loading projects - fire and forget.
-        projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()).ReportNonFatalErrorAsync().Forget();
+        await StartAndReportProgressAsync(() => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()));
+
+        async Task StartAndReportProgressAsync(Func<Task> loadOperation)
+        {
+            var workDoneProgressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
+
+            // We will await for the client to know that we are starting work...
+            var progressReporter = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: true, cancellationToken);
+
+            // ...but we'll fire-and-forget for the actual loading. Pass CancellationToken.None since we want to ensure the progressReporter is always disposed.
+            Task.Run(async () =>
+                {
+                    try
+                    {
+                        await loadOperation();
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                    {
+                    }
+                    finally
+                    {
+                        progressReporter.Dispose();
+                    }
+                }, CancellationToken.None).Forget();
+        }
     }
 }
