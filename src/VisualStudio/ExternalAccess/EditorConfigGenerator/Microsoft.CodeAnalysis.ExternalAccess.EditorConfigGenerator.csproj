@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Microsoft.VisualStudio.ExternalAccess.LanguageServices.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>

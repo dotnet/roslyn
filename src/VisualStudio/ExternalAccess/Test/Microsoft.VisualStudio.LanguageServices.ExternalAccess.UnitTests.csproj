@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.VisualStudio.ExternalAccess.LanguageServices.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
@@ -13,7 +13,7 @@
 	  <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
 	  <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
 	  <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-	  <ProjectReference Include="..\Core\Microsoft.VisualStudio.ExternalAccess.LanguageServices.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
 	</ItemGroup>
 
   <ItemGroup>

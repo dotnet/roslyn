@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.ExternalAccess.Features.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
