@@ -101,6 +101,9 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
         {
             if (_projectIdToDiagnosticIdsCache.ContainsKey(removedProject.Id))
             {
+                // Avoid a race condition where we remove a project here only for it to be added back
+                // by a refresh operation which is already in flight. Queue a refresh for this project 
+                // and remove it when refreshing.
                 _projectDescriptorRefreshQueue.AddWork(removedProject.Id);
             }
         }
