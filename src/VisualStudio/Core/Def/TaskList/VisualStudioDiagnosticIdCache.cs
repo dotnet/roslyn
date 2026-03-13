@@ -44,7 +44,7 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
     /// This dictionary maps ProjectIds to a set of DiagnosticIds.
     /// </summary>
     /// <remarks>
-    /// A project id being in the map means we are tracking changes for this project
+    /// A <see cref="ProjectId" /> being in the map means we are tracking changes for this project
     /// and will update diagnostic ids when AnalyzerReferences change. A null value
     /// means that we haven't computed the diagnostic ids for this project id yet.
     /// </remarks>
