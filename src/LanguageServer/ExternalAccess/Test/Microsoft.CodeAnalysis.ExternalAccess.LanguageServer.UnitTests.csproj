@@ -11,7 +11,7 @@
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" Condition="'$(TargetFramework)' == 'net472'" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
 	</ItemGroup>
 
   <ItemGroup>

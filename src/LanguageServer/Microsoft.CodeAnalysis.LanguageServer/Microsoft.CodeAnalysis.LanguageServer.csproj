@@ -77,10 +77,10 @@
     <ProjectReference Include="..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
 
     <!-- Not directly referenced but needed for Route embedded language features -->
-    <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.Features.csproj" />
+    <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
     <ProjectReference Include="..\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
-    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
+    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>

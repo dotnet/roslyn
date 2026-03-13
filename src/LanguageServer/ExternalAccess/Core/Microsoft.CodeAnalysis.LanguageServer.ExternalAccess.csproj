@@ -3,12 +3,12 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess</RootNamespace>
     <TargetFrameworks>$(NetVSShared);netstandard2.0</TargetFrameworks>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.LanguageServer</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess</PackageId>
     <PackageDescription>
       A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>

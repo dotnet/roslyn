@@ -3,13 +3,13 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess</PackageId>
     <PackageDescription>
       A supporting package for Roslyn partners to access internal APIs.
     </PackageDescription>
