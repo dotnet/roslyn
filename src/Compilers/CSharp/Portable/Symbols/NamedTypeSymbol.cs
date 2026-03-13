@@ -1798,6 +1798,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>True if this is an interface type.</returns>
         internal abstract bool IsInterface { get; }
 
+        internal bool IsUnionType
+        {
+            get
+            {
+                return TypeKind is TypeKind.Class or TypeKind.Struct &&
+                       IsUnionTypeCore;
+            }
+        }
+
+        internal abstract bool IsUnionTypeCore { get; }
+
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes
+        {
+            get
+            {
+                if (!IsUnionType)
+                {
+                    return [];
+                }
+
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+
+                foreach (var ctor in this.InstanceConstructors)
+                {
+                    if (IsSuitableUnionConstructor(ctor))
+                    {
+                        var candidate = ctor.Parameters[0].Type.StrippedType();
+                        if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
+                        {
+                            builder.Add(candidate);
+                        }
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
+        internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
+        {
+            Debug.Assert(ctor.MethodKind is MethodKind.Constructor);
+            return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
+        }
+
         /// <summary>
         /// Verify if the given type can be used to back a tuple type 
         /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 

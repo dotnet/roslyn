@@ -9,6 +9,7 @@ using static SyntaxFactory;
 internal static class CSharpSyntaxTokens
 {
     public static readonly SyntaxToken AbstractKeyword = Token(SyntaxKind.AbstractKeyword);
+    public static readonly SyntaxToken AsKeyword = Token(SyntaxKind.AsKeyword);
     public static readonly SyntaxToken AssemblyKeyword = Token(SyntaxKind.AssemblyKeyword);
     public static readonly SyntaxToken AsyncKeyword = Token(SyntaxKind.AsyncKeyword);
     public static readonly SyntaxToken AwaitKeyword = Token(SyntaxKind.AwaitKeyword);
@@ -32,7 +33,7 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken EndOfDocumentationCommentToken = Token(SyntaxKind.EndOfDocumentationCommentToken);
     public static readonly SyntaxToken EqualsToken = Token(SyntaxKind.EqualsToken);
     public static readonly SyntaxToken ExplicitKeyword = Token(SyntaxKind.ExplicitKeyword);
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
     public static readonly SyntaxToken ExtensionKeyword = Token(SyntaxKind.ExtensionKeyword);
 #endif
     public static readonly SyntaxToken ExternKeyword = Token(SyntaxKind.ExternKeyword);

@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal interface IValueSet
     {
         /// <summary>
-        /// Return the intersection of this value set with another. Both must have been created with the same <see cref="IValueSetFactory{T}"/>.
+        /// Return the intersection of this value set with another. Both must have been created with the same <see cref="IConstantValueSetFactory{T}"/>.
         /// </summary>
         IValueSet Intersect(IValueSet other);
 
         /// <summary>
-        /// Return this union of this value set with another. Both must have been created with the same <see cref="IValueSetFactory{T}"/>.
+        /// Return this union of this value set with another. Both must have been created with the same <see cref="IConstantValueSetFactory{T}"/>.
         /// </summary>
         IValueSet Union(IValueSet other);
 
@@ -29,7 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the complement of this value set.
         /// </summary>
         IValueSet Complement();
+    }
 
+    internal interface IConstantValueSet : IValueSet
+    {
         /// <summary>
         /// Test if the value set contains any values that satisfy the given relation with the given value.  Supported values for <paramref name="relation"/>
         /// are <see cref="BinaryOperatorKind.Equal"/> for all supported types, and for numeric types we also support
@@ -62,22 +65,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// An interface representing a set of values of a specific type.  Like <see cref="IValueSet"/> but strongly typed to <typeparamref name="T"/>.
     /// </summary>
-    internal interface IValueSet<T> : IValueSet
+    internal interface IConstantValueSet<T> : IConstantValueSet
     {
         /// <summary>
-        /// Return the intersection of this value set with another. Both must have been created with the same <see cref="IValueSetFactory{T}"/>.
+        /// Return the intersection of this value set with another. Both must have been created with the same <see cref="IConstantValueSetFactory{T}"/>.
         /// </summary>
-        IValueSet<T> Intersect(IValueSet<T> other);
+        IConstantValueSet<T> Intersect(IConstantValueSet<T> other);
 
         /// <summary>
-        /// Return this union of this value set with another. Both must have been created with the same <see cref="IValueSetFactory{T}"/>.
+        /// Return this union of this value set with another. Both must have been created with the same <see cref="IConstantValueSetFactory{T}"/>.
         /// </summary>
-        IValueSet<T> Union(IValueSet<T> other);
+        IConstantValueSet<T> Union(IConstantValueSet<T> other);
 
         /// <summary>
         /// Return the complement of this value set.
         /// </summary>
-        new IValueSet<T> Complement();
+        new IConstantValueSet<T> Complement();
 
         /// <summary>
         /// Test if the value set contains any values that satisfy the given relation with the given value.

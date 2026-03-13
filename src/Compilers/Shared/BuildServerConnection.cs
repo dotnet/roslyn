@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
+                    logger.Log($"Connecting to server timed out after {timeoutMs} ms: '{e.GetType().Name}' '{e.Message}'");
                     pipeStream.Dispose();
                     return null;
                 }
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
                     pipeStream.Dispose();
-                    logger.LogError("Owner of named pipe is incorrect");
+                    logger.Log("Owner of named pipe is incorrect");
                     return null;
                 }
 
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
-                logger.LogException(e, "Exception while connecting to process");
+                logger.Log($"Exception while connecting to process: '{e.GetType().Name}' '{e.Message}'");
                 pipeStream?.Dispose();
                 return null;
             }

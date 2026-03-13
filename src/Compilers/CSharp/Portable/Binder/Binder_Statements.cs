@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fixedBinder = this.GetBinder(node);
             Debug.Assert(fixedBinder != null);
 
-            fixedBinder.ReportUnsafeIfNotAllowed(node, diagnostics);
+            fixedBinder.ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
 
             return fixedBinder.BindFixedStatementParts(node, diagnostics);
         }
@@ -3184,6 +3184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion;
             bool badAsyncReturnAlreadyReported = false;
+            bool hasImplicitConversionError = false;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (IsInAsyncMethod())
             {
@@ -3234,7 +3235,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
+                            var conversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                            GenerateImplicitConversionError(conversionDiagnostics, argument.Syntax, conversion, argument, returnType);
+
+                            hasImplicitConversionError = conversionDiagnostics.AccumulatesDiagnostics && conversionDiagnostics.HasAnyResolvedErrors();
+                            diagnostics.AddRangeAndFree(conversionDiagnostics);
+
                             if (this.ContainingMemberOrLambda is LambdaSymbol)
                             {
                                 ReportCantConvertLambdaReturn(argument.Syntax, diagnostics);
@@ -3244,7 +3250,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, returnType, diagnostics);
+            return CreateConversion(
+                argument.Syntax,
+                argument,
+                conversion,
+                isCast: false,
+                conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
+                returnType,
+                hasImplicitConversionError
+                    ? BindingDiagnosticBag.Discarded
+                    : diagnostics);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -3774,13 +3790,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out MethodSymbol constructorSymbol))
             {
-                if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
-                    !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                if (hasPrimaryConstructor())
                 {
-                    // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    if (!SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                    {
+                        // Note: we check the constructor initializer of copy constructors elsewhere
+                        Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    }
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
 
@@ -3788,10 +3810,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             if (isDefaultValueTypeInitializer &&
-                isInstanceConstructor(out _) &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out _))
             {
-                Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                if (hasPrimaryConstructor())
+                {
+                    Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
             }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel

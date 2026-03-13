@@ -85,7 +85,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
             {
                 // The process didn't exist, exited, or we ran into
                 // issues checking whether the process had exited.
-                Process.GetCurrentProcess().Kill();
+                Environment.Exit(ServerExitCodes.ClientProcessExited);
             }
         }
     }

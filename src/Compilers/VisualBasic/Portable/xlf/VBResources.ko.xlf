@@ -341,7 +341,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
+                                  SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -411,7 +411,7 @@
                                   - 입력 파일 -
 -addmodule:&lt;file_list&gt;            지정된 모듈의 참조 메타데이터
 -link:&lt;file_list&gt;                 지정한 interop 어셈블리의 메타데이터를
-                                  포함합니다. (약식: -l)
+                                  참조합니다. (약식: -l)
 -recurse:&lt;wildcard&gt;               현재 디렉터리
                                   및 하위 디렉터리의 모든 파일을
                                   와일드카드 사양에 따라 포함합니다.
@@ -441,7 +441,7 @@
 -win32resource:&lt;file&gt;             Win32 리소스 파일(.res)을 지정합니다.
 
                                   - 코드 생성 -
--optimize[+|-]                    최적화를 사용하도록 설정합니다.
+-optimize[+|-]                    최적화를 활성화합니다.
 -removeintchecks[+|-]             정수 검사를 제거합니다. 기본값은 꺼짐입니다.
 -debug[+|-]                       디버깅 정보를 내보냅니다.
 -debug:full                       전체 디버깅 정보를 내보냅니다(기본값).
@@ -452,16 +452,16 @@
 -deterministic                    결정적 어셈블리 생성
                                   (모듈 버전 GUID 및 타임스탬프 포함)
 -refonly                          주 출력 대신 참조 어셈블리 생성
--instrument:TestCoverage          검사 정보를 수집하는 데 사용될
+-instrument:TestCoverage          적용 범위 정보를 수집하는 데 사용될
                                   어셈블리 생성
 -sourcelink:&lt;file&gt;                PDB에 포함할 원본 링크 정보입니다.
 
                                   - 오류 및 경고 -
--nowarn                           모든 경고를 사용하지 않도록 설정합니다.
--nowarn:&lt;number_list&gt;             개별 경고 목록을 사용하지 않도록 설정합니다.
+-nowarn                           모든 경고를 비활성화합니다.
+-nowarn:&lt;number_list&gt;             개별 경고 목록을 비활성화합니다.
 -warnaserror[+|-]                 모든 경고를 오류로 처리합니다.
 -warnaserror[+|-]:&lt;number_list&gt;   경고 목록을 오류로 처리합니다.
--ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 설정하는 규칙 집합 파일을
+-ruleset:&lt;file&gt;                   특정 진단을 비활성화하는 규칙 집합 파일을
                                   지정합니다.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
                                   모든 컴파일러 및 분석기의 진단을 SARIF 형식으로 기록할
@@ -481,9 +481,9 @@
                                   import_list:namespace,...
 -langversion:?                    언어 버전에 허용되는 값 표시
 -langversion:&lt;string&gt;                   다음과 같은 언어 버전 지정
-                                  'default'(최신 주 버전),
-                                  'latest'(부 버전을 포함한 최신 버전),
-                                  또는 특정 버전(예: '14' 또는 '15.3')
+                                  `default`(최신 주 버전),
+                                  `latest`(부 버전을 포함한 최신 버전),
+                                  또는 특정 버전(예: `14` 또는 `15.3`)
 -optionexplicit[+|-]                   변수의 명시적 선언이 필요합니다.
 -optioninfer[+|-]                   변수의 형식 유추를 허용합니다.
 -rootnamespace:&lt;string&gt;                   모든 형식 선언에 대한 루트 네임스페이스를
@@ -509,7 +509,7 @@
                                   (16진수).
 -checksumalgorithm:&lt;alg&gt;          PBD에 저장된 소스 파일 체크섬을 계산하기 위한
                                   알고리즘을 지정합니다. 지원되는 값은
-                                  SHA1 또는 SHA256(기본값)입니다.
+                                  SHA-1, SHA256(기본값), SHA384 또는 SHA512입니다.
 -codepage:&lt;number&gt;                소스 파일을 열 때 사용할 코드 페이지를
                                   지정합니다.
 -delaysign[+|-]                   강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
@@ -523,7 +523,7 @@
                                   이동합니다.
 -filealign:&lt;number&gt;               출력 파일 섹션에 사용되는 맞춤을
                                   지정합니다.
--highentropyva[+|-]               높은 엔트로피 ASLR을 사용하도록 설정합니다.
+-highentropyva[+|-]               높은 엔트로피 ASLR을 활성화합니다.
 -keycontainer:&lt;string&gt;            강력한 이름의 키 컨테이너를 지정합니다.
 -keyfile:&lt;file&gt;                   강력한 이름의 키 파일을 지정합니다.
 -libpath:&lt;path_list&gt;                   메타데이터 참조를 검색할 디렉터리
@@ -544,7 +544,7 @@
                                   x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred 또는 anycpu(기본값)이어야 합니다.
 -preferreduilang                  기본 출력 언어 이름을 지정합니다.
--nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 사용하지 않도록 설정합니다.
+-nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 비활성화합니다.
 -reportivts[+|-]                  모든 종속 항목에 의한 이 어셈블리에 부여된 모든 IVT에 대한
                                   모든 종속성에 의한 어셈블리 및 외부 어셈블리
                                   접근성 오류가 발생한 어셈블리에 대한 주석을 추가합니다.

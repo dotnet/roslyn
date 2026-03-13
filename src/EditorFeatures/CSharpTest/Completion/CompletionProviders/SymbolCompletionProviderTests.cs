@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14382,5 +14383,52 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 class Foo2 { }
             }
             """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_01()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet($$)
+            """, LanguageVersionExtensions.CSharpNext), "Dog");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_02()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet($$)
+            """, LanguageVersionExtensions.CSharpNext), "Cat");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_03()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet(Dog, $$)
+            """, LanguageVersionExtensions.CSharpNext), "Cat");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_04()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            union U($$)
+            """, LanguageVersionExtensions.CSharpNext), "System");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_05()
+    {
+        // Type parameter completion in generic union parameter list
+        await VerifyItemExistsAsync(GetMarkup("""
+            union U<T1, T2>(T1, $$)
+            """, LanguageVersionExtensions.CSharpNext), "T2");
     }
 }

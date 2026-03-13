@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HasAnyErrors = logicalOperator.HasAnyErrors
                 };
 
-            public static MethodInvocationInfo FromUserDefinedConversion(MethodSymbol operatorMethod, BoundExpression operand, bool hasAnyErrors)
+            public static MethodInvocationInfo FromUserDefinedOrUnionConversion(MethodSymbol operatorMethod, BoundExpression operand, bool hasAnyErrors)
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(operatorMethod),
@@ -1851,6 +1851,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Unsafe member access for compound assignment is checked against the accessors elsewhere.
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, eventSyntax);
+
                 if (!boundEvent.IsUsableAsField)
                 {
                     // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
@@ -2059,6 +2062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, node);
 
                     var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
                     if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
@@ -2109,6 +2113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getMethod, node);
 
                     if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
                         reportUseSite(getMethod))
@@ -3889,7 +3894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
-                        (!conversion.Conversion.IsUserDefined ||
+                        ((!conversion.Conversion.IsUserDefined && !conversion.Conversion.IsUnion) ||
                         conversion.Conversion.Method.HasUnsupportedMetadata ||
                         conversion.Conversion.Method.RefKind == RefKind.None));
                     break;
@@ -4227,7 +4232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return CheckRefEscape(node, conversion.Operand, escapeTo, checkingReceiver, diagnostics);
                     }
 
-                    Debug.Assert(!conversion.Conversion.IsUserDefined ||
+                    Debug.Assert((!conversion.Conversion.IsUserDefined && !conversion.Conversion.IsUnion) ||
                         conversion.Conversion.Method.HasUnsupportedMetadata ||
                         conversion.Conversion.Method.RefKind == RefKind.None);
                     break;
@@ -4575,13 +4580,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
-                    if (conversion.Conversion.IsUserDefined)
+                    if (conversion.Conversion is { IsUserDefined: true } or { IsUnion: true })
                     {
                         var operatorMethod = conversion.Conversion.Method;
                         Debug.Assert(operatorMethod is not null);
 
                         return GetInvocationEscapeScope(
-                            MethodInvocationInfo.FromUserDefinedConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
+                            MethodInvocationInfo.FromUserDefinedOrUnionConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
                             isRefEscape: false);
                     }
 
@@ -5323,14 +5328,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
-                    if (conversion.Conversion.IsUserDefined)
+                    if (conversion.Conversion is { IsUserDefined: true } or { IsUnion: true })
                     {
                         var operatorMethod = conversion.Conversion.Method;
                         Debug.Assert(operatorMethod is not null);
 
                         return CheckInvocationEscape(
                             conversion.Syntax,
-                            MethodInvocationInfo.FromUserDefinedConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
+                            MethodInvocationInfo.FromUserDefinedOrUnionConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
                             checkingReceiver,
                             escapeTo,
                             diagnostics,

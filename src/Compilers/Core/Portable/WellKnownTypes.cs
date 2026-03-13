@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis
     /// Ids of well known runtime types.
     /// Values should not intersect with SpecialType enum!
     /// </summary>
-    /// <remarks></remarks>
     internal enum WellKnownType
     {
         // Value 0 represents an unknown type
@@ -320,6 +319,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ScopedRefAttribute,
         System_Runtime_CompilerServices_RefSafetyRulesAttribute,
 
+        System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
+        System_Runtime_CompilerServices_RequiresUnsafeAttribute,
+
         System_ArgumentNullException,
 
         System_Runtime_CompilerServices_RequiredMemberAttribute,
@@ -375,6 +377,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray14,
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
+
+        System_Runtime_CompilerServices_UnionAttribute,
+        System_Runtime_CompilerServices_IUnion,
 
         NextAvailable,
         // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
@@ -686,6 +691,10 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.Runtime.CompilerServices.ScopedRefAttribute",
             "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
+
+            "System.Runtime.CompilerServices.MemorySafetyRulesAttribute",
+            "System.Runtime.CompilerServices.RequiresUnsafeAttribute",
+
             "System.ArgumentNullException",
 
             "System.Runtime.CompilerServices.RequiredMemberAttribute",
@@ -737,6 +746,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray14`1",
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
+
+            "System.Runtime.CompilerServices.UnionAttribute",
+            "System.Runtime.CompilerServices.IUnion",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

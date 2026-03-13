@@ -295,6 +295,8 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint.FSharp
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint.GetDescriptionAsync(Microsoft.CodeAnalysis.Document! document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>>!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.IFSharpInlineHintsService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.IFSharpInlineHintsService.GetInlineHintsAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint>>!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.IFSharpInlineHintsService2
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.IFSharpInlineHintsService2.GetInlineHintsAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, bool displayAllOverride, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint>>!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.FSharpVisualStudioWorkspaceExtensions
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToItemKind
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToMatchKind
