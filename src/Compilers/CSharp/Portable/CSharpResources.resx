@@ -8234,12 +8234,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
-<<<<<<< HEAD
   <data name="IDS_FeatureExtensionIndexers" xml:space="preserve">
     <value>extension indexers</value>
   </data>
-||||||| bc8520c5562
-=======
   <data name="IDS_FeatureUnsafeEvolution" xml:space="preserve">
     <value>updated memory safety rules</value>
   </data>
@@ -8282,16 +8279,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</value>
     <comment>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</comment>
   </data>
->>>>>>> dotnet/main
   <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</value>
     <comment>'await foreach' is not localizable</comment>
   </data>
-<<<<<<< HEAD
-</root>
-||||||| bc8520c5562
-</root>
-=======
   <data name="ERR_ExpressionTreeContainsUnionConversion" xml:space="preserve">
     <value>An expression tree may not contain a union conversion.</value>
   </data>
@@ -8317,4 +8308,3 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</value>
   </data>
 </root>
->>>>>>> dotnet/main

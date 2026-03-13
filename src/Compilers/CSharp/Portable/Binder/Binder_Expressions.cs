@@ -10621,82 +10621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
-<<<<<<< HEAD
                 propertyAccess = BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, analyzedArguments, diagnostics, argumentNames, argumentRefKinds, resolutionResult);
-||||||| bc8520c5562
-                PropertySymbol property = resolutionResult.Member;
-
-                ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
-
-                // Make sure that the result of overload resolution is valid.
-                var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
-
-                receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
-
-                ImmutableArray<int> argsToParams;
-                this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);
-
-                if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
-                {
-                    gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
-                }
-
-                var arguments = analyzedArguments.Arguments.ToImmutable();
-
-                // Note that we do not bind default arguments here, because at this point we do not know whether
-                // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
-                propertyAccess = new BoundIndexerAccess(
-                    syntax,
-                    receiver,
-                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
-                    property,
-                    arguments,
-                    argumentNames,
-                    argumentRefKinds,
-                    expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                    AccessorKind.Unknown,
-                    argsToParams,
-                    defaultArguments: default,
-                    property.Type,
-                    gotError);
-=======
-                PropertySymbol property = resolutionResult.Member;
-
-                ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
-                // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
-
-                // Make sure that the result of overload resolution is valid.
-                var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
-
-                receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
-
-                ImmutableArray<int> argsToParams;
-                this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);
-
-                if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
-                {
-                    gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
-                }
-
-                var arguments = analyzedArguments.Arguments.ToImmutable();
-
-                // Note that we do not bind default arguments here, because at this point we do not know whether
-                // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
-                propertyAccess = new BoundIndexerAccess(
-                    syntax,
-                    receiver,
-                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
-                    property,
-                    arguments,
-                    argumentNames,
-                    argumentRefKinds,
-                    expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                    AccessorKind.Unknown,
-                    argsToParams,
-                    defaultArguments: default,
-                    property.Type,
-                    gotError);
->>>>>>> dotnet/main
             }
 
             overloadResolutionResult.Free();
@@ -10709,6 +10634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
             ReportDisallowedExtensionBlockIndexer(property, syntax, diagnostics);
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
 
             // Make sure that the result of overload resolution is valid.
             var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
