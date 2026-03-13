@@ -1634,7 +1634,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">C# {2}의 '{0}' 값 '{1}'이(가) 잘못되었습니다. 언어 버전 '{3}' 이상을 사용하세요.</target>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2399,7 +2399,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}'은(는) 인식할 수 없는 RefSafetyRulesAttribute 버전이 있는 모듈에 정의되어 있으며 '11'이 필요합니다.</target>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -6820,7 +6820,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">'{0}'의 partial 선언은 모든 클래스, 모든 레코드 클래스, 모든 구조체, 모든 레코드 구조체 또는 모든 인터페이스여야 합니다.</target>
+        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
