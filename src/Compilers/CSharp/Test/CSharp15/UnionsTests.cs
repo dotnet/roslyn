@@ -5420,6 +5420,539 @@ class Program
         }
 
         [Fact]
+        public void UnionMatching_40_Constant_PatternVsUnconstrainedTypeParameter05()
+        {
+            var source =
+@"
+[System.Runtime.CompilerServices.Union]
+class C<T>
+{
+    public C(T x) { }
+    public C(bool x) { }
+    public object Value => throw null;
+
+    static bool Test2(C<T> t)
+    {
+        return t is null;
+    }
+    static bool Test3(C<T> t)
+    {
+        return t is 1;
+    }
+    static bool Test4(C<T> t)
+    {
+        return t is ""frog"";
+    }
+}";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyIL("C<T>.Test2(C<T>)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000b
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C<T>.Value.get""
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+}
+");
+
+            verifier.VerifyIL("C<T>.Test3(C<T>)", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001c
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C<T>.Value.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""int""
+  IL_0010:  brfalse.s  IL_001c
+  IL_0012:  ldloc.0
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  ldc.i4.1
+  IL_0019:  ceq
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}
+");
+
+            verifier.VerifyIL("C<T>.Test4(C<T>)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001e
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C<T>.Value.get""
+  IL_0009:  isinst     ""string""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_001e
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      ""frog""
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  ret
+  IL_001e:  ldc.i4.0
+  IL_001f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_41_Constant_PatternVsUnconstrainedTypeParameter05()
+        {
+            var source =
+@"
+[System.Runtime.CompilerServices.Union]
+struct C<T>
+{
+    public C(T x) { }
+    public C(bool x) { }
+    public object Value => throw null;
+
+    static bool Test1(C<T>? t)
+    {
+        return t is null;
+    }
+    static bool Test2(C<T> t)
+    {
+        return t is null;
+    }
+    static bool Test3(C<T>? t)
+    {
+        return t is 1;
+    }
+    static bool Test4(C<T> t)
+    {
+        return t is ""frog"";
+    }
+    static bool Test5(C<T> t)
+    {
+        return t is (string)null;
+    }
+}";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyIL("C<T>.Test1(C<T>?)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (C<T> V_0,
+            bool V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool C<T>?.HasValue.get""
+  IL_0007:  brfalse.s  IL_001a
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""C<T> C<T>?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object C<T>.Value.get""
+  IL_0018:  brtrue.s   IL_001e
+  IL_001a:  ldc.i4.1
+  IL_001b:  stloc.1
+  IL_001c:  br.s       IL_0020
+  IL_001e:  ldc.i4.0
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  ret
+}
+");
+
+            verifier.VerifyIL("C<T>.Test2(C<T>)", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object C<T>.Value.get""
+  IL_0007:  ldnull
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
+
+            verifier.VerifyIL("C<T>.Test3(C<T>?)", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C<T> V_0,
+                object V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool C<T>?.HasValue.get""
+  IL_0007:  brfalse.s  IL_002b
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""C<T> C<T>?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object C<T>.Value.get""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  isinst     ""int""
+  IL_001f:  brfalse.s  IL_002b
+  IL_0021:  ldloc.1
+  IL_0022:  unbox.any  ""int""
+  IL_0027:  ldc.i4.1
+  IL_0028:  ceq
+  IL_002a:  ret
+  IL_002b:  ldc.i4.0
+  IL_002c:  ret
+}
+");
+
+            verifier.VerifyIL("C<T>.Test4(C<T>)", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object C<T>.Value.get""
+  IL_0007:  isinst     ""string""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  brfalse.s  IL_001c
+  IL_0010:  ldloc.0
+  IL_0011:  ldstr      ""frog""
+  IL_0016:  call       ""bool string.op_Equality(string, string)""
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}
+");
+
+            verifier.VerifyIL("C<T>.Test5(C<T>)", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object C<T>.Value.get""
+  IL_0007:  ldnull
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_42_Constant_PatternVsUnconstrainedTypeParameter05()
+        {
+            var source =
+@"
+[System.Runtime.CompilerServices.Union]
+class C<T>
+{
+    public C(T x) { }
+    public C(bool x) { }
+    public object Value => throw null;
+
+    static bool Test2(C<T> t)
+    {
+        return t is (string)null;
+    }
+
+    static bool Test3(C<T> t)
+    {
+        const string s_null = null;
+        return t is s_null;
+    }
+
+    static bool Test4(C<T> t)
+    {
+        const C<int> C_null = null;
+        return t is C_null;
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS9135: A constant value of type 'C<T>' is expected
+                //         return t is (string)null;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "(string)null").WithArguments("C<T>").WithLocation(11, 21),
+                // (17,21): error CS9135: A constant value of type 'C<T>' is expected
+                //         return t is s_null;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "s_null").WithArguments("C<T>").WithLocation(17, 21),
+                // (23,21): error CS9135: A constant value of type 'C<T>' is expected
+                //         return t is C_null;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "C_null").WithArguments("C<T>").WithLocation(23, 21)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_43_Constant_PatternVsUnconstrainedTypeParameter05()
+        {
+            var source =
+@"
+[System.Runtime.CompilerServices.Union]
+class C<T>
+{
+    public C(C<T> x) { }
+    public C(bool x) { }
+    public object Value => throw null;
+
+    static bool Test2(C<T> t)
+    {
+        const C<T> C_null = null;
+        return t is C_null;
+    }
+}";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyIL("C<T>.Test2(C<T>)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000b
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C<T>.Value.get""
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_44_Constant_PatternVsUnconstrainedTypeParameter05()
+        {
+            var source =
+@"
+[System.Runtime.CompilerServices.Union]
+struct C<T>
+{
+    public C(T x) { }
+    public C(bool x) { }
+    public object Value => throw null;
+
+    static bool Test1(C<T>? t)
+    {
+        return t is (string)null;
+    }
+
+    static bool Test2(C<T>? t)
+    {
+        const string s_null = null;
+        return t is s_null;
+    }
+}";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS9135: A constant value of type 'C<T>' is expected
+                //         return t is (string)null;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "(string)null").WithArguments("C<T>").WithLocation(11, 21),
+                // (17,21): error CS9135: A constant value of type 'C<T>' is expected
+                //         return t is s_null;
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "s_null").WithArguments("C<T>").WithLocation(17, 21)
+                );
+        }
+
+        [Theory]
+        [InlineData("(short)0", "True")]
+        [InlineData("short.MinValue", "True")]
+        [InlineData("short.MaxValue", "True")]
+        [InlineData("-1", "False")]
+        [InlineData("(object)null", "False")]
+        [InlineData("string.Empty", "False")]
+        public void UnionMatching_45_Constant_ObviousTestAfterTypeTest(string value, string expected)
+        {
+            var source = $@"
+System.Console.Write(Extenders.F(Extenders.GetUnion({value})));
+
+static class Extenders
+{{
+    public const short MaxValue = 0x7FFF;
+
+    public static bool F<T>(U1<T> value)
+        => value switch
+        {{
+            <= MaxValue => true,
+            _ => false
+        }};
+
+    public static U1<T> GetUnion<T>(T x) => new U1<T>(x);
+}}
+
+[System.Runtime.CompilerServices.Union]
+struct U1<T>
+{{
+    private readonly object _value;
+    public U1(T x) {{ _value = x; }}
+    public object Value => _value;
+}}
+";
+            CompileAndVerify([source, UnionAttributeSource], expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("(short)0", "True")]
+        [InlineData("short.MinValue", "True")]
+        [InlineData("short.MaxValue", "True")]
+        [InlineData("-1", "False")]
+        [InlineData("(object)null", "False")]
+        [InlineData("string.Empty", "False")]
+        public void UnionMatching_46_Constant_ObviousTestAfterTypeTest(string value, string expected)
+        {
+            var source = $@"
+System.Console.Write(Extenders.F(Extenders.GetUnion({value})));
+
+static class Extenders
+{{
+    public const short MaxValue = 0x7FFF;
+
+    public static bool F<T>(U1<T> value)
+        => value switch
+        {{
+            <= MaxValue => true,
+            _ => false
+        }};
+
+    public static U1<T> GetUnion<T>(T x) => new U1<T>(x);
+}}
+
+[System.Runtime.CompilerServices.Union]
+class U1<T>
+{{
+    private readonly object _value;
+    public U1(T x) {{ _value = x; }}
+    public object Value => _value;
+}}
+";
+            CompileAndVerify([source, UnionAttributeSource], expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_47_Constant_ObviousTestAfterTypeTest_UnsignedIntegerNegative()
+        {
+            var source = @"
+public class C
+{
+    void M<T>(U<T> o)
+    {
+        _ = o switch
+        {
+           < (uint)0 => 0,
+           _ => 2
+        };
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+struct U<T>
+{
+    private readonly object _value;
+    public U(T x) { _value = x; }
+    public object Value => _value;
+}
+";
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
+                // (8,12): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //            < (uint)0 => 0,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "< (uint)0").WithLocation(8, 12)
+                );
+        }
+
+        [Theory]
+        [InlineData("(uint)0", "0")]
+        [InlineData("uint.MaxValue", "0")]
+        [InlineData("-1", "1")]
+        [InlineData("(object)null", "1")]
+        [InlineData("string.Empty", "1")]
+        public void UnionMatching_48_Constant_ObviousTestAfterTypeTest_UnsignedIntegerNonNegative(string value, string expected)
+        {
+            var source = $@"
+System.Console.Write(M(GetUnion({value})));
+
+int M<T>(U<T> o)
+{{
+    return o switch
+    {{
+       >= (uint)0 => 0,
+       _ => 1
+    }};
+}}
+
+U<T> GetUnion<T>(T x) => new U<T>(x);
+
+[System.Runtime.CompilerServices.Union]
+class U<T>
+{{
+    private readonly object _value;
+    public U(T x) {{ _value = x; }}
+    public object Value => _value;
+}}
+";
+            CompileAndVerify([source, UnionAttributeSource], expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("(int)0", "1")]
+        [InlineData("(int)255", "1")]
+        [InlineData("int.MinValue", "1")]
+        [InlineData("int.MaxValue", "4")]
+        [InlineData("(short)0", "2")]
+        [InlineData("(short)255", "2")]
+        [InlineData("short.MinValue", "2")]
+        [InlineData("short.MaxValue", "2")]
+        [InlineData("(uint)0", "8")]
+        public void UnionMatching_49_Constant_ObviousTestAfterTypeTest2(string value, string expected)
+        {
+            var source = $@"
+System.Console.Write(Extenders.F(Extenders.GetUnion({value})));
+
+public static class Extenders
+{{
+    public static int F<T>(this U<T> value) where T : struct
+    {{
+        int elementSize = value switch
+        {{
+            <= 255 => 1,
+            <= short.MaxValue => 2,
+            <= int.MaxValue => 4,
+            _ => 8
+        }};
+
+        return elementSize;
+    }}
+
+    public static U<T> GetUnion<T>(T x) => new U<T>(x);
+}}
+
+
+[System.Runtime.CompilerServices.Union]
+public class U<T>
+{{
+    private readonly object _value;
+    public U(T x) {{ _value = x; }}
+    public object Value => _value;
+}}
+";
+            var comp = CreateCompilationWithSpan([source, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expected);
+        }
+
+        [Fact]
         public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
         {
             var src1 = @"
