@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
-
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;

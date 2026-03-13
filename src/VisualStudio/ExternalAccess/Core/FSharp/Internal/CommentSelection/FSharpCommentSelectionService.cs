@@ -9,7 +9,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification;
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection;
 
 [Shared]
 [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]
