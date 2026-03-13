@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
     }
 
     [Flags]
-    public enum RazorSpacePlacement
+    internal enum RazorSpacePlacement
     {
         None = 0,
         IgnoreAroundVariableDeclaration = SpacePlacement.IgnoreAroundVariableDeclaration,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
     }
 
     [Flags]
-    public enum RazorNewLinePlacement
+    internal enum RazorNewLinePlacement
     {
         None = 0,
         BeforeMembersInObjectInitializers = NewLinePlacement.BeforeMembersInObjectInitializers,
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
     }
 
     [Flags]
-    public enum RazorIndentationPlacement
+    internal enum RazorIndentationPlacement
     {
         None = 0,
         Braces = IndentationPlacement.Braces,
@@ -128,21 +128,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
         SwitchSection = IndentationPlacement.SwitchSection,
     }
 
-    public enum RazorBinaryOperatorSpacingOptions
+    internal enum RazorBinaryOperatorSpacingOptions
     {
         Single = BinaryOperatorSpacingOptions.Single,
         Ignore = BinaryOperatorSpacingOptions.Ignore,
         Remove = BinaryOperatorSpacingOptions.Remove,
     }
 
-    public enum RazorLabelPositionOptions
+    internal enum RazorLabelPositionOptions
     {
         LeftMost = LabelPositionOptions.LeftMost,
         OneLess = LabelPositionOptions.OneLess,
         NoIndent = LabelPositionOptions.NoIndent,
     }
 
-    public enum RazorNamespaceDeclarationPreference
+    internal enum RazorNamespaceDeclarationPreference
     {
         BlockScoped = NamespaceDeclarationPreference.BlockScoped,
         FileScoped = NamespaceDeclarationPreference.FileScoped,
