@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio.ExternalAccess.LanguageServices.UnitTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
