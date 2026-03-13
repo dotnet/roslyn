@@ -170,6 +170,6 @@ internal sealed class AutoLoadProjectsInitializer(
             }
         }
 
-        return default;
+        return (isLoadingDisabled: false, solutionPath: null);
     }
 }
