@@ -200,6 +200,10 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.IRazorLspServices.GetServic
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.IRazorLspServices.TryGetService(System.Type! type, out object? service) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.IRazorSourceGeneratorLocator
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.IRazorSourceGeneratorLocator.GetGeneratorFilePath() -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorBinaryOperatorSpacingOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorBinaryOperatorSpacingOptions.Ignore = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorBinaryOperatorSpacingOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorBinaryOperatorSpacingOptions.Remove = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorBinaryOperatorSpacingOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorBinaryOperatorSpacingOptions.Single = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorBinaryOperatorSpacingOptions
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions.CollectionExpressionWrappingLength.get -> int
@@ -229,13 +233,44 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormatting
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions.WrappingPreserveSingleLine.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions.WrappingPreserveSingleLine.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorEndpointAttribute
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorEndpointAttribute.RazorEndpointAttribute(string! method) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorEndpointAttribute.RazorEndpointAttribute(string! method, string! language) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorEndpointAttribute.RazorEndpointAttribute(string! method) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement.BlockContents = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement.Braces = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement.None = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement.SwitchCaseContents = 4 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement.SwitchCaseContentsWhenBlock = 8 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement.SwitchSection = 16 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorIndentationPlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorLabelPositionOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorLabelPositionOptions.LeftMost = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorLabelPositionOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorLabelPositionOptions.NoIndent = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorLabelPositionOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorLabelPositionOptions.OneLess = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorLabelPositionOptions
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorMiscellaneousProjectInfoService
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorMiscellaneousProjectInfoService.AddAsAdditionalDocument.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorMiscellaneousProjectInfoService.GetAnalyzerReferences(Microsoft.CodeAnalysis.Host.SolutionServices! services) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference!>?
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorMiscellaneousProjectInfoService.ProjectLanguageOverride.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorMiscellaneousProjectInfoService.RazorMiscellaneousProjectInfoService(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.IRazorSourceGeneratorLocator!>? razorSourceGeneratorLocator) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNamespaceDeclarationPreference
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNamespaceDeclarationPreference.BlockScoped = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNamespaceDeclarationPreference
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNamespaceDeclarationPreference.FileScoped = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNamespaceDeclarationPreference
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeCatch = 8 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeElse = 4 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeFinally = 16 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeMembersInAnonymousTypes = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeMembersInObjectInitializers = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInAccessors = 1024 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods = 2048 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes = 64 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInControlBlocks = 8192 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody = 4096 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInMethods = 512 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers = 128 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInProperties = 256 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BeforeOpenBraceInTypes = 32 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.BetweenQueryExpressionClauses = 16384 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement.None = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorNewLinePlacement
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorRequestContext
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorRequestContext.GetRequiredService<T>() -> T!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorRequestContext.Method.get -> string!
@@ -245,6 +280,31 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorRequestContext.Solutio
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorRequestContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument?
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorRequestContext.Uri.get -> System.Uri?
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorRequestContext.Workspace.get -> Microsoft.CodeAnalysis.Workspace?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterCast = 8192 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterColonInBaseTypeDeclaration = 131072 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterComma = 524288 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterControlFlowStatementKeyword = 128 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterDot = 2097152 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterMethodCallName = 16 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterMethodDeclarationName = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.AfterSemicolonsInForStatement = 2048 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BeforeColonInBaseTypeDeclaration = 262144 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BeforeComma = 1048576 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BeforeDot = 4194304 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BeforeOpenSquareBracket = 16384 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BeforeSemicolonsInForStatement = 1024 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BetweenEmptyMethodCallParentheses = 32 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BetweenEmptyMethodDeclarationParentheses = 4 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.BetweenEmptySquareBrackets = 32768 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.IgnoreAroundVariableDeclaration = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.None = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.WithinCastParentheses = 512 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.WithinExpressionParentheses = 256 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.WithinMethodCallParentheses = 64 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.WithinMethodDeclarationParenthesis = 8 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.WithinOtherParentheses = 4096 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement.WithinSquareBrackets = 65536 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorSpacePlacement
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorTelemetryReporter
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorTelemetryReporter.Initialize(Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.ILanguageServerTelemetryReporterWrapper! wrapper) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.RazorTelemetryReporter.RazorTelemetryReporter() -> void
