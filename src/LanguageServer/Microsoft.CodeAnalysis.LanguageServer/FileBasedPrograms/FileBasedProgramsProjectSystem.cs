@@ -69,7 +69,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public void Dispose()
     {
-        _canonicalMiscFilesLoader.Dispose();
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
@@ -126,23 +125,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         if (textDocument.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
         {
-            // Do a check to determine if the misc project needs to be re-created with a new HasAllInformation flag value.
-            if (!isLoadedAsFileBasedProgram
-                && await _canonicalMiscFilesLoader.IsCanonicalProjectLoadedAsync(cancellationToken)
-                && textDocument is Document document
-                && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
-            {
-                var newHasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(GlobalOptionService, syntaxTree, cancellationToken);
-                if (newHasAllInformation != document.Project.State.HasAllInformation)
-                {
-                    // TODO: replace this method and the call site in LspWorkspaceManager,
-                    // with a mechanism for "updating workspace state if needed" based on changes to a document.
-                    // Perhaps this could be based on actually listening for changes to particular documents, rather than whenever an LSP request related to a document comes in.
-                    // We should be able to do more incremental updates in more cases, rather than needing to throw things away and start over.
-                    return false;
-                }
-            }
-
             return true;
         }
 
@@ -246,7 +228,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         return new RemoteProjectLoadResult
         {
-            ProjectFile = loadedFile,
+            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
+            DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
             // If we have made it this far, we must have determined that the document is a file-based program.
             // TODO: we should assert this somehow. However, we cannot use the on-disk state of the file to do so, because the decision to load this as a file-based program was based on in-editor content.
             ProjectFactory = _workspaceFactory.HostProjectFactory,
@@ -255,16 +238,5 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             PreferredBuildHostKind = buildHostKind,
             ActualBuildHostKind = buildHostKind,
         };
-    }
-
-    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        Dictionary<string, ProjectLoadState> loadedProjects,
-        string projectPath,
-        ProjectLoadState.Primordial projectState,
-        CancellationToken cancellationToken)
-    {
-        await projectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
-            workspace => workspace.OnProjectRemoved(projectState.PrimordialProjectId),
-            cancellationToken);
     }
 }
