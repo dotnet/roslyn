@@ -4187,15 +4187,9 @@ static class Extensions
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (14,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
-                //         return u is [10];
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(14, 21),
                 // (14,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 //         return u is [10];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(14, 21),
-                // (19,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
-                //         return u is [10];
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(19, 21),
                 // (19,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 //         return u is [10];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(19, 21)

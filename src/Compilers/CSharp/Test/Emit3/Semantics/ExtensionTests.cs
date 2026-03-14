@@ -27743,23 +27743,7 @@ static class E
 }
 """;
 
-        // PROTOTYPE implicit indexers in list-patterns
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[1]").WithArguments("C").WithLocation(1, 16));
-
-        src = """
-_ = new C() is [1];
-
-class C
-{
-    public int this[int i] => throw null;
-    public int Length => throw null;
-}
-""";
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
     }
 
@@ -27826,71 +27810,52 @@ static class E
     public void ExtensionMemberLookup_PatternBased_SpreadPattern_Length()
     {
         var src = """
-_ = new C() is [_, .. var x];
+if (new C() is [_, .. var x])
+    System.Console.Write(x);
 
 class C
 {
     public int this[System.Index i] => throw null;
-    public int Slice(int i, int j) => throw null;
+    public int Slice(int i, int j) { System.Console.Write($"Slice({i},{j}) "); return 42; }
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Length => throw null;
+        public int Length { get { System.Console.Write("length "); return 2; } }
     }
 }
 """;
 
-        // PROTOTYPE implicit indexers in list-patterns
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16));
-
-        src = """
-_ = new C() is [_, .. var x];
-
-class C
-{
-    public int this[System.Index i] => throw null;
-    public int Slice(int i, int j) => throw null;
-    public int Length => throw null;
-}
-""";
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("length Slice(1,1) 42"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
-    [Fact(Skip = "PROTOTYPE implicit indexers in list-patterns")]
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_SpreadPattern_Slice()
     {
         var src = """
-_ = new C() is [_, .. var x];
+if (new C() is [_, .. var x])
+    System.Console.Write(x);
 
 class C
 {
     public int this[System.Index i] => throw null;
-    public int Length => throw null;
+    public int Length { get { System.Console.Write("length "); return 2; } }
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Slice(int i, int j) => throw null;
+        public int Slice(int i, int j) { System.Console.Write($"Slice({i},{j}) "); return 42; }
     }
 }
 """;
 
-        // PROTOTYPE implicit indexers in list-patterns
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("length Slice(1,1) 42"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -28493,19 +28458,14 @@ static class E
     {
         public int Length
         {
-            get { System.Console.Write("length "); return 42; }
+            get { System.Console.Write("length "); return 1; }
         }
     }
 }
 """;
 
-        // PROTOTYPE should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // System.Console.Write(new C() is ["hi"]);
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, @"[""hi""]").WithArguments("C").WithLocation(1, 33)
-            );
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("length indexer True"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]

@@ -573,53 +573,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool BindLengthAndIndexerForListPattern(SyntaxNode node, TypeSymbol inputType, BindingDiagnosticBag diagnostics,
-            out BoundExpression indexerAccess, out BoundExpression lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
+            out BoundExpression indexerAccess, [NotNull] out BoundExpression? lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
         {
             Debug.Assert(!inputType.IsDynamic());
 
             bool hasErrors = false;
             receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, inputType) { WasCompilerGenerated = true };
-            if (inputType.IsSZArray())
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            hasErrors = !TryBindLengthOrCountInAnyScope(node, receiverPlaceholder, ref useSiteInfo, diagnostics, out lengthAccess);
+            if (lengthAccess is null)
             {
-                hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out PropertySymbol lengthProperty);
-                if (lengthProperty is not null)
-                {
-                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, initialBindingReceiverIsSubjectToCloning: ThreeState.False, lengthProperty, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
-                }
-                else
-                {
-                    lengthAccess = new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
-                }
-            }
-            else
-            {
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                if (!TryBindNonExtensionLengthOrCount(node, receiverPlaceholder, out lengthAccess, ref useSiteInfo, diagnostics)) // PROTOTYPE should extension Length/Count count?
-                {
-                    hasErrors = true;
-                    Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
-                }
-
-                diagnostics.Add(node, useSiteInfo);
+                hasErrors = true;
+                Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
+                lengthAccess = new BoundBadExpression(node, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
             }
 
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            var systemIndexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
-            argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
-            analyzedArguments.Arguments.Add(argumentPlaceholder);
+            diagnostics.Add(node, useSiteInfo);
 
-            indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
-            indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, diagnostics);
-            Debug.Assert(indexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess or BoundPointerElementAccess);
-            analyzedArguments.Free();
+            hasErrors |= !tryBindIndexIndexer(receiverPlaceholder, out indexerAccess, out argumentPlaceholder, diagnostics, node);
+            return !hasErrors && !lengthAccess.HasErrors;
 
-            if (!systemIndexType.HasUseSiteError)
+            bool tryBindIndexIndexer(BoundListPatternReceiverPlaceholder receiverPlaceholder, out BoundExpression indexerAccess,
+                out BoundListPatternIndexPlaceholder argumentPlaceholder, BindingDiagnosticBag diagnostics,
+                SyntaxNode node)
             {
-                // Check required well-known member.
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
-            }
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                var systemIndexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
+                argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
+                analyzedArguments.Arguments.Add(argumentPlaceholder);
 
-            return !hasErrors && !lengthAccess.HasErrors && !indexerAccess.HasErrors;
+                indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
+                indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, diagnostics);
+                Debug.Assert(indexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess or BoundPointerElementAccess);
+                analyzedArguments.Free();
+
+                if (!systemIndexType.HasUseSiteError)
+                {
+                    // Check required well-known member.
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
+                }
+
+                return !indexerAccess.HasErrors;
+            }
         }
 
         private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType, BindingDiagnosticBag diagnostics)

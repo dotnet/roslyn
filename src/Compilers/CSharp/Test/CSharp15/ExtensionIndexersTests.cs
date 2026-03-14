@@ -6326,6 +6326,7 @@ class C { }
             // _ = c[1..^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
     }
+
     [Fact]
     public void ImplicitRangeIndexer_32()
     {
@@ -6782,6 +6783,163 @@ class C
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("instLength slice(0, 4) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82756")]
+    public void ImplicitRangeIndexer_42()
+    {
+        // array type, extension this[Index] + extension this[Range]
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        int[] i = [1, 2, 3];
+        M1(i);
+        M2(i);
+    }
+
+    public static void M1(int[] i)
+    {
+        System.Console.Write(i[^1]);
+    }
+
+    public static void M2(int[] i)
+    {
+        System.Console.Write(i[1..^1][0]);
+    }
+
+    extension(int[] a)
+    {
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
+        verifier.VerifyIL("E.M1", """
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  ldlen
+  IL_0004:  conv.i4
+  IL_0005:  ldc.i4.1
+  IL_0006:  sub
+  IL_0007:  ldelem.i4
+  IL_0008:  call       "void System.Console.Write(int)"
+  IL_000d:  nop
+  IL_000e:  ret
+}
+""");
+        verifier.VerifyIL("E.M2", """
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.Index System.Index.op_Implicit(int)"
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  newobj     "System.Index..ctor(int, bool)"
+  IL_000f:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0014:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
+  IL_0019:  ldc.i4.0
+  IL_001a:  ldelem.i4
+  IL_001b:  call       "void System.Console.Write(int)"
+  IL_0020:  nop
+  IL_0021:  ret
+}
+""");
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/82756
+        // Missing diagnostic for missing Array.Length member
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.MakeMemberMissing(SpecialMember.System_Array__Length);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82756")]
+    public void ImplicitRangeIndexer_43()
+    {
+        // array type, extension Length + extension this[Index] + extension this[Range]
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        int[] i = [1, 2, 3];
+        M1(i);
+        M2(i);
+    }
+
+    public static void M1(int[] i)
+    {
+        System.Console.Write(i[^1]);
+    }
+
+    public static void M2(int[] i)
+    {
+        System.Console.Write(i[1..^1][0]);
+    }
+
+    extension(int[] a)
+    {
+        public int Length => throw null;
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        comp.MakeMemberMissing(SpecialMember.System_Array__Length);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
+        verifier.VerifyIL("E.M1", """
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  ldlen
+  IL_0004:  conv.i4
+  IL_0005:  ldc.i4.1
+  IL_0006:  sub
+  IL_0007:  ldelem.i4
+  IL_0008:  call       "void System.Console.Write(int)"
+  IL_000d:  nop
+  IL_000e:  ret
+}
+""");
+        verifier.VerifyIL("E.M2", """
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.Index System.Index.op_Implicit(int)"
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  newobj     "System.Index..ctor(int, bool)"
+  IL_000f:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0014:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
+  IL_0019:  ldc.i4.0
+  IL_001a:  ldelem.i4
+  IL_001b:  call       "void System.Console.Write(int)"
+  IL_0020:  nop
+  IL_0021:  ret
+}
+""");
+    }
+
     [Fact]
     public void ObjectInitializer_01()
     {
@@ -6912,28 +7070,15 @@ _ = new C() is [.., 1];
 
         var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [.., 1];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("C").WithLocation(1, 16),
             // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = new C() is [.., 1];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.., 1]").WithArguments("extension indexers").WithLocation(1, 16));
 
-        // PROTOTYPE where should extension Length/Count count?
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [.., 1];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("C").WithLocation(1, 16));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
-        comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [.., 1];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("C").WithLocation(1, 16),
-            // (8,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(8, 20));
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -7070,9 +7215,827 @@ public static class E
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("(^1, 42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
+    [Fact]
+    public void ListPattern_05()
+    {
+        // instance Length, extension Length + extension this[int]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S
+{
+    public int Length => 3;
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => throw null; // only used to fulfill the requirement for implicit indexer
+        public int this[int i] { get { System.Console.WriteLine(i); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (S V_0,
+                int V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "int S.Length.get"
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  blt.s      IL_0027
+  IL_0014:  ldloc.0
+  IL_0015:  box        "S"
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
+  IL_001c:  sub
+  IL_001d:  call       "int E.get_Item(object, int)"
+  IL_0022:  ldc.i4.1
+  IL_0023:  ceq
+  IL_0025:  br.s       IL_0028
+  IL_0027:  ldc.i4.0
+  IL_0028:  pop
+  IL_0029:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ListPattern_06()
+    {
+        // instance Length, extension this[int]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S
+{
+    public int Length => 3;
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get { System.Console.WriteLine(i); return 1; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_07()
+    {
+        // ambiguous extension Length + extension this[int]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S { }
+
+public static class E1
+{
+    extension(object o)
+    {
+        public int Length => 3;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+public static class E2
+{
+    extension(object o)
+    {
+        public int Length => 3;
+    }
+}
+""";
+
+        // PROTOTYPE diagnostic quality, consider improving the second diagnostic to mention System.Index
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'S'. No suitable 'Length' or 'Count' property was found.
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("S").WithLocation(1, 16),
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[.., 1]").WithArguments("S").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ListPattern_08()
+    {
+        // extension Length + ambiguous extension this[int]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S { }
+
+public static class E1
+{
+    extension(object o)
+    {
+        public int Length => 3;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+public static class E2
+{
+    extension(object o)
+    {
+        public int this[int i] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[.., 1]").WithArguments("S").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ListPattern_09()
+    {
+        // instance Length + ambiguous extension this[Index]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S
+{
+    public int Length => 3;
+}
+
+public static class E1
+{
+    extension(object o)
+    {
+        public int this[System.Index i] { get => throw null; }
+    }
+}
+
+public static class E2
+{
+    extension(object o)
+    {
+        public int this[System.Index i] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[.., 1]").WithArguments("S").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ListPattern_10()
+    {
+        // extension Length + instance this[Index]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S
+{
+    public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 3;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_11()
+    {
+        // ambiguous extension Length + ambiguous extension this[int]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S { }
+
+public static class E1
+{
+    extension(object o)
+    {
+        public int Length => 3;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+public static class E2
+{
+    extension(object o)
+    {
+        public int Length => 3;
+        public int this[int i] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'S'. No suitable 'Length' or 'Count' property was found.
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("S").WithLocation(1, 16),
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[.., 1]").WithArguments("S").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ListPattern_12()
+    {
+        // ambiguous extension Length + ambiguous extension this[Index]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S { }
+
+public static class E1
+{
+    extension(object o)
+    {
+        public int Length => 3;
+        public int this[System.Index i] { get => throw null; }
+    }
+}
+
+public static class E2
+{
+    extension(object o)
+    {
+        public int Length => 3;
+        public int this[System.Index i] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'S'. No suitable 'Length' or 'Count' property was found.
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("S").WithLocation(1, 16),
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[.., 1]").WithArguments("S").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ListPattern_13()
+    {
+        // generic extension Length + generic extension this[Index]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S { }
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int Length => 3;
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_14()
+    {
+        // separate generic extension Length + generic extension this[Index]
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S { }
+
+public static class E1
+{
+    extension<T>(T t)
+    {
+        public int Length => 3;
+    }
+}
+
+public static class E2
+{
+    extension<T>(T t)
+    {
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_15()
+    {
+        // extension Length
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S { }
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 3;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[.., 1]").WithArguments("S").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ListPattern_16()
+    {
+        // instance Length, inner extension Length, outer extension this[int]
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+public struct S
+{
+    public int Length => 3;
+}
+
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[int i] { get { System.Console.WriteLine(i); return 1; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_17()
+    {
+        // instance Length, inner extension Length, extension this[Index]
+        var src = """
+using Outer;
+
+public struct S
+{
+    public int Length => 3;
+}
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_18()
+    {
+        // instance Length, inner ambiguous extension Length, outer extension this[Index]
+        var src = """
+using Outer;
+
+public struct S
+{
+    public int Length => 3;
+}
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E3
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_19()
+    {
+        // instance Length, inner ambiguous extension Length + extension this[int], outer extension this[Index]
+        var src = """
+using Outer;
+
+public struct S
+{
+    public int Length => 3;
+}
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+            public int this[int i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E3
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_20()
+    {
+        // instance Length, inner extension Length + ambiguous extension this[int], outer extension this[Index]
+        var src = """
+using Outer;
+
+public struct S
+{
+    public int Length => 3;
+}
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E3
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_21()
+    {
+        // instance Length, outer extension this[Index]
+        var src = """
+using Outer;
+
+public struct S
+{
+    public int Length => 3;
+}
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_22()
+    {
+        // inner ambiguous extension Length, outer extension Length + extension this[Index]
+        var src = """
+using Outer;
+
+public struct S { }
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+        }
+    }
+
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E3
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (11,28): error CS8985: List patterns may not be used for a value of type 'S'. No suitable 'Length' or 'Count' property was found.
+            //             _ = new S() is [.., 1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.., 1]").WithArguments("S").WithLocation(11, 28));
+    }
+
+    [Fact]
+    public void ListPattern_23()
+    {
+        // inner inapplicable extension Length, outer extension Length + extension this[Index]
+        var src = """
+using Outer;
+
+public struct S { }
+
+public class D { }
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(D d)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E3
+    {
+        extension(object o)
+        {
+            public int Length => 3;
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_24()
+    {
+        // inner inapplicable extension this[Index], outer extension Length + extension this[Index]
+        var src = """
+using Outer;
+
+public struct S { }
+
+public class D { }
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.., 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(D d)
+        {
+            public int this[System.Index i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E3
+    {
+        extension(object o)
+        {
+            public int Length => 3;
+            public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
     [Theory, CombinatorialData]
     public void SpreadPattern_01(bool useCompilationReference)
     {
+        // extension Length + extension this[Index] + extension this[Range]
         var libSrc = """
 public class C { }
 
@@ -7095,9 +8058,6 @@ _ = new C() is [_, .. var x];
 
         var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16),
             // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16),
@@ -7105,18 +8065,14 @@ _ = new C() is [_, .. var x];
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, ".. var x").WithArguments("extension indexers").WithLocation(1, 20));
 
-        // PROTOTYPE where should extension Length/Count count?
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16),
             // (8,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(8, 20),
@@ -7176,6 +8132,1002 @@ public static class E
   IL_0034:  ldc.i4.0
   IL_0035:  pop
   IL_0036:  ret
+}
+""");
+    }
+
+    [Theory, CombinatorialData]
+    public void SpreadPattern_03(bool useCompilationReference)
+    {
+        // extension Length + extension this[int] + extension Slice(int, int)
+        var libSrc = """
+public class C { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public int Length => 3;
+        public int this[int i] { get { System.Console.Write(i); return 0; } }
+        public int Slice(int i, int j) { System.Console.Write((i, j)); return 0; }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net70);
+        var libRef = AsReference(libComp, useCompilationReference);
+
+        var src = """
+_ = new C() is [_, .. var x];
+""";
+
+        var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "[_, .. var x]").WithArguments("extensions", "14.0").WithLocation(1, 16),
+            // (1,16): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "[_, .. var x]").WithArguments("extensions", "14.0").WithLocation(1, 16),
+            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16),
+            // (1,20): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, ".. var x").WithArguments("extensions", "14.0").WithLocation(1, 20),
+            // (1,20): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, ".. var x").WithArguments("extensions", "14.0").WithLocation(1, 20));
+
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16));
+
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_04()
+    {
+        // instance Length, inner extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+    public int Length => 3;
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(C c)
+        {
+            public int this[int i] { get => throw null; }
+            public int Slice(int i, int j) => throw null; 
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get { System.Console.Write(i); return 0; } }
+            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_05()
+    {
+        // inner extension Length + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get => throw null; }
+            public int Slice(int i, int j) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_06()
+    {
+        // inner ambiguous extension Length + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get => throw null; }
+            public int Slice(int i, int j) => throw null;
+        }
+    }
+
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get => throw null; }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (13,28): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            //             _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(13, 28));
+    }
+
+    [Fact]
+    public void SpreadPattern_07()
+    {
+        // inner extension Length + extension Count + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int Count => throw null;
+            public int this[int i] { get => throw null; }
+            public int Slice(int i, int j) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_08()
+    {
+        // inner extension Length + ambiguous extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get => throw null; }
+            public int Slice(int i, int j) => throw null;
+        }
+    }
+
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_09()
+    {
+        // inner extension Length + extension this[int] + ambiguous extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get => throw null; }
+            public int Slice(int i, int j) => throw null;
+        }
+    }
+
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int Slice(int i, int j) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_10()
+    {
+        // inner inapplicable extension Length + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(D d)
+        {
+            public int Length => 3;
+        }
+        extension(C c)
+        {
+            public int this[int i] { get => throw null; }
+            public int Slice(int i, int j) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get => throw null; }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (13,28): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            //             _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(13, 28));
+    }
+
+    [Fact]
+    public void SpreadPattern_11()
+    {
+        // inner extension Length + inapplicable extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(D d)
+        {
+            public int this[int i] { get => throw null; }
+        }
+        extension(C c)
+        {
+            public int Length => 3;
+            public int Slice(int i, int j) { System.Console.Write($"{i}..{j}"); return 0; }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_12()
+    {
+        // inner extension Length + extension this[int] + inapplicable extension Slice(int, int), outer extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public class C 
+{
+}
+
+namespace Inner
+{
+    public class D
+    {
+        public static void Main()
+        {
+            _ = new C() is [_, .. var x];
+        }
+    }
+
+    public static class E1
+    {
+        extension(D d)
+        {
+            public int Slice(int i, int j) => throw null;
+        }
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_13()
+    {
+        // inner inapplicable extension this[Range], outer extension Length + extension this[Index] + extension this[Range]
+        var src = """
+using Outer;
+
+public struct S { }
+
+public class D { }
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.. var x, 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(D d)
+        {
+            public int this[System.Range r] { get => throw null; }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E3
+    {
+        extension(object o)
+        {
+            public int Length => 3;
+            public int this[System.Index i] { get { System.Console.Write(i); return 0; } }
+            public int this[System.Range r] { get { System.Console.Write($"{r}, "); return 0; } }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("0..^1, ^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_14()
+    {
+        // generic extension Length + generic extension this[Index] + generic extension Slice(int, int)
+        var src = """
+_ = new S() is [.. var x, 1];
+
+public struct S { }
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int Length => 3;
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        public int Slice(int i, int j) { System.Console.Write($"Slice({i},{j}), "); return 0; } 
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Slice(0,2), ^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_15()
+    {
+        // generic extension Length + generic extension this[Index] + generic extension this[Range]
+        var src = """
+_ = new S() is [.. var x, 1];
+
+public struct S { }
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int Length => 3;
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+        public int this[System.Range r] { get { System.Console.Write($"{r}, "); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("0..^1, ^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SpreadPattern_16()
+    {
+        // extension Length + extension this[Index] + extension Slice<T>(T, T)
+        var src = """
+_ = new S() is [.. var x, 1];
+
+public struct S { }
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 3;
+        public int this[System.Index i] { get => throw null; }
+        public int Slice<T>(T i, T j)  => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // _ = new S() is [.. var x, 1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var x").WithArguments("S").WithLocation(1, 17));
+    }
+
+    [Fact]
+    public void SpreadPattern_17()
+    {
+        // array type, extension this[Index] + extension this[Range]
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        int[] i = [1, 2, 3];
+        System.Console.Write(M(i));
+    }
+
+    public static bool M(int[] i)
+    {
+        return i is [.. var x, 3];
+    }
+
+    extension(int[] a)
+    {
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
+        verifier.VerifyIL("E.M", """
+{
+  // Code size       54 (0x36)
+  .maxstack  4
+  .locals init (int[] V_0, //x
+                int V_1,
+                bool V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brfalse.s  IL_0030
+  IL_0004:  ldarg.0
+  IL_0005:  ldlen
+  IL_0006:  conv.i4
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0030
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     "System.Index..ctor(int, bool)"
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     "System.Index..ctor(int, bool)"
+  IL_001b:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0020:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
+  IL_0025:  stloc.0
+  IL_0026:  ldarg.0
+  IL_0027:  ldloc.1
+  IL_0028:  ldc.i4.1
+  IL_0029:  sub
+  IL_002a:  ldelem.i4
+  IL_002b:  ldc.i4.3
+  IL_002c:  ceq
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.0
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  ret
+}
+""");
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.MakeMemberMissing(SpecialMember.System_Array__Length);
+        comp.VerifyEmitDiagnostics(
+            // (11,21): error CS0656: Missing compiler required member 'System.Array.Length'
+            //         return i is [.. var x, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. var x, 3]").WithArguments("System.Array", "Length").WithLocation(11, 21),
+            // (11,21): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
+            //         return i is [.. var x, 3];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.. var x, 3]").WithArguments("int[]").WithLocation(11, 21));
+    }
+
+    [Fact]
+    public void SpreadPattern_17_WithExtensionLength()
+    {
+        // array type (with and without Length), extension Length + extension this[Index] + extension this[Range]
+        var src = """
+public static class E
+{
+    public static void Main()
+    {
+        int[] i = [1, 2, 3];
+        System.Console.Write(M(i));
+    }
+
+    public static bool M(int[] i)
+    {
+        return i is [.. var x, 3];
+    }
+
+    extension(int[] a)
+    {
+        public int Length => throw null;
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        // Note: the presence of extension Length allows binding to succeed, but we still lower with specialized IL
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
+        verifier.VerifyIL("E.M", """
+{
+  // Code size       54 (0x36)
+  .maxstack  4
+  .locals init (int[] V_0, //x
+                int V_1,
+                bool V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brfalse.s  IL_0030
+  IL_0004:  ldarg.0
+  IL_0005:  ldlen
+  IL_0006:  conv.i4
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0030
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     "System.Index..ctor(int, bool)"
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     "System.Index..ctor(int, bool)"
+  IL_001b:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0020:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
+  IL_0025:  stloc.0
+  IL_0026:  ldarg.0
+  IL_0027:  ldloc.1
+  IL_0028:  ldc.i4.1
+  IL_0029:  sub
+  IL_002a:  ldelem.i4
+  IL_002b:  ldc.i4.3
+  IL_002c:  ceq
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.0
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void SpreadPattern_18()
+    {
+        // instance Length, inner extension Length + extension this[int], outer extension Length + extension Slice(int, int)
+        var src = """
+using Outer;
+
+public struct S 
+{ 
+    public int Length => 3;
+}
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.. var x, 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(S s)
+        {
+            public int Length => 3;
+            public int this[int i] { get { System.Console.WriteLine(i); return 0; } }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => throw null;
+            public object Slice(int i, int j) { System.Console.Write($"{i},{j}, "); return o; }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0,2, 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Inner.C.Main", """
+{
+  // Code size       62 (0x3e)
+  .maxstack  4
+  .locals init (object V_0, //x
+                S V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_1
+  IL_0003:  initobj    "S"
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       "int S.Length.get"
+  IL_0010:  stloc.2
+  IL_0011:  ldloc.2
+  IL_0012:  ldc.i4.1
+  IL_0013:  blt.s      IL_003b
+  IL_0015:  ldloc.1
+  IL_0016:  box        "S"
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldloc.2
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  call       "object Outer.E2.Slice(object, int, int)"
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_1
+  IL_0027:  ldloc.2
+  IL_0028:  ldc.i4.1
+  IL_0029:  sub
+  IL_002a:  stloc.3
+  IL_002b:  ldobj      "S"
+  IL_0030:  ldloc.3
+  IL_0031:  call       "int Inner.E1.get_Item(S, int)"
+  IL_0036:  ldc.i4.1
+  IL_0037:  ceq
+  IL_0039:  br.s       IL_003c
+  IL_003b:  ldc.i4.0
+  IL_003c:  pop
+  IL_003d:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void SpreadPattern_19()
+    {
+        // instance Length + this[int], inner extension Length + inner Slice(int, int), outer extension Length
+        var src = """
+using Outer;
+
+public struct S
+{
+    public int Length => 3;
+    public int this[int i] { get { System.Console.WriteLine(i); return 0; } }
+}
+
+namespace Inner
+{
+    public class C
+    {
+        public static void Main()
+        {
+            _ = new S() is [.. var x, 1];
+        }
+    }
+
+    public static class E1
+    {
+        extension(S s)
+        {
+            public int Length => throw null;
+            public S Slice(int i, int j) { System.Console.Write($"{i},{j}, "); return s; }
+        }
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(S s)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0,2, 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using Outer;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+        verifier.VerifyIL("Inner.C.Main", """
+{
+  // Code size       50 (0x32)
+  .maxstack  4
+  .locals init (S V_0, //x
+                S V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_1
+  IL_0003:  initobj    "S"
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       "int S.Length.get"
+  IL_0010:  stloc.2
+  IL_0011:  ldloc.2
+  IL_0012:  ldc.i4.1
+  IL_0013:  blt.s      IL_002f
+  IL_0015:  ldloc.1
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.2
+  IL_0018:  ldc.i4.1
+  IL_0019:  sub
+  IL_001a:  call       "S Inner.E1.Slice(S, int, int)"
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.2
+  IL_0023:  ldc.i4.1
+  IL_0024:  sub
+  IL_0025:  call       "int S.this[int].get"
+  IL_002a:  ldc.i4.1
+  IL_002b:  ceq
+  IL_002d:  br.s       IL_0030
+  IL_002f:  ldc.i4.0
+  IL_0030:  pop
+  IL_0031:  ret
 }
 """);
     }
@@ -10830,7 +12782,7 @@ public static class E
         CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker.DebugVerifier")]
+    [Fact]
     public void Nullability_ListPattern_01()
     {
         string source = """
@@ -12884,7 +14836,7 @@ Right:
     [Fact]
     public void IOperation_03()
     {
-        // list pattern, extension Length
+        // list pattern, extension Length, instance this[Index]
         var src = """
 C c = new C();
 
@@ -12906,15 +14858,25 @@ public class C
 }
 """;
 
-        // PROTOTYPE where should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        comp.VerifyEmitDiagnostics(
-            // (4,10): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
-            // _ = c is [42];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[42]").WithArguments("C").WithLocation(4, 10));
+        comp.VerifyEmitDiagnostics();
 
-        //string expectedOperationTree = "";
-        //VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, [], targetFramework: TargetFramework.Net100);
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: '_ = c is [42]')
+  Left:
+    IDiscardOperation (Symbol: System.Boolean _) (OperationKind.Discard, Type: System.Boolean) (Syntax: '_')
+  Right:
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'c is [42]')
+      Value:
+        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+      Pattern:
+        IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[42]') (InputType: C, NarrowedType: C, DeclaredSymbol: null, LengthSymbol: System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Length { get; }, IndexerSymbol: System.Int32 C.this[System.Index i] { get; })
+          Patterns (1):
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+""";
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, [], targetFramework: TargetFramework.Net100);
     }
 
     [Fact]
@@ -13173,6 +15135,101 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void E.<G
     }
 
     [Fact]
+    public void IOperation_09()
+    {
+        // implicit indexer with extension Length paired with instance this[int]
+        var src = """
+var c = new C();
+/*<bind>*/
+c[^2] = 10;
+/*</bind>*/
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 3;
+    }
+}
+
+class C
+{
+    public int this[int i]
+    {
+        get { System.Console.Write($"instance.get({i}) "); return 42; }
+        set { System.Console.Write($"instance.set({i}, {value}) "); }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instance.set(1, 10) "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'c[^2] = 10')
+Left:
+  IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'c[^2]')
+    Instance:
+      ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+    Argument:
+      IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^2')
+        Operand:
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    LengthSymbol: System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Length { get; }
+    IndexerSymbol: System.Int32 C.this[System.Int32 i] { get; set; }
+Right:
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, [], targetFramework: TargetFramework.Net100);
+    }
+
+    [Fact]
+    public void IOperation_10()
+    {
+        // implicit indexer with extension Length but no this[int]
+        var src = """
+var c = new C();
+/*<bind>*/
+c[^2] = 10;
+/*</bind>*/
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 3;
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'c[^2] = 10')
+Left:
+  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'c[^2]')
+    Children(2):
+        IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index, IsInvalid) (Syntax: '^2')
+          Operand:
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
+Right:
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+""";
+
+        DiagnosticDescription[] expected = [
+            // (3,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[^2] = 10;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^2]").WithArguments("C").WithLocation(3, 1)
+            ];
+
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expected, targetFramework: TargetFramework.Net100);
+    }
+
+    [Fact]
     public void MissingMembers_01()
     {
         // missing DefaultMemberAttribute
@@ -13363,26 +15420,27 @@ namespace System
 #nullable enable
 
 (object, object)? o = (new object(), new object());
-_ = o is [var x];
+if (o is [var x])
+{
+    System.Console.Write(x);
+}
 
 static class E
 {
     extension((object?, object?) o)
     {
-        public int this[System.Index i] { get => throw null!; }
+        public int this[System.Index i] { get { System.Console.Write($"{i} "); return 42; } }
     }
 
     extension((object, object) o)
     {
-        public int Length { get => throw null!; }
+        public int Length { get { System.Console.Write("Length "); return 1; } }
     }
 }
 """;
-        // PROTOTYPE where should extension Length/Count count?
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (4,10): error CS8985: List patterns may not be used for a value of type '(object, object)'. No suitable 'Length' or 'Count' property was found.
-            // _ = o is [var x];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[var x]").WithArguments("(object, object)").WithLocation(4, 10));
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length 0 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
@@ -17636,5 +19694,618 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 """, graph, symbol);
+    }
+
+    [Fact]
+    public void UseSite_01()
+    {
+        // list-pattern with extension(Missing).Length
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing", targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public int Length => 1;
+    }
+    extension(object o)
+    {
+        public int this[System.Index i] => throw null;
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o is [var x, .. var y];
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => 1;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,10): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x, .. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 10));
+    }
+
+    [Fact]
+    public void UseSite_02()
+    {
+        // list-pattern with extension(Missing).this[Index]
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing", targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public int this[System.Index i] => throw null;
+    }
+    extension(object o)
+    {
+        public int Length => 1;
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o is [var x, .. var y];
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] => throw null;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,10): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x, .. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 10),
+            // (4,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void UseSite_03()
+    {
+        // list-pattern with extension(Missing).this[Range]
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing", targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public int this[System.Range r] => throw null;
+    }
+    extension(object o)
+    {
+        public int Length => 1;
+        public int this[System.Index i] => throw null;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o is [var x, .. var y];
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Range r] => throw null;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,10): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x, .. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 10),
+            // (4,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void UseSite_04()
+    {
+        // list-pattern with extension(Missing).this[int]
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing", targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public int this[int i] => throw null;
+    }
+    extension(object o)
+    {
+        public int Length => 1;
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o is [var x, .. var y];
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] => throw null;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,10): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x, .. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 10),
+            // (4,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void UseSite_05()
+    {
+        // list-pattern with extension(Missing).Slice(int, int)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing", targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public object Slice(int i, int j) => throw null;
+    }
+    extension(object o)
+    {
+        public int Length => 1;
+        public int this[System.Index i] => throw null;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o is [var x, .. var y];
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] => throw null;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("object").WithLocation(4, 18),
+            // (4,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void UseSite_06()
+    {
+        // list-pattern with extension(object).this[Index] returning Missing
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing", targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(object o)
+    {
+        public int Length => 1;
+        public Missing this[System.Index i] => throw null;
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o is [var x, .. var y];
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] => throw null;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,10): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x, .. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 10),
+            // (4,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void UseSite_07()
+    {
+        // list-pattern with extension(object).Slice(int, int) returning Missing
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing", targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(object o)
+    {
+        public int Length => 1;
+        public int this[System.Index i] => throw null;
+        public Missing Slice(int i, int j) => throw null;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef], targetFramework: TargetFramework.Net100)
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o is [var x, .. var y];
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] => throw null;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref], targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics(
+            // (4,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("object").WithLocation(4, 18),
+            // (4,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void LengthPattern_NegativeLengthTest()
+    {
+        var src = @"
+object o = new object();
+_ = o is { Length: -1 }; // 1
+_ = o is { Length: -1 or 1 }; // 2
+_ = o is { Length: -1 } or { Length: 1 }; // 3
+
+_ = o switch // 4
+{
+    { Length: -1 } => 0, // 5
+};
+
+_ = o switch // 6
+{
+    { Length: -1 or 1 } => 0,
+};
+
+_ = o switch // 7
+{
+    { Length: -1 } or { Length: 1 } => 0,
+};
+
+_ = o switch // 8
+{
+    { Length: -1 } => 0, // 9
+    { Length: 1 } => 0,
+};
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 0;
+        public int this[System.Index i] => 0;
+    }
+}
+";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // 0.cs(3,5): error CS8518: An expression of type 'object' can never match the provided pattern.
+            // _ = o is { Length: -1 }; // 1
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "o is { Length: -1 }").WithArguments("object").WithLocation(3, 5),
+            // 0.cs(4,20): hidden CS9335: The pattern is redundant.
+            // _ = o is { Length: -1 or 1 }; // 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(4, 20),
+            // 0.cs(5,10): hidden CS9335: The pattern is redundant.
+            // _ = o is { Length: -1 } or { Length: 1 }; // 3
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: -1 }").WithLocation(5, 10),
+            // 0.cs(7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // _ = o switch // 4
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),
+            // 0.cs(9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     { Length: -1 } => 0, // 5
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(9, 5),
+            // 0.cs(12,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = o switch // 6
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(12, 7),
+            // 0.cs(17,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = o switch // 7
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(17, 7),
+            // 0.cs(22,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = o switch // 8
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(22, 7),
+            // 0.cs(24,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     { Length: -1 } => 0, // 9
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(24, 5)
+            );
+    }
+
+    [Fact]
+    public void LengthPattern_NegativeLengthTest_02()
+    {
+        var src = @"
+int? i = 0;
+_ = i is { Length: -1 }; // 1
+_ = i is { Length: -1 or 1 }; // 2
+_ = i is { Length: -1 } or { Length: 1 }; // 3
+
+_ = i switch // 4
+{
+    { Length: -1 } => 0, // 5
+};
+
+_ = i switch // 6
+{
+    { Length: -1 or 1 } => 0,
+};
+
+_ = i switch // 7
+{
+    { Length: -1 } or { Length: 1 } => 0,
+};
+
+_ = i switch // 8
+{
+    { Length: -1 } => 0, // 9
+    { Length: 1 } => 0,
+};
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 0;
+        public int this[System.Index i] => 0;
+    }
+}
+";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // 0.cs(3,5): error CS8518: An expression of type 'int?' can never match the provided pattern.
+            // _ = i is { Length: -1 }; // 1
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is { Length: -1 }").WithArguments("int?").WithLocation(3, 5),
+            // 0.cs(4,20): hidden CS9335: The pattern is redundant.
+            // _ = i is { Length: -1 or 1 }; // 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(4, 20),
+            // 0.cs(5,10): hidden CS9335: The pattern is redundant.
+            // _ = i is { Length: -1 } or { Length: 1 }; // 3
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: -1 }").WithLocation(5, 10),
+            // 0.cs(7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // _ = i switch // 4
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),
+            // 0.cs(9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     { Length: -1 } => 0, // 5
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(9, 5),
+            // 0.cs(12,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = i switch // 6
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(12, 7),
+            // 0.cs(17,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = i switch // 7
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(17, 7),
+            // 0.cs(22,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = i switch // 8
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(22, 7),
+            // 0.cs(24,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     { Length: -1 } => 0, // 9
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(24, 5)
+            );
+    }
+
+    [Fact]
+    public void LengthPattern_NegativeLengthTest_03()
+    {
+        var src = @"
+using Outer;
+
+object o = new object();
+_ = o is { Length: -1 }; // 1
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 0;
+    }
+}
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int this[System.Index i] => 0;
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,5): error CS8518: An expression of type 'object' can never match the provided pattern.
+            // _ = o is { Length: -1 }; // 1
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "o is { Length: -1 }").WithArguments("object").WithLocation(5, 5));
+    }
+
+    [Fact]
+    public void CollectionSpread_01()
+    {
+        var src = """
+C c = new C();
+int[] i = [0, .. c];
+foreach (var x in i) System.Console.Write(x);
+
+public class C : System.Collections.Generic.IEnumerable<int>
+{
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator()
+    {
+        yield return 3;
+    }
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public int Length => 1;
+    }
+}
+""";
+        // Note: the Length extension is not used to calculate the size of the collection
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("03"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (C V_0, //c
+                int[] V_1,
+                int V_2)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  newobj     "System.Collections.Generic.List<int>..ctor()"
+  IL_000b:  dup
+  IL_000c:  ldc.i4.0
+  IL_000d:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+  IL_0012:  dup
+  IL_0013:  ldloc.0
+  IL_0014:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+  IL_0019:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+  IL_001e:  stloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  br.s       IL_002f
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldelem.i4
+  IL_0026:  call       "void System.Console.Write(int)"
+  IL_002b:  ldloc.2
+  IL_002c:  ldc.i4.1
+  IL_002d:  add
+  IL_002e:  stloc.2
+  IL_002f:  ldloc.2
+  IL_0030:  ldloc.1
+  IL_0031:  ldlen
+  IL_0032:  conv.i4
+  IL_0033:  blt.s      IL_0023
+  IL_0035:  ret
+}
+""");
     }
 }
