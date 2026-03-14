@@ -6382,12 +6382,8 @@ static class E1
 class C { }
 """;
 
-        // PROTOTYPE should classic extension Slice methods contribute to implicit indexer pattern?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -7099,6 +7095,199 @@ public static class E
   IL_0019:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_44()
+    {
+        // static extension Slice method + instance Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public static C Slice(int i, int j) => throw null;
+    }
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_45()
+    {
+        // extension Slice methods with wrong signatures + instance Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public C Slice(int i) => throw null;
+        public C Slice(int i, int j, int k = 0) => throw null;
+    }
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_46()
+    {
+        // classic extension Slice methods with wrong signatures + instance Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    public static C Slice(this C c, int i) => throw null;
+    public static C Slice(this C c, int i, int j, int k = 0) => throw null;
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_47()
+    {
+        // classic extension Slice method with object parameters + instance Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    public static C Slice(this C c, object o1, object o2) => throw null;
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_48()
+    {
+        // extension Slice method with object parameters + instance Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public C Slice(object o1, object o2) => throw null;
+    }
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_49()
+    {
+        // classic extension Slice method with dynamic parameters + instance Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    public static C Slice(this C c, dynamic d1, dynamic d2) => throw null;
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_50()
+    {
+        // extension Slice method with dynamic parameters + instance Length
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    public static C Slice(this C c, dynamic d1, dynamic d2) => throw null;
+}
+
+class C
+{
+    public int Length => 3;
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
     }
 
     [Fact]
@@ -8191,6 +8380,35 @@ namespace Outer
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_25()
+    {
+        // extension Length + classic extension Slice(int, int)
+        var src = """
+_ = new C() is [_, .. var y];
+
+public class C { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public int Length => 2;
+        public int this[int i] => throw null;
+    }
+
+    public static int[] Slice(this C c, int i, int j)
+    {
+        System.Console.Write("ran");
+        return [1, 2];
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -9297,6 +9515,35 @@ namespace Outer
   IL_0031:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void SpreadPattern_20()
+    {
+        // extension Length + extension this[int] + classic extension Slice(int, int)
+        var src = """
+_ = new C() is [_, .. var x];
+
+public class C { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public int Length => 3;
+        public int this[int i] { get => 0; }
+    }
+
+    public static int Slice(this C c, int i, int j)
+    {
+        System.Console.Write((i, j));
+        return 0;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]

@@ -5822,30 +5822,63 @@ class C
     }
 
     [Fact]
-    public void SlicePattern_ExtensionIgnored()
+    public void SlicePattern_Extension()
     {
         var src = @"
-_ = new C() is [..var y];
-_ = new C()[..];
+using System;
+
+if (new C() is [..var y])
+    Console.Write(y);
+
+Console.Write("" "");
+Console.Write(new C()[..]);
 
 static class Extensions
 {
-    public static int Slice(this C c, int i, int j) => throw null;
+    public static int Slice(this C c, int i, int j) => i + j;
 }
 class C
 {
-    public int Count => throw null;
-    public int this[int i] => throw null;
+    public int Count => 3;
+    public int this[int i] => i;
 }";
-        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range });
-        comp.VerifyEmitDiagnostics(
-            // (2,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
-            // _ = new C() is [..var y];
-            Diagnostic(ErrorCode.ERR_BadArgType, "..var y").WithArguments("1", "System.Range", "int").WithLocation(2, 17),
-            // (3,13): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
-            // _ = new C()[..];
-            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(3, 13)
-            );
+        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range }, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "3 3");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (int V_0, //y
+                C V_1,
+                int V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  brfalse.s  IL_001f
+  IL_0009:  ldloc.1
+  IL_000a:  callvirt   ""int C.Count.get""
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.2
+  IL_0013:  call       ""int Extensions.Slice(C, int, int)""
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  ldstr      "" ""
+  IL_0024:  call       ""void System.Console.Write(string)""
+  IL_0029:  newobj     ""C..ctor()""
+  IL_002e:  stloc.1
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldloc.1
+  IL_0032:  callvirt   ""int C.Count.get""
+  IL_0037:  call       ""int Extensions.Slice(C, int, int)""
+  IL_003c:  call       ""void System.Console.Write(int)""
+  IL_0041:  ret
+}
+");
     }
 
     [Fact]

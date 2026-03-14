@@ -23633,5 +23633,60 @@ class Program
                 //         nx?[2] = 3; // 1
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[2]").WithLocation(8, 12));
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ExtensionSlice_01()
+        {
+            var src = """
+C c = new C();
+_ = c.F[1..];
+
+class C
+{
+    public Buffer10<int> F;
+}
+
+static class E
+{
+    public static System.Span<int> Slice(this System.Span<int> s, int i, int j) => s[i..j];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int_Int);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS0656: Missing compiler required member 'System.Span`1.Slice'
+                // _ = c.F[1..];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c.F[1..]").WithArguments("System.Span`1", "Slice").WithLocation(2, 5));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ExtensionSlice_02()
+        {
+            var src = """
+C c = new C();
+_ = c.F[1..];
+
+class C
+{
+    public Buffer10<int> F;
+}
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public System.Span<int> Slice(int i, int j) => s[i..j];
+    }
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int_Int);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS0656: Missing compiler required member 'System.Span`1.Slice'
+                // _ = c.F[1..];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c.F[1..]").WithArguments("System.Span`1", "Slice").WithLocation(2, 5));
+        }
     }
 }
