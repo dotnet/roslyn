@@ -84,7 +84,7 @@ internal sealed record class DocumentUri
 
         // If we have parsed information for both URIs, compare the original strings for each.
         // This avoids allocations by avoiding realization of the UriString property
-        if (this._parsedUri.HasValue && otherUri._parsedUri.HasValue)
+        if (this._parsedUri.Value is not null && otherUri._parsedUri.Value is not null)
         {
             if (this._parsedUri.Value.OriginalString == otherUri._parsedUri.Value.OriginalString)
                 return true;
