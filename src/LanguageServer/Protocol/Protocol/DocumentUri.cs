@@ -19,12 +19,26 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Compounding this problem, System.Uri will fail to parse various RFC spec valid URIs. In order to gracefully handle
 /// these issues, we defer the parsing of the URI until someone actually asks for it (and can handle the failure).
 /// </remarks>
-internal sealed record class DocumentUri(string UriString)
+internal sealed record class DocumentUri
 {
     private Optional<Uri> _parsedUri;
 
-    public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
+    public DocumentUri(string uriString)
+        => UriString = uriString;
+
+    public DocumentUri(Uri parsedUri)
         => _parsedUri = parsedUri;
+
+    public string UriString
+    {
+        get
+        {
+            if (field is null && _parsedUri.HasValue)
+                field = _parsedUri.Value.AbsoluteUri;
+
+            return field;
+        }
+    }
 
     /// <summary>
     /// Gets the parsed System.Uri for the URI string.
@@ -67,6 +81,14 @@ internal sealed record class DocumentUri(string UriString)
     {
         if (otherUri is null)
             return false;
+
+        // If we have parsed information for both URIs, compare the original strings for each.
+        // This avoids allocations by avoiding realization of the UriString property
+        if (this._parsedUri.HasValue && otherUri._parsedUri.HasValue)
+        {
+            if (this._parsedUri.Value.OriginalString == otherUri._parsedUri.Value.OriginalString)
+                return true;
+        }
 
         // 99% of the time the equivalent URIs will have equivalent URI strings, as the client is expected to be
         // consistent in how it sends the URIs to the server, either always encoded or always unencoded. See
