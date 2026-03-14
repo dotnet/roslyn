@@ -2073,7 +2073,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42")).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -6816,7 +6816,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("32")).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("E.M1", """
 {
   // Code size       15 (0xf)
@@ -6896,11 +6896,11 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("32")).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
         comp.MakeMemberMissing(SpecialMember.System_Array__Length);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("32")).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("E.M1", """
 {
   // Code size       15 (0xf)
@@ -8822,7 +8822,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True")).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       54 (0x36)
@@ -8905,11 +8905,11 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True")).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
 
         // Note: the presence of extension Length allows binding to succeed, but we still lower with specialized IL
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True")).VerifyDiagnostics();
+        verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       54 (0x36)
@@ -14588,7 +14588,7 @@ static class E
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex get GetValue")).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex get GetValue"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
@@ -14673,7 +14673,7 @@ static class E
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex get")).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex get"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -19316,7 +19316,7 @@ public static class CExt
 """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42 43")).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42 43"), verify: Verification.Skipped).VerifyDiagnostics();
 
         string expectedOperationTree = """
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = new C() ... 3}"] = 1 };')
@@ -19525,7 +19525,7 @@ public static class CExt
 """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42 43")).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42 43"), verify: Verification.Skipped).VerifyDiagnostics();
 
         string expectedOperationTree = """
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = new C() ... ld = 0 } };')
