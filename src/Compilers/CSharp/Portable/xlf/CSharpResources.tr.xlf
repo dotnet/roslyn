@@ -1634,7 +1634,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">C# {2} için geçersiz '{0}' değeri: '{1}'. Lütfen '{3}' veya daha yüksek bir dil sürümü kullanın.</target>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2399,7 +2399,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="translated">'{0}' tanınmayan bir RefSafetyRulesAttribute sürümüne sahip bir modülde tanımlandı ve '11' bekleniyor.</target>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
@@ -6820,7 +6820,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt sınıfı, tümü yapı, tümü kayıt yapısı veya tümü arabirim olmalıdır</target>
+        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
