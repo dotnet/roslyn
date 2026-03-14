@@ -399,6 +399,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -443,6 +444,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
                 ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
@@ -497,6 +499,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
                 ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
@@ -557,6 +560,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
                 ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).Returns(New MemoryStream())
                 ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
