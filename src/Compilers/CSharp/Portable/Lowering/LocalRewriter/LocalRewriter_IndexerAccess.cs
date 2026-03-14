@@ -1036,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenIndexerAccess;
 
             // `[start..]` can be optimized to use `.Substring(start)` or `.Slice(start)` overloads for some known types
-            static BoundExpression? tryLowerToSliceStart(BoundCall currentSliceCall, BoundExpression receiver, BoundExpression start, bool isSliceToEnd, LocalRewriter rewriter, SyntaxNode syntax)
+            static BoundExpression? tryLowerToSliceStart(BoundCall currentSliceCall, BoundExpression rewrittenReceiver, BoundExpression start, bool isSliceToEnd, LocalRewriter rewriter, SyntaxNode syntax)
             {
                 if (!isSliceToEnd)
                 {
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return rewriter.Factory.Call(rewriter.VisitExpression(receiver), startOverload, rewriter.VisitExpression(start));
+                return rewriter.Factory.Call(rewrittenReceiver, startOverload, rewriter.VisitExpression(start));
             }
 
             static MethodSymbol? tryGetStartOverload(MethodSymbol method, LocalRewriter rewriter, SyntaxNode syntax)
