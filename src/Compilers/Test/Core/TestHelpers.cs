@@ -168,7 +168,7 @@ namespace Roslyn.Test.Utilities
 
             return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
 
-            byte parseByte(ReadOnlySpan<char> input, NumberStyles numberStyle)
+            static byte parseByte(ReadOnlySpan<char> input, NumberStyles numberStyle)
             {
 #if NET
                 return byte.Parse(input, numberStyle);
