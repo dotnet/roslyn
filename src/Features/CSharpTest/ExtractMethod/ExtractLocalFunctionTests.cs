@@ -5551,4 +5551,41 @@ class Program
                 }
             }
             """, new(TestOptions.Regular, index: CodeActionIndex));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82031")]
+    public Task TestVarPatternInCompoundPattern()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public void M()
+                {
+                    [|while (Read() is not -1 and var raw)
+                    {
+                        _ = (char)raw;
+                    }|]
+                }
+
+                int Read() { return 0; }
+            }
+            """,
+            """
+            class C
+            {
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+
+                    void NewMethod()
+                    {
+                        while (Read() is not -1 and var raw)
+                        {
+                            _ = (char)raw;
+                        }
+                    }
+                }
+
+                int Read() { return 0; }
+            }
+            """, CodeActionIndex);
 }
