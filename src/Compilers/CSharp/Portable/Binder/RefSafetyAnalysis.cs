@@ -1310,6 +1310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
+            bool visitElements = true;
+
             if (node.CollectionCreation is { } collectionCreation)
             {
                 if (node.CollectionBuilderElementsPlaceholder is { } spanPlaceholder)
@@ -1327,16 +1329,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                     placeholders.Add((spanPlaceholder, SafeContextAndLocation.Create(safeContext)));
 
                     using var _ = new PlaceholderRegion(this, placeholders);
-                    Visit(collectionCreation);
+                    Visit(transformCollectionCreation(node, collectionCreation, out visitElements));
                 }
                 else
                 {
-                    Visit(collectionCreation);
+                    Visit(transformCollectionCreation(node, collectionCreation, out visitElements));
                 }
             }
 
-            VisitList(node.Elements);
+            if (visitElements)
+            {
+                VisitList(node.Elements);
+            }
+
             return null;
+
+            BoundExpression transformCollectionCreation(BoundCollectionExpression node, BoundExpression expression, out bool visitElements)
+            {
+                if (expression is BoundObjectCreationExpression objectCreation)
+                {
+                    Debug.Assert(objectCreation.InitializerExpressionOpt is null);
+                    Debug.Assert(node.Placeholder is not null);
+
+                    visitElements = false;
+
+                    TrackVisit(objectCreation);
+
+                    return objectCreation.Update(
+                        objectCreation.Constructor,
+                        objectCreation.Arguments,
+                        objectCreation.ArgumentNamesOpt,
+                        objectCreation.ArgumentRefKindsOpt,
+                        objectCreation.Expanded,
+                        objectCreation.ArgsToParamsOpt,
+                        objectCreation.DefaultArguments,
+                        objectCreation.ConstantValueOpt,
+                        initializerExpressionOpt:
+                            new BoundCollectionInitializerExpression(
+                                expression.Syntax,
+                                node.Placeholder,
+                                node.Elements.SelectAsArray(e => e is BoundCollectionExpressionSpreadElement spread ? spread.Expression : (BoundExpression)e),
+                                node.Type)
+                            { WasCompilerGenerated = true },
+                        objectCreation.Type);
+                }
+
+                visitElements = true;
+
+                return expression;
+            }
         }
 
         private static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
