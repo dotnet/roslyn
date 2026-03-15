@@ -126,6 +126,115 @@ public sealed class ProjectAppDirectiveCompletionProviderTests : AbstractAppDire
     // Therefore we do not have "negative tests" here for file names.
 }
 
+public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDirectiveCompletionProviderTests
+{
+    protected override string DirectiveKind => "include";
+
+    internal override Type GetCompletionProviderType()
+        => typeof(IncludeAppDirectiveCompletionProvider);
+
+    [Fact]
+    public async Task PathRecommendation_01()
+    {
+        using var tempRoot = new TempRoot();
+        var tempDirectory = tempRoot.CreateDirectory();
+        var nestedDirectory = tempDirectory.CreateDirectory("SubDirectory");
+        var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
+        var code = """
+            #:include $$
+            """;
+        var markup = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+                    <Document FilePath="{scriptFilePath}"><![CDATA[{code}]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemExistsAsync(markup, expectedItem: "SubDirectory");
+    }
+
+    [Fact]
+    public async Task PathRecommendation_02()
+    {
+        using var tempRoot = new TempRoot();
+        var tempDirectory = tempRoot.CreateDirectory();
+        var nestedDirectory = tempDirectory.CreateDirectory("SubDirectory");
+        var utilFile = nestedDirectory.CreateFile("Util.cs");
+        utilFile.WriteAllText("""
+            public class Util { }
+            """);
+
+        var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
+        var code = """
+            #:project SubDirectory/$$
+            """;
+        var markup = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+                    <Document FilePath="{scriptFilePath}"><![CDATA[{code}]]></Document>
+                </Project>
+            </Workspace>
+            """;
+        await VerifyItemExistsAsync(markup, expectedItem: "Util.cs");
+    }
+
+    [Fact]
+    public async Task PathRecommendation_03()
+    {
+        // Test a virtual file scenario (e.g. ctrl+N in VS Code or other cases where there is not an actual file on disk.)
+        var code = """
+            #:project $$
+            """;
+
+        var markup = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+                    <Document FilePath="Untitled-1" ResolveFilePath="false"><![CDATA[{code}]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        // In this case, only stuff like drive roots would be recommended.
+        var expectedRoot = PlatformInformation.IsWindows ? "C:" : "/";
+        await VerifyItemExistsAsync(markup, expectedRoot);
+    }
+
+    [Fact]
+    public async Task PathRecommendation_04()
+    {
+        // TODO2: do we recommend an unknown file type?
+        using var tempRoot = new TempRoot();
+        var tempDirectory = tempRoot.CreateDirectory();
+        var nestedDirectory = tempDirectory.CreateDirectory("SubDirectory");
+        var utilFile = nestedDirectory.CreateFile("UNKNOWN");
+        utilFile.WriteAllText("""
+            public class Util { }
+            """);
+
+        var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
+        var code = """
+            #:project SubDirectory/$$
+            """;
+        var globalAnalyzerConfig = """
+            is_global = true
+            build_property.FileBasedProgramsItemMapping = .cs=Compile;.resx=EmbeddedResource;.json=None;.razor=Content
+            """;
+        var markup = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+                    <Document FilePath="{scriptFilePath}"><![CDATA[{code}]]></Document>
+                    <AnalyzerConfigDocument FilePath="{Path.Combine(tempDirectory.Path, ".globalconfig")}"><![CDATA[{globalAnalyzerConfig}]]></AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+        await VerifyItemExistsAsync(markup, expectedItem: "UNKNOWN");
+    }
+
+    // Note: The editor uses a shared mechanism to filter out completion items which don't match the prefix of what the user is typing.
+    // Therefore we do not have "negative tests" here for file names.
+}
+
 public abstract class AbstractAppDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     /// <summary>The directive kind. For example, `package` in `#:package MyNugetPackage@Version`.</summary>
