@@ -4578,6 +4578,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return escape;
                     }
 
+                case BoundKind.DynamicObjectCreationExpression:
+                    // always returnable
+                    return CallingMethodScope;
+
                 case BoundKind.WithExpression:
                     var withExpression = (BoundWithExpression)expr;
 
@@ -5303,6 +5307,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return escape;
                     }
 
+                case BoundKind.DynamicObjectCreationExpression:
+                    // always returnable
+                    return true;
+
                 case BoundKind.WithExpression:
                     {
                         var withExpr = (BoundWithExpression)expr;
@@ -5556,7 +5564,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //                case BoundKind.StringInsert:
                     //                case BoundKind.DynamicIndexerAccess:
                     //                case BoundKind.Lambda:
-                    //                case BoundKind.DynamicObjectCreationExpression:
                     //                case BoundKind.NoPiaObjectCreationExpression:
                     //                case BoundKind.BaseReference:
                     //                case BoundKind.Literal:
