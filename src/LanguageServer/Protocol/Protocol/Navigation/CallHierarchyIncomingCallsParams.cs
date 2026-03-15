@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class CallHierarchyIncomingCallsParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<CallHierarchyIncomingCall[]>
+internal sealed class CallHierarchyIncomingCallsParams : IWorkDoneProgressParams, IPartialResultParams<CallHierarchyIncomingCall[]>
 {
     /// <summary>
     /// The item returned from `textDocument/prepareCallHierarchy`
@@ -29,9 +29,6 @@ internal sealed class CallHierarchyIncomingCallsParams : TextDocumentPositionPar
     public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// <see cref="LocationLink"/> may only be used if the client opts in via <see cref="DefinitionClientCapabilities.LinkSupport"/>
-    /// </remarks>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<CallHierarchyIncomingCall[]>? PartialResultToken { get; set; }
