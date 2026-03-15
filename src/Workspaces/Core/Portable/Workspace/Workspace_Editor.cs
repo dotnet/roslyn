@@ -279,8 +279,8 @@ public abstract partial class Workspace
 
     private SourceTextContainer? GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId)
     {
-        // TODO: remove linear search
-        return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+        _documentToAssociatedBufferMap.TryGetValue(documentId, out var container);
+        return container;
     }
 
     internal bool TryGetOpenSourceGeneratedDocumentIdentity(DocumentId id, out (SourceGeneratedDocumentIdentity identity, DateTime generationDateTime) documentIdentity)
