@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -35,6 +35,13 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
     /// </summary>
     internal PatternMatcherKind CouldContainNavigateToMatch(string patternName, string? patternContainer)
         => _navigateToSearchInfo.CouldContainNavigateToMatch(patternName, patternContainer);
+
+    /// <summary>
+    /// Evaluates a compiled <see cref="PatternMatching.RegexQuery"/> against this document's indexed
+    /// bigrams to determine if a regex pattern could match any symbol in the document.
+    /// </summary>
+    public bool RegexQueryCheckPasses(PatternMatching.RegexQuery query)
+        => _navigateToSearchInfo.RegexQueryCheckPasses(query);
 
     public static ValueTask<NavigateToSearchIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
@@ -73,6 +80,9 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
 
         public bool ContainerCheckPasses(string patternContainer)
             => index._navigateToSearchInfo.ContainerCheckPasses(patternContainer);
+
+        public bool RegexQueryCheckPasses(PatternMatching.RegexQuery query)
+            => index._navigateToSearchInfo.RegexQueryCheckPasses(query);
 
         public static NavigateToSearchIndex CreateIndex(ImmutableArray<DeclaredSymbolInfo> infos)
         {
