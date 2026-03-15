@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="ERR_CompilationOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
+        <target state="translated">C# {2}의 '{0}' 값 '{1}'이(가) 잘못되었습니다. 언어 버전 '{3}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -2729,7 +2729,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
         <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <target state="translated">'{2}'의 형식 매개 변수 '{1}'의 'new()' 제약 조건을 충족하려면 'RequiresUnsafe' 또는 'extern'으로 표시된 생성자 '{0}'에 안전하지 않은 컨텍스트가 필요합니다.</target>
         <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">

@@ -71,8 +71,8 @@
          (if we used Content items they would get included in the VSIX by VSSDK by default).
   -->
   
-  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
   
   <Target Name="_SetGeneratePkgDefInputsOutputs">
     <PropertyGroup>

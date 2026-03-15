@@ -6,9 +6,9 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26160.1</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26160.1</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26160.1</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26164.1</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26164.1</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26164.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet-arcade-services dependencies -->
     <MicrosoftDotNetDarcLibPackageVersion>1.1.0-beta.25161.2</MicrosoftDotNetDarcLibPackageVersion>
     <!-- dotnet-dotnet dependencies -->
@@ -23,7 +23,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.1</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.1</MicrosoftExtensionsPrimitivesPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.1</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-preview.3.26160.112</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-preview.3.26164.102</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.1</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>10.0.1</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.1</SystemConfigurationConfigurationManagerPackageVersion>

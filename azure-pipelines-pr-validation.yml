@@ -19,9 +19,6 @@ parameters:
 - name: VisualStudioBranchName
   type: string
   default: default
-- name: OptionalTitlePrefix
-  type: string
-  default: '[PR Validation]'
 - name: VisualStudioCherryPickSHA
   type: string
   default: '(default)'
@@ -353,7 +350,7 @@ extends:
             devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
             dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
-            titlePrefix: ${{ parameters.OptionalTitlePrefix }}
+            titlePrefix: "[PR - #${{ parameters.PRNumber }}]"
             sourceBranch: $(ComponentBranchName)
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
