@@ -36,13 +36,15 @@ namespace Microsoft.CodeAnalysis
 
             if (input1Table.IsCached && input2Table.IsCached && previousTable is not null)
             {
-                this.LogTables(_name, s_tableType, previousTable, previousTable, input1Table, input2Table);
+                this.LogTables(_name, s_tableType, previousTable, previousTable, input1Table, input2Table, TimeSpan.Zero);
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
                     return RecordStepsForCachedTable(graphState, previousTable, input1Table, input2Table);
                 }
                 return previousTable;
             }
+
+            var tableStopwatch = SharedStopwatch.StartNew();
 
             var totalEntryItemCount = input1Table.GetTotalEntryItemCount();
             var tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             var isInput2Cached = input2Table.IsCached;
             (TInput2 input2, IncrementalGeneratorRunStep? input2Step) = input2Table.Single();
 
-            // append the input2 item to each item in input1 
+            // append the input2 item to each item in input1
             foreach (var entry1 in input1Table)
             {
                 var stopwatch = SharedStopwatch.StartNew();
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(tableBuilder.Count == totalEntryItemCount);
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, s_tableType, previousTable, newTable, input1Table, input2Table);
+            this.LogTables(_name, s_tableType, previousTable, newTable, input1Table, input2Table, tableStopwatch.Elapsed);
             return newTable;
         }
 

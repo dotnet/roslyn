@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -113,6 +114,8 @@ namespace Microsoft.CodeAnalysis
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
 
+            var tableStopwatch = SharedStopwatch.StartNew();
+
             // Semantics of a batch transform:
             // Batches will always exist (a batch of the empty table is still [])
             // There is only ever one input, the batch of the upstream table
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable, tableStopwatch.Elapsed);
             return newTable;
         }
 

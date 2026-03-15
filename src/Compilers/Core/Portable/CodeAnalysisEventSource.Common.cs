@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis
         [Event(5, Message = "Generator '{0}' failed with exception: {1}", Level = EventLevel.Error)]
         internal void GeneratorException(string generatorName, string exception) => WriteEvent(5, generatorName, exception);
 
-        [Event(6, Message = "Node {0} transformed", Keywords = Keywords.Correctness, Level = EventLevel.Verbose, Task = Tasks.BuildStateTable)]
-        internal unsafe void NodeTransform(int nodeHashCode, string name, string tableType, int previousTable, string previousTableContent, int newTable, string newTableContent, int input1, int input2)
+        [Event(6, Message = "Node {0} transformed in {9} ticks", Keywords = Keywords.Correctness, Level = EventLevel.Verbose, Task = Tasks.BuildStateTable)]
+        internal unsafe void NodeTransform(int nodeHashCode, string name, string tableType, int previousTable, string previousTableContent, int newTable, string newTableContent, int input1, int input2, long elapsedTicks)
         {
             if (IsEnabled())
             {
@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis
                         GetEventDataForString(newTableContent, newTableContentBytes),
                         GetEventDataForInt32(&input1),
                         GetEventDataForInt32(&input2),
+                        GetEventDataForInt64(&elapsedTicks),
                     };
 
                     fixed (EventSource.EventData* dataPtr = data)

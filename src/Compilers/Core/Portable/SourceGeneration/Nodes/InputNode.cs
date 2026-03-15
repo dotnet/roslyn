@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
         {
-            var stopwatch = SharedStopwatch.StartNew();
             var inputItems = _getInput(graphState);
-            TimeSpan elapsedTime = stopwatch.Elapsed;
+
+            var stopwatch = SharedStopwatch.StartNew();
 
             // create a mutable hashset of the new items we can check against
             var itemsSet = (_inputComparer == EqualityComparer<T>.Default) ? PooledHashSet<T>.GetInstance() : new HashSet<T>(_inputComparer);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                     if (itemsSet.Remove(oldItem))
                     {
                         // we're iterating the table, so know that it has entries
-                        var usedCache = tableBuilder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
+                        var usedCache = tableBuilder.TryUseCachedEntries(stopwatch.Elapsed, noInputStepsStepInfo);
                         Debug.Assert(usedCache);
                     }
                     else if (inputItems.Length == previousTable.Count)
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis
                         // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
                         // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
                         // but will perform an extra comparison that is omitted in the pure 'added' case.
-                        var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], elapsedTime, noInputStepsStepInfo, EntryState.Modified);
+                        var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Modified);
                         Debug.Assert(modified);
                         itemsSet.Remove(inputItems[itemIndex]);
                     }
                     else
                     {
-                        var removed = tableBuilder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
+                        var removed = tableBuilder.TryRemoveEntries(stopwatch.Elapsed, noInputStepsStepInfo);
                         Debug.Assert(removed);
                     }
                     itemIndex++;
@@ -99,11 +99,11 @@ namespace Microsoft.CodeAnalysis
             // any remaining new items are added
             foreach (var newItem in itemsSet)
             {
-                tableBuilder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
+                tableBuilder.AddEntry(newItem, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(previousTable, newTable, inputItems);
+            this.LogTables(previousTable, newTable, inputItems, stopwatch.Elapsed);
 
             (itemsSet as PooledHashSet<T>)?.Free();
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
 
-        private void LogTables(NodeStateTable<T>? previousTable, NodeStateTable<T> newTable, ImmutableArray<T> inputs)
+        private void LogTables(NodeStateTable<T>? previousTable, NodeStateTable<T> newTable, ImmutableArray<T> inputs, TimeSpan elapsedTime)
         {
             if (!CodeAnalysisEventSource.Log.IsEnabled())
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             }
             var inputTable = tableBuilder.ToImmutableAndFree();
 
-            this.LogTables(_name, s_tableType, previousTable, newTable, inputTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, inputTable, elapsedTime);
         }
     }
 }

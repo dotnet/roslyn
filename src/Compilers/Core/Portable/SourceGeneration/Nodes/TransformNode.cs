@@ -49,13 +49,15 @@ namespace Microsoft.CodeAnalysis
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
             if (sourceTable.IsCached && previousTable is not null)
             {
-                this.LogTables(_name, s_tableType, previousTable, previousTable, sourceTable);
+                this.LogTables(_name, s_tableType, previousTable, previousTable, sourceTable, TimeSpan.Zero);
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
                     return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name, _comparer);
                 }
                 return previousTable;
             }
+
+            var tableStopwatch = SharedStopwatch.StartNew();
 
             // Semantics of a transform:
             // Element-wise comparison of upstream table
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis
             // Can't assert anything about the count of items.  _func may have produced a different amount of items if
             // it's not a 1:1 function.
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable, tableStopwatch.Elapsed);
             return newTable;
         }
 
