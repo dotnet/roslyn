@@ -64,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalMethod.IsIterator; }
         }
 
+        public sealed override bool IsAsync => _originalMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => _originalMethod.RuntimeAsyncMethodGenerationAttributeSetting;
+
         internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             return _originalMethod.CalculateLocalSyntaxOffset(localPosition, localTree);

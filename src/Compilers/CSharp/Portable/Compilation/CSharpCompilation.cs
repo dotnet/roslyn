@@ -362,11 +362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
             Debug.Assert(method.IsDefinition);
+            Debug.Assert(method is not Symbols.Metadata.PE.PEMethodSymbol);
 
-            var runtimeAsyncEnabledInMethod = symbol switch
+            var runtimeAsyncEnabledInMethod = method.RuntimeAsyncMethodGenerationAttributeSetting switch
             {
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
+                ThreeState.True => true,
+                ThreeState.False => false,
                 _ => Feature(CodeAnalysis.Feature.RuntimeAsync) == "on"
             };
 

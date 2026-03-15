@@ -503,6 +503,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => _reducedFrom.FlowAnalysisAnnotations;
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.RefCustomModifiers); }
