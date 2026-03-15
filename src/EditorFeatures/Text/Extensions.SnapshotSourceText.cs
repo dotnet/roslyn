@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -23,6 +24,10 @@ public static partial class Extensions
     /// </summary>
     private class SnapshotSourceText : SourceText
     {
+        // 32k characters. Equivalent to 64KB in memory bytes.  Will not be put into the LOH.
+        private const int SourceTextLengthThreshold = 32 * 1024;
+
+        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[SourceTextLengthThreshold], size: 2);
 
         /// <summary>
         /// The <see cref="ITextImage"/> backing the SourceText instance
@@ -306,8 +311,26 @@ public static partial class Extensions
             }
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
             => this.TextImage.CopyTo(sourceIndex, destination, destinationIndex, count);
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
+        {
+            // As ITextImage2 isn't exposed, we can't use the Span based CopyTo directly.
+            // Instead, we invoke the array based CopyTo method and copy it's results to destination.
+            var usePooledArray = count <= SourceTextLengthThreshold;
+            var buffer = usePooledArray ? s_charArrayPool.Allocate() : new char[count];
+
+            this.TextImage.CopyTo(sourceIndex, buffer, 0, count);
+
+            buffer.AsSpan(0, count).CopyTo(destination);
+
+            if (usePooledArray)
+            {
+                s_charArrayPool.Free(buffer);
+            }
+        }
 
         public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken)
             => this.TextImage.Write(textWriter, span.ToSpan());

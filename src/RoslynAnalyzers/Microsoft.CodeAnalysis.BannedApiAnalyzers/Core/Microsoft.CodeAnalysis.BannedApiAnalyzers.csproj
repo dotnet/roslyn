@@ -8,6 +8,7 @@
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_USINGSOURCEPACKAGEBUILD</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />

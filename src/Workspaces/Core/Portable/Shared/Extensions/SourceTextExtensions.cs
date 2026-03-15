@@ -213,7 +213,7 @@ internal static partial class SourceTextExtensions
             cancellationToken.ThrowIfCancellationRequested();
 
             var count = Math.Min(buffer.Length, length - offset);
-            sourceText.CopyTo(offset, buffer, 0, count);
+            sourceText.CopyTo(offset, buffer, count);
 
             writer.WriteCharArray(buffer, 0, count);
 

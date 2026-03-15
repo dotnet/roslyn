@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             position = Math.Min(position, _textEnd);
 
             var amountToRead = Math.Min(_textEnd - position, DefaultWindowLength);
-            this.Text.CopyTo(position, _characterWindow.Array!, 0, amountToRead);
+            this.Text.CopyTo(position, _characterWindow.Array!, amountToRead);
             _characterWindowStartPositionInText = position;
             _characterWindow = new(_characterWindow.Array!, 0, amountToRead);
         }

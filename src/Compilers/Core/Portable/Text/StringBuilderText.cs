@@ -85,9 +85,22 @@ namespace Microsoft.CodeAnalysis.Text
             return _builder.ToString(span.Start, span.Length);
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
+        }
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
+        {
+#if NET
+            _builder.CopyTo(sourceIndex, destination, count);
+#else
+            for (int i = 0; i < count; i++)
+            {
+                destination[i] = _builder[sourceIndex + i];
+            }
+#endif
         }
     }
 }

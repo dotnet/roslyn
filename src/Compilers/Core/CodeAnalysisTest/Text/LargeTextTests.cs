@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             char[] buffer = new char[HelloWorld.Length + destOffset];
 
             // Copy the entire text to a non-zero offset in the destination
-            text.CopyTo(0, buffer, destOffset, text.Length);
+            text.CopyTo(0, buffer.AsSpan(destOffset), text.Length);
 
             for (int i = 0; i < destOffset; i++)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Array.Clear(buffer, 0, buffer.Length);
 
             // Copy a sub-string
-            text.CopyTo(3, buffer, 0, 3);
+            text.CopyTo(3, buffer, 3);
             Assert.Equal(HelloWorld[3], buffer[0]);
             Assert.Equal(HelloWorld[4], buffer[1]);
             Assert.Equal(HelloWorld[5], buffer[2]);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 char[] buffer = new char[HelloWorld.Length];
                 for (int start = 0; start < text.Length; start += HelloWorld.Length)
                 {
-                    text.CopyTo(start, buffer, 0, HelloWorld.Length);
+                    text.CopyTo(start, buffer, HelloWorld.Length);
                     Assert.Equal(HelloWorld, new string(buffer));
                 }
             }
