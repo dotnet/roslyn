@@ -2281,6 +2281,15 @@ done:
                         }
                         break;
 
+                    case SyntaxKind.AddressOfExpression:
+                        // When the parent of an AddressOf is an explicit cast, the bound node is associated with the cast, instead of the address of.
+                        var bindableParent = GetBindableParentNode(node);
+                        if (bindableParent.IsKind(SyntaxKind.CastExpression))
+                        {
+                            return bindableParent;
+                        }
+                        break;
+
                     default:
                         if (node is QueryExpressionSyntax && parent is QueryContinuationSyntax ||
                             !(node is ExpressionSyntax) &&
