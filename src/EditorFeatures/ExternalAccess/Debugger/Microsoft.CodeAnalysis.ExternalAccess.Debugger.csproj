@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
