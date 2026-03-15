@@ -18,6 +18,8 @@
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Common</PackageId>
+    <UseRoslynAnalyzersFromSource>true</UseRoslynAnalyzersFromSource>
+    <IncludeRoslynAnalyzersPackageDependency>true</IncludeRoslynAnalyzersPackageDependency>
     <PackageDescription>
       A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
@@ -27,14 +29,6 @@
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>
   <ItemGroup>
-    <!--
-      Analyzers that will be used to analyze projects that references
-      Microsoft.CodeAnalysis project or Microsoft.CodeAnalysis.Common package.
-
-      Note: PrivateAssets="ContentFiles" ensures that projects referencing Microsoft.CodeAnalysis.Common package
-      will import everything but content files from Microsoft.CodeAnalysis.Analyzers, specifically, analyzers.
-    -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Condition="'$(DotNetBuildSourceOnly)' != 'true'" PrivateAssets="ContentFiles" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" />
