@@ -44,5 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
             End If
         End Function
 
+        Protected Overrides Function IsRegularCommentOrDocumentationComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind() = SyntaxKind.CommentTrivia OrElse trivia.Kind() = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
     End Class
 End Namespace
