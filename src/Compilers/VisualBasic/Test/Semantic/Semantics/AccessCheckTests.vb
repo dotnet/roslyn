@@ -2287,5 +2287,366 @@ BC30389: 'A' is not accessible in this context because it is 'Friend'.
 </expected>)
         End Sub
 
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        <InlineData("Public")>
+        <InlineData("Friend")>
+        Public Sub EmbeddedAttribute_IsSymbolAccessibleWithin(accessibility As String)
+            ' Create assembly 1 with a Public type marked with EmbeddedAttribute
+            Dim source1 = $"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")>
+
+Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<Microsoft.CodeAnalysis.Embedded>
+{accessibility} Class Sample
+End Class
+
+{accessibility} Class NonEmbeddedSample
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source1, assemblyName:="Assembly1")
+            comp1.AssertTheseDiagnostics()
+
+            Dim sampleTypeInComp1 = comp1.GetTypeByMetadataName("Sample")
+            Dim nonEmbeddedTypeInComp1 = comp1.GetTypeByMetadataName("NonEmbeddedSample")
+            Assert.NotNull(sampleTypeInComp1)
+            Assert.NotNull(nonEmbeddedTypeInComp1)
+            Assert.True(sampleTypeInComp1.HasCodeAnalysisEmbeddedAttribute)
+
+            ' The symbol should be accessible within its own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(sampleTypeInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(sampleTypeInComp1, nonEmbeddedTypeInComp1))
+
+            ' Create assembly 2 that references assembly 1
+            Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1.ToMetadataReference()}, assemblyName:="Assembly2")
+
+            ' Get the Sample type from the referenced assembly
+            Dim assembly1Symbol = DirectCast(comp2, VisualBasicCompilation).GetReferencedAssemblySymbol(comp1.ToMetadataReference())
+            Dim sampleSymbol = assembly1Symbol.GetTypeByMetadataName("Sample")
+            Assert.NotNull(sampleSymbol)
+            Dim nonEmbeddedSampleSymbol = comp2.GetTypeByMetadataName("NonEmbeddedSample")
+            Assert.NotNull(nonEmbeddedSampleSymbol)
+
+            Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp2.Assembly
+
+            ' Even with InternalsVisibleTo and public accessibility, symbols with EmbeddedAttribute should not be accessible from another assembly
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(sampleSymbol, otherClassSymbol))
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(sampleSymbol, assembly2Symbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nonEmbeddedSampleSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nonEmbeddedSampleSymbol, assembly2Symbol))
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        <CombinatorialData>
+        Public Sub EmbeddedAttribute_NestedType_OnOuterType_IsSymbolAccessibleWithin(<CombinatorialValues("Public", "Friend")> outerAccessibility As String, <CombinatorialValues("Public", "Friend")> innerAccessibility As String)
+            ' Test that nested types within an EmbeddedAttribute-decorated type are also inaccessible
+            Dim source1 = $"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")>
+
+Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<Microsoft.CodeAnalysis.Embedded>
+{outerAccessibility} Class OuterSample
+    {innerAccessibility} Class Nested
+    End Class
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source1, assemblyName:="Assembly1")
+            comp1.AssertTheseDiagnostics()
+
+            Dim outerSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample")
+            Dim nestedPublicSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+Nested")
+            Assert.NotNull(outerSymbolInComp1)
+            Assert.NotNull(nestedPublicSymbolInComp1)
+
+            ' The types should be accessible within their own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(outerSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbolInComp1, outerSymbolInComp1))
+
+            Dim comp1Reference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1Reference}, assemblyName:="Assembly2")
+
+            ' Get types from the referenced assembly
+            Dim assembly1Symbol = DirectCast(comp2, VisualBasicCompilation).GetReferencedAssemblySymbol(comp1Reference)
+            Dim outerSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample")
+            Dim nestedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+Nested")
+            Assert.NotNull(outerSymbol)
+            Assert.NotNull(nestedPublicSymbol)
+
+            Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp2.Assembly
+
+            ' The outer type with EmbeddedAttribute should not be accessible
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, otherClassSymbol))
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, assembly2Symbol))
+
+            ' Nested types should not be accessible if the outer type has EmbeddedAttribute
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbol, otherClassSymbol))
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbol, assembly2Symbol))
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        <CombinatorialData>
+        Public Sub EmbeddedAttribute_NestedType_OnNestedType_IsSymbolAccessibleWithin(<CombinatorialValues("Public", "Friend")> outerAccessibility As String, <CombinatorialValues("Public", "Friend")> innerAccessibility As String)
+            ' Test that nested types within an EmbeddedAttribute-decorated type are also inaccessible
+            Dim source1 = $"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")>
+
+Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+{outerAccessibility} Class OuterSample
+    <Microsoft.CodeAnalysis.Embedded>
+    {innerAccessibility} Class NestedEmbedded
+    End Class
+
+    {innerAccessibility} Class NestedNonEmbedded
+    End Class
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source1, assemblyName:="Assembly1")
+            comp1.AssertTheseDiagnostics()
+
+            Dim outerSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample")
+            Dim nestedEmbeddedSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+NestedEmbedded")
+            Dim nestedNonEmbeddedSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+NestedNonEmbedded")
+
+            Assert.NotNull(outerSymbolInComp1)
+            Assert.NotNull(nestedEmbeddedSymbolInComp1)
+            Assert.NotNull(nestedNonEmbeddedSymbolInComp1)
+
+            ' The types should be accessible within their own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(outerSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbolInComp1, outerSymbolInComp1))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedSymbolInComp1, outerSymbolInComp1))
+
+            Dim comp1Reference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1Reference}, assemblyName:="Assembly2")
+
+            ' Get types from the referenced assembly
+            Dim assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1Reference)
+            Dim outerSymbol = comp2.GetTypeByMetadataName("OuterSample")
+            Dim nestedEmbeddedSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedEmbedded")
+            Dim nestedNonEmbeddedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedNonEmbedded")
+            Assert.NotNull(outerSymbol)
+            Assert.NotNull(nestedEmbeddedSymbol)
+            Assert.NotNull(nestedNonEmbeddedPublicSymbol)
+
+            Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp2.Assembly
+
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, assembly2Symbol))
+
+            ' Embedded on a nested type has no effect
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbol, assembly2Symbol))
+
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, assembly2Symbol))
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        <InlineData("Public")>
+        <InlineData("Friend")>
+        Public Sub VisualBasicEmbeddedAttribute_IsSymbolAccessibleWithin(accessibility As String)
+            ' Test that types with Microsoft.VisualBasic.Embedded attribute are not accessible from other assemblies
+            ' We create a VB compilation without VB runtime to define the attribute manually
+            Dim source1 = $"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")>
+
+Namespace Microsoft.VisualBasic
+    Friend NotInheritable Class Embedded
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<Microsoft.VisualBasic.Embedded>
+{accessibility} Class Sample
+End Class
+
+{accessibility} Class NonEmbeddedSample
+End Class
+"
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll, assemblyName:="Assembly1")
+            comp1.AssertTheseDiagnostics()
+
+            Dim sampleTypeInComp1 = comp1.GetTypeByMetadataName("Sample")
+            Dim nonEmbeddedTypeInComp1 = comp1.GetTypeByMetadataName("NonEmbeddedSample")
+            Assert.NotNull(sampleTypeInComp1)
+            Assert.NotNull(nonEmbeddedTypeInComp1)
+            Assert.True(sampleTypeInComp1.HasVisualBasicEmbeddedAttribute)
+
+            ' The symbol should be accessible within its own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(sampleTypeInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(sampleTypeInComp1, nonEmbeddedTypeInComp1))
+
+            Dim comp1Reference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1Reference}, assemblyName:="Assembly2")
+            comp2.AssertNoDiagnostics()
+
+            ' Get the Sample type from the referenced assembly
+            Dim assembly1Symbol = DirectCast(comp2, VisualBasicCompilation).GetReferencedAssemblySymbol(comp1Reference)
+            Dim sampleSymbol = assembly1Symbol.GetTypeByMetadataName("Sample")
+            Assert.NotNull(sampleSymbol)
+            Dim nonEmbeddedSampleSymbol = comp2.GetTypeByMetadataName("NonEmbeddedSample")
+            Assert.NotNull(nonEmbeddedSampleSymbol)
+
+            Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp2.Assembly
+
+            ' Even with InternalsVisibleTo and public accessibility, symbols with VB.Embedded should not be accessible from another assembly
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(sampleSymbol, otherClassSymbol))
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(sampleSymbol, assembly2Symbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nonEmbeddedSampleSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nonEmbeddedSampleSymbol, assembly2Symbol))
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        <CombinatorialData>
+        Public Sub VisualBasicEmbeddedAttribute_NestedType_OnOuterType_IsSymbolAccessibleWithin(<CombinatorialValues("Public", "Friend")> outerAccessibility As String, <CombinatorialValues("Public", "Friend")> innerAccessibility As String)
+            ' Test that nested types within a VB.Embedded-decorated type are also inaccessible
+            Dim source1 = $"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")>
+
+Namespace Microsoft.VisualBasic
+    Friend NotInheritable Class Embedded
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<Microsoft.VisualBasic.Embedded>
+{outerAccessibility} Class OuterSample
+    {innerAccessibility} Class Nested
+    End Class
+End Class
+"
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll, assemblyName:="Assembly1")
+            comp1.AssertTheseDiagnostics()
+
+            Dim outerSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample")
+            Dim nestedPublicSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+Nested")
+            Assert.NotNull(outerSymbolInComp1)
+            Assert.NotNull(nestedPublicSymbolInComp1)
+
+            ' The types should be accessible within their own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(outerSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbolInComp1, outerSymbolInComp1))
+
+            Dim comp1Reference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1Reference}, assemblyName:="Assembly2")
+
+            ' Get types from the referenced assembly
+            Dim assembly1Symbol = DirectCast(comp2, VisualBasicCompilation).GetReferencedAssemblySymbol(comp1Reference)
+            Dim outerSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample")
+            Dim nestedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+Nested")
+            Assert.NotNull(outerSymbol)
+            Assert.NotNull(nestedPublicSymbol)
+
+            Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp2.Assembly
+
+            ' The outer type with VB.Embedded should not be accessible
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, otherClassSymbol))
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, assembly2Symbol))
+
+            ' Nested types should not be accessible if the outer type has VB.Embedded
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbol, otherClassSymbol))
+            Assert.False(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedPublicSymbol, assembly2Symbol))
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76584")>
+        <CombinatorialData>
+        Public Sub VisualBasicEmbeddedAttribute_NestedType_OnNestedType_IsSymbolAccessibleWithin(<CombinatorialValues("Public", "Friend")> outerAccessibility As String, <CombinatorialValues("Public", "Friend")> innerAccessibility As String)
+            ' Test that VB.Embedded on a nested type has no effect
+            Dim source1 = $"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Assembly2"")>
+
+Namespace Microsoft.VisualBasic
+    Friend NotInheritable Class Embedded
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+{outerAccessibility} Class OuterSample
+    <Microsoft.VisualBasic.Embedded>
+    {innerAccessibility} Class NestedEmbedded
+    End Class
+
+    {innerAccessibility} Class NestedNonEmbedded
+    End Class
+End Class
+"
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll, assemblyName:="Assembly1")
+            comp1.AssertTheseDiagnostics()
+
+            Dim outerSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample")
+            Dim nestedEmbeddedSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+NestedEmbedded")
+            Dim nestedNonEmbeddedSymbolInComp1 = comp1.GetTypeByMetadataName("OuterSample+NestedNonEmbedded")
+
+            Assert.NotNull(outerSymbolInComp1)
+            Assert.NotNull(nestedEmbeddedSymbolInComp1)
+            Assert.NotNull(nestedNonEmbeddedSymbolInComp1)
+
+            ' The types should be accessible within their own assembly
+            Dim assembly1SymbolCurrent = comp1.Assembly
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(outerSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbolInComp1, outerSymbolInComp1))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedSymbolInComp1, assembly1SymbolCurrent))
+            Assert.True(DirectCast(comp1, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedSymbolInComp1, outerSymbolInComp1))
+
+            Dim comp1Reference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation("Class OtherClass : End Class", references:={comp1Reference}, assemblyName:="Assembly2")
+
+            ' Get types from the referenced assembly
+            Dim assembly1Symbol = comp2.GetReferencedAssemblySymbol(comp1Reference)
+            Dim outerSymbol = comp2.GetTypeByMetadataName("OuterSample")
+            Dim nestedEmbeddedSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedEmbedded")
+            Dim nestedNonEmbeddedPublicSymbol = assembly1Symbol.GetTypeByMetadataName("OuterSample+NestedNonEmbedded")
+            Assert.NotNull(outerSymbol)
+            Assert.NotNull(nestedEmbeddedSymbol)
+            Assert.NotNull(nestedNonEmbeddedPublicSymbol)
+
+            Dim otherClassSymbol = comp2.GetTypeByMetadataName("OtherClass")
+            Dim assembly2Symbol = comp2.Assembly
+
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(outerSymbol, assembly2Symbol))
+
+            ' VB.Embedded on a nested type has no effect
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedEmbeddedSymbol, assembly2Symbol))
+
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, otherClassSymbol))
+            Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, assembly2Symbol))
+        End Sub
     End Class
 End Namespace
