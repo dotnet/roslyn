@@ -402,6 +402,22 @@ class C
 end class")
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81530")>
+        Public Async Function TestNotWithIterationVariableInTupleExpression() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Test(array As String())
+        Dim tuples As New List(Of (Value As String, Index As Integer))
+        [||]For i = 0 To array.Length - 1
+            tuples.Add((array(i), i))
+        Next
+    End Sub
+End Class")
+        End Function
+
         <Fact>
         Public Async Function TestWarningIfCollectionWrittenTo() As Task
             Await TestInRegularAndScriptAsync(
