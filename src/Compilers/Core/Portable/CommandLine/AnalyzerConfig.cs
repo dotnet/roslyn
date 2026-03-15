@@ -257,12 +257,15 @@ namespace Microsoft.CodeAnalysis
             addNewSection();
 
             // Normalize the path to file the same way named sections are
-            pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
+            pathToFile = PathUtilities.NormalizePathForEditorConfig(pathToFile);
 
             return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
+                // Don't normalize section names during parsing - they may contain glob patterns
+                // or escape sequences that should be preserved. Only normalize the drive letter
+                // for case-insensitive comparison on Windows.
                 var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
 
                 // Close out the previous section
