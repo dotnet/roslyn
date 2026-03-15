@@ -482,6 +482,7 @@ class X
                             Assert.Equal(10, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules:
+                        case ErrorCode.WRN_UnsafeMeaningless:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 11 and C# 15.
                             Assert.Equal(11, ErrorFacts.GetWarningLevel(errorCode));
                             break;

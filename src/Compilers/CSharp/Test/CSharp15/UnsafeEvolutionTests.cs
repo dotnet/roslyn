@@ -2711,6 +2711,76 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeDeclarations()
+    {
+        var source = """
+            #pragma warning disable CS0169 // unused field
+            #pragma warning disable CS8019 // unused using
+            #pragma warning disable CS8321 // unused local function
+            using static unsafe System.Collections.Generic.List<int*[]>;
+            using unsafe U = int*;
+            unsafe void F() { }
+            unsafe class C;
+            unsafe struct S;
+            unsafe interface I;
+            unsafe enum E { A }
+            unsafe record R;
+            unsafe delegate void D();
+            class X
+            {
+                unsafe X() { }
+                unsafe ~X() { }
+                unsafe int f;
+                unsafe void M() { }
+                unsafe int P { get; set; }
+                unsafe event System.Action E { add { } remove { } }
+                public static unsafe implicit operator int(X x) => 0;
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
+            // unsafe enum E { A }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
+        };
+
+        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(10)).VerifyDiagnostics(expectedDiagnostics);
+
+        expectedDiagnostics =
+        [
+            // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
+            // unsafe enum E { A }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
+            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+            // unsafe delegate void D();
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22),
+        ];
+
+        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(11)).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation([source, IsExternalInitTypeDefinition],
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation([source, IsExternalInitTypeDefinition],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
+            // unsafe enum E { A }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
+            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+            // unsafe delegate void D();
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22));
+    }
+
+    [Fact]
     public void Member_LangVersion()
     {
         CSharpTestSource source =
@@ -3125,8 +3195,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_ConvertToDelegate()
     {
-        // https://github.com/dotnet/roslyn/issues/82546: confirm with LDM that delegates cannot be marked caller-unsafe;
-        //      then unsafe modifier on a delegate should result in a warning
         CompileAndVerifyUnsafe(
             lib: """
                 public static class C
@@ -3155,6 +3223,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,8): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
                 // D2 b = C.M;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M").WithArguments("C.M()").WithLocation(2, 8),
+                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+                // unsafe delegate void D2();
+                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(7, 22),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib:
+            [
+                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+                // unsafe delegate void D2();
+                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(7, 22),
             ]);
     }
 

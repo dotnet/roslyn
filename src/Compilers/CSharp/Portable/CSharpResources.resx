@@ -8276,6 +8276,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</value>
     <comment>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</comment>
   </data>
+  <data name="WRN_UnsafeMeaningless" xml:space="preserve">
+    <value>The 'unsafe' modifier does not have any effect here under the current rules.</value>
+    <comment>'unsafe' is a keyword, should not be localized.</comment>
+  </data>
+  <data name="WRN_UnsafeMeaningless_Title" xml:space="preserve">
+    <value>The 'unsafe' modifier does not have any effect here under the current rules.</value>
+    <comment>'unsafe' is a keyword, should not be localized.</comment>
+  </data>
   <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</value>
     <comment>'await foreach' is not localizable</comment>

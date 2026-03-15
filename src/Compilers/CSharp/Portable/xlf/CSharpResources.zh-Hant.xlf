@@ -5930,6 +5930,16 @@ strument:TestCoverage      產生檢測要收集
         <target state="translated">參數未讀取。是否忘記使用該參數來初始化該名稱的屬性?</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
         <target state="translated">UnscopedRefAttribute 只在 C# 11 或更新版本中有效，或以 net7.0 或更新版本為目標時有效。</target>

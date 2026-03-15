@@ -375,6 +375,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);
             }
 
+            if (!modifierErrors &&
+                typeKind == TypeKind.Delegate &&
+                (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                this.ContainingModule.UseUpdatedMemorySafetyRules)
+            {
+                diagnostics.Add(ErrorCode.WRN_UnsafeMeaningless, GetFirstLocation());
+            }
+
             switch (typeKind)
             {
                 case TypeKind.Interface:
