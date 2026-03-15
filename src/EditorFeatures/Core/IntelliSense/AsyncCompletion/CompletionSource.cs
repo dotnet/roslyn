@@ -377,13 +377,7 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
     {
         if (_isDebuggerTextView)
         {
-            options = options with
-            {
-                FilterOutOfScopeLocals = false,
-                ShowXmlDocCommentCompletion = false,
-                // Adding import is not allowed in debugger view
-                CanAddImportStatement = false,
-            };
+            options = options.WithDebuggerOverrides();
         }
 
         var completionService = document.GetRequiredLanguageService<CompletionService>();

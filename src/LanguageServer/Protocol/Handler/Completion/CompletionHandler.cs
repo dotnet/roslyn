@@ -183,7 +183,6 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
 
         return (completionList, resultId);
     }
-
     private static (CompletionList CompletionList, bool IsIncomplete, bool isHardSelection) FilterCompletionList(
         CompletionList completionList,
         int completionListMaxSize,

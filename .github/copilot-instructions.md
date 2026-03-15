@@ -12,6 +12,7 @@
 ## Development Workflow
 
 **Building**:
+- Prefer Visual Studio-hosted or VS Code-hosted build/test validation over command-line `dotnet build` when the host can build the target project.
 - `build.sh` - Full solution build
 - `dotnet build Compilers.slnf` - Compiler-only build  
 - `dotnet msbuild <path to csproj> /t:UpdateXlf` - Update .xlf files when their corresponding .resx file is modified
