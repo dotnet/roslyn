@@ -7044,13 +7044,13 @@ public class D
 ";
             var comp = CreateCompilation(src);
             AssertEx.SetEqual(new string[] { "A..ctor()" },
-                comp.GlobalNamespace.GetTypeMember("A").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("A").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
             AssertEx.SetEqual(new string[] { "B..ctor()" },
-                comp.GlobalNamespace.GetTypeMember("B").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("B").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
             AssertEx.SetEqual(new string[] { "C..ctor(System.Int32 x)" },
-                comp.GlobalNamespace.GetTypeMember("C").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("C").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
             AssertEx.SetEqual(new string[] { "D..ctor(System.Int32 x)" },
-                comp.GlobalNamespace.GetTypeMember("D").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("D").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
         }
 
         [Fact]
@@ -7072,13 +7072,13 @@ public struct D
 ";
             var comp = CreateCompilation(src);
             AssertEx.SetEqual(new string[] { "A..ctor()" },
-                comp.GlobalNamespace.GetTypeMember("A").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("A").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
             AssertEx.SetEqual(new string[] { "B..ctor()" },
-                comp.GlobalNamespace.GetTypeMember("B").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("B").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
             AssertEx.SetEqual(new string[] { "C..ctor(System.Int32 x)", "C..ctor()" },
-                comp.GlobalNamespace.GetTypeMember("C").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("C").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
             AssertEx.SetEqual(new string[] { "D..ctor(System.Int32 x)", "D..ctor()" },
-                comp.GlobalNamespace.GetTypeMember("D").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
+                comp.GlobalNamespace.GetTypeMember("D").GetSimpleNonTypeMembers(".ctor").ToImmutable().ToTestDisplayStrings());
         }
 
         [Fact]

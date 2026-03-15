@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1554,14 +1555,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasPossibleWellKnownCloneMethod()
             => IsRecord;
 
-        internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
+        internal override OneOrMany<Symbol> GetSimpleNonTypeMembers(string name)
         {
             if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct or DeclarationKind.Union)
             {
-                return GetMembers(name);
+                return OneOrMany.Create(GetMembers(name));
             }
 
-            return ImmutableArray<Symbol>.Empty;
+            return OneOrMany<Symbol>.Empty;
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -2827,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (membersByName.TryGetValue(operatorName1.AsMemory(), out ImmutableArray<Symbol> candidates))
                 {
-                    AddOperators(ops1, candidates);
+                    AddOperators(ops1, OneOrMany.Create(candidates));
                 }
             }
         }
