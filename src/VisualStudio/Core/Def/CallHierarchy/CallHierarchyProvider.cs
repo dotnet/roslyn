@@ -92,7 +92,7 @@ internal sealed partial class CallHierarchyProvider
     {
         return new FieldInitializerItem(EditorFeaturesResources.Initializers,
                                         "__" + EditorFeaturesResources.Initializers,
-                                        Glyph.FieldPublic.GetImageSource(GlyphService),
+                                        GlyphService,
                                         details);
     }
 
