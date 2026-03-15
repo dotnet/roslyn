@@ -2783,10 +2783,8 @@ class SwitchTest
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "variable").WithLocation(8, 18),
                 // (11,22): error CS0159: No such label 'System' within the scope of the goto statement
                 //                 goto System;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System").WithLocation(11, 22),
-                // (10,13): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
-                //             case 5:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System").WithLocation(11, 22)
+                // No cascaded ERR_SwitchFallOut error - the goto makes the end of the switch case unreachable
                 );
             CreateCompilation(text).VerifyDiagnostics(
                 // (8,18): error CS0118: 'System' is a namespace but is used like a variable
@@ -2794,10 +2792,8 @@ class SwitchTest
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "variable").WithLocation(8, 18),
                 // (11,22): error CS0159: No such label 'System' within the scope of the goto statement
                 //                 goto System;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System").WithLocation(11, 22),
-                // (10,13): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
-                //             case 5:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System").WithLocation(11, 22)
+                // No cascaded ERR_SwitchFallOut error - the goto makes the end of the switch case unreachable
                 );
         }
 
