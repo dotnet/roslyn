@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1123,7 +1123,7 @@ class X
 }
 ";
         var compilation = CreateCompilationWithIndexAndRange(source);
-        compilation.MakeMemberMissing(SpecialMember.System_String__Substring);
+        compilation.MakeMemberMissing(SpecialMember.System_String__SubstringIntInt);
         compilation.VerifyEmitDiagnostics(
             // (6,19): error CS0656: Missing compiler required member 'System.String.Substring'
             //         _ = s is [.. var slice];
@@ -9743,5 +9743,48 @@ class C : System.Collections.ICollection
   IL_0053:  ret
 }
 ");
+    }
+
+    [Fact]
+    public void SliceStart_01()
+    {
+        // Span
+        var source = """
+class C
+{
+    static bool M(System.Span<int> x)
+    {
+        return x is [_, .. var rest];
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "int System.Span<int>.Length.get"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_001a
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  sub
+  IL_0012:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+  IL_0017:  pop
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldc.i4.0
+  IL_001b:  ret
+}
+""");
     }
 }
