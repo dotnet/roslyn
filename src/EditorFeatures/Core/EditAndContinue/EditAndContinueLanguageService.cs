@@ -21,10 +21,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Shared]
-[Export(typeof(IManagedHotReloadLanguageService3))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
 [Export(typeof(EditAndContinueLanguageService))]
-[ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class EditAndContinueLanguageService(
