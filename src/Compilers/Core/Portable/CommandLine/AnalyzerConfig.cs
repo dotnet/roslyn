@@ -156,6 +156,13 @@ namespace Microsoft.CodeAnalysis
 
         private readonly bool _hasGlobalFileName;
 
+        /// <param name="pathToFile">
+        /// The drive-rooted absolute path to the .editorconfig file.
+        /// 
+        /// In the compiler, this is already OS-normalized (on Windows separators and relative segments are resolved, but NOT casing)
+        /// by <see cref="CommonCompiler.TryGetAnalyzerConfigSet" /> via <see cref="StandardFileSystem.OpenFileEx" />
+        /// which reads the canonical path from <see cref="FileStream.Name" />.
+        /// </param>
         private AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
@@ -163,10 +170,14 @@ namespace Microsoft.CodeAnalysis
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
-            PathToFile = pathToFile;
+            // Only the drive letter is normalized here on Windows - the rest of the path is already
+            // OS-normalized by the caller (see pathToFile param docs above).
+            PathToFile = pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
             _hasGlobalFileName = Path.GetFileName(pathToFile).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
-            // Find the containing directory and normalize the path separators
+            // Find the containing directory and normalize backslashes to forward slashes.
+            // The path is already OS-normalized by the caller; this just ensures the
+            // editorconfig-spec-required '/' separator.
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
             NormalizedDirectory = PathUtilities.NormalizeWithForwardSlash(directory);
         }
@@ -256,13 +267,14 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            // Normalize the path to file the same way named sections are
-            pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
-
             return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
+                // No-op for glob patterns like [*.cs] since they aren't drive-rooted absolute paths.
+                // Note: unlike NormalizedDirectory (see constructor) or source paths (see
+                // AnalyzerConfigSet.GetOptionsForSourcePath), section names only get drive letter
+                // uppercasing.
                 var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
 
                 // Close out the previous section
