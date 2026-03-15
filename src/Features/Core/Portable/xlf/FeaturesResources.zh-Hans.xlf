@@ -2570,6 +2570,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">删除包含活动语句的 {0} 需要重新启动应用程序。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_all_files_in_0_to_match_types">
+        <source>Rename all file in '{0}' to match types</source>
+        <target state="new">Rename all file in '{0}' to match types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_all_files_in_solution_to_match_types">
+        <source>Rename all file in solution to match types</source>
+        <target state="new">Rename all file in solution to match types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">重命名 {0} 要求重启应用程序。</target>

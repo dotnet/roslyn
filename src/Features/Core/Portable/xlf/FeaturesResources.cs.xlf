@@ -2570,6 +2570,16 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Odstranění {0} s aktivním příkazem vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_all_files_in_0_to_match_types">
+        <source>Rename all file in '{0}' to match types</source>
+        <target state="new">Rename all file in '{0}' to match types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_all_files_in_solution_to_match_types">
+        <source>Rename all file in solution to match types</source>
+        <target state="new">Rename all file in solution to match types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">Přejmenování {0} vyžaduje restartování aplikace.</target>

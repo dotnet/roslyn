@@ -2570,6 +2570,16 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">La suppression de {0} qui contient une instruction active requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_all_files_in_0_to_match_types">
+        <source>Rename all file in '{0}' to match types</source>
+        <target state="new">Rename all file in '{0}' to match types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_all_files_in_solution_to_match_types">
+        <source>Rename all file in solution to match types</source>
+        <target state="new">Rename all file in solution to match types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">Le renommage de {0} requiert le redémarrage de l’application.</target>
