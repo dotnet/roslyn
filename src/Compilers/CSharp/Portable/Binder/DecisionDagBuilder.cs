@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(unionValue.Symbol is PropertySymbol);
             var property = (PropertySymbol)unionValue.Symbol;
-            valueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, property, isLengthOrCount: false, OriginalInput(input, property));
+            valueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, property, isLengthOrCount: false, input);
             var result = valueEvaluation.MakeResultTemp();
 
             Debug.Assert(IsUnionValue(result, out _));
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_forLowering)
                 {
-                    BoundDagEvaluation hasValueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, hasValue, isLengthOrCount: false, OriginalInput(inputInfo.DagTemp, hasValue));
+                    BoundDagEvaluation hasValueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, hasValue, isLengthOrCount: false, inputInfo.DagTemp);
                     var temp = hasValueEvaluation.MakeResultTemp();
                     Debug.Assert(IsUnionHasValue(temp, out _));
 
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (_forLowering)
                     {
-                        var deconstructEvaluation = new BoundDagDeconstructEvaluation(syntax, tryGetValue, OriginalInput(inputInfo.DagTemp, tryGetValue));
+                        var deconstructEvaluation = new BoundDagDeconstructEvaluation(syntax, tryGetValue, OriginalInput(inputInfo.DagTemp, tryGetValue)); // PROTOTYPE: Inherited TryGetValue and OriginalInput?
                         tests.Add(new Tests.One(deconstructEvaluation));
 
                         var boolResult = deconstructEvaluation.MakeReturnValueTemp();

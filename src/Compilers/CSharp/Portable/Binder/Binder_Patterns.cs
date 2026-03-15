@@ -35,30 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            PropertySymbol? valueProperty = GetUnionTypeValuePropertyOriginalDefinition(inputUnionType, ref useSiteInfo);
-            if (valueProperty is null)
-            {
-                return null;
-            }
-
-            return valueProperty.AsMember(inputUnionType);
-        }
-
-        private static PropertySymbol? GetUnionTypeValuePropertyOriginalDefinition(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
             Debug.Assert(inputUnionType.IsUnionType);
-
-            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
-            //            The inherited property might not be a definition, therefore the name of the function should probably change
-            PropertySymbol? valueProperty = null;
-            foreach (var m in inputUnionType.OriginalDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
-            {
-                if (m is PropertySymbol prop && hasUnionValueSignature(prop))
-                {
-                    valueProperty = prop;
-                    break;
-                }
-            }
+            PropertySymbol? valueProperty = TryGetOwnOrInheritedUnionMember<PropertySymbol>(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo);
 
             if (valueProperty is not null)
             {
@@ -67,10 +45,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, inputUnionType, WellKnownMemberNames.ValuePropertyName)); // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
+                useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, inputUnionType.OriginalDefinition, WellKnownMemberNames.ValuePropertyName));
             }
 
             return valueProperty;
+
+            static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? valueProperty)
+            {
+                if (m is PropertySymbol prop && hasUnionValueSignature(prop))
+                {
+                    valueProperty = prop;
+                    return true;
+                }
+
+                valueProperty = null;
+                return false;
+            }
 
             static bool hasUnionValueSignature(PropertySymbol property)
             {
@@ -88,6 +78,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private delegate bool IsSuitableUnionMember<T>(Symbol m, [NotNullWhen(true)] out T? member) where T : Symbol;
+
+        private static T? TryGetOwnOrInheritedUnionMember<T>(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionMember<T> isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+             where T : Symbol
+        {
+            T? member;
+            NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
+            if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out member))
+            {
+                member = (T)member.SymbolAsMember(inputUnionType);
+            }
+            else
+            {
+                for (NamedTypeSymbol baseType1 = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo), baseType2 = inputUnionType.BaseTypeNoUseSiteDiagnostics;
+                        baseType1 is not null;
+                        baseType1 = baseType1.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo), baseType2 = baseType2.BaseTypeNoUseSiteDiagnostics)
+                {
+                    if (getMemberDeclaredInType(baseType1, memberName, isSuitableUnionMember, out member))
+                    {
+                        if (!inputUnionType.IsDefinition)
+                        {
+                            member = (T)member.OriginalDefinition.SymbolAsMember(baseType2);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            return member;
+
+            static bool getMemberDeclaredInType(NamedTypeSymbol declaringType, string memberName, IsSuitableUnionMember<T> isSuitableUnionMember, [NotNullWhen(true)] out T? member)
+            {
+                foreach (var m in declaringType.GetMembers(memberName))
+                {
+                    if (isSuitableUnionMember(m, out member))
+                    {
+                        return true;
+                    }
+                }
+
+                member = null;
+                return false;
+            }
+        }
+
         internal static PropertySymbol? GetUnionTypeValuePropertyNoUseSiteDiagnostics(NamedTypeSymbol inputUnionType)
         {
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
@@ -96,33 +132,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsUnionTypeValueProperty(NamedTypeSymbol unionType, Symbol symbol)
         {
-            // https://github.com/dotnet/roslyn/issues/82636: Deal with inheritance?
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return Binder.GetUnionTypeValuePropertyOriginalDefinition(unionType, ref useSiteInfo) == (object)symbol.OriginalDefinition;
+            return Symbol.Equals(Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType), symbol, TypeCompareKind.AllIgnoreOptions);
         }
 
-        private static PropertySymbol? GetUnionTypeHasValuePropertyOriginalDefinition(NamedTypeSymbol inputUnionType)
+        internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            PropertySymbol? valueProperty = null;
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            PropertySymbol? valueProperty = TryGetOwnOrInheritedUnionMember<PropertySymbol>(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
 
-            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
-            foreach (var m in inputUnionType.OriginalDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
-            {
-                if (m is PropertySymbol prop && hasHasValueSignature(prop))
-                {
-                    valueProperty = prop;
-                    break;
-                }
-            }
-
-            if (valueProperty is null || valueProperty.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+            if (valueProperty?.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
             {
                 return null; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
             }
 
             return valueProperty;
+
+            static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? valueProperty)
+            {
+                if (m is PropertySymbol prop && hasHasValueSignature(prop))
+                {
+                    valueProperty = prop;
+                    return true;
+                }
+
+                valueProperty = null;
+                return false;
+            }
 
             static bool hasHasValueSignature(PropertySymbol property)
             {
@@ -138,17 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Type.SpecialType: SpecialType.System_Boolean
                 };
             }
-        }
-
-        internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
-        {
-            PropertySymbol? valueProperty = GetUnionTypeHasValuePropertyOriginalDefinition(inputUnionType);
-            if (valueProperty is null)
-            {
-                return null;
-            }
-
-            return valueProperty.AsMember(inputUnionType);
         }
 
         internal static MethodSymbol? GetUnionTypeTryGetValueMethod(NamedTypeSymbol inputUnionType, TypeSymbol type)
@@ -196,8 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)
         {
-            // https://github.com/dotnet/roslyn/issues/82636: Deal with inheritance?
-            return (object)property.OriginalDefinition == Binder.GetUnionTypeHasValuePropertyOriginalDefinition(unionType);
+            return Symbol.Equals(Binder.GetUnionTypeHasValueProperty(unionType), property, TypeCompareKind.AllIgnoreOptions);
         }
 
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)
