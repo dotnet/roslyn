@@ -51,6 +51,11 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
     }
 
+    /// <summary>
+    /// Gets the path to the last opened solution file, or null if no solution is loaded.
+    /// </summary>
+    public string? SolutionPath => ProjectFactory.SolutionPath;
+
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
