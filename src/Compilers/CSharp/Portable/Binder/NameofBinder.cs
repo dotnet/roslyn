@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var tmp = LookupResult.GetInstance();
                     _withTypeParametersBinder.LookupSymbolsInSingleBinder(tmp, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
                     result.MergeEqual(tmp);
+                    tmp.Free();
                 }
                 else
                 {
