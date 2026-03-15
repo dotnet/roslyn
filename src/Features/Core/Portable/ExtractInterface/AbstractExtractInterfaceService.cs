@@ -284,18 +284,14 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         {
             var document = formattedSolution.GetRequiredDocument(documentId);
 
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var formattedDocument = await Formatter.FormatAsync(
                 document,
                 Formatter.Annotation,
-                cleanupOptions.FormattingOptions,
                 cancellationToken).ConfigureAwait(false);
 
             var simplifiedDocument = await Simplifier.ReduceAsync(
                 formattedDocument,
                 Simplifier.Annotation,
-                cleanupOptions.SimplifierOptions,
                 cancellationToken).ConfigureAwait(false);
 
             formattedSolution = simplifiedDocument.Project.Solution;

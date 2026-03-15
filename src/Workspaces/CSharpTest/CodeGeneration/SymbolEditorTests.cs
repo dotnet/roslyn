@@ -53,9 +53,9 @@ public sealed class SymbolEditorTests
 
     private static async Task<string> GetActualAsync(Document document)
     {
-        document = await Simplifier.ReduceAsync(document, CSharpSimplifierOptions.Default, CancellationToken.None);
-        document = await Formatter.FormatAsync(document, Formatter.Annotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
-        document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+        document = await Simplifier.ReduceAsync(document, CancellationToken.None);
+        document = await Formatter.FormatAsync(document, Formatter.Annotation, CancellationToken.None);
+        document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, CancellationToken.None);
         return (await document.GetSyntaxRootAsync()).ToFullString();
     }
 

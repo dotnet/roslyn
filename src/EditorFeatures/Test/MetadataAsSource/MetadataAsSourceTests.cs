@@ -1879,7 +1879,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         using var context = TestContext.Create(LanguageNames.CSharp);
         var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
         var document = context.GetDocument(file);
-        await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+        await Formatter.FormatAsync(document, CancellationToken.None);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]

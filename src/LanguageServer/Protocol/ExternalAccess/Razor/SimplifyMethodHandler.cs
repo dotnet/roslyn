@@ -64,10 +64,7 @@ internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<Simplif
         var annotatedDocument = originalDocument.WithSyntaxRoot(annotatedSyntaxRoot);
 
         // Call to the Simplifier and pass back the edits.
-        var configOptions = await originalDocument.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var simplificationService = originalDocument.Project.Services.GetRequiredService<ISimplificationService>();
-        var options = simplificationService.GetSimplifierOptions(configOptions);
-        var newDocument = await Simplifier.ReduceAsync(annotatedDocument, options, cancellationToken).ConfigureAwait(false);
+        var newDocument = await Simplifier.ReduceAsync(annotatedDocument, cancellationToken).ConfigureAwait(false);
         var changes = await newDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         return [.. changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText))];
     }

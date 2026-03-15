@@ -970,11 +970,8 @@ public sealed partial class CodeGenerationTests
                 {
                     this.Document = this.Result;
 
-                    var formattingOptions = IsVisualBasic ? (SyntaxFormattingOptions)VisualBasicSyntaxFormattingOptions.Default : CSharpSyntaxFormattingOptions.Default;
-                    var simplifierOptions = IsVisualBasic ? (SimplifierOptions)VisualBasicSimplifierOptions.Default : CSharpSimplifierOptions.Default;
-
-                    var simplified = Simplifier.ReduceAsync(this.Document, Simplifier.Annotation, simplifierOptions, CancellationToken.None).Result;
-                    var actual = Formatter.FormatAsync(simplified, Formatter.Annotation, formattingOptions, CancellationToken.None).Result.GetSyntaxRootAsync().Result.ToFullString();
+                    var simplified = Simplifier.ReduceAsync(this.Document, Simplifier.Annotation, CancellationToken.None).Result;
+                    var actual = Formatter.FormatAsync(simplified, Formatter.Annotation, CancellationToken.None).Result.GetSyntaxRootAsync().Result.ToFullString();
 
                     Assert.Equal(_expected, actual);
                 }
