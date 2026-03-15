@@ -152,6 +152,50 @@ expected: """
             """,
 isNewFile: false);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82038")]
+    public Task GenerateTypeInsideFileScopedNamespace_WithDifferentDefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            namespace Goo;
+
+            class C([|D$$|] _);
+            """,
+languageName: LanguageNames.CSharp,
+typeName: "D",
+expected: """
+            namespace Goo;
+
+            class C(D _);
+
+            class D
+            {
+            }
+            """,
+defaultNamespace: "Roslyntest",
+isNewFile: false);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82038")]
+    public Task GenerateTypeInsideFileScopedNamespace_DottedName_WithDifferentDefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+            namespace Goo.Bar;
+
+            class C([|D$$|] _);
+            """,
+languageName: LanguageNames.CSharp,
+typeName: "D",
+expected: """
+            namespace Goo.Bar;
+
+            class C(D _);
+
+            class D
+            {
+            }
+            """,
+defaultNamespace: "Roslyntest",
+isNewFile: false);
+
     [Fact]
     public Task GenerateTypeInsideQualifiedNamespace()
         => TestWithMockedGenerateTypeDialog(
