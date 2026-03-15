@@ -5,7 +5,6 @@
 Imports System.ComponentModel.Composition
 Imports System.ComponentModel.Composition.Hosting
 Imports System.IO
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -23,6 +22,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.Telemetry
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
@@ -72,7 +72,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(OpenTextBufferProvider),
                 GetType(StubVsEditorAdaptersFactoryService),
                 GetType(ExternalErrorDiagnosticUpdateSource),
-                GetType(MockServiceBroker))
+                GetType(MockServiceBroker),
+                GetType(VisualStudioDiagnosticIdCacheFactory))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)

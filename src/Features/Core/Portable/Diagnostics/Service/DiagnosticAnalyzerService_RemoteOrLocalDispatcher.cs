@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -100,6 +99,27 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         }
 
         return builder.ToImmutableArray();
+    }
+
+    public async Task<ImmutableHashSet<string>> GetAllDiagnosticIdsAsync(
+        Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var list = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableHashSet<string>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetAllDiagnosticIdsAsync(
+                    solution, projectId, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!list.HasValue)
+                return [];
+
+            return list.Value;
+        }
+
+        return solution.SolutionState.Analyzers.GetAllDiagnosticIds(
+            this._analyzerInfoCache, solution.GetProject(projectId));
     }
 
     public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
