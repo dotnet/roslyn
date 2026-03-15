@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             File.WriteAllText(source.Path, "test");
             var dest = dir.CreateFile("dest.dll");
             File.WriteAllText(dest.Path, "dest");
+
+            // Ensure different timestamps to test MVID checking path
+            var destTimestamp = File.GetLastWriteTimeUtc(dest.Path);
+            File.SetLastWriteTimeUtc(source.Path, destTimestamp.AddSeconds(1));
+
             var engine = new MockEngine();
             var task = new CopyRefAssembly()
             {
@@ -110,10 +115,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var dir = TempRoot.CreateDirectory();
             var source = dir.CreateFile("mvid1.dll");
             File.WriteAllBytes(source.Path, TestResources.General.MVID1);
-            var sourceTimestamp = File.GetLastWriteTimeUtc(source.Path).ToString("O");
 
             var dest = dir.CreateFile("mvid2.dll");
             File.WriteAllBytes(dest.Path, TestResources.General.MVID2);
+
+            // Ensure different timestamps so size/timestamp check doesn't incorrectly short-circuit
+            // (MVID1 and MVID2 have the same size)
+            var destTime = File.GetLastWriteTimeUtc(dest.Path);
+            File.SetLastWriteTimeUtc(source.Path, destTime.AddSeconds(1));
+
+            var sourceTimestamp = File.GetLastWriteTimeUtc(source.Path).ToString("O");
             var destTimestamp = File.GetLastWriteTimeUtc(dest.Path).ToString("O");
 
             var engine = new MockEngine();
@@ -132,5 +143,67 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 """,
                 engine.Log);
         }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void SourceAndDestinationWithSameSizeAndTimestamp()
+        {
+            var dir = TempRoot.CreateDirectory();
+            var source = dir.CreateFile("mvid1.dll");
+            File.WriteAllBytes(source.Path, TestResources.General.MVID1);
+
+            var dest = dir.CreateFile("dest.dll");
+            File.WriteAllBytes(dest.Path, TestResources.General.MVID1);
+
+            // Set the destination to have the same timestamp as the source
+            File.SetLastWriteTimeUtc(dest.Path, File.GetLastWriteTimeUtc(source.Path));
+
+            var engine = new MockEngine();
+            var task = new CopyRefAssembly()
+            {
+                BuildEngine = engine,
+                SourcePath = source.Path,
+                DestinationPath = dest.Path,
+            };
+
+            Assert.True(task.Execute());
+
+            // Should skip copy due to matching size and timestamp (fast path optimization)
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Reference assembly "{{dest.Path}}" already has latest information. Leaving it untouched.
+                """,
+                engine.Log);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void SourceAndDestinationWithSameMvidButDifferentTimestamp()
+        {
+            var dir = TempRoot.CreateDirectory();
+            var source = dir.CreateFile("mvid1.dll");
+            File.WriteAllBytes(source.Path, TestResources.General.MVID1);
+
+            var dest = dir.CreateFile("dest.dll");
+            File.WriteAllBytes(dest.Path, TestResources.General.MVID1);
+
+            // Ensure different timestamps so size/timestamp check doesn't short-circuit
+            var destTimestamp = File.GetLastWriteTimeUtc(dest.Path);
+            File.SetLastWriteTimeUtc(source.Path, destTimestamp.AddSeconds(1));
+
+            var engine = new MockEngine();
+            var task = new CopyRefAssembly()
+            {
+                BuildEngine = engine,
+                SourcePath = source.Path,
+                DestinationPath = dest.Path,
+            };
+
+            Assert.True(task.Execute());
+
+            // Should skip copy due to matching MVID (falls through to MVID check)
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Reference assembly "{{dest.Path}}" already has latest information. Leaving it untouched.
+                """,
+                engine.Log);
+        }
+
     }
 }
