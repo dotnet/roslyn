@@ -217,16 +217,6 @@ internal abstract class LanguageServerProjectLoader
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Called after a design time build when transitioning from <see cref="ProjectLoadState.Primordial"/> to  <see cref="ProjectLoadState.LoadedTargets"/>.
-    /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
-    /// </summary>
-    protected abstract ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        Dictionary<string, ProjectLoadState> loadedProjects,
-        string projectPath,
-        ProjectLoadState.Primordial projectState,
-        CancellationToken cancellationToken);
-
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
@@ -248,10 +238,11 @@ internal abstract class LanguageServerProjectLoader
             var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (remoteProjectLoadResult is null)
             {
-                // Note that this is a fairly common condition, e.g. for VB projects.
-                // In the file-based programs primordial case, no 'LoadedProject' is produced for the project,
-                // and therefore no reloading is performed for it after failing to load it once (in this code path).
-                _logger.LogWarning($"Unable to load project '{projectPath}'.");
+                // Example cases where this might occur:
+                // - Loading VB projects
+                // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
+                //   making the file no longer a file-based app entry point.
+                _logger.LogDebug("Reload of '{projectPath}' was canceled.", projectPath);
                 return false;
             }
 
@@ -332,8 +323,9 @@ internal abstract class LanguageServerProjectLoader
 
                 if (currentLoadState is ProjectLoadState.Primordial primordial)
                 {
-                    // Transition from primordial to loaded state
-                    await TransitionPrimordialProjectToLoaded_NoLockAsync(_loadedProjects, projectPath, primordial, cancellationToken);
+                    await primordial.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
+                        workspace => workspace.OnProjectRemoved(primordial.PrimordialProjectId),
+                        cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
@@ -415,14 +407,6 @@ internal abstract class LanguageServerProjectLoader
                 message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
 
             await toastErrorReporter.ReportErrorAsync(worstLspMessageKind, message, cancellationToken);
-        }
-    }
-
-    protected async ValueTask<bool> IsProjectLoadedAsync(string projectPath, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
-        {
-            return _loadedProjects.ContainsKey(projectPath);
         }
     }
 
