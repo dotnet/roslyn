@@ -6,7 +6,7 @@
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
     <MinorVersion>3</MinorVersion>
-    <PatchVersion>0</PatchVersion>
+    <PatchVersion>1</PatchVersion>
     <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <PreReleaseVersionLabel Condition="'$(DotNetSignType)' == 'test'">$(PreReleaseVersionLabel)-test</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
