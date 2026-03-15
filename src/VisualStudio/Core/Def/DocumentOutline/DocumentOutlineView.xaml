@@ -10,6 +10,8 @@
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:ctrls="clr-namespace:Microsoft.VisualStudio.Shell.Controls;assembly=Microsoft.VisualStudio.Shell.Styles"
+             xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell.Styles;assembly=Microsoft.VisualStudio.Shell.Styles"
              xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              d:DataContext="{d:DesignInstance Type=self:DocumentOutlineViewModel}"
              mc:Ignorable="d" 
@@ -60,11 +62,6 @@
                 </Style.Triggers>
             </Style>
 
-            <Style TargetType="self:VirtualizingTreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
-                <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="Padding" Value="0, 5, 0, 0" />
-            </Style>
-
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
             </Style>
         </ResourceDictionary>
@@ -84,7 +81,7 @@
              to mean that we should navigate to that item.  By only hearing when the source is updated (meaning the user actually
              clicked on the tree view item, not that we programmatically set it) we only actual perform the navigation on user
              interaction. -->
-        <self:VirtualizingTreeView Grid.Row="2"
+        <ctrls:TreeView Grid.Row="2"
                   x:Name="SymbolTree"
                   AutomationProperties.Name="{x:Static self:DocumentOutlineStrings.Document_Outline}"
                   SourceUpdated="SymbolTree_SourceUpdated"
@@ -100,48 +97,20 @@
                             <Binding Path="DataContext.SortOption" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
                         </MultiBinding>
                     </HierarchicalDataTemplate.ItemsSource>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border x:Name="SelectionIndicator"
-                            Grid.Column="0"
-                            Background="{DynamicResource {x:Static vsui:EnvironmentColors.SnaplinesBrushKey}}"
-                            Visibility="Collapsed" />
-                        <StackPanel Grid.Column="1"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                Margin="5, 0, 0, 0">
-                            <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
-                            <TextBlock Text="{Binding Data.Name}" />
-                        </StackPanel>
-                    </Grid>
-                    <HierarchicalDataTemplate.Triggers>
-                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                            <Setter TargetName="SelectionIndicator" Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </HierarchicalDataTemplate.Triggers>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="{x:Static styles:Spacings.RightXS}" />
+                        <TextBlock Text="{Binding Data.Name}" />
+                    </StackPanel>
                 </HierarchicalDataTemplate>
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
-                     Color="{StaticResource {x:Static vsshell:VsColors.ToolboxSelectedHeadingBeginKey}}" />
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
-                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
-                     Color="{StaticResource {x:Static vsshell:VsColors.ToolboxSelectedHeadingBeginKey}}" />
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
-                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
             </TreeView.Resources>
             <TreeView.ItemContainerStyle>
-                <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
+                <Style TargetType="{x:Type ctrls:TreeViewItem}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                     <Setter Property="AutomationProperties.Name" Value="{Binding Data.Name, Mode=OneWay}" />
                     <!-- See docs above for why we set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False` -->
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False}" />
-                    <Setter Property="Padding" Value="0, 0, 6, 1" />
-                    <Setter Property="Margin" Value="0, 0, 0, 1" />
                 </Style>
             </TreeView.ItemContainerStyle>
-        </self:VirtualizingTreeView>
+        </ctrls:TreeView>
     </Grid>
 </UserControl>

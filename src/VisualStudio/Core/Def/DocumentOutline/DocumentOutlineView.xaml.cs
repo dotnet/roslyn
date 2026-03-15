@@ -73,6 +73,16 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
         _windowSearchHost = windowSearchHostFactory.CreateWindowSearchHost(SearchHost);
         _windowSearchHost.SetupSearch(this);
 
+        // Apply Fluent style to the search control
+        foreach (UIElement child in SearchHost.Children)
+        {
+            if (child is Control control)
+            {
+                control.SetResourceReference(FrameworkElement.StyleProperty, "SearchControlToolBarStyleKey");
+                break;
+            }
+        }
+
         this.PreviewKeyDown += OnPreviewKeyDown;
         viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
     }
@@ -357,16 +367,12 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
             double renderHeight;
             if (item.IsExpanded && item.HasItems)
             {
-                // The first child is a container. Inside the container are three children:
-                // 1. The expander
-                // 2. The border for the header item
-                // 3. The container for the children
-                //
-                // For expanded items, we want to only consider the render heigh of the header item, since that is
-                // the specific item which is selected.
-                var container = VisualTreeHelper.GetChild(item, 0);
-                var border = VisualTreeHelper.GetChild(container, 1);
-                renderHeight = ((UIElement)border).RenderSize.Height;
+                // For expanded items, we want to only consider the render height of the header area, since that is
+                // the specific item which is selected, not the expanded children below it.
+                // The Fluent TreeViewItem tracks header height automatically.
+                renderHeight = item is Shell.Controls.TreeViewItem { HeaderHeight: > 0 and var headerHeight }
+                    ? headerHeight
+                    : item.RenderSize.Height;
             }
             else
             {
