@@ -2729,7 +2729,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
         <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="new">An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <target state="translated">建構函式 '{0}' 標記為 'RequiresUnsafe' 或 'extern'，需要不安全的上下文，以符合 '{1}' 中類型參數 '{2}' 的 'new()' 限制</target>
         <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
