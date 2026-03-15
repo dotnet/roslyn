@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis
             _compiler = compiler;
             _diagnostics = SpecializedCollections.EmptyList<DiagnosticInfo>();
             _text = new Lazy<SourceText?>(ReadText);
+            _ = _text.Value;
         }
 
         private SourceText? ReadText()
