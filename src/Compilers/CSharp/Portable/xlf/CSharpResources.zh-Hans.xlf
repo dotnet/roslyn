@@ -1804,7 +1804,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">无效的 {0} 值: C# {2} 的“{1}”。请使用语言版本 {3} 或更高版本。</target>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">

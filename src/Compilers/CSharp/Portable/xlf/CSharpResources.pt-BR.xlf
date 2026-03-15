@@ -1804,7 +1804,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Valor de '{0}' inválido: '{1}' para C# {2}. Use a versão da linguagem '{3}' ou superior.</target>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
