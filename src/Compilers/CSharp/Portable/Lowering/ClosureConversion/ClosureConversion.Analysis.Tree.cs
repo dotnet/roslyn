@@ -182,9 +182,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public ClosureEnvironment Parent;
 
                 public readonly bool IsStruct;
+                public bool IsDeferrable;
                 internal SynthesizedClosureEnvironment SynthesizedEnvironment;
 
-                public ClosureEnvironment(IEnumerable<Symbol> capturedVariables, bool isStruct)
+                public ClosureEnvironment(IEnumerable<Symbol> capturedVariables, bool isStruct, bool isDeferrable = false)
                 {
                     CapturedVariables = new SetWithInsertionOrder<Symbol>();
                     foreach (var item in capturedVariables)
@@ -192,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CapturedVariables.Add(item);
                     }
                     IsStruct = isStruct;
+                    IsDeferrable = isDeferrable;
                 }
 
                 /// <summary>
