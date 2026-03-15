@@ -50,7 +50,7 @@ extends:
     sdl:
       enableAllTools: false
     pool:
-      name: VSEngSS-MicroBuild2022-1ES
+      name: VSEng-MicroBuildVSStable
       demands:
       - msbuild
       - visualstudio
