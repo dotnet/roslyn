@@ -368,6 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return parameters.RemoveAt(parameters.Length - 1);
             }
         }
+
 #nullable disable
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
