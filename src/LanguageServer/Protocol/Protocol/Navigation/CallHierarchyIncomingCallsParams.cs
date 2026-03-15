@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class CallHierarchyIncomingCallsParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<CallHierarchyIncomingCall[]>
+internal sealed class CallHierarchyIncomingCallsParams : IWorkDoneProgressParams, IPartialResultParams<CallHierarchyIncomingCall[]>
 {
     /// <summary>
     /// The item returned from `textDocument/prepareCallHierarchy`
