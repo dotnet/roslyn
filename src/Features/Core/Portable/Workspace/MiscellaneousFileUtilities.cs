@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces;
 
 internal static class MiscellaneousFileUtilities
 {
+    internal static bool IsScriptFile(LanguageInformation languageInformation, string filePath)
+    {
+        return languageInformation.ScriptExtension is not null
+            && PathUtilities.GetExtension(filePath) == languageInformation.ScriptExtension;
+    }
+
     /// <param name="enableFileBasedPrograms">Whether the host has globally enabled the C# file-based programs feature.</param>
     internal static ProjectInfo CreateMiscellaneousProjectInfoForDocument(
         Workspace workspace,
@@ -26,7 +32,6 @@ internal static class MiscellaneousFileUtilities
         ImmutableArray<MetadataReference> metadataReferences,
         bool enableFileBasedPrograms)
     {
-        var fileExtension = PathUtilities.GetExtension(filePath);
         var fileName = PathUtilities.GetFileName(filePath);
 
         var languageName = languageInformation.LanguageName;
@@ -50,8 +55,7 @@ internal static class MiscellaneousFileUtilities
         if (parseOptions != null)
         {
             if (compilationOptions != null &&
-                languageInformation.ScriptExtension is not null &&
-                fileExtension == languageInformation.ScriptExtension)
+                IsScriptFile(languageInformation, filePath))
             {
                 parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
                 compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);

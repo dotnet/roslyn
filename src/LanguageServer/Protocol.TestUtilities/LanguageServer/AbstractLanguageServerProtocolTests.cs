@@ -667,6 +667,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 {
                     Capabilities = _initializationOptions.ClientCapabilities,
                     Locale = _initializationOptions.Locale,
+                    WorkspaceFolders = _initializationOptions.WorkspaceFolders,
                 }, CancellationToken.None);
             }
 

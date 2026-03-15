@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -19,23 +20,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </remarks>
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
-    /// <summary>
-    /// Returns whether the document is one that came from a previous call to <see cref="AddMiscellaneousDocumentAsync"/>.
-    /// </summary>
-    ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken);
+    bool ManagesWorkspace(Workspace workspace);
 
     /// <summary>
-    /// Adds a document to the workspace. Note that the implementation of this method should not depend on anything expensive such as RPC calls.
+    /// Gets or adds a document to the appropriate workspace potentially based on the document's contents.
+    /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
-    ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger);
+    ValueTask<(TextDocument document, bool alreadyExists)?> GetOrAddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Removes the document with the given <paramref name="uri"/> from the workspace.
-    /// If the workspace already does not contain such a document, does nothing.
+    /// Removes the document with the given <paramref name="uri"/> from the miscellaneous files workspace.
+    /// If the miscellaneous files workspace already does not contain such a document, does nothing.
     /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
     /// <returns><see langword="true"/> when a document was found and removed</returns>
     ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri);
+
+    /// <summary>
+    /// Notify this provider that a document was closed.
+    /// This may result in unloading the document from the miscellaneous files workspace or from the host workspace.
+    /// </summary>
+    ValueTask CloseDocumentAsync(DocumentUri uri);
 }
