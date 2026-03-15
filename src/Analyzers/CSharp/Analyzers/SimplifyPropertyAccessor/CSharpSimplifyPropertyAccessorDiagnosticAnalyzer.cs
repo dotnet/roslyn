@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyAccessor;
 
@@ -25,44 +24,19 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
     }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterCompilationStartAction(context =>
-            context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
+        => context.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);
 
-    private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
+    private void AnalyzePropertyDeclaration(SyntaxNodeAnalysisContext context)
     {
         var option = context.GetCSharpAnalyzerOptions().PreferSimplePropertyAccessors;
-        var notification = option.Notification;
-        if (!option.Value || ShouldSkipAnalysis(context, compilationOptions, notification))
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        Recurse(context, notification, context.GetAnalysisRoot(findInTrivia: false));
-    }
+        var propertyDeclaration = (PropertyDeclarationSyntax)context.Node;
 
-    private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node)
-    {
-        context.CancellationToken.ThrowIfCancellationRequested();
-
-        if (node is PropertyDeclarationSyntax propertyDeclaration)
-        {
-            AnalyzePropertyDeclaration(context, notificationOption, propertyDeclaration);
-            return;
-        }
-
-        foreach (var child in node.ChildNodesAndTokens())
-        {
-            if (!context.ShouldAnalyzeSpan(child.Span))
-                continue;
-
-            if (child.AsNode(out var childNode))
-                Recurse(context, notificationOption, childNode);
-        }
-    }
-
-    private void AnalyzePropertyDeclaration(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, PropertyDeclarationSyntax propertyDeclaration)
-    {
         if (propertyDeclaration.AccessorList is not { } accessorList ||
             accessorList.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
         {
@@ -118,7 +92,7 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 accessorDeclaration.GetLocation(),
-                notificationOption,
+                option.Notification,
                 context.Options,
                 additionalLocations: null,
                 properties: null));
