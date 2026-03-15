@@ -541,6 +541,35 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82721")]
+        public void GenerateEditorConfigIsEmbeddedInBinlog()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($"""
+<Project>
+    <Import Project="Microsoft.Managed.Core.targets" />
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="prop" />
+    </ItemGroup>
+</Project>
+"""));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var editorConfigItems = instance.GetItems("EditorConfigFiles");
+            var embedInBinlogItems = instance.GetItems("EmbedInBinlog");
+            Assert.Single(editorConfigItems);
+
+            var embeddedEditorConfig = embedInBinlogItems.Single(item => item.EvaluatedInclude == editorConfigItems.Single().EvaluatedInclude);
+            var fileContents = File.ReadAllText(embeddedEditorConfig.EvaluatedInclude);
+            Assert.Contains("is_global = true", fileContents);
+            Assert.Contains("build_property.prop", fileContents);
+        }
+
+        [Fact]
         public void AdditionalFilesAreAddedToNoneWhenCopied()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"

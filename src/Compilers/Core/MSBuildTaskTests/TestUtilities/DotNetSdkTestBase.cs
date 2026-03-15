@@ -133,6 +133,9 @@ $@"<Project>
   <!-- Overwrite CoreCompile target to avoid triggering the compiler -->
   <Target Name=""CoreCompile""
           DependsOnTargets=""$(CoreCompileDependsOn);_BeforeVBCSCoreCompile"">
+    <ItemGroup>
+      <EmbedInBinlog Include=""@(EditorConfigFiles)"" />
+    </ItemGroup>
   </Target>
 
   <Target Name=""InitializeSourceControlInformation""/>
