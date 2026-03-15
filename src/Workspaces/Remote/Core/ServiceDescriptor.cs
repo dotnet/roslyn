@@ -75,6 +75,10 @@ internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
 
     protected override JsonRpcConnection CreateConnection(JsonRpc jsonRpc)
     {
+        // The default synchronization context set by the base type is NonConcurrentSynchronizationContext, which means that all incoming calls
+        // would be processed sequentially, at least up until their first await. We generally don't have services that expect ordering in that specific way, so
+        // disable that, especially since we want CPU-bound operations to happen in parallel.
+        jsonRpc.SynchronizationContext = null;
         jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
         var connection = base.CreateConnection(jsonRpc);
         connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
