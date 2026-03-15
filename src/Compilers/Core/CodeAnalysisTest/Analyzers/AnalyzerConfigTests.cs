@@ -58,6 +58,210 @@ my_prop = my_val
         }
 
         [Fact]
+        public void NonKeyCase()
+        {
+            var config = ParseConfigFile(@"
+[*.cs]
+
+#
+;
+=
+ =
+==
+:
+ :
+::
+=:
+:=
+");
+
+            var namedSections = config.NamedSections;
+            Assert.Equal("*.cs", namedSections[0].Name);
+            Assert.Equal(0, namedSections[0].Properties.Count);
+        }
+
+        [Fact]
+        public void KeysWithoutValueCase()
+        {
+            var config = ParseConfigFile(@"
+a=
+b= 
+c=#
+d= #
+e=;
+f= ;
+g =
+ h=
+ i =
+j:
+k: 
+l:#
+m: #
+n:;
+o: ;
+p :
+ q:
+ r :
+");
+
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("a", ""),
+                        KeyValuePair.Create("b", ""),
+                        KeyValuePair.Create("c", ""),
+                        KeyValuePair.Create("d", ""),
+                        KeyValuePair.Create("e", ""),
+                        KeyValuePair.Create("f", ""),
+                        KeyValuePair.Create("g", ""),
+                        KeyValuePair.Create("h", ""),
+                        KeyValuePair.Create("i", ""),
+                        KeyValuePair.Create("j", ""),
+                        KeyValuePair.Create("k", ""),
+                        KeyValuePair.Create("l", ""),
+                        KeyValuePair.Create("m", ""),
+                        KeyValuePair.Create("n", ""),
+                        KeyValuePair.Create("o", ""),
+                        KeyValuePair.Create("p", ""),
+                        KeyValuePair.Create("q", ""),
+                        KeyValuePair.Create("r", "") },
+                properties);
+        }
+
+        [Fact]
+        public void KeysWithSimpleValueCase()
+        {
+            var config = ParseConfigFile(@"
+a=b
+ b = b #
+ c = b ;
+d:b
+ e : b #
+ f : b ;
+");
+
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("a", "b"),
+                        KeyValuePair.Create("b", "b"),
+                        KeyValuePair.Create("c", "b"),
+                        KeyValuePair.Create("d", "b"),
+                        KeyValuePair.Create("e", "b"),
+                        KeyValuePair.Create("f", "b") },
+                properties);
+        }
+
+        [Fact]
+        public void KeysWithValueImpersonatingKeysCase()
+        {
+            var config = ParseConfigFile(@"
+a=b=
+b=b=#
+c=b=;
+d=b=c
+e=b=c#
+f=b=c;
+g=b:
+h=b:#
+i=b:;
+j=b:c
+k=b:c#
+l=b:c;
+m:b=
+n:b=#
+o:b=;
+p:b=c
+q:b=c#
+r:b=c;
+s:b:
+t:b:#
+u:b:;
+v:b:c
+w:b:c#
+x:b:c;
+");
+
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("a", "b="),
+                        KeyValuePair.Create("b", "b="),
+                        KeyValuePair.Create("c", "b="),
+                        KeyValuePair.Create("d", "b=c"),
+                        KeyValuePair.Create("e", "b=c"),
+                        KeyValuePair.Create("f", "b=c"),
+                        KeyValuePair.Create("g", "b:"),
+                        KeyValuePair.Create("h", "b:"),
+                        KeyValuePair.Create("i", "b:"),
+                        KeyValuePair.Create("j", "b:c"),
+                        KeyValuePair.Create("k", "b:c"),
+                        KeyValuePair.Create("l", "b:c"),
+                        KeyValuePair.Create("m", "b="),
+                        KeyValuePair.Create("n", "b="),
+                        KeyValuePair.Create("o", "b="),
+                        KeyValuePair.Create("p", "b=c"),
+                        KeyValuePair.Create("q", "b=c"),
+                        KeyValuePair.Create("r", "b=c"),
+                        KeyValuePair.Create("s", "b:"),
+                        KeyValuePair.Create("t", "b:"),
+                        KeyValuePair.Create("u", "b:"),
+                        KeyValuePair.Create("v", "b:c"),
+                        KeyValuePair.Create("w", "b:c"),
+                        KeyValuePair.Create("x", "b:c") },
+                properties);
+        }
+
+        [Fact]
+        public void GlobsImpersonationCase()
+        {
+            var config = ParseConfigFile(@"
+[mykey]=
+[mykey=]=
+[mykey1]=[any#thing]
+");
+
+            Assert.Equal(0, config.NamedSections.Length);
+
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("[mykey]", ""),
+                        KeyValuePair.Create("[mykey", "]="),
+                        KeyValuePair.Create("[mykey1]", "[any") },
+                properties);
+        }
+
+        [Fact]
+        public void LimitTestCase()
+        {
+            var config = ParseConfigFile(@"
+a=:
+b:=
+ c b = 
+d  =
+  e=
+  f  =
+g=b c
+h b=c
+ i . b = c # d ; e
+dotnet_analyzer_diagnostic.category-Minor Code Smell.severity = suggestion
+dotnet_analyzer_diagnostic.category-Minor\x2020Code\x2020Smell.severity = error
+");
+
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("a", ":"),
+                        KeyValuePair.Create("b", "="),
+                        KeyValuePair.Create("c b", ""),
+                        KeyValuePair.Create("d", ""),
+                        KeyValuePair.Create("e", ""),
+                        KeyValuePair.Create("f", ""),
+                        KeyValuePair.Create("g", "b c"),
+                        KeyValuePair.Create("h b", "c"),
+                        KeyValuePair.Create("i . b", "c"),
+                        KeyValuePair.Create("dotnet_analyzer_diagnostic.category-minor code smell.severity", "suggestion"),
+                        KeyValuePair.Create(@"dotnet_analyzer_diagnostic.category-minor\x2020code\x2020smell.severity", "error") },
+                properties);
+        }
+
+        [Fact]
         [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void ConfigWithEscapedValues()
         {
@@ -265,7 +469,8 @@ my_prop2 = my val2");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_prop2", "my val2") },
+                new[] { KeyValuePair.Create("my prop1", "my_val1"),
+                        KeyValuePair.Create("my_prop2", "my val2") },
                 properties);
         }
 
@@ -289,7 +494,10 @@ my_prop2 = my val2 # Comment");
 @!$\# = my_val2");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(0, properties.Count);
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("@!$abc", "my_val1"),
+                        KeyValuePair.Create(@"@!$\#", "my_val2") },
+                properties);
         }
 
         [Fact]
@@ -302,7 +510,7 @@ my_key2 = my:val");
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my", "key1 = my_val"),
-                        KeyValuePair.Create("my_key2", "my:val")},
+                        KeyValuePair.Create("my_key2", "my:val") },
                 properties);
         }
 
@@ -315,7 +523,8 @@ my_key2 = my@val");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_key2", "my@val") },
+                new[] { KeyValuePair.Create("my@key1", "my_val"),
+                        KeyValuePair.Create("my_key2", "my@val") },
                 properties);
         }
 
