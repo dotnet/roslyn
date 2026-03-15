@@ -23,7 +23,7 @@ internal static class SymbolCompletionItem
 
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
-    private static (int, string) s_lastContextPositionInfo = (0, "0");
+    private static ContextPositionCache s_lastContextPositionInfo = new(0, "0");
 
     private const char ProjectSeparatorChar = ';';
 
@@ -234,14 +234,14 @@ internal static class SymbolCompletionItem
         var contextPositionData = s_lastContextPositionInfo;
 
         string contextPositionString;
-        if (contextPositionData.Item1 == contextPosition)
+        if (contextPositionData.Position == contextPosition)
         {
-            contextPositionString = contextPositionData.Item2;
+            contextPositionString = contextPositionData.PositionString;
         }
         else
         {
             contextPositionString = contextPosition.ToString();
-            s_lastContextPositionInfo = (contextPosition, contextPositionString);
+            s_lastContextPositionInfo = new ContextPositionCache(contextPosition, contextPositionString);
         }
 
         properties.Add(KeyValuePair.Create("ContextPosition", contextPositionString));
@@ -427,5 +427,11 @@ internal static class SymbolCompletionItem
         {
             return CompletionDescription.Empty;
         }
+    }
+
+    private sealed class ContextPositionCache(int position, string positionString)
+    {
+        public readonly int Position = position;
+        public readonly string PositionString = positionString;
     }
 }
