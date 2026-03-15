@@ -10,11 +10,11 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The params sent in a 'typeHierarchy/supertypes' request.
 /// <para>
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#typeHierarchySubtypesParams">Language Server Protocol specification</see> for additional information.
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#typeHierarchySupertypesParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class TypeHierarchySupertypesParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<TypeHierarchyItem[]>
+internal sealed class TypeHierarchySupertypesParams : IWorkDoneProgressParams, IPartialResultParams<TypeHierarchyItem[]>
 {
     /// <summary>
     /// The <see cref="TypeHierarchyItem"/> for which to return supertypes
@@ -29,9 +29,6 @@ internal sealed class TypeHierarchySupertypesParams : TextDocumentPositionParams
     public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// <see cref="LocationLink"/> may only be used if the client opts in via <see cref="DefinitionClientCapabilities.LinkSupport"/>
-    /// </remarks>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<TypeHierarchyItem[]>? PartialResultToken { get; set; }

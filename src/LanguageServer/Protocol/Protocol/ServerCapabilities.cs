@@ -287,6 +287,14 @@ internal class ServerCapabilities
     public SumType<bool, WorkspaceSymbolOptions>? WorkspaceSymbolProvider { get; set; }
 
     /// <summary>
+    /// The server provides inline completions.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    [JsonPropertyName("inlineCompletionProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SumType<bool, InlineCompletionOptions>? InlineCompletionProvider { get; set; }
+
+    /// <summary>
     /// Workspace specific server capabilities.
     /// </summary>
     [JsonPropertyName("workspace")]
