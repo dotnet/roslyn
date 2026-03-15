@@ -518,10 +518,11 @@ d.cs
         }
 
 #nullable enable
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void NullBaseDirectoryNotAddedToKeyFileSearchPaths()
         {
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { "c:/test.cs" }, baseDirectory: null, SdkDirectory);
+            var sourceFile = ExecutionConditionUtil.IsWindows ? "c:/test.cs" : Path.Combine(Path.GetTempPath(), "test.cs");
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { sourceFile }, baseDirectory: null, SdkDirectory);
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
             Assert.Null(parser.OutputDirectory);
             parser.Errors.Verify(
@@ -530,10 +531,11 @@ d.cs
                 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void NullBaseDirectoryWithAdditionalFiles()
         {
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
+            var sourceFile = ExecutionConditionUtil.IsWindows ? "c:/test.cs" : Path.Combine(Path.GetTempPath(), "test.cs");
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", sourceFile }, baseDirectory: null, SdkDirectory);
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
             Assert.Null(parser.OutputDirectory);
             parser.Errors.Verify(
@@ -544,10 +546,11 @@ d.cs
                 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void NullBaseDirectoryWithAdditionalFiles_Wildcard()
         {
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:*", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
+            var sourceFile = ExecutionConditionUtil.IsWindows ? "c:/test.cs" : Path.Combine(Path.GetTempPath(), "test.cs");
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:*", sourceFile }, baseDirectory: null, SdkDirectory);
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
             Assert.Null(parser.OutputDirectory);
             parser.Errors.Verify(
@@ -4297,10 +4300,10 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void AppConfigParse()
         {
-            const string baseDirectory = @"C:\abc\def\baz";
+            var baseDirectory = ExecutionConditionUtil.IsWindows ? @"C:\abc\def\baz" : "/abc/def/baz";
 
             var parsedArgs = DefaultParse(new[] { @"/appconfig:""""", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
@@ -4322,7 +4325,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { "/appconfig:a.exe.config", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(@"C:\abc\def\baz\a.exe.config", parsedArgs.AppConfigPath);
+            Assert.Equal(Path.Combine(baseDirectory, "a.exe.config"), parsedArgs.AppConfigPath);
 
             // If ParseDoc succeeds, all other possible AppConfig paths should succeed as well -- they both call ParseGenericFilePath
         }
@@ -4360,69 +4363,72 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             CleanupAllGeneratedFiles(appConfigFile.Path);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void AppConfigBasicFail()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class A { static void Main(string[] args) { } }");
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
             string root = Path.GetPathRoot(srcDirectory); // Make sure we pick a drive that exists and is plugged in to avoid 'Drive not ready'
 
+            var appConfigPath = Path.Combine(root, "DoesNotExist", "NOwhere", "bonobo.exe.config");
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = CreateCSharpCompiler(null, srcDirectory,
                 new[] { "/nologo", "/preferreduilang:en",
-                        $@"/appconfig:{root}DoesNotExist\NOwhere\bonobo.exe.config" ,
+                        $"/appconfig:{appConfigPath}" ,
                         srcFile.Path }).Run(outWriter);
             Assert.NotEqual(0, exitCode);
-            Assert.Equal($@"error CS7093: Cannot read config file '{root}DoesNotExist\NOwhere\bonobo.exe.config' -- 'Could not find a part of the path '{root}DoesNotExist\NOwhere\bonobo.exe.config'.'", outWriter.ToString().Trim());
+            Assert.Equal($"error CS7093: Cannot read config file '{appConfigPath}' -- 'Could not find a part of the path '{appConfigPath}'.'", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void ParseDocAndOut()
         {
-            const string baseDirectory = @"C:\abc\def\baz";
+            var baseDirectory = ExecutionConditionUtil.IsWindows ? @"C:\abc\def\baz" : "/abc/def/baz";
+            var sep = Path.DirectorySeparatorChar;
 
             // Can specify separate directories for binary and XML output.
-            var parsedArgs = DefaultParse(new[] { @"/doc:a\b.xml", @"/out:c\d.exe", "a.cs" }, baseDirectory);
+            var parsedArgs = DefaultParse(new[] { $"/doc:a{sep}b.xml", $"/out:c{sep}d.exe", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
 
-            Assert.Equal(@"C:\abc\def\baz\a\b.xml", parsedArgs.DocumentationPath);
+            Assert.Equal(Path.Combine(baseDirectory, "a", "b.xml"), parsedArgs.DocumentationPath);
 
-            Assert.Equal(@"C:\abc\def\baz\c", parsedArgs.OutputDirectory);
+            Assert.Equal(Path.Combine(baseDirectory, "c"), parsedArgs.OutputDirectory);
             Assert.Equal("d.exe", parsedArgs.OutputFileName);
 
             // XML does not fall back on output directory.
-            parsedArgs = DefaultParse(new[] { @"/doc:b.xml", @"/out:c\d.exe", "a.cs" }, baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/doc:b.xml", $"/out:c{sep}d.exe", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
 
-            Assert.Equal(@"C:\abc\def\baz\b.xml", parsedArgs.DocumentationPath);
+            Assert.Equal(Path.Combine(baseDirectory, "b.xml"), parsedArgs.DocumentationPath);
 
-            Assert.Equal(@"C:\abc\def\baz\c", parsedArgs.OutputDirectory);
+            Assert.Equal(Path.Combine(baseDirectory, "c"), parsedArgs.OutputDirectory);
             Assert.Equal("d.exe", parsedArgs.OutputFileName);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void ParseErrorLogAndOut()
         {
-            const string baseDirectory = @"C:\abc\def\baz";
+            var baseDirectory = ExecutionConditionUtil.IsWindows ? @"C:\abc\def\baz" : "/abc/def/baz";
+            var sep = Path.DirectorySeparatorChar;
 
             // Can specify separate directories for binary and error log output.
-            var parsedArgs = DefaultParse(new[] { @"/errorlog:a\b.xml", @"/out:c\d.exe", "a.cs" }, baseDirectory);
+            var parsedArgs = DefaultParse(new[] { $"/errorlog:a{sep}b.xml", $"/out:c{sep}d.exe", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
 
-            Assert.Equal(@"C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogOptions.Path);
+            Assert.Equal(Path.Combine(baseDirectory, "a", "b.xml"), parsedArgs.ErrorLogOptions.Path);
 
-            Assert.Equal(@"C:\abc\def\baz\c", parsedArgs.OutputDirectory);
+            Assert.Equal(Path.Combine(baseDirectory, "c"), parsedArgs.OutputDirectory);
             Assert.Equal("d.exe", parsedArgs.OutputFileName);
 
             // XML does not fall back on output directory.
-            parsedArgs = DefaultParse(new[] { @"/errorlog:b.xml", @"/out:c\d.exe", "a.cs" }, baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/errorlog:b.xml", $"/out:c{sep}d.exe", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
 
-            Assert.Equal(@"C:\abc\def\baz\b.xml", parsedArgs.ErrorLogOptions.Path);
+            Assert.Equal(Path.Combine(baseDirectory, "b.xml"), parsedArgs.ErrorLogOptions.Path);
 
-            Assert.Equal(@"C:\abc\def\baz\c", parsedArgs.OutputDirectory);
+            Assert.Equal(Path.Combine(baseDirectory, "c"), parsedArgs.OutputDirectory);
             Assert.Equal("d.exe", parsedArgs.OutputFileName);
         }
 
@@ -4669,7 +4675,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("123"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void SdkPathAndLibEnvVariable()
         {
             var dir = Temp.CreateDirectory();
@@ -7133,7 +7139,7 @@ class C
         }
 
         [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void CompilationWithWarnAsError_01()
         {
             string source = @"
@@ -7160,7 +7166,7 @@ public class C
         }
 
         [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void CompilationWithWarnAsError_02()
         {
             string source = @"
@@ -7207,7 +7213,7 @@ public class C
         }
 
         [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void CompilationWithNonExistingOutPath()
         {
             string source = @"
@@ -7223,11 +7229,12 @@ public class C
             var file = dir.CreateFile(fileName);
             file.WriteAllText(source);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = CreateCSharpCompiler(null, dir.Path, new[] { fileName, "/preferreduilang:en", "/target:exe", "/out:sub\\a.exe" });
+            var sep = Path.DirectorySeparatorChar;
+            var csc = CreateCSharpCompiler(null, dir.Path, new[] { fileName, "/preferreduilang:en", "/target:exe", $"/out:sub{sep}a.exe" });
             int exitCode = csc.Run(outWriter);
 
             Assert.Equal(1, exitCode);
-            Assert.Contains("error CS2012: Cannot open '" + dir.Path + "\\sub\\a.exe' for writing", outWriter.ToString(), StringComparison.Ordinal);
+            Assert.Contains($"error CS2012: Cannot open '{Path.Combine(dir.Path, "sub", "a.exe")}' for writing", outWriter.ToString(), StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(file.Path);
         }
@@ -7901,7 +7908,7 @@ public class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void ResponseFilesWithNoconfig_02()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -7920,7 +7927,7 @@ public class C
             var csc = CreateCSharpCompiler(rsp, WorkingDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString(), StringComparison.Ordinal);
+            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file", outWriter.ToString(), StringComparison.Ordinal);
 
             // Checks the case with /noconfig inside the response file as along with /nowarn (expect to see warning)
             // to verify that this warning is not suppressed by the /nowarn option (See MSDN).
@@ -7928,7 +7935,7 @@ public class C
             csc = CreateCSharpCompiler(rsp, WorkingDirectory, new[] { source, "/preferreduilang:en", "/nowarn:2023" });
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString(), StringComparison.Ordinal);
+            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file", outWriter.ToString(), StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(rsp);
@@ -7969,7 +7976,7 @@ public class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void ResponseFilesWithNoconfig_04()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -7988,7 +7995,7 @@ public class C
             var csc = CreateCSharpCompiler(rsp, WorkingDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString(), StringComparison.Ordinal);
+            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file", outWriter.ToString(), StringComparison.Ordinal);
 
             // Checks the case with -noconfig inside the response file as along with /nowarn (expect to see warning)
             // to verify that this warning is not suppressed by the /nowarn option (See MSDN).
@@ -7996,7 +8003,7 @@ public class C
             csc = CreateCSharpCompiler(rsp, WorkingDirectory, new[] { source, "/preferreduilang:en", "/nowarn:2023" });
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString(), StringComparison.Ordinal);
+            Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file", outWriter.ToString(), StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(rsp);
@@ -12351,7 +12358,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal("", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
         public void PdbPathNotEmittedWithoutPdb()
         {

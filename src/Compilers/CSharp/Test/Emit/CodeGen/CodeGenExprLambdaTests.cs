@@ -295,7 +295,7 @@ class Program : TestBase
         }
 
         [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [Fact]
         public void AnonymousCreation()
         {
             var source =
@@ -2349,7 +2349,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "45");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [Fact]
         public void AnonTypes2()
         {
             var text =

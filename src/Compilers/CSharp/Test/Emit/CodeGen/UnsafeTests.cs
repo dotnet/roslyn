@@ -7717,7 +7717,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void PointerArrayConversion()
         {
             var template = @"
@@ -7786,7 +7786,7 @@ unsafe class C
             CompileAndVerifyException<NotSupportedException>(text, "Type is not supported.", allowUnsafe: true, verify: Verification.Fails);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void PointerArrayEnumerableConversion()
         {
             var template = @"

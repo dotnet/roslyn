@@ -3195,7 +3195,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void LongTupleDeclaration()
         {
             var source = @"
@@ -25242,7 +25242,7 @@ static class C
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void Serialization()
         {
             var source = @"
