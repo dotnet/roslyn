@@ -69,3 +69,17 @@ namespace N
 | `string BannedProperty { get; }`      | `P:N.BannedType.BannedProperty`
 | `event EventHandler BannedEvent;`     | `E:N.BannedType.BannedEvent`
 | `namespace N`                         | `N:N`
+
+## Configuration
+
+The BannedApiAnalyzer supports configuration via `.globalconfig` files.
+
+### Exclude Generated Code
+
+You can exclude source-generated files from analysis by adding the following to your `.globalconfig`:
+
+```ini
+banned_api_analyzer.exclude_generated_code = true
+```
+
+By default, the analyzer runs on all files, including generated code. Setting this option to `true` will skip analysis of files that are marked as generated code.

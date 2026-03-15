@@ -15,6 +15,8 @@ namespace Test.Utilities
             Source = source;
         }
 
+        public WorkItemAttribute(string issueUri) : this(-1, issueUri) { }
+
         public int Id { get; }
         public string Source { get; }
     }
