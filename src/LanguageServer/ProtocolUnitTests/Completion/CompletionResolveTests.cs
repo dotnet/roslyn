@@ -118,7 +118,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             public override void M()
                 {
                     throw new System.NotImplementedException();
@@ -167,7 +167,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             public override void M()
                 {
                     throw new System.NotImplementedException();$0
@@ -189,7 +189,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             {
                 override {|caret:|}
             }
-            """;
+            """.ReplaceLineEndings("\r\n");
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
@@ -198,7 +198,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         var (textEdit, _, _) = await CompletionResultFactory.GenerateComplexTextEditAsync(
             document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, insertNewPositionPlaceholder: true, CancellationToken.None).ConfigureAwait(false);
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             public override void M()
                 {
                     throw new System.NotImplementedException();
@@ -264,7 +264,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         var results = await RunResolveCompletionItemAsync(
             testLspServer,
             clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal("""
+        AssertEx.Equal("""
             ```csharp
             void A.AMethod(int i)
             ```
@@ -278,7 +278,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             •&nbsp;Item 2\.  
               
             [link text](https://google.com)
-            """, results.Documentation.Value.Second.Value);
+            """.ReplaceLineEndings(), results.Documentation.Value.Second.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -326,7 +326,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         var results = await RunResolveCompletionItemAsync(
             testLspServer,
             clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal("""
+        AssertEx.Equal("""
             void A.AMethod(int i)
             A cref A.AMethod(int)
             strong text
@@ -387,7 +387,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
+        AssertEx.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
 
         var editRange = testLspServer.GetLocations("editRange").Single().Range;
         Assert.Equal(editRange, results.TextEdit.Value.First.Range);

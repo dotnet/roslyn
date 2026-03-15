@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
 
             string actual = Encoding.UTF8.GetString(stream.ToArray());
-            Assert.Equal(ExpectedOutputForAdditionalLocationsAsRelatedLocations, actual);
+            Assert.Equal(ExpectedOutputForAdditionalLocationsAsRelatedLocations.ReplaceLineEndings(), actual.ReplaceLineEndings());
         }
 
         public void DescriptorIdCollisionImpl()
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
 
             string actual = Encoding.UTF8.GetString(stream.ToArray());
-            Assert.Equal(ExpectedOutputForDescriptorIdCollision, actual);
+            Assert.Equal(ExpectedOutputForDescriptorIdCollision.ReplaceLineEndings(), actual.ReplaceLineEndings());
         }
 
         protected void PathToUriImpl(string formatString)

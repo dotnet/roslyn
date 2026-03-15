@@ -11867,25 +11867,31 @@ class Goo : [|IComparable|]
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79584")]
-    public Task TestImplementIDisposable_DisposePattern_LF_EndOfLine()
-         => new VerifyCS.Test
-         {
-             TestCode = """
-                using System;
-                class C : {|CS0535:IDisposable|}{|CS1513:|}{|CS1514:|}
-                """.Replace("\r\n", "\n"),
-             FixedCode = $$"""
-                using System;
-                class C : IDisposable
-                {
-                    private bool disposedValue;
+    public async Task TestImplementIDisposable_DisposePattern_LF_EndOfLine()
+    {
+        // Use TestState/FixedState.Sources directly to bypass the verifier's CRLF
+        // normalization setters, since this test explicitly tests LF line endings.
+        var testCode = """
+            using System;
+            class C : {|CS0535:IDisposable|}{|CS1513:|}{|CS1514:|}
+            """.Replace("\r\n", "\n");
+        var fixedCode = $$"""
+            using System;
+            class C : IDisposable
+            {
+                private bool disposedValue;
 
-                {{DisposePattern("protected virtual ", "C", "public void ")}}
-                }
-                """.Replace("\r\n", "\n"),
-             CodeActionIndex = 1,
-             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-             LanguageVersion = LanguageVersion.CSharp14,
-             Options = { { FormattingOptions2.NewLine, "\n" } },
-         }.RunAsync();
+            {{DisposePattern("protected virtual ", "C", "public void ")}}
+            }
+            """.Replace("\r\n", "\n");
+        await new VerifyCS.Test
+        {
+            TestState = { Sources = { testCode } },
+            FixedState = { Sources = { fixedCode } },
+            CodeActionIndex = 1,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp14,
+            Options = { { FormattingOptions2.NewLine, "\n" } },
+        }.RunAsync();
+    }
 }

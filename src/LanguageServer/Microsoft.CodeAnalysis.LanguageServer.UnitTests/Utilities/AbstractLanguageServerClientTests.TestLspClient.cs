@@ -44,7 +44,10 @@ public partial class AbstractLanguageServerClientTests
             var fullPipePath = GetFullPipePath(pipeName);
 
             // Create the pipe server - the LSP server process will connect to this as a client.
-            var pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+            // On Windows, NamedPipeServerStream prepends \\.\pipe\ to the name automatically.
+            // On Unix, we must use the full socket path so the server and client agree on the location.
+            var serverPipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? pipeName : fullPipePath;
+            var pipeServer = new NamedPipeServerStream(serverPipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 
             var processStartInfo = CreateLspStartInfo(fullPipePath, extensionLogsPath, includeDevKitComponents, debugLsp);
 

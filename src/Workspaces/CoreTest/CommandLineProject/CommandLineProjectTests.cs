@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 [UseExportProvider]
 public sealed class CommandLineProjectTests : TestBase
 {
-    [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+    [ConditionalFact(typeof(WindowsOnly)), Trait(Traits.Feature, Traits.Features.Workspace)]
     public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
     {
         var commandLine = @"..\goo.cs";
@@ -41,14 +41,14 @@ public sealed class CommandLineProjectTests : TestBase
         });
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestCreateWithRequiredServices()
     {
         var ws = new AdhocWorkspace();
         _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, @"goo.cs", @"C:\ProjectDirectory", ws);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestUnrootedPathInsideProjectCone()
     {
         var commandLine = @"goo.cs";
@@ -59,7 +59,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal("goo.cs", docInfo.Name);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestUnrootedSubPathInsideProjectCone()
     {
         var commandLine = @"subdir\goo.cs";
@@ -71,7 +71,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal("goo.cs", docInfo.Name);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestRootedPathInsideProjectCone()
     {
         var commandLine = @"c:\ProjectDirectory\goo.cs";
@@ -82,7 +82,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal("goo.cs", docInfo.Name);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestRootedSubPathInsideProjectCone()
     {
         var commandLine = @"c:\projectDirectory\subdir\goo.cs";
@@ -94,7 +94,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal("goo.cs", docInfo.Name);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestRootedPathOutsideProjectCone()
     {
         var commandLine = @"C:\SomeDirectory\goo.cs";
@@ -105,7 +105,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal("goo.cs", docInfo.Name);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestUnrootedPathOutsideProjectCone()
     {
         var commandLine = @"..\goo.cs";
@@ -116,7 +116,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal("goo.cs", docInfo.Name);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestAdditionalFiles()
     {
         var commandLine = @"goo.cs /additionalfile:bar.cs";
@@ -128,7 +128,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal("bar.cs", secondDoc.Name);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestAnalyzerConfigFiles()
     {
         var commandLine = @"/analyzerconfig:.editorconfig";
@@ -167,7 +167,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Equal(pathToAssembly, analyzerRef.FullPath);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestDuplicateReferenceInVisualBasic()
     {
         var pathToAssembly = typeof(object).Assembly.Location;
@@ -179,7 +179,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Single(info.MetadataReferences.OfType<PortableExecutableReference>(), r => r.FilePath == pathToAssembly);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestDuplicateReferenceInVisualBasicWithVbRuntimeFlag()
     {
         var pathToAssembly = typeof(object).Assembly.Location;

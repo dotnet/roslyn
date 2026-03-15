@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
@@ -105,6 +106,7 @@ public abstract class EditingTestBase : CSharpTestBase
             "top-level statement" => CSharpFeaturesResources.top_level_statement,
             "top-level code" => CSharpFeaturesResources.top_level_code,
             "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
+            "operator" => FeaturesResources.operator_,
             "extension block" => FeaturesResources.extension_block,
             _ => null
         };
@@ -140,7 +142,7 @@ public abstract class EditingTestBase : CSharpTestBase
 
     private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
         => SyntaxFactory.ParseSyntaxTree(
-            SourceMarkers.Clear(markedSource),
+            SourceMarkers.Clear(markedSource).NormalizePlatformLineEndings("\r\n"),
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
             path: GetDocumentFilePath(documentIndex));
 
@@ -149,6 +151,8 @@ public abstract class EditingTestBase : CSharpTestBase
 
     internal static EditScriptDescription GetTopEdits(string src1, string src2, int documentIndex = 0)
     {
+        src1 = src1.NormalizePlatformLineEndings("\r\n");
+        src2 = src2.NormalizePlatformLineEndings("\r\n");
         var tree1 = ParseSource(src1, documentIndex);
         var tree2 = ParseSource(src2, documentIndex);
 
@@ -172,14 +176,16 @@ public abstract class EditingTestBase : CSharpTestBase
     /// </summary>
     internal static EditScriptDescription GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
+        src1 = src1.NormalizePlatformLineEndings("\r\n");
+        src2 = src2.NormalizePlatformLineEndings("\r\n");
         var match = GetMethodMatch(src1, src2, kind);
         return new(src1, src2, match.GetTreeEdits());
     }
 
     internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
-        var m1 = MakeMethodBody(src1, kind);
-        var m2 = MakeMethodBody(src2, kind);
+        var m1 = MakeMethodBody(src1.NormalizePlatformLineEndings("\r\n"), kind);
+        var m2 = MakeMethodBody(src2.NormalizePlatformLineEndings("\r\n"), kind);
 
         var match = m1.ComputeSingleRootMatch(m2, knownMatches: null);
         Contract.ThrowIfNull(match);
@@ -245,10 +251,10 @@ public abstract class EditingTestBase : CSharpTestBase
          };
 
     internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[]? flags = null, int documentIndex = 0)
-        => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
+        => new(oldSource.NormalizePlatformLineEndings("\r\n"), newSource.NormalizePlatformLineEndings("\r\n"), source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
 
     internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
-        => new(oldSource, newSource);
+        => new(oldSource.NormalizePlatformLineEndings("\r\n"), newSource.NormalizePlatformLineEndings("\r\n"));
 
     internal static void VerifyPreserveLocalVariables(EditScriptDescription edits, bool preserveLocalVariables)
     {

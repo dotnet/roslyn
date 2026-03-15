@@ -378,7 +378,7 @@ public sealed class DefinitionItemFactoryTests
         using var workspace = TestWorkspace.CreateCSharp("""
             namespace System { class C {} }
             namespace System { class D {} }
-            """);
+            """.ReplaceLineEndings("\r\n"));
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();
@@ -1327,7 +1327,7 @@ public sealed class DefinitionItemFactoryTests
             {
                 void M(int p) { }
             }
-            """);
+            """.ReplaceLineEndings("\r\n"));
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();
@@ -1387,7 +1387,7 @@ public sealed class DefinitionItemFactoryTests
             {
                 void M<T>() { }
             }
-            """);
+            """.ReplaceLineEndings("\r\n"));
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();
@@ -1502,7 +1502,7 @@ public sealed class DefinitionItemFactoryTests
             {
                 void M() { int x; }
             }
-            """);
+            """.ReplaceLineEndings("\r\n"));
 
         var solution = workspace.CurrentSolution;
         var project = solution.Projects.Single();

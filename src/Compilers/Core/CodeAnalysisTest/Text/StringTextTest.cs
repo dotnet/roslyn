@@ -164,7 +164,7 @@ bar
 baz";
             var data = SourceText.From(text);
             Assert.Equal(3, data.Lines.Count);
-            var newlineLength = Environment.NewLine.Length;
+            var newlineLength = text.Contains("\r\n") ? 2 : 1;
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: newlineLength, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 3 + newlineLength, length: 3, newlineLength: newlineLength, lineText: "bar");
             CheckLine(data, lineNumber: 2, start: 2 * (3 + newlineLength), length: 3, newlineLength: 0, lineText: "baz");

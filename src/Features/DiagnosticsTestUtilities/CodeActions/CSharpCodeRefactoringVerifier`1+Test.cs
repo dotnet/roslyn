@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,14 +13,15 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 
 #if !CODE_STYLE
-using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 #endif
 
@@ -63,10 +66,18 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         internal OptionsCollection Options => _sharedState.Options;
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string TestCode { set => base.TestCode = value; }
+        public new string TestCode { set => base.TestCode = NormalizeToCRLF(value); }
 
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
-        public new string FixedCode { set => base.FixedCode = value; }
+        public new string FixedCode { set => base.FixedCode = NormalizeToCRLF(value); }
+
+        /// <summary>
+        /// Normalizes line endings to CRLF (\r\n) to match the end_of_line=crlf editorconfig setting
+        /// in <see cref="CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig"/>. This ensures consistent
+        /// test behavior across Windows and Linux where raw string line endings differ.
+        /// </summary>
+        private static string NormalizeToCRLF(string value)
+            => value.Replace("\r\n", "\n").Replace("\n", "\r\n");
 
         /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
         public string? EditorConfig
@@ -84,7 +95,40 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             _sharedState.Apply();
+
+            // Skip normalization if the test explicitly sets FormattingOptions2.NewLine (e.g. to "\n")
+            // since it intentionally tests specific line ending behavior.
+            if (!Options.Any(kvp => ReferenceEquals(kvp.Key.Option, FormattingOptions2.NewLine)))
+            {
+                NormalizeSourceFileEndingsToCRLF(TestState);
+                NormalizeSourceFileEndingsToCRLF(FixedState);
+            }
+
             await base.RunImplAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Normalizes all source file line endings in the given state to CRLF so that tests
+        /// produce consistent results across Windows and Linux. On Linux, raw string literals
+        /// use LF but SyntaxFactory/NormalizeWhitespace generate CRLF, causing mismatches.
+        /// </summary>
+        private static void NormalizeSourceFileEndingsToCRLF(Testing.SolutionState state)
+        {
+            NormalizeSourceCollection(state.Sources);
+            foreach (var project in state.AdditionalProjects.Values)
+                NormalizeSourceCollection(project.Sources);
+        }
+
+        private static void NormalizeSourceCollection(Testing.SourceFileCollection sources)
+        {
+            for (var i = 0; i < sources.Count; i++)
+            {
+                var (filename, sourceText) = sources[i];
+                var text = sourceText.ToString();
+                var normalized = NormalizeToCRLF(text);
+                if (text != normalized)
+                    sources[i] = (filename, SourceText.From(normalized, sourceText.Encoding, sourceText.ChecksumAlgorithm));
+            }
         }
 
         protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)

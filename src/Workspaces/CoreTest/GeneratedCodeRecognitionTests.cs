@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 [UseExportProvider]
 public sealed class GeneratedCodeRecognitionTests
 {
+    private static readonly string s_testFileRoot = Path.DirectorySeparatorChar == '/' ? "/Z" : @"Z:\";
+
     [Fact]
     public void TestFileNamesNotGenerated()
         => TestFileNames(false,
@@ -56,13 +59,13 @@ public sealed class GeneratedCodeRecognitionTests
             SourceText.From("""
                 [*.{cs,vb}]
                 generated_code = true
-                """), filePath: @"z:\.editorconfig").Project;
+                """), filePath: Path.Combine(s_testFileRoot, ".editorconfig")).Project;
 
         var projectWithUserConfiguredGeneratedCodeFalse = project.AddAnalyzerConfigDocument(".editorconfig",
             SourceText.From("""
                 [*.{cs,vb}]
                 generated_code = false
-                """), filePath: @"z:\.editorconfig").Project;
+                """), filePath: Path.Combine(s_testFileRoot, ".editorconfig")).Project;
 
         foreach (var fileName in fileNames)
         {
@@ -78,7 +81,7 @@ public sealed class GeneratedCodeRecognitionTests
 
         static void TestCore(string fileName, Project project, bool assertGenerated)
         {
-            var document = project.AddDocument(fileName, "", filePath: $"z:\\{fileName}");
+            var document = project.AddDocument(fileName, "", filePath: Path.Combine(s_testFileRoot, fileName));
             if (assertGenerated)
             {
                 Assert.True(document.IsGeneratedCode(CancellationToken.None), string.Format("Expected file '{0}' to be interpreted as generated code", fileName));

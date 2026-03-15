@@ -7,6 +7,7 @@
 using System;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
   _memberDisplayFormat: SeparateLines,
   _numberRadix: 10
 }
-", s_formatter.FormatObject(options, options));
+".ReplaceLineEndings(), s_formatter.FormatObject(options, options).ReplaceLineEndings());
         }
 
         [Fact]

@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -67,14 +68,14 @@ namespace Acme
             var total1 = _valueType.GetMembers("total1").Single();
             var total2 = _valueType.GetMembers("total2").Single();
             Assert.Equal("F:Acme.ValueType.total1", total1.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""F:Acme.ValueType.total1"">
     <summary>Summary for total fields.</summary>
 </member>
 ", total1.GetDocumentationCommentXml());
 
             Assert.Equal("F:Acme.ValueType.total2", total2.GetDocumentationCommentId());
-            Assert.Equal(@"<member name=""F:Acme.ValueType.total2"">
+            AssertEx.Equal(@"<member name=""F:Acme.ValueType.total2"">
     <summary>Summary for total fields.</summary>
 </member>
 ", total2.GetDocumentationCommentXml());
@@ -140,7 +141,7 @@ namespace Acme
         {
             var field = _enumSymbol.GetMembers("A").Single();
             Assert.Equal("F:Acme.E.A", field.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""F:Acme.E.A"">
     <summary>Enum field</summary>
 </member>

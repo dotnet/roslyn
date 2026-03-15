@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             configTask.Execute();
 
             var result = configTask.ConfigFileContents;
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 ", result);
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 build_property.Property1 = abc123
 build_property.Property2 = def456
 ", result);
@@ -64,7 +64,7 @@ build_property.Property2 = def456
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = abc123
@@ -86,7 +86,7 @@ build_metadata.Compile.ToRetrieve = abc123
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = abc123
@@ -115,7 +115,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 
 [c:/\{f\*i\?le1\}.cs]
 build_metadata.Compile.ToRetrieve = abc123
@@ -142,7 +142,7 @@ build_metadata.Compile.ToRetrieve = ghi789
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = abc123
@@ -163,7 +163,7 @@ build_metadata.AdditionalFile.ToRetrieve = def456
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = 
@@ -185,7 +185,7 @@ build_metadata.Compile.ToRetrieve =
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 
 [c:/file1.cs]
 ", result);
@@ -211,7 +211,7 @@ build_metadata.Compile.ToRetrieve =
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 build_property.Property1 = abc123
 build_property.Property2 = def456
 
@@ -248,7 +248,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
             string expectedPath2 = $"{executingLocation}/subDir/file2.cs";
             string expectedPath3 = $"{executingLocation}/someDir/otherDir/file3.cs";
 
-            Assert.Equal($@"is_global = true
+            AssertEx.Equal($@"is_global = true
 
 [{expectedPath1}]
 build_metadata.Compile.ToRetrieve = abc123
@@ -280,7 +280,7 @@ build_metadata.Compile.ToRetrieve = abc123
             string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)?.Replace('\\', '/') ?? string.Empty;
             string expectedPath = $"{executingLocation}/file1.cs";
 
-            Assert.Equal($@"is_global = true
+            AssertEx.Equal($@"is_global = true
 
 [{expectedPath}]
 build_metadata.Compile.ToRetrieve = abc123
@@ -318,7 +318,7 @@ values
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 build_property.Property1 = this is 
 a 
 property
@@ -346,7 +346,7 @@ build_property.Property2 = def456
 
             var result = configTask.ConfigFileContents;
 
-            Assert.Equal(@"is_global = true
+            AssertEx.Equal(@"is_global = true
 
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = abc123
@@ -375,7 +375,7 @@ build_property.Property2 = def456
 
             Assert.True(File.Exists(fileName));
             Assert.True(configTask.WriteMSBuildEditorConfig());
-            Assert.Equal(expectedContents, File.ReadAllText(fileName));
+            AssertEx.Equal(expectedContents, File.ReadAllText(fileName));
         }
     }
 }

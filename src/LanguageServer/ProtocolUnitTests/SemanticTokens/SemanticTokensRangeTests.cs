@@ -480,7 +480,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
                 }
             }
 
-            """;
+            """.ReplaceLineEndings("\r\n");
 
         await using var testLspServer = await CreateTestLspServerAsync(
             markup, mutatingLspWorkspace, GetCapabilities(isVS));

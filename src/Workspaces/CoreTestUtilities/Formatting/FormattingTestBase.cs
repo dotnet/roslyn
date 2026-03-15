@@ -27,6 +27,12 @@ public abstract class FormattingTestBase
         OptionsCollection? changedOptionSet = null,
         bool testWithTransformation = true)
     {
+        // Raw string literals preserve the source file's line endings at runtime. On cross-platform
+        // scenarios (e.g. WSL accessing Windows-checkout files), the source line endings may not match
+        // Environment.NewLine. Normalize both code and expected to Environment.NewLine so they match
+        // the formatter's default LineFormattingOptions.NewLine (which is Environment.NewLine).
+        code = code.ReplaceLineEndings();
+        expected = expected.ReplaceLineEndings();
         return AssertFormatAsync(expected, code, [new TextSpan(0, code.Length)], language, changedOptionSet, testWithTransformation);
     }
 
@@ -39,6 +45,8 @@ public abstract class FormattingTestBase
         bool treeCompare = true,
         ParseOptions? parseOptions = null)
     {
+        code = code.ReplaceLineEndings();
+        expected = expected.ReplaceLineEndings();
         using var workspace = new AdhocWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", language);
         if (parseOptions != null)
@@ -68,7 +76,7 @@ public abstract class FormattingTestBase
     {
         var newRootNode = Formatter.Format(root, spans, services, options, rules: default, CancellationToken.None);
 
-        Assert.Equal(expected, newRootNode.ToFullString());
+        AssertEx.Equal(expected, newRootNode.ToFullString());
 
         // test doesn't use parsing option. add one if needed later
         var newRootNodeFromString = ParseCompilation(expected, parseOptions);
@@ -127,6 +135,6 @@ public abstract class FormattingTestBase
     protected static void AssertResult(string expected, SourceText sourceText, IList<TextChange> result)
     {
         var actual = sourceText.WithChanges(result).ToString();
-        AssertEx.EqualOrDiff(expected, actual);
+        AssertEx.EqualOrDiff(expected.ReplaceLineEndings(), actual.ReplaceLineEndings());
     }
 }

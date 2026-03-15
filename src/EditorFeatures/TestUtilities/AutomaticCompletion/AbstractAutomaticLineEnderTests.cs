@@ -105,7 +105,7 @@ public abstract class AbstractAutomaticLineEnderTests
 
         expected = expected.Remove(virtualPosition.Position, charactersToRemove);
 
-        Assert.Equal(expected, buffer.CurrentSnapshot.GetText());
+        AssertEx.Equal(expected, buffer.CurrentSnapshot.GetText());
         Assert.Equal(expectedPosition, virtualPosition.Position.Position + charactersToRemove);
     }
 

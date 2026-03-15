@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
@@ -146,7 +147,7 @@ End Class
             expectedDoc = String.Format(expectedDoc,
                                         Path.GetFileNameWithoutExtension(sourcePath))
             expectedDoc = expectedDoc.Replace(vbLf, vbCrLf)
-            Assert.Equal(expectedDoc, xml.ReadAllText().Trim())
+            AssertEx.Equal(expectedDoc, xml.ReadAllText().Trim())
 
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
@@ -190,11 +191,11 @@ End Class
             Dim touchedWritesPath = touchedFilesBase + ".write"
 
             Dim expected = expectedReads.Select(Function(s) s.ToUpperInvariant()).OrderBy(Function(s) s)
-            Assert.Equal(String.Join(vbCrLf, expected),
+            AssertEx.Equal(String.Join(vbCrLf, expected),
                          File.ReadAllText(touchedReadPath).Trim())
 
             expected = expectedWrites.Select(Function(s) s.ToUpperInvariant()).OrderBy(Function(s) s)
-            Assert.Equal(String.Join(vbCrLf, expected),
+            AssertEx.Equal(String.Join(vbCrLf, expected),
                          File.ReadAllText(touchedWritesPath).Trim())
         End Sub
 

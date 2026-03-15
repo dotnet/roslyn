@@ -28,6 +28,6 @@ public abstract class AbstractOrganizerTests
         using var workspace = EditorTestWorkspace.CreateCSharp(initial, options);
         var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
         var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
-        Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
+        AssertEx.Equal(final, newRoot.ToFullString());
     }
 }

@@ -6189,14 +6189,14 @@ public " + keyword + @" C(int I1);
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6350,7 +6350,7 @@ public " + keyword + @" C(int I1);
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary <paramref name=""I1""/></summary>
     <param name=""I1"">Description for I1</param>
@@ -6424,7 +6424,7 @@ public " + keyword + @" C(int I1)
 
             comp.VerifyDiagnostics();
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6432,7 +6432,7 @@ public " + keyword + @" C(int I1)
 ", cMember.GetDocumentationCommentXml());
 
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6442,7 +6442,7 @@ public " + keyword + @" C(int I1)
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""P:C.I1"">
     <summary>Property summary</summary>
 </member>
@@ -6462,14 +6462,14 @@ public " + keyword + @" C();
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
 </member>
 ", cMember.GetDocumentationCommentXml());
 
             var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.IsEmpty).Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor"">
     <summary>Summary</summary>
 </member>
@@ -6492,7 +6492,7 @@ public partial " + keyword + @" C(int I1);
             comp.VerifyDiagnostics();
 
             var c = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6500,7 +6500,7 @@ public partial " + keyword + @" C(int I1);
 ", c.GetDocumentationCommentXml());
 
             var cConstructor = c.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6526,7 +6526,7 @@ public partial " + keyword + @" D;
             comp.VerifyDiagnostics();
 
             var d = comp.GetMember<NamedTypeSymbol>("D");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:D"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6534,7 +6534,7 @@ public partial " + keyword + @" D;
 ", d.GetDocumentationCommentXml());
 
             var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6567,7 +6567,7 @@ public partial " + keyword + @" E;
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6602,7 +6602,7 @@ public partial " + keyword + @" E(int I1);
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6641,7 +6641,7 @@ public partial " + keyword + @" C(int I1);
                 );
 
             var c = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6674,7 +6674,7 @@ public partial " + keyword + @" D(int I1);
                 );
 
             var d = comp.GetMember<NamedTypeSymbol>("D");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:D"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6682,7 +6682,7 @@ public partial " + keyword + @" D(int I1);
 ", d.GetDocumentationCommentXml());
 
             var dConstructor = d.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6717,7 +6717,7 @@ public partial " + keyword + @" E(int I1);
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -6728,7 +6728,7 @@ public partial " + keyword + @" E(int I1);
 
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -6763,7 +6763,7 @@ public partial " + keyword + @" E(string S1);
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary2</summary>
     <param name=""S1"">Description2 for S1</param>
@@ -6801,7 +6801,7 @@ public partial " + keyword + @" E(string S1);
                 );
 
             var e = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:E"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -6812,7 +6812,7 @@ public partial " + keyword + @" E(string S1);
 
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
     <summary>Summary1</summary>
     <param name=""I1"">Description1 for I1</param>
@@ -6839,7 +6839,7 @@ public class Outer
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:Outer.C"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6847,7 +6847,7 @@ public class Outer
 ", cMember.GetDocumentationCommentXml());
 
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
@@ -6901,7 +6901,7 @@ public " + keyword + @" Outer(object O1)
 
             var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
             var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>

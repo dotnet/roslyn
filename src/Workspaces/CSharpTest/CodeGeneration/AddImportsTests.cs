@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -892,7 +892,7 @@ public sealed class AddImportsTests
         var formatted = await Formatter.FormatAsync(imported, formattingOptions, CancellationToken.None);
         var actualText = (await formatted.GetTextAsync()).ToString();
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             using System;
             using N.M;
 

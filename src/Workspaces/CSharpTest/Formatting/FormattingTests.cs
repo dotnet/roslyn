@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -5153,7 +5153,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
         using var workspace = new AdhocWorkspace();
         var newProperty = Formatter.Format(property, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             public int Prop
             {
                 get
@@ -5166,7 +5166,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     c = value;
                 }
             }
-            """, newProperty.ToFullString());
+            """.ReplaceLineEndings(), newProperty.ToFullString());
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
@@ -9899,6 +9899,9 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
     private Task AssertFormatBodyAsync(string expected, string input)
     {
+        expected = expected.ReplaceLineEndings();
+        input = input.ReplaceLineEndings();
+
         static string transform(string s)
         {
             var lines = s.Split([Environment.NewLine], StringSplitOptions.None);

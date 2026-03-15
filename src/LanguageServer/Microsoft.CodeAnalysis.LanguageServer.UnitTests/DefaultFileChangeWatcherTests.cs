@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -515,7 +516,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         Assert.True(allEventsFired, "Should receive events for all file changes");
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public async Task FileRenamed_InWatchedDirectory_FireEventForOriginalPath()
     {
         var tempDirectory = _tempRoot.CreateDirectory();

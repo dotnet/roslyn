@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
@@ -48,7 +49,7 @@ public sealed class CommandLineProjectWorkspaceTests
         var compilation = await project.GetCompilationAsync();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestLoadProjectFromCommandLine()
     {
         var commandLine = @"goo.cs subdir\bar.cs /out:goo.dll /target:library";

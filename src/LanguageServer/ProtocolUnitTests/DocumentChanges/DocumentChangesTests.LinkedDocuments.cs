@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges;
@@ -85,7 +86,7 @@ public sealed partial class DocumentChangesTests
 
         foreach (var document in solution.Projects.First().Documents)
         {
-            Assert.Equal("""
+            AssertEx.Equal("""
                 class A
                 {
                     void M()

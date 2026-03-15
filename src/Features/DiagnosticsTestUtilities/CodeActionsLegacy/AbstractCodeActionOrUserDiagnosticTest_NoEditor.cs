@@ -173,7 +173,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         var workspace = CreateWorkspace(workspaceMarkupOrCode, parameters, composition, documentServiceProvider);
 
 #if !CODE_STYLE
-        if (parameters.testHost == TestHost.OutOfProcess && _logger != null)
+        if (parameters.testHost == TestHost.OutOfProcess && _logger != null && ExecutionConditionUtil.IsWindows)
         {
             var remoteHostProvider = (InProcRemoteHostClientProvider)workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
             remoteHostProvider.TraceListener = new XunitTraceListener(_logger);
@@ -210,7 +210,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
 
     private static void MakeProjectsAndDocumentsRooted(TTestWorkspace workspace)
     {
-        const string defaultRootFilePath = @"z:\";
+        var defaultRootFilePath = Path.DirectorySeparatorChar == '/' ? "/" : @"z:\";
         var newSolution = workspace.CurrentSolution;
         foreach (var projectId in workspace.CurrentSolution.ProjectIds)
         {
@@ -398,11 +398,20 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             "\nActual: " + string.Join(", ", actualActionSet));
     }
 
+    /// <summary>
+    /// Normalizes line endings in test markup. Override in derived classes that need
+    /// specific line ending behavior (e.g., wrapping tests that need CRLF consistency
+    /// for IsEquivalentTo comparisons to work cross-platform).
+    /// </summary>
+    protected virtual string NormalizeMarkup(string markup)
+        => markup.ReplaceLineEndings();
+
     protected async Task TestActionCountAsync(
         string initialMarkup,
         int count,
         TestParameters parameters = null)
     {
+        initialMarkup = NormalizeMarkup(initialMarkup);
         var ps = parameters ?? TestParameters.Default;
         using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
         var (actions, _) = await GetCodeActionsAsync(workspace, ps);
@@ -438,6 +447,9 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         string expectedMarkup,
         TestParameters parameters)
     {
+        initialMarkup = NormalizeMarkup(initialMarkup);
+        expectedMarkup = NormalizeMarkup(expectedMarkup);
+
         MarkupTestFile.GetSpans(
             initialMarkup,
             out var initialMarkupWithoutSpans, out var initialSpanMap,
@@ -617,7 +629,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         }
         else
         {
-            AssertEx.EqualOrDiff(expectedText, actualText);
+            AssertEx.EqualOrDiff(expectedText.ReplaceLineEndings(), actualText.ReplaceLineEndings());
         }
 
         TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
@@ -638,8 +650,18 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             {
                 var actual = annotatedItems[i].Span;
                 var expected = expectedSpans[i];
-                Assert.Equal(expected, actual);
+
+                // Normalize positions to account for line ending differences (\r\n vs \n)
+                // between the expected markup and actual code action output.
+                Assert.Equal(NormalizeSpan(expected, expectedText), NormalizeSpan(actual, actualText));
             }
+        }
+
+        static TextSpan NormalizeSpan(TextSpan span, string text)
+        {
+            var start = span.Start - text[..span.Start].Count(c => c == '\r');
+            var end = span.End - text[..span.End].Count(c => c == '\r');
+            return TextSpan.FromBounds(start, end);
         }
     }
 
@@ -730,7 +752,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             }
             else
             {
-                AssertEx.EqualOrDiff(expected, actual);
+                AssertEx.EqualOrDiff(expected.ReplaceLineEndings(), actual.ReplaceLineEndings());
             }
         }
     }

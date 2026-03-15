@@ -203,7 +203,7 @@ public sealed partial class OnAutoInsertTests(ITestOutputHelper testOutputHelper
             }
             """, mutatingLspWorkspace);
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
     public Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpected("\n", """
             class A

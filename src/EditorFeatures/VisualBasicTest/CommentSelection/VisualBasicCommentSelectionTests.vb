@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
@@ -91,7 +92,7 @@ End Module</code>
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())
 
-                Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText())
+                AssertEx.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 

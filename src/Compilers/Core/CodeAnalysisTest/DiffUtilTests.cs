@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -35,7 +36,7 @@ E
 --> D
     E
 ++> 2
---> F", expected);
+--> F".ReplaceLineEndings(), expected.ReplaceLineEndings());
         }
     }
 }

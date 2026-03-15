@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
@@ -236,9 +237,9 @@ public sealed class RemoveUnnecessaryImportsTests
             },
             ExpectedDiagnostics = {
                 // Microsoft.CodeAnalysis.Test.Utilities\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Component.razor.g.cs(1,1): hidden IDE0005_gen: Using directive is unnecessary.
-                VerifyCS.Diagnostic(RemoveUnnecessaryImportsConstants.IDE0005_gen).WithSpan(@"Microsoft.CodeAnalysis.Test.Utilities\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Component.razor.g.cs", 1, 1, 1, 14),
+                VerifyCS.Diagnostic(RemoveUnnecessaryImportsConstants.IDE0005_gen).WithSpan($"Microsoft.CodeAnalysis.Test.Utilities{Path.DirectorySeparatorChar}Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator{Path.DirectorySeparatorChar}Component.razor.g.cs", 1, 1, 1, 14),
                 // Microsoft.CodeAnalysis.Test.Utilities\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Component.razor.g.cs(1,1): hidden RemoveUnnecessaryImportsFixable: 
-                VerifyCS.Diagnostic(RemoveUnnecessaryImportsConstants.DiagnosticFixableId).WithSpan(@"Microsoft.CodeAnalysis.Test.Utilities\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\Component.razor.g.cs", 1, 1, 2, 34),
+                VerifyCS.Diagnostic(RemoveUnnecessaryImportsConstants.DiagnosticFixableId).WithSpan($"Microsoft.CodeAnalysis.Test.Utilities{Path.DirectorySeparatorChar}Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator{Path.DirectorySeparatorChar}Component.razor.g.cs", 1, 1, 2, 34),
             }
         }.RunAsync();
 

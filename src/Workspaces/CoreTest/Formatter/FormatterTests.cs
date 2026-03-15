@@ -56,7 +56,8 @@ public sealed class FormatterTests
 #pragma warning restore RS0030 // Do not used banned APIs
 
         var formattedText = await formattedDocument.GetTextAsync();
-        AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = False, TabSize = 4, IndentationSize = 4, NewLine = \r\n }", formattedText.ToString());
+        var escapedNewLine = Environment.NewLine.Replace("\r", @"\r").Replace("\n", @"\n");
+        AssertEx.Equal($"Formatted with options: LineFormattingOptions {{ UseTabs = False, TabSize = 4, IndentationSize = 4, NewLine = {escapedNewLine} }}", formattedText.ToString());
     }
 
     [Theory, CombinatorialData]

@@ -26,7 +26,7 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool: ${{ parameters.poolParameters }}
-  timeoutInMinutes: 90
+  timeoutInMinutes: 120
   steps:
     - checkout: none
 
@@ -47,9 +47,9 @@ jobs:
       inputs:
         scriptPath: ./eng/build.sh        
         ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
+          args: --ci --helix --solution Roslyn.slnx --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
         ${{ else }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
+          args: --ci --helix --solution Roslyn.slnx --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)

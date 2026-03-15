@@ -98,11 +98,6 @@ internal static class CodeFixVerifierHelper
 
     public static SourceText? ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
     {
-        if (options.Count == 0)
-        {
-            return explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
-        }
-
         var analyzerConfig = new StringBuilder();
         if (explicitEditorConfig is object)
         {
@@ -115,6 +110,11 @@ internal static class CodeFixVerifierHelper
 
         analyzerConfig.AppendLine();
         analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
+
+        // Some code actions generate code via SyntaxFactory/NormalizeWhitespace which always produce \r\n line
+        // endings regardless of platform. Force the formatter to also use \r\n so that code action output has
+        // consistent line endings for cross-platform test comparison.
+        analyzerConfig.AppendLine("end_of_line = crlf");
 
         foreach (var (optionKey, value) in options)
         {

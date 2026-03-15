@@ -31,7 +31,7 @@ public partial class CSharpJsonParserTests
 
     private static SyntaxToken GetStringToken(string text)
     {
-        var statement = StatementPrefix + text;
+        var statement = (StatementPrefix + text).NormalizePlatformLineEndings("\r\n");
         var parsedStatement = SyntaxFactory.ParseStatement(statement);
         var token = parsedStatement.DescendantTokens().ToArray()[3];
         Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
@@ -396,7 +396,7 @@ public partial class CSharpJsonParserTests
         return new XElement(element.Name, children);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestDeepRecursion1()
     {
         var (token, tree, chars) =
@@ -447,7 +447,7 @@ public partial class CSharpJsonParserTests
         Assert.Null(tree);
     }
 
-    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
+    [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
     public void TestDeepRecursion2()
     {
         var (token, tree, chars) =

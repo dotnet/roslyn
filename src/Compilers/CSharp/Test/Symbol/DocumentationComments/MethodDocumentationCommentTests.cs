@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var m0 = _widgetClass.GetMembers("M0").Single();
             Assert.Equal("M:Acme.Widget.M0", m0.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""M:Acme.Widget.M0"">
     <summary>M0 Summary.</summary>
 </member>

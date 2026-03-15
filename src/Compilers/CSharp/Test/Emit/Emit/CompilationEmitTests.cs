@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -277,7 +277,7 @@ namespace Goo.Bar
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -323,7 +323,7 @@ namespace Goo.Bar
             emitResult.Diagnostics.Verify();
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
                 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -376,7 +376,7 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -430,7 +430,7 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -483,7 +483,7 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -532,7 +532,7 @@ namespace Goo.Bar
             emitResult.Diagnostics.Verify();
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.Equal(
+            AssertEx.Equal(
                 @"<?xml version=""1.0""?>
 <doc>
     <assembly>

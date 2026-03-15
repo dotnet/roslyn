@@ -235,7 +235,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
 
-            Assert.Equal(
+            AssertEx.Equal(
 "<member name=""M:Test.Main"">
  <summary>
  Info
@@ -246,7 +246,7 @@ End Class
             compilation = CompilationUtils.CreateCompilationWithMscorlib40(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
             main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
 
-            Assert.Equal(
+            AssertEx.Equal(
 "<member name=""M:Test.Main"">
  <summary>
  Info

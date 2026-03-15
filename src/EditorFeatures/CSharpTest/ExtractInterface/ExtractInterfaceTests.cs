@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -400,7 +400,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
         var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace OuterNamespace.InnerNamespace;
 
             internal interface IMyClass
@@ -440,7 +440,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
         var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace OuterNamespace.InnerNamespace
             {
                 internal interface IMyClass
@@ -481,7 +481,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
         var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace OuterNamespace.InnerNamespace
             {
                 internal interface IMyClass
@@ -743,7 +743,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
         var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace N
             {
                 using System.Collections.Generic;
@@ -908,7 +908,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
         var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             internal interface IMyClass
             {
                 void Goo();

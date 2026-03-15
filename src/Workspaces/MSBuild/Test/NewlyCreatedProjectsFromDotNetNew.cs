@@ -133,7 +133,16 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
             var templateShortName = columns[1].Split(',').First();
 
             if (ExcludeMauiTemplates && templateShortName.StartsWith("maui"))
+            {
                 continue;
+            }
+
+            // WPF and WinForms templates are Windows-only
+            if (!ExecutionConditionUtil.IsWindows &&
+                (templateShortName.StartsWith("wpf") || templateShortName.StartsWith("winforms")))
+            {
+                continue;
+            }
 
             templateNames.Add(templateShortName);
         }

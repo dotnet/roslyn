@@ -32,7 +32,7 @@ public sealed partial class CSharpRegexParserTests
 
     private static SyntaxToken GetStringToken(string text)
     {
-        var statement = _statementPrefix + text;
+        var statement = (_statementPrefix + text).NormalizePlatformLineEndings("\r\n");
         var parsedStatement = SyntaxFactory.ParseStatement(statement);
         var token = parsedStatement.DescendantTokens().ToArray()[3];
         Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
@@ -332,7 +332,7 @@ public sealed partial class CSharpRegexParserTests
     private static string Not(string regex)
         => $"(?({regex})[0-[0]]|.*)";
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void TestDeepRecursion()
     {
         var (token, tree, chars) =

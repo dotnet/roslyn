@@ -55,7 +55,7 @@ public abstract class AbstractOnAutoInsertTests(ITestOutputHelper testOutputHelp
         AssertEx.NotNull(result);
         Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
         var actualText = ApplyTextEdits([result.TextEdit], documentText);
-        Assert.Equal(expected, actualText);
+        AssertEx.Equal(expected, actualText);
     }
 
     private protected async Task VerifyNoResult(
