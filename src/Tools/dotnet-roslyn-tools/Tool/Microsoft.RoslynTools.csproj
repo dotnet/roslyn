@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
     <!-- Allow the tool to roll forward to newer runtimes when available -->
-    <RollForward>LatestMinor</RollForward>
+    <RollForward>Major</RollForward>
 
     <ToolCommandName>roslyn-tools</ToolCommandName>
     <Description>Command line tool for performing Roslyn infrastructure tasks.</Description>
