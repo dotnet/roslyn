@@ -3,6 +3,8 @@ parameters:
     type: string
   - name: queueName
     type: string
+  - name: buildQueueName
+    type: string
   - name: configuration
     type: string
     default: 'Debug'
@@ -28,7 +30,7 @@ stages:
       configuration: ${{ parameters.configuration }}
       poolParameters: 
         name: ${{ parameters.poolName }}
-        demands: ImageOverride -equals ${{ parameters.queueName }}
+        demands: ImageOverride -equals ${{ parameters.buildQueueName }}
       restoreArguments: -msbuildEngine vs
       buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
 
