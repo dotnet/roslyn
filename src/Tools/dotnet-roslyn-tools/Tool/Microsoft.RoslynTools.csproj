@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>$(NetCurrent)</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- Allow the tool to roll forward to newer runtimes when available -->
+    <RollForward>LatestMinor</RollForward>
 
     <ToolCommandName>roslyn-tools</ToolCommandName>
     <Description>Command line tool for performing Roslyn infrastructure tasks.</Description>
