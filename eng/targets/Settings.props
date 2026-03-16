@@ -151,18 +151,8 @@
     Analyzers
   -->
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" PrivateAssets="all" />
   </ItemGroup>
-
-  <!--
-    Don't inject PerformanceSensitiveAttribute source by default to avoid duplicate definitions caused by IVT.
-    This needs to be set to true in projects at the root of IVT trees, in order for PerformanceSensitiveAnalyzers to work.
-  -->
-  <PropertyGroup Condition="'$(GeneratePerformanceSensitiveAttribute)' == ''">
-    <GeneratePerformanceSensitiveAttribute>false</GeneratePerformanceSensitiveAttribute>
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
     <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->

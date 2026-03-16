@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             DiagnosticResult[] expected =
             [
-                GetCSharpExpectedDiagnostic(19, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
-                GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetCSharpExpectedDiagnostic(19, 29, violatingTypeName: typeof(ITypeSymbol).FullName!),
+                GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName!),
+                GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName!),
                 GetCSharpExpectedDiagnostic(22, 31, violatingTypeName: "MyCompilation"),
-                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName),
-                GetCSharpExpectedDiagnostic(24, 29, violatingTypeName: typeof(ISymbol).FullName),
-                GetCSharpExpectedDiagnostic(25, 29, violatingTypeName: typeof(IOperation).FullName)
+                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName!),
+                GetCSharpExpectedDiagnostic(24, 29, violatingTypeName: typeof(ISymbol).FullName!),
+                GetCSharpExpectedDiagnostic(25, 29, violatingTypeName: typeof(IOperation).FullName!)
             ];
 
             await VerifyCS.VerifyAnalyzerAsync("""
@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         {
             DiagnosticResult[] expected =
             [
-                GetBasicExpectedDiagnostic(19, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
-                GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetBasicExpectedDiagnostic(19, 35, violatingTypeName: typeof(ITypeSymbol).FullName!),
+                GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName!),
+                GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName!),
                 GetBasicExpectedDiagnostic(22, 40, violatingTypeName: "MyCompilation"),
-                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName),
-                GetBasicExpectedDiagnostic(24, 35, violatingTypeName: typeof(ISymbol).FullName),
-                GetBasicExpectedDiagnostic(25, 35, violatingTypeName: typeof(IOperation).FullName)
+                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName!),
+                GetBasicExpectedDiagnostic(24, 35, violatingTypeName: typeof(ISymbol).FullName!),
+                GetBasicExpectedDiagnostic(25, 35, violatingTypeName: typeof(IOperation).FullName!)
             ];
 
             await VerifyVB.VerifyAnalyzerAsync("""

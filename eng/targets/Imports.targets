@@ -5,6 +5,32 @@
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <!--
+    Analyzers: Use ProjectReferences instead of PackageReferences so we don't need external NuGet feeds.
+    This ItemGroup is in a .targets file (not .props) so that the RoslynAnalyzersProject property
+    from src/RoslynAnalyzers/Directory.Build.props is set before evaluation, avoiding circular references.
+  -->
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(RoslynAnalyzersProject)' != 'true'">
+    <!-- PerformanceSensitiveAnalyzers (previously a PackageReference in Settings.props) -->
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+
+    <!-- Roslyn.Diagnostics.Analyzers (previously a PackageReference in Settings.props) -->
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\Core\Roslyn.Diagnostics.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+
+    <!-- PublicApiAnalyzers (previously a transitive NuGet dependency of Roslyn.Diagnostics.Analyzers) -->
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\PublicApiAnalyzers\Core\Analyzers\Microsoft.CodeAnalysis.PublicApiAnalyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\PublicApiAnalyzers\Core\CodeFixes\Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+
+    <!-- BannedApiAnalyzers (previously a transitive NuGet dependency of Roslyn.Diagnostics.Analyzers) -->
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.vbproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+  </ItemGroup>
+
+  <!--
     Work around .editorconfig evaluation bugs in command line builds.
     https://github.com/dotnet/roslyn/issues/43371
   -->
