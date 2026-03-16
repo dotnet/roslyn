@@ -278,9 +278,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (applicationSyntaxReference == null)
                         continue;
 
-                    var node = applicationSyntaxReference.GetSyntax(cancellationToken);
-                    if (ShouldSkipTreeAnalysis(node.SyntaxTree, cancellationToken))
+                    if (applicationSyntaxReference.SyntaxTree == null || ShouldSkipTreeAnalysis(applicationSyntaxReference.SyntaxTree, cancellationToken))
                         continue;
+
+                    var node = applicationSyntaxReference.GetSyntax(cancellationToken);
 
                     if (IsBannedSymbol(attribute.AttributeClass, out var entry))
                     {
