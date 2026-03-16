@@ -26122,6 +26122,64 @@ forLowering: true);
             verifier.VerifyIL("Program.Test1", expectedIL);
         }
 
+        [Fact]
+        public void ValueProperty_13_Override()
+        {
+            var src = @"
+class S0(object value)
+{
+    protected readonly object _value = value;
+    public virtual object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(string x) : base(x) {}
+    public override string Value => (string)_value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(new S1(""10"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is ""11"" ;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001e
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S0.Value.get""
+  IL_0009:  isinst     ""string""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_001e
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      ""11""
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  ret
+  IL_001e:  ldc.i4.0
+  IL_001f:  ret
+}
+");
+        }
+
         [Theory]
         [CombinatorialData]
         public void HasValueProperty_01([CombinatorialValues("class", "struct")] string typeKind)

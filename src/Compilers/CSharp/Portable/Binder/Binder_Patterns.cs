@@ -140,24 +140,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(inputUnionType.IsUnionType);
 
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            PropertySymbol? valueProperty = TryGetOwnOrInheritedUnionMember<PropertySymbol>(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
+            PropertySymbol? hasValueProperty = TryGetOwnOrInheritedUnionMember<PropertySymbol>(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
 
-            if (valueProperty?.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+            if (hasValueProperty?.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
             {
                 return null; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
             }
 
-            return valueProperty;
+            return hasValueProperty;
 
-            static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? valueProperty)
+            static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? hasValueProperty)
             {
                 if (m is PropertySymbol prop && hasHasValueSignature(prop))
                 {
-                    valueProperty = prop;
+                    hasValueProperty = prop;
                     return true;
                 }
 
-                valueProperty = null;
+                hasValueProperty = null;
                 return false;
             }
 
