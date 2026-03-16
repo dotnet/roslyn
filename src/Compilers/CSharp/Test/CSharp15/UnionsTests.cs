@@ -26129,7 +26129,7 @@ forLowering: true);
 class S0(object value)
 {
     protected readonly object _value = value;
-    public virtual object Value => _value;
+    public virtual object Value => throw null;
 }
 
 [System.Runtime.CompilerServices.Union]
