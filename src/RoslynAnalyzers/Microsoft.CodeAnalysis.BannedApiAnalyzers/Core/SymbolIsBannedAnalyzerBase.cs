@@ -55,21 +55,21 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
 
-            var shouldAnalyzeInTreeMap = new ConcurrentDictionary<SyntaxTree, bool>();
+            var generatedCodeOptionsMap = new ConcurrentDictionary<SyntaxTree, (bool ExcludesGeneratedCode, bool? IsGeneratedCodeFromOptions)>();
 
             if (ShouldAnalyzeAttributes())
             {
                 compilationContext.RegisterCompilationEndAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes(), context.CancellationToken);
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes(), context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes(), isGeneratedCode: null, context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes(), isGeneratedCode: null, context.CancellationToken);
                     });
 
                 compilationContext.RegisterSymbolAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.IsGeneratedCode, context.CancellationToken);
                     },
                     SymbolKind.NamedType,
                     SymbolKind.Method,
@@ -246,16 +246,17 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             }
 
             bool ShouldSkipOperationAnalysis(OperationAnalysisContext context)
-                => !ShouldAnalyzeInTree(context.Operation.Syntax.SyntaxTree, context.CancellationToken);
+                => !ShouldAnalyzeInTree(context.Operation.Syntax.SyntaxTree, context.IsGeneratedCode, context.CancellationToken);
 
             bool ShouldSkipSyntaxNodeAnalysis(SyntaxNodeAnalysisContext context)
-                => !ShouldAnalyzeInTree(context.Node.SyntaxTree, context.CancellationToken);
+                => !ShouldAnalyzeInTree(context.Node.SyntaxTree, context.IsGeneratedCode, context.CancellationToken);
 
-            bool ShouldSkipTreeAnalysis(SyntaxTree tree, CancellationToken cancellationToken)
-                => !ShouldAnalyzeInTree(tree, cancellationToken);
+            bool ShouldSkipTreeAnalysis(SyntaxTree tree, bool? isGeneratedCode, CancellationToken cancellationToken)
+                => !ShouldAnalyzeInTree(tree, isGeneratedCode, cancellationToken);
 
-            bool ShouldAnalyzeInTree(SyntaxTree tree, CancellationToken cancellationToken)
-                => shouldAnalyzeInTreeMap.GetOrAdd(
+            bool ShouldAnalyzeInTree(SyntaxTree tree, bool? isGeneratedCode, CancellationToken cancellationToken)
+            {
+                var generatedCodeOptions = generatedCodeOptionsMap.GetOrAdd(
                     tree,
                     tree =>
                     {
@@ -264,12 +265,16 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                             options.TryGetValue(ExcludeGeneratedCodeOptionName, out var optionValue) &&
                             bool.TryParse(optionValue, out var excludeGeneratedCode) &&
                             excludeGeneratedCode;
-                        return !excludesGeneratedCode ||
-                            !(GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable() ??
-                              GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken));
+                        return (excludesGeneratedCode, GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable());
                     });
 
-            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
+                return !generatedCodeOptions.ExcludesGeneratedCode ||
+                    !(isGeneratedCode ??
+                      generatedCodeOptions.IsGeneratedCodeFromOptions ??
+                      GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken));
+            }
+
+            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, bool? isGeneratedCode, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 foreach (var attribute in attributes)
@@ -278,7 +283,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (applicationSyntaxReference == null)
                         continue;
 
-                    if (applicationSyntaxReference.SyntaxTree == null || ShouldSkipTreeAnalysis(applicationSyntaxReference.SyntaxTree, cancellationToken))
+                    if (applicationSyntaxReference.SyntaxTree == null)
+                        continue;
+
+                    if (ShouldSkipTreeAnalysis(applicationSyntaxReference.SyntaxTree, isGeneratedCode, cancellationToken))
                         continue;
 
                     var node = applicationSyntaxReference.GetSyntax(cancellationToken);
