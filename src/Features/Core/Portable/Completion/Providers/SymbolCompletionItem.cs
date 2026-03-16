@@ -51,7 +51,7 @@ internal static class SymbolCompletionItem
         if (insertionText != null)
             builder.Add(KeyValuePair.Create(InsertionTextProperty, insertionText));
 
-        builder.Add(KeyValuePair.Create("ContextPosition", contextPosition.ToString()));
+        builder.Add(CompletionItem.CreateContextPositionKvp(contextPosition));
         AddSupportedPlatforms(builder, supportedPlatforms);
         symbolEncoder(symbols, builder);
 
@@ -282,7 +282,7 @@ internal static class SymbolCompletionItem
 
     public static int GetContextPosition(CompletionItem item)
     {
-        if (item.TryGetProperty("ContextPosition", out var text) &&
+        if (item.TryGetProperty(CompletionItem.ContextPositionKey, out var text) &&
             int.TryParse(text, out var number))
         {
             return number;
