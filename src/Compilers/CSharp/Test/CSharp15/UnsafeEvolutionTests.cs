@@ -273,6 +273,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             var symbolExpectedUnsafeMode = shouldBeUnsafe ? expectedUnsafeMode : CallerUnsafeMode.None;
             Assert.True(symbolExpectedUnsafeMode == symbol.CallerUnsafeMode, $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.CallerUnsafeMode}).");
 
+            Assert.Equal(symbolExpectedUnsafeMode != CallerUnsafeMode.None, symbol.GetPublicSymbol().RequiresUnsafe);
+
             var attribute = symbol.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
             var associatedAttribute = (symbol as MethodSymbol)?.AssociatedSymbol?.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
             var hasAttribute = attribute is not null || associatedAttribute is not null;
@@ -300,6 +302,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Assert.False(symbol is null, $"Cannot find symbol '{symbolGetter}' in {module.GetType().Name}.");
             return symbol;
         }
+    }
+
+    [Fact]
+    public void RulesOption_Valid()
+    {
+        var verifier = CompileAndVerify("",
+            options: TestOptions.ReleaseDll.WithMemorySafetyRules(0),
+            symbolValidator: module => VerifyMemorySafetyRulesAttribute(
+                module,
+                includesAttributeDefinition: false,
+                includesAttributeUse: false))
+            .VerifyDiagnostics();
+
+        Assert.Equal(0, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRules);
+
+        verifier = CompileAndVerify("",
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: module => VerifyMemorySafetyRulesAttribute(
+                module,
+                includesAttributeDefinition: true,
+                isSynthesized: true,
+                includesAttributeUse: true))
+            .VerifyDiagnostics();
+
+        Assert.Equal(CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRules);
+    }
+
+    // https://github.com/dotnet/roslyn/issues/82546: update when we determine what the "updated" number should be
+    [Theory]
+    [InlineData(1)]
+    [InlineData(-1)]
+    [InlineData(3)]
+    [InlineData(20)]
+    public void RulesOption_Invalid(int value)
+    {
+        CreateCompilation("",
+            options: TestOptions.ReleaseDll.WithMemorySafetyRules(value))
+            .VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRules", value, $"0, {CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion}").WithLocation(1, 1));
     }
 
     [Fact]

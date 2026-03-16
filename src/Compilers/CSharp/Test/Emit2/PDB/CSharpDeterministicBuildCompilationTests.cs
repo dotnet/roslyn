@@ -335,7 +335,8 @@ public struct StructWithValue
                 referencesSupersedeLowerVersions: false,
                 publicSign: false,
                 topLevelBinderFlags: BinderFlags.None,
-                nullableContextOptions: NullableContextOptions.Enable);
+                nullableContextOptions: NullableContextOptions.Enable,
+                memorySafetyRules: 0);
 
             yield return defaultOptions;
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);

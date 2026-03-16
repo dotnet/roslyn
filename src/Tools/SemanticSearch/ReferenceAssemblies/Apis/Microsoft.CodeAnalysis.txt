@@ -1448,6 +1448,7 @@ Microsoft.CodeAnalysis.ISymbol.get_MetadataName
 Microsoft.CodeAnalysis.ISymbol.get_MetadataToken
 Microsoft.CodeAnalysis.ISymbol.get_Name
 Microsoft.CodeAnalysis.ISymbol.get_OriginalDefinition
+Microsoft.CodeAnalysis.ISymbol.get_RequiresUnsafe
 Microsoft.CodeAnalysis.ISymbolExtensions
 Microsoft.CodeAnalysis.ISymbolExtensions.GetConstructedReducedFrom(Microsoft.CodeAnalysis.IMethodSymbol)
 Microsoft.CodeAnalysis.ISyntaxContextReceiver

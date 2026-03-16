@@ -618,7 +618,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        // https://github.com/dotnet/roslyn/issues/82546: add a public API for this (probably just expose a bool)
         /// <summary>
         /// Whether this member is considered unsafe under the updated memory safety rules.
         /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
