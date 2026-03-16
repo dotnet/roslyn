@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../FileBasedProgramsResources.resx">
     <body>
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
-        <target state="new">Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</target>
+        <target state="translated">'{0}' 지시문에서 인식할 수 없는 파일 확장자입니다. 현재 인식되는 확장자는 다음과 같습니다. {1}.</target>
         <note>{0} is the directive - '#:include' or '#:exclude'. {1} is a comma-separated list of file extensions, like: '.cs', '.resx'</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
@@ -39,17 +39,17 @@
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingEntry">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
-        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</target>
+        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 속성의 각 항목은 '='로 구분된 두 부분으로 구성되어야 합니다. '{0}' 항목이 잘못되었습니다.</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingExtension">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</source>
-        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</target>
+        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 속성의 각 항목은 '.'로 시작하는 비어 있지 않은 파일 확장명에 매핑되어야 합니다. '{0}' 항목의 확장명 '{1}'이(가) 잘못되었습니다.</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
-        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</target>
+        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 속성의 각 항목은 비어 있지 않은 항목 종류에 매핑되어야 합니다. '{0}' 항목의 항목 종류 '{1}'이(가) 잘못되었습니다.</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
       </trans-unit>
       <trans-unit id="InvalidProjectDirective">

@@ -1975,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NullableUnconstrainedTypeParameter
                 or ErrorCode.ERR_AnnotationDisallowedInObjectCreation
                 or ErrorCode.WRN_NullableValueTypeMayBeNull
-                or ErrorCode.ERR_NullableOptionNotAvailable
+                or ErrorCode.ERR_CompilationOptionNotAvailable
                 or ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint
                 or ErrorCode.WRN_MissingNonNullTypesContextForAnnotation
                 or ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation
@@ -2579,6 +2579,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
                 or ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget
                 or ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules
+                or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
+                or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
+                or ErrorCode.ERR_NoImplicitConversionToObject
+                or ErrorCode.ERR_UnionMatchingWrongPattern
+                or ErrorCode.ERR_InstanceFieldInUnion
+                or ErrorCode.ERR_InstanceCtorWithOneParameterInUnion
+                or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
+                or ErrorCode.ERR_UnsafeConstructorConstraint
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

@@ -702,6 +702,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting
+        {
+            get
+            {
+                Debug.Fail("Not expecting to get here; if we end up here through ENC, add tests to verify");
+                return ThreeState.Unknown;
+            }
+        }
+
         internal override ImmutableArray<string> NotNullMembers
         {
             get

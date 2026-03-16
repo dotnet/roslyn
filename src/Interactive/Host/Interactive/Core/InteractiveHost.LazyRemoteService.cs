@@ -180,10 +180,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcessId = 0;
                 }
 
-                var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                var clientStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                 JsonRpc? jsonRpc = null;
 
-                void ProcessExitedBeforeEstablishingConnection(object sender, EventArgs e)
+                void ProcessExitedBeforeEstablishingConnection(object? sender, EventArgs e)
                 {
                     Host.InteractiveHostProcessCreationFailed?.Invoke(null, TryGetExitCode(newProcess));
                     _cancellationSource.Cancel();
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     platformInfo = (await jsonRpc.InvokeWithCancellationAsync<InteractiveHostPlatformInfo.Data>(
                         nameof(Service.InitializeAsync),
-                        new object[] { Host._replServiceProviderType.AssemblyQualifiedName },
+                        new object?[] { Host._replServiceProviderType.AssemblyQualifiedName },
                         cancellationToken).ConfigureAwait(false)).Deserialize();
                 }
                 catch (Exception e)

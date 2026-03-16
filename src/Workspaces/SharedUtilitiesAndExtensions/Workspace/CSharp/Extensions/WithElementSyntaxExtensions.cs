@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class WithElementSyntaxExtensions
 {
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
     public static ImmutableArray<IMethodSymbol> GetCreationMethods(
         this WithElementSyntax? withElement, SemanticModel semanticModel, CancellationToken cancellationToken)
     {

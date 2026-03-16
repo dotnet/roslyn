@@ -391,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic 编译器选项
+        <target state="translated">                  Visual Basic 编译器选项
 
                                   - 输出文件 -
 -out:&lt;file&gt;                       指定输出文件名。
@@ -401,21 +401,22 @@
 -target:library                   创建库程序集。
 -target:module                    创建可添加到
                                   程序集的模块。
--target:appcontainerexe           创建在 AppContainer 中运行的
-                                  Windows 应用程序。
+-target:appcontainerexe           创建在 
+ 中运行的 Windows 应用程序
+                                  AppContainer。
 -target:winmdobj                  创建 Windows 元数据中间文件
 -doc[+|-]                         生成 XML 文档文件。
 -doc:&lt;file&gt;                       将 XML 文档文件生成到 &lt;file&gt;。
--refout:&lt;file&gt;                    引用要生成的程序集输出
+-refout:&lt;file&gt;                    要生成的引用程序集输出
 
                                   - 输入文件 -
--addmodule:&lt;file_list&gt;            从指定模块引用元数据
--link:&lt;file_list&gt;                 从指定的互操作程序集嵌入
+-addmodule:&lt;file_list&gt;            引用指定模块中的元数据
+-link:&lt;file_list&gt;                 嵌入来自指定互操作程序集的
                                   元数据。(缩写: -l)
 -recurse:&lt;wildcard&gt;               根据通配符规范，包括
                                   当前目录和子目录中的
                                   所有文件。
--reference:&lt;file_list&gt;            从指定的程序集引用
+-reference:&lt;file_list&gt;            引用来自指定程序集的
                                   元数据。(缩写: -r)
 -analyzer:&lt;file_list&gt;             从此程序集中运行分析器
                                   (缩写: -a)
@@ -481,7 +482,7 @@
                                   import_list:namespace,...
 -langversion:?                   显示语言版本的允许值
 -langversion:&lt;string&gt;             指定语言版本，例如
-                                  `default` (最新主版本)或
+                                  `default` (最新主要版本)或
                                   `latest` (最新版本，包括次要版本)，
                                   或特定版本，例如 `14` 或 `15.3`
 -o-optionexplicit[+|-]              需要显式声明变量。
@@ -508,8 +509,8 @@
 -baseaddress:&lt;number&gt;             库或模块的基址
                                   (十六进制)。
 -checksumalgorithm:&lt;alg&gt;          指定用于计算存储在 PDB 中的源文件
-                                  校验和的算法。支持的值为:
-                                  SHA1 或 SHA256 (默认值)。
+                                  校验和的算法。支持的值为: 
+                                  SHA1、SHA256(默认)、SHA384 或 SHA512。
 -codepage:&lt;number&gt;                指定打开源文件时要使用的
                                   代码页。
 -delaysign[+|-]                   仅使用强名称密钥的公共部分
@@ -548,12 +549,12 @@
 -reportivts[+|-]                  输出所有依赖项授予此程序集的
                                   所有 IVT 的相关信息，并在外部程序集可访问性错误中
                                   注释它们来自哪个程序集。
--sdkpath:&lt;路径&gt;             用于搜索标准库程序集的路径。
+-sdkpath:&lt;path&gt;             用于搜索标准库程序集的路径。
 -subsystemversion:&lt;version&gt;       指定输出 PE 的子系统版本。
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  以 UTF-8 字符编码发出编译器
+-utf8output[+|-]                  以 UTF-8 字符编码格式发出编译器
                                   输出。
-@&lt;file&gt;                           从文本文件插入命令行设置
+@&lt;file&gt;                           插入文本文件中的命令行设置
 -vbruntime[+|-|*]                 在使用/不使用默认 Visual Basic 运行时的情况下
                                   进行编译。
 -vbruntime:&lt;file&gt;                 使用 &lt;file&gt; 中的备用 Visual Basic 运行时

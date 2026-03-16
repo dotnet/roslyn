@@ -12,6 +12,9 @@ namespace CSharpSyntaxGenerator
         [XmlAttribute]
         public string? Name;
 
+        [XmlAttribute]
+        public string? ExperimentalUrl;
+
         public override bool Equals(object? obj)
             => Equals(obj as Kind);
 

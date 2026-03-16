@@ -674,7 +674,7 @@
       </trans-unit>
       <trans-unit id="Logging_Roslyn_Workspace_structure">
         <source>Logging Roslyn Workspace structure...</source>
-        <target state="new">Logging Roslyn Workspace structure...</target>
+        <target state="translated">Estrutura do Workspace do Logging Roslyn...</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1714,7 +1714,7 @@
       </trans-unit>
       <trans-unit id="Visual_Studio">
         <source>Visual Studio</source>
-        <target state="new">Visual Studio</target>
+        <target state="translated">Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">

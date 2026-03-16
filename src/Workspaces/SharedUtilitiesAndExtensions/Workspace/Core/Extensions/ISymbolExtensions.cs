@@ -20,7 +20,7 @@ internal static partial class ISymbolExtensions
         if (isPartial)
             return true;
 
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
         return symbol is IEventSymbol @event &&
             (@event.PartialDefinitionPart != null || @event.PartialImplementationPart != null);
 #else
@@ -41,7 +41,7 @@ internal static partial class ISymbolExtensions
             .WithPartial(symbol.IsPartial());
     }
 
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
     public static ISymbol? ReduceExtensionMember(this ISymbol? member, ITypeSymbol? receiverType)
     {
         if (member is null || receiverType is null)
