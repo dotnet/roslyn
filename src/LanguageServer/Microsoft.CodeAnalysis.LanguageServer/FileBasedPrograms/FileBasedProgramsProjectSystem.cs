@@ -27,7 +27,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
-    private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
+    private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
@@ -55,23 +55,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
-        _canonicalMiscFilesLoader = new CanonicalMiscFilesProjectLoader(
-                workspaceFactory,
-                fileChangeWatcher,
-                globalOptionService,
-                loggerFactory,
-                listenerProvider,
-                projectLoadTelemetry,
-                serverConfigurationFactory,
-                binLogPathProvider,
-                dotnetCliHelper);
+        _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(loggerFactory);
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
     public void Dispose()
     {
-        _canonicalMiscFilesLoader.Dispose();
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
@@ -93,12 +83,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             using var token = Listener.BeginAsyncOperation(nameof(HandleEnableFileBasedProgramsChangedAsync));
             try
             {
-                // Note: Changing the 'enableFileBasedPrograms' setting causes many subtle differences in how loose files are handled.
-                // For example, loose files which don't look like file-based programs, are put in projects forked from the canonical project loader, only when the setting is enabled, etc.
-                // We anticipate that changing this setting will be infrequent, and, the cost of needing to reload will be acceptable given that.
                 _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
+                // TODO: just reload now
                 await UnloadAllProjectsAsync();
-                await _canonicalMiscFilesLoader.UnloadAllProjectsAsync();
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
@@ -208,6 +195,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             or LooseDocumentKind.MiscellaneousFileWithStandardReferences
             or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
         {
+            // TODO2: Do misc workspace lookup normally and only hit this path for the 'add' case.
             return await _canonicalMiscFilesLoader.GetOrAddMiscellaneousDocumentAsync(
                 documentUri, GetDocumentFilePath(documentUri), documentInfo.SourceText, documentKind, languageInformation, cancellationToken);
         }
@@ -239,38 +227,30 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Note: we intentionally do not unload file-based apps in this path.
         // This is because we want to unload from the miscellaneous files workspace only, when a file is found in the host workspace.
         var documentPath = GetDocumentFilePath(uri);
-        return await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
+        return await TryUnloadProjectAsync(documentPath);
     }
 
     public async ValueTask CloseDocumentAsync(DocumentUri uri)
     {
         var documentPath = GetDocumentFilePath(uri);
-        await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
         await TryUnloadProjectAsync(documentPath);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
-        // Check the host workspace to determine whether the entry point file is still a file-based app.
-        // Note: the state of the file in the workspace may not precisely match the content on disk here.
-        // We are assuming it will be accurate enough for purposes of this check.
-        var solution = _workspaceFactory.HostWorkspace.CurrentSolution;
-        var entryPointDocId = solution.GetDocumentIdsWithFilePath(documentPath).FirstOrDefault();
-        var document = solution.GetDocument(entryPointDocId);
-        if (document is null)
+        if (!VirtualProjectXmlProvider.HasFileBasedAppDirectives(SourceText.From(File.ReadAllText(documentPath))))
         {
-            _logger.LogWarning($"Unable to find a document for entry point file, didn't we already begin loading it?");
-            await TryUnloadProjectAsync(documentPath);
-            return null;
-        }
-
-        if (!VirtualProjectXmlProvider.HasFileBasedAppDirectives(await document.GetTextAsync(cancellationToken)))
-        {
-            // The file has changed and is no longer a file-based app entry point.
-            // Unload it from this project system and cancel the reload.
-            await TryUnloadProjectAsync(documentPath);
-            return null;
+            return new RemoteProjectLoadResult
+            {
+                ProjectFileInfos = await _canonicalProjectProvider.GetProjectInfoAsync(documentPath, cancellationToken).ConfigureAwait(false),
+                DiagnosticLogItems = [],
+                ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
+                IsFileBasedProgram = false,
+                IsMiscellaneousFile = true,
+                PreferredBuildHostKind = BuildHostProcessKind.NetCore,
+                ActualBuildHostKind = BuildHostProcessKind.NetCore,
+            };
         }
 
         var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _logger, cancellationToken);
@@ -296,7 +276,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         return new RemoteProjectLoadResult
         {
-            ProjectFile = loadedFile,
+            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
+            DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
             // If we have made it this far, we must have determined that the document is a file-based program.
             // TODO: we should assert this somehow. However, we cannot use the on-disk state of the file to do so, because the decision to load this as a file-based program was based on in-editor content.
             ProjectFactory = _workspaceFactory.HostProjectFactory,

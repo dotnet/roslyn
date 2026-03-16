@@ -90,7 +90,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
         return new RemoteProjectLoadResult
         {
-            ProjectFile = loadedFile,
+            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
+            DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
             ProjectFactory = _hostProjectFactory,
             IsFileBasedProgram = false,
             IsMiscellaneousFile = false,
