@@ -620,7 +620,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        // https://github.com/dotnet/roslyn/issues/82546: add a public API for this (probably just expose a bool)
         /// <summary>
         /// Whether this member is considered caller-unsafe.
         /// See <see cref="CallerUnsafeMode"/> for more details.
