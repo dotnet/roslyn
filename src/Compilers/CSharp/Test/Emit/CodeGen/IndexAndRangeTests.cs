@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class IndexAndRangeTests : CSharpTestBase
     {
+        private static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         private CompilationVerifier CompileAndVerifyWithIndexAndRange(string s, string expectedOutput = null)
         {
             var comp = CreateCompilationWithIndexAndRange(
@@ -4234,7 +4239,7 @@ static class Util
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
 
-            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null, verify: Verification.Skipped);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.M",
                 isMissing ? """
@@ -4285,7 +4290,7 @@ static class Util
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
 
-            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null, verify: Verification.Skipped);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.M",
                 isMissing ? """
@@ -4329,7 +4334,7 @@ System.Console.Write("0123"[1..]);
             if (isMissing)
                 comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
 
-            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null, verify: Verification.Skipped);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
 
             verify.VerifyDiagnostics();
             verify.VerifyIL("<top-level-statements-entry-point>",
@@ -4389,9 +4394,7 @@ static class Util
                 comp.MakeMemberMissing(WellKnownMember.System_Memory_T__Slice_Int);
             }
 
-            var verify = CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123BCD" : null,
-                verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.FailsPEVerify);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123BCD"), verify: Verification.Skipped);
 
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.ReadOnly",
@@ -4478,7 +4481,7 @@ public class C
 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-            var verify = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "Length SliceStartLength 42" : null, verify: Verification.Skipped);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length SliceStartLength 42"), verify: Verification.Skipped);
 
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.M", """
@@ -4526,6 +4529,109 @@ public record class C
                 // (1,20): error CS0747: Invalid initializer member declarator
                 // _ = new C() with { [1..] = 42 };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[1..] = 42").WithLocation(1, 20));
+        }
+
+        [Fact]
+        public void SliceStart_07()
+        {
+            // ReadOnlySpan with Range instance
+            string source = """
+using System;
+
+Console.Write(Util.M("0123", 1..).ToString());
+
+static class Util
+{
+    public static ReadOnlySpan<char> M(ReadOnlySpan<char> s, Range range) => s[range];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            verify.VerifyDiagnostics();
+            // Uses Slice(int, int)
+            verify.VerifyIL("Util.M", """
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.0
+  IL_0004:  dup
+  IL_0005:  call       "int System.ReadOnlySpan<char>.Length.get"
+  IL_000a:  stloc.1
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       "System.Index System.Range.Start.get"
+  IL_0012:  stloc.s    V_4
+  IL_0014:  ldloca.s   V_4
+  IL_0016:  ldloc.1
+  IL_0017:  call       "int System.Index.GetOffset(int)"
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       "System.Index System.Range.End.get"
+  IL_0024:  stloc.s    V_4
+  IL_0026:  ldloca.s   V_4
+  IL_0028:  ldloc.1
+  IL_0029:  call       "int System.Index.GetOffset(int)"
+  IL_002e:  ldloc.2
+  IL_002f:  sub
+  IL_0030:  stloc.3
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.3
+  IL_0033:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)"
+  IL_0038:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SliceStart_08(bool hasSliceInt)
+        {
+            // ReadOnlySpan where Slice(int, int) is absent, but Slice(int) may be present
+            string spanSource = $$"""
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public ref readonly T this[int i] => throw null;
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr) => throw null;
+
+        public ReadOnlySpan(T[] arr, int start, int length) => throw null;
+
+        public static implicit operator ReadOnlySpan<T>(string s) => throw null;
+
+        {{(hasSliceInt
+            ? "public ReadOnlySpan<T> Slice(int offset) => throw null;"
+            : "")}}
+    }
+}
+""";
+
+            var spanRef = CreateCompilation(
+                [spanSource, TestSources.Index, TestSources.Range],
+                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics().EmitToImageReference();
+
+            string source = """
+static class C
+{
+    public static System.ReadOnlySpan<char> M(System.ReadOnlySpan<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, references: [spanRef]);
+            comp.VerifyDiagnostics(
+                // (3,81): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //     public static System.ReadOnlySpan<char> M(System.ReadOnlySpan<char> s) => s[1..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "1..").WithArguments("1", "System.Range", "int").WithLocation(3, 81));
         }
     }
 }

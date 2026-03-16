@@ -5262,6 +5262,17 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
+                // System_Memory_T__Slice_Int
+                (byte)(MemberFlags.Method),                                                                                 // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),         // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
+                    (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),
+                    1,
+                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
                 // System_ReadOnlyMemory_T__Slice_Int_Int
                 (byte)(MemberFlags.Method),                                                                                 // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlyMemory_T - WellKnownType.ExtSentinel), // DeclaringTypeId
@@ -5272,17 +5283,6 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-
-                // System_Memory_T__Slice_Int
-                (byte)(MemberFlags.Method),                                                                                 // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),         // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle,
-                    (byte)WellKnownType.ExtSentinel, (WellKnownType.System_Memory_T - WellKnownType.ExtSentinel),
-                    1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, (byte)0,                                                  // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_ReadOnlyMemory_T__Slice_Int
@@ -5935,8 +5935,8 @@ namespace Microsoft.CodeAnalysis
                 "Slice",                                    // System_Span_T__Slice_Int
                 "Slice",                                    // System_ReadOnlySpan_T__Slice_Int
                 "Slice",                                    // System_Memory_T__Slice_Int_Int
-                "Slice",                                    // System_ReadOnlyMemory_T__Slice_Int_Int
                 "Slice",                                    // System_Memory_T__Slice_Int
+                "Slice",                                    // System_ReadOnlyMemory_T__Slice_Int_Int
                 "Slice",                                    // System_ReadOnlyMemory_T__Slice_Int
 
                 ".ctor",                                    // System_Runtime_CompilerServices_UnionAttribute__ctor

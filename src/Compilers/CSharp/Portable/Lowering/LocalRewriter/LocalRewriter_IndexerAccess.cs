@@ -295,7 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression rangeSizeExpr;
                     if (rangeExpr is not null)
                     {
-
                         startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
                         BoundExpression endExpr = makePatternIndexOffsetExpression(endMakeOffsetInput, length, endStrategy);
                         rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
@@ -324,8 +323,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        result = _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
-                                           getItemOrSliceHelper, startExpr, rangeSizeExpr);
+                        var spanExpr = _factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true);
+
+                        // For open-ended ranges like `startExpr..`, use Slice(int) instead of Slice(int, int) when available
+                        if (rangeExpr is not null && endMakeOffsetInput is null &&
+                            TryGetStartOnlyOverload(getItemOrSliceHelper, this, node.Syntax) is MethodSymbol startOnlyOverload)
+                        {
+                            result = _factory.Call(spanExpr, startOnlyOverload, startExpr);
+                        }
+                        else
+                        {
+                            result = _factory.Call(spanExpr, getItemOrSliceHelper, startExpr, rangeSizeExpr);
+                        }
                     }
 
                     result = _factory.Sequence(localsBuilder.ToImmutableAndFree(), sideEffectsBuilder.ToImmutableAndFree(), result);
@@ -891,6 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression startExpr;
             BoundExpression rangeSizeExpr;
+            var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
             if (rangeExpr is not null)
             {
                 // If we know that the input is a range expression, we can
@@ -1013,6 +1023,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sideEffectsBuilder.Add(rangeSizeStore);
                     rangeSizeExpr = startLocal;
                 }
+
+                var sliceStart = tryLowerToSliceStart(sliceCall, receiver, startExpr, isSliceToEnd: endMakeOffsetInput is null, rewriter: this, syntax: node.Syntax);
+                if (sliceStart is not null)
+                {
+                    RemovePlaceholderReplacement(node.ReceiverPlaceholder);
+                    return sliceStart;
+                }
             }
             else
             {
@@ -1024,10 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPlaceholderReplacement(node.ArgumentPlaceholders[0], startExpr);
             AddPlaceholderReplacement(node.ArgumentPlaceholders[1], rangeSizeExpr);
 
-            var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
-
-            var rewrittenIndexerAccess = tryLowerToSliceStart(sliceCall, receiver, startExpr, isSliceToEnd: endMakeOffsetInput is null, rewriter: this, syntax: node.Syntax)
-                ?? VisitExpression(sliceCall);
+            var rewrittenIndexerAccess = VisitExpression(sliceCall);
 
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
@@ -1043,64 +1057,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                if (tryGetStartOverload(currentSliceCall.Method, rewriter, syntax) is not MethodSymbol startOverload)
+                if (TryGetStartOnlyOverload(currentSliceCall.Method, rewriter, syntax) is not MethodSymbol startOverload)
                 {
                     return null;
                 }
 
-                return rewriter.Factory.Call(rewrittenReceiver, startOverload, rewriter.VisitExpression(start));
+                return rewriter.Factory.Call(rewrittenReceiver, startOverload, start);
             }
+        }
 
-            static MethodSymbol? tryGetStartOverload(MethodSymbol method, LocalRewriter rewriter, SyntaxNode syntax)
-            {
-                // 1. string.Substring
-                if (tryGetSubstringStartOverload(method, rewriter, syntax) is { } stringOverload)
-                {
-                    return stringOverload;
-                }
-
-                // 2. various Slice(int, int) to Slice(int) cases
-                if (method is not { Name: WellKnownMemberNames.SliceMethodName, OriginalDefinition: var originalDefinition, ContainingType: NamedTypeSymbol containingType })
-                {
-                    return null;
-                }
-
-                var oneArgumentOverload = containingType.Name switch
-                {
-                    nameof(Span<>) => tryGetSliceStartOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, originalDefinition, rewriter, syntax),
-                    nameof(ReadOnlySpan<>) => tryGetSliceStartOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, originalDefinition, rewriter, syntax),
-                    nameof(Memory<>) => tryGetSliceStartOverload(WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, originalDefinition, rewriter, syntax),
-                    nameof(ReadOnlyMemory<>) => tryGetSliceStartOverload(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, originalDefinition, rewriter, syntax),
-                    _ => null,
-                };
-
-                if (oneArgumentOverload is null)
-                {
-                    return null;
-                }
-
-                return oneArgumentOverload.AsMember(containingType);
-            }
-
-            static MethodSymbol? tryGetSubstringStartOverload(MethodSymbol method, LocalRewriter rewriter, SyntaxNode syntax)
+        /// <summary>
+        /// For known types (string, Span, ReadOnlySpan, Memory, ReadOnlyMemory),
+        /// tries to find a one-argument overload (e.g., Slice(int) or Substring(int))
+        /// corresponding to the given two-argument method (e.g., Slice(int, int) or Substring(int, int)).
+        /// </summary>
+        private static MethodSymbol? TryGetStartOnlyOverload(MethodSymbol method, LocalRewriter rewriter, SyntaxNode syntax)
+        {
+            // 1. string.Substring(int, int) → string.Substring(int)
             {
                 MethodSymbol? startLengthOverload;
                 MethodSymbol? startOverload;
 
-                if (!rewriter.TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringIntInt, out startLengthOverload, isOptional: true)
-                    || !ReferenceEquals(method, startLengthOverload)
-                    || !rewriter.TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringInt, out startOverload, isOptional: true))
+                if (rewriter.TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringIntInt, out startLengthOverload, isOptional: true)
+                    && ReferenceEquals(method, startLengthOverload)
+                    && rewriter.TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringInt, out startOverload, isOptional: true))
                 {
-                    return null;
+                    Debug.Assert(startLengthOverload.Name == startOverload.Name
+                        && startLengthOverload.ReturnType.Equals(startOverload.ReturnType, TypeCompareKind.ConsiderEverything));
+
+                    return startOverload;
                 }
-
-                Debug.Assert(startLengthOverload.Name == startOverload.Name
-                    && startLengthOverload.ReturnType.Equals(startOverload.ReturnType, TypeCompareKind.ConsiderEverything));
-
-                return startOverload;
             }
 
-            static MethodSymbol? tryGetSliceStartOverload(WellKnownMember startLengthMember, WellKnownMember startMember, MethodSymbol methodDefinition, LocalRewriter rewriter, SyntaxNode syntax)
+            // 2. various Slice(int, int) → Slice(int) cases
+            if (method is not { Name: WellKnownMemberNames.SliceMethodName, OriginalDefinition: var originalDefinition, ContainingType: NamedTypeSymbol containingType })
+            {
+                return null;
+            }
+
+            var oneArgumentOverload = containingType.Name switch
+            {
+                nameof(Span<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, originalDefinition, rewriter, syntax),
+                nameof(ReadOnlySpan<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, originalDefinition, rewriter, syntax),
+                nameof(Memory<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, originalDefinition, rewriter, syntax),
+                nameof(ReadOnlyMemory<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, originalDefinition, rewriter, syntax),
+                _ => null,
+            };
+
+            if (oneArgumentOverload is null)
+            {
+                return null;
+            }
+
+            return oneArgumentOverload.AsMember(containingType);
+
+            static MethodSymbol? tryGetWellKnownSliceStartOverload(WellKnownMember startLengthMember, WellKnownMember startMember, MethodSymbol methodDefinition, LocalRewriter rewriter, SyntaxNode syntax)
             {
                 Debug.Assert(methodDefinition.IsDefinition);
                 MethodSymbol? startLengthOverload;

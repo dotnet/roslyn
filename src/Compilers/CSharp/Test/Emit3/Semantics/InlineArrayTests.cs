@@ -7016,8 +7016,8 @@ class Program
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       25 (0x19)
-  .maxstack  3
+  // Code size       23 (0x17)
+  .maxstack  2
   .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
@@ -7026,9 +7026,8 @@ class Program
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldc.i4.1
-  IL_0011:  ldc.i4.s   9
-  IL_0013:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-  IL_0018:  ret
+  IL_0011:  call       ""System.Span<int> System.Span<int>.Slice(int)""
+  IL_0016:  ret
 }
 ");
         }
@@ -7066,8 +7065,8 @@ class Program
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       29 (0x1d)
-  .maxstack  4
+  // Code size       25 (0x19)
+  .maxstack  2
   .locals init (int V_0,
                 System.Span<int> V_1)
   IL_0000:  ldarg.0
@@ -7079,11 +7078,8 @@ class Program
   IL_000f:  stloc.1
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldloc.0
-  IL_0013:  ldc.i4.s   10
-  IL_0015:  ldloc.0
-  IL_0016:  sub
-  IL_0017:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-  IL_001c:  ret
+  IL_0013:  call       ""System.Span<int> System.Span<int>.Slice(int)""
+  IL_0018:  ret
 }
 ");
         }
@@ -23632,6 +23628,418 @@ class Program
                 // (8,12): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         nx?[2] = 3; // 1
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[2]").WithLocation(8, 12));
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [CombinatorialData]
+        public void SliceStart_01(bool isMissing)
+        {
+            // slice with open-ended range producing Span
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M(x)[0] = 111;
+        System.Console.Write(M(x).Length);
+        System.Console.Write(' ');
+        System.Console.Write(x.F[1]);
+    }
+
+    static System.Span<int> M(C x) => x.F[1..];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "9 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M",
+                isMissing ? """
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.s   9
+  IL_0013:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+  IL_0018:  ret
+}
+""" : """
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       "System.Span<int> System.Span<int>.Slice(int)"
+  IL_0016:  ret
+}
+""");
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData(null)]
+        [InlineData("Span")]
+        [InlineData("ReadOnlySpan")]
+        public void SliceStart_02(string missingSliceInt)
+        {
+            // slice with open-ended range producing ReadOnlySpan
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        System.Console.Write(M(x).Length);
+    }
+
+    static System.ReadOnlySpan<int> M(C x) => x.F[1..];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (missingSliceInt == "Span")
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
+            else if (missingSliceInt == "ReadOnlySpan")
+                comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "9", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M",
+                missingSliceInt == "Span" ? @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.s   9
+  IL_0013:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_0018:  call       ""System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)""
+  IL_001d:  ret
+}
+" : @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""System.Span<int> System.Span<int>.Slice(int)""
+  IL_0016:  call       ""System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)""
+  IL_001b:  ret
+}
+");
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [CombinatorialData]
+        public void SliceStart_03(bool isMissing)
+        {
+            // slice with `GetStart()..`
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M2(x)[0] = 111;
+        System.Console.Write(M2(x).Length);
+        System.Console.Write(' ');
+        System.Console.Write(x.F[1]);
+    }
+
+    static System.Span<int> M2(C x) => x.F[GetStart()..];
+    static System.Index GetStart() { System.Console.Write("GetStart "); return ^9; }
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "GetStart GetStart 9 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+                isMissing ? """
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (int V_0,
+                System.Index V_1,
+                System.Span<int> V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  call       "System.Index Program.GetStart()"
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  ldc.i4.s   10
+  IL_0010:  call       "int System.Index.GetOffset(int)"
+  IL_0015:  stloc.0
+  IL_0016:  ldc.i4.s   10
+  IL_0018:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_001d:  stloc.2
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  ldloc.0
+  IL_0021:  ldc.i4.s   10
+  IL_0023:  ldloc.0
+  IL_0024:  sub
+  IL_0025:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+  IL_002a:  ret
+}
+""" : """
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Index V_1,
+                System.Span<int> V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  call       "System.Index Program.GetStart()"
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  ldc.i4.s   10
+  IL_0010:  call       "int System.Index.GetOffset(int)"
+  IL_0015:  stloc.0
+  IL_0016:  ldc.i4.s   10
+  IL_0018:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_001d:  stloc.2
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  ldloc.0
+  IL_0021:  call       "System.Span<int> System.Span<int>.Slice(int)"
+  IL_0026:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SliceStart_04()
+        {
+            // slice with closed range `1..5`
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static System.Span<int> M(C x) => x.F[1..5];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.4
+  IL_0012:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+  IL_0017:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SliceStart_05()
+        {
+            // slice with `0..`
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var s = M(x);
+        System.Console.Write(s.Length);
+    }
+
+    static System.Span<int> M(C x) => x.F[0..];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "10", verify: Verification.Fails).VerifyDiagnostics();
+
+            // start=0 and rangeSize=10 are both constants within bounds,
+            // so InlineArrayAsSpan is created with the right length directly (no Slice).
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SliceStart_06()
+        {
+            // slice with Range parameter
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M(x, 1..)[0] = 111;
+        System.Console.Write(M(x, 1..).Length);
+        System.Console.Write(' ');
+        System.Console.Write(x.F[1]);
+    }
+
+    static System.Span<int> M(C x, System.Range range) => x.F[range];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "9 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            // Range parameter goes through DeconstructRange, always uses Slice(int, int)
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       65 (0x41)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3,
+                System.Span<int> V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldarg.1
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "System.Index System.Range.Start.get"
+  IL_000f:  stloc.3
+  IL_0010:  ldloca.s   V_3
+  IL_0012:  ldc.i4.s   10
+  IL_0014:  call       "int System.Index.GetOffset(int)"
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       "System.Index System.Range.End.get"
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldc.i4.s   10
+  IL_0026:  call       "int System.Index.GetOffset(int)"
+  IL_002b:  ldloc.1
+  IL_002c:  sub
+  IL_002d:  stloc.2
+  IL_002e:  ldc.i4.s   10
+  IL_0030:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_0035:  stloc.s    V_4
+  IL_0037:  ldloca.s   V_4
+  IL_0039:  ldloc.1
+  IL_003a:  ldloc.2
+  IL_003b:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+  IL_0040:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SliceStart_07()
+        {
+            // slice with `..`
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M(x)[0] = 111;
+        System.Console.Write($"{M(x).Length} {x.F[0]} {x.F[1]}");
+    }
+
+    static System.Span<int> M(C x) => x.F[..];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "10 111 0", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  ret
+}
+""");
         }
     }
 }
