@@ -9482,7 +9482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments? actualExtensionLengthOrCountArguments = null;
             foreach (var scope in new ExtensionScopes(this))
             {
-                foundApplicable = TryBindExtensionLengthOrCountInScope(node, receiverPlaceholder, scope.Binder, scope,
+                foundApplicable = TryBindExtensionLengthOrCountInScope(node, receiverPlaceholder, binder: this, scope,
                     ref actualExtensionLengthOrCountArguments, out lengthAccess, ref useSiteInfo, diagnostics);
 
                 if (foundApplicable)
