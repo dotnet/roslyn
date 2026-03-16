@@ -4,23 +4,9 @@
 
 #nullable enable
 
-// define TRACE_LEAKS to get additional diagnostics that can lead to the leak sources. note: it will
-// make everything about 2-3x slower
-// 
-// #define TRACE_LEAKS
-
-// define DETECT_LEAKS to detect possible leaks
-// #if DEBUG
-// #define DETECT_LEAKS  //for now always enable DETECT_LEAKS in debug.
-// #endif
-
 using System;
 using System.Diagnostics;
 using System.Threading;
-
-#if DETECT_LEAKS
-using System.Runtime.CompilerServices;
-#endif
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
@@ -66,47 +52,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private readonly Factory _factory;
 
         public readonly bool TrimOnFree;
-
-#if DETECT_LEAKS
-        private static readonly ConditionalWeakTable<T, LeakTracker> leakTrackers = new ConditionalWeakTable<T, LeakTracker>();
-
-        private class LeakTracker : IDisposable
-        {
-            private volatile bool disposed;
-
-#if TRACE_LEAKS
-            internal volatile object Trace = null;
-#endif
-
-            public void Dispose()
-            {
-                disposed = true;
-                GC.SuppressFinalize(this);
-            }
-
-            private string GetTrace()
-            {
-#if TRACE_LEAKS
-                return Trace == null ? "" : Trace.ToString();
-#else
-                return "Leak tracing information is disabled. Define TRACE_LEAKS on ObjectPool`1.cs to get more info \n";
-#endif
-            }
-
-            ~LeakTracker()
-            {
-                if (!this.disposed && !Environment.HasShutdownStarted)
-                {
-                    var trace = GetTrace();
-
-                    // If you are seeing this message it means that object has been allocated from the pool 
-                    // and has not been returned back. This is not critical, but turns pool into rather 
-                    // inefficient kind of "new".
-                    Debug.WriteLine($"TRACEOBJECTPOOLLEAKS_BEGIN\nPool detected potential leaking of {typeof(T)}. \n Location of the leak: \n {GetTrace()} TRACEOBJECTPOOLLEAKS_END");
-                }
-            }
-        }
-#endif      
 
         internal ObjectPool(Factory factory, bool trimOnFree = true)
             : this(factory, Environment.ProcessorCount * 2, trimOnFree)
@@ -154,15 +99,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 inst = AllocateSlow();
             }
 
-#if DETECT_LEAKS
-            var tracker = new LeakTracker();
-            leakTrackers.Add(inst, tracker);
-
-#if TRACE_LEAKS
-            var frame = CaptureStackTrace();
-            tracker.Trace = frame;
-#endif
-#endif
+            PoolTracker.OnAllocate(inst);
             return inst;
         }
 
@@ -241,35 +178,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         [Conditional("DEBUG")]
         internal void ForgetTrackedObject(T old, T? replacement = null)
         {
-#if DETECT_LEAKS
-            LeakTracker tracker;
-            if (leakTrackers.TryGetValue(old, out tracker))
-            {
-                tracker.Dispose();
-                leakTrackers.Remove(old);
-            }
-            else
-            {
-                var trace = CaptureStackTrace();
-                Debug.WriteLine($"TRACEOBJECTPOOLLEAKS_BEGIN\nObject of type {typeof(T)} was freed, but was not from pool. \n Callstack: \n {trace} TRACEOBJECTPOOLLEAKS_END");
-            }
+            PoolTracker.OnFree(old);
 
             if (replacement != null)
             {
-                tracker = new LeakTracker();
-                leakTrackers.Add(replacement, tracker);
+                PoolTracker.OnAllocate(replacement);
             }
-#endif
         }
-
-#if DETECT_LEAKS
-        private static Lazy<Type> _stackTraceType = new Lazy<Type>(() => Type.GetType("System.Diagnostics.StackTrace"));
-
-        private static object CaptureStackTrace()
-        {
-            return Activator.CreateInstance(_stackTraceType.Value);
-        }
-#endif
 
         [Conditional("DEBUG")]
         private void Validate(object obj)

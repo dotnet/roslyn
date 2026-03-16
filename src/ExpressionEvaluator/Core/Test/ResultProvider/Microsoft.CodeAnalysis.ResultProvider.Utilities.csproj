@@ -50,6 +50,9 @@
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Dependencies\PooledObjects\PoolTracker.cs">
+      <Link>Compiler\InternalUtilities\PoolTracker.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayExtensions.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplayExtensions.cs</Link>
     </Compile>
