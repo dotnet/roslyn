@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 /// <summary>
 /// See /docs/features/file-based-programs-vscode.md#file-based-app-detection
 /// </summary>
-public enum LooseDocumentKind
+internal enum LooseDocumentKind
 {
     MiscellaneousFileWithNoReferences,
     MiscellaneousFileWithStandardReferences,

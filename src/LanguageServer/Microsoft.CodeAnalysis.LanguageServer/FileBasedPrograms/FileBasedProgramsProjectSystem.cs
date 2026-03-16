@@ -260,7 +260,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var document = solution.GetDocument(entryPointDocId);
         if (document is null)
         {
-            _logger.LogWarning($"Unable to find a document for entry point file, didn't already we begin loading it?");
+            _logger.LogWarning($"Unable to find a document for entry point file, didn't we already begin loading it?");
             await TryUnloadProjectAsync(documentPath);
             return null;
         }
