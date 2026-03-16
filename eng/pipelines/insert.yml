@@ -230,3 +230,4 @@ steps:
     env:
       DevDivToken: ${{ parameters.devDivAzdoToken }}
       DncEngToken: ${{ parameters.dncEngAzdoToken }}
+      DOTNET_ROLL_FORWARD: Major
