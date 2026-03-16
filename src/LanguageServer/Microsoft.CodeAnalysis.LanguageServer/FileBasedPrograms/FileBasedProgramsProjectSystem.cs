@@ -151,11 +151,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return LooseDocumentKind.MiscellaneousFileWithNoReferences;
         }
 
-        // 3. Does the file have an absolute path? (i.e. it represents a file on disk, and it is not a "virtual document" created for a new, not-yet-saved file, or similar.)
-        // - Yes → Go to (4)
-        // - No → Go to (5)
+        // 4. Does the file have an absolute path? (i.e. it represents a file on disk, and it is not a "virtual document" created for a new, not-yet-saved file, or similar.)
+        // - Yes → Go to (5)
+        // - No → Go to (6)
 
-        // 4. Does the file have `#:` or `#!` directives?
+        // 5. Does the file have `#:` or `#!` directives?
         // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
         // - No → Continue to next check
         if (filePath is { }
@@ -165,7 +165,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return LooseDocumentKind.FileBasedApp;
         }
 
-        // 5. Is `enableFileBasedProgramsWhenAmbiguous` enabled? (default: `false` in release, `true` in prerelease)
+        // 6. Is `enableFileBasedProgramsWhenAmbiguous` enabled? (default: `false` in release, `true` in prerelease)
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to heuristic detection
 
@@ -178,7 +178,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // Heuristic Detection:
 
-        // 6. Are top-level statements present?
+        // 7. Are top-level statements present?
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to next check
 
