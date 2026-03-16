@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private const int CacheMask = CacheSize - 1;
 
         /// <summary>
-        /// Simply array indexed by the hash of the cached node.  Note that unlike a typical dictionary/hashtable, this
+        /// Simple array indexed by the hash of the cached node.  Note that unlike a typical dictionary/hashtable, this
         /// does not exercise any form of collision resolution.  If two different nodes hash to the same index, the
         /// latter will overwrite the former.  This is acceptable since this is just an opportunistic cache.  Reads from
         /// the cache validate that the node they get back is actually the one they were looking for.   See the comments
