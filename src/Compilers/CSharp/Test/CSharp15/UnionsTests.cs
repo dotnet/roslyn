@@ -16090,7 +16090,7 @@ class C1
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
     public object Value => _value;
-    public bool HasValue => throw null; // https://github.com/dotnet/roslyn/issues/82636: Inheritance isn't handled yet
+    public bool HasValue => _value != null;
 }
 
 [System.Runtime.CompilerServices.Union]
@@ -16124,9 +16124,10 @@ class Program
         public void NonBoxingUnionMatching_08_HasValue_Class_Inheritance()
         {
             var src = @"
-class C0
+abstract class C0
 {
-    public bool HasValue => throw null; // https://github.com/dotnet/roslyn/issues/82636: Inheritance isn't handled yet
+    public bool HasValue => HasValueImpl;
+    public abstract bool HasValueImpl { get; }
 }
 
 [System.Runtime.CompilerServices.Union]
@@ -16136,6 +16137,7 @@ class C1 : C0
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
     public object Value => _value;
+    public override bool HasValueImpl => _value != null;
 }
 
 class Program
@@ -25369,6 +25371,1436 @@ union S13(int, bool)
                 //     : this()
                 Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "this").WithLocation(53, 7)
                 );
+        }
+
+        [Fact]
+        public void ValueProperty_01()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1(""11"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueProperty_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1<T>
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public T Value => throw null;
+}
+
+class Program
+{
+    static bool Test1(S1<object> u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1<object> u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (15,21): error CS0656: Missing compiler required member 'S1<T>.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1<T>", "Value").WithLocation(15, 21),
+                // (20,21): error CS0656: Missing compiler required member 'S1<T>.Value'
+                //         return u is null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "null").WithArguments("S1<T>", "Value").WithLocation(20, 21)
+                );
+        }
+
+        [Fact]
+        public void ValueProperty_03()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+}
+
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public new T Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<object>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<object>(""11"")));
+        System.Console.Write(Test1(new S1<object>(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1<object>(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1<object>(""11"")));
+    }
+
+    static bool Test1(S1<object> u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1<object> u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueProperty_04()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1(""11"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u is null;
+    }   
+
+    static int Test5(S0 u)
+    {
+#line 100
+        return u switch { S1 and int => 1, S1 and string => 2, not S1 => 3 };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueProperty_05()
+        {
+            var src = @"
+class S01(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+}
+
+class S02(object value) : S01(value)
+{
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S02
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1(""11"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueProperty_06()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public T Value => (T)_value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0<object>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1(""11"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueProperty_07()
+        {
+            var src = @"
+class S0<T1, T2>(object value)
+{
+    private readonly object _value = value;
+    public T1 Value => (T1)_value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<object, T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<int>(""11"")));
+        System.Console.Write(Test1(new S1<int>(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1<int>(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1<int>(""11"")));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1<int> u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueProperty_08()
+        {
+            var src = @"
+class S01<T1, T2, T3>(object value)
+{
+    private readonly object _value = value;
+    public T1 Value => (T1)_value;
+}
+
+class S02<T1, T2>(object value) : S01<T1, T2, byte>(value)
+{
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S02<object, T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<int>(""11"")));
+        System.Console.Write(Test1(new S1<int>(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1<int>(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1<int>(""11"")));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1<int> u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueProperty_09()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public T Value => (T)_value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static bool Test1(S1<object> u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1<object> u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (19,21): error CS0656: Missing compiler required member 'S1<T>.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1<T>", "Value").WithLocation(19, 21),
+                // (24,21): error CS0656: Missing compiler required member 'S1<T>.Value'
+                //         return u is null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "null").WithArguments("S1<T>", "Value").WithLocation(24, 21)
+                );
+        }
+
+        [Fact]
+        public void ValueProperty_10()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is { Value: not (string or bool)  } or S1 and string ;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [5]
+[1]: t1 = t0.Value; [2]
+[2]: t1 is string ? [3] : [4]
+[3]: t0 is S1 ? [6] : [5]
+[4]: t1 is bool ? [5] : [6]
+[5]: leaf <isPatternFailure> `{ Value: not (string or bool)  } or S1 and string`
+[6]: leaf <isPatternSuccess> `{ Value: not (string or bool)  } or S1 and string`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalseFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  1
+  .locals init (object V_0,
+            bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0028
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S0.Value.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""string""
+  IL_0010:  brfalse.s  IL_001c
+  IL_0012:  ldarg.0
+  IL_0013:  isinst     ""S1""
+  IL_0018:  brtrue.s   IL_0024
+  IL_001a:  br.s       IL_0028
+  IL_001c:  ldloc.0
+  IL_001d:  isinst     ""bool""
+  IL_0022:  brtrue.s   IL_0028
+  IL_0024:  ldc.i4.1
+  IL_0025:  stloc.1
+  IL_0026:  br.s       IL_002a
+  IL_0028:  ldc.i4.0
+  IL_0029:  stloc.1
+  IL_002a:  ldloc.1
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ValueProperty_11()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is (S1 and string) or { Value: not (string or bool) } ;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 is S1 ? [1] : [5]
+[1]: t1 = (S1)t0; [2]
+[2]: t2 = t1.Value; [3]
+[3]: t2 is string ? [10] : [4]
+[4]: t2 is bool ? [9] : [10]
+[5]: t0 != null ? [6] : [9]
+[6]: t3 = t0.Value; [7]
+[7]: t3 is string ? [9] : [8]
+[8]: t3 is bool ? [9] : [10]
+[9]: leaf <isPatternFailure> `u is (S1 and string) or { Value: not (string or bool) }`
+[10]: leaf <isPatternSuccess> `(S1 and string) or { Value: not (string or bool) }`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalseFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       69 (0x45)
+  .maxstack  1
+  .locals init (S1 V_0,
+                object V_1,
+                object V_2,
+                bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""S1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0023
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""object S0.Value.get""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""string""
+  IL_0017:  brtrue.s   IL_003d
+  IL_0019:  ldloc.1
+  IL_001a:  isinst     ""bool""
+  IL_001f:  brtrue.s   IL_0041
+  IL_0021:  br.s       IL_003d
+  IL_0023:  ldarg.0
+  IL_0024:  brfalse.s  IL_0041
+  IL_0026:  ldarg.0
+  IL_0027:  callvirt   ""object S0.Value.get""
+  IL_002c:  stloc.2
+  IL_002d:  ldloc.2
+  IL_002e:  isinst     ""string""
+  IL_0033:  brtrue.s   IL_0041
+  IL_0035:  ldloc.2
+  IL_0036:  isinst     ""bool""
+  IL_003b:  brtrue.s   IL_0041
+  IL_003d:  ldc.i4.1
+  IL_003e:  stloc.3
+  IL_003f:  br.s       IL_0043
+  IL_0041:  ldc.i4.0
+  IL_0042:  stloc.3
+  IL_0043:  ldloc.3
+  IL_0044:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ValueProperty_12_Override()
+        {
+            var src1 = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public virtual object Value => _value;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+
+    public override object Value => base.Value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is { Value: not (string or bool)  } or S1 and string ;
+    }   
+}
+";
+            var comp = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            var expectedDag = @"[0]: t0 != null ? [1] : [9]
+[1]: t1 = t0.Value; [2]
+[2]: t1 is string ? [4] : [3]
+[3]: t1 is bool ? [4] : [8]
+[4]: t0 is S1 ? [5] : [9]
+[5]: t2 = (S1)t0; [6]
+[6]: t3 = t2.Value; [7]
+[7]: t3 is string ? [8] : [9]";
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp, expectedDag + @"
+[8]: leaf <isPatternSuccess> `{ Value: not (string or bool)  } or S1 and string`
+[9]: leaf <isPatternFailure> `u is { Value: not (string or bool)  } or S1 and string`
+",
+forLowering: true);
+
+            var expectedOutput = "TrueFalseTrueFalseTrueFalseFalse";
+
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       57 (0x39)
+  .maxstack  1
+  .locals init (object V_0,
+            S1 V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0035
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S0.Value.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""string""
+  IL_0010:  brtrue.s   IL_001a
+  IL_0012:  ldloc.0
+  IL_0013:  isinst     ""bool""
+  IL_0018:  brfalse.s  IL_0031
+  IL_001a:  ldarg.0
+  IL_001b:  isinst     ""S1""
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  brfalse.s  IL_0035
+  IL_0024:  ldloc.1
+  IL_0025:  callvirt   ""object S0.Value.get""
+  IL_002a:  isinst     ""string""
+  IL_002f:  brfalse.s  IL_0035
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.2
+  IL_0033:  br.s       IL_0037
+  IL_0035:  ldc.i4.0
+  IL_0036:  stloc.2
+  IL_0037:  ldloc.2
+  IL_0038:  ret
+}
+";
+            verifier.VerifyIL("Program.Test1", expectedIL);
+
+            var src2 = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public virtual object Value => _value;
+}
+
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+
+    public override object Value => base.Value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is { Value: not (string or bool)  } or S1 and { Value: string };
+    }   
+}
+";
+            comp = CreateCompilation(src2, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp, expectedDag + @"
+[8]: leaf <isPatternSuccess> `{ Value: not (string or bool)  } or S1 and { Value: string }`
+[9]: leaf <isPatternFailure> `{ Value: not (string or bool)  } or S1 and { Value: string }`
+",
+forLowering: true);
+
+            verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", expectedIL);
+        }
+
+        [Fact]
+        public void ValueProperty_13_Override()
+        {
+            var src = @"
+class S0(object value)
+{
+    protected readonly object _value = value;
+    public virtual object Value => throw null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(string x) : base(x) {}
+    public override string Value => (string)_value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(new S1(""10"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is ""11"" ;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001e
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S0.Value.get""
+  IL_0009:  isinst     ""string""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_001e
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      ""11""
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  ret
+  IL_001e:  ldc.i4.0
+  IL_001f:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void HasValueProperty_01([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool HasValue => _value is not null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1<T>
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public T HasValue => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_03()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool HasValue => _value != null;
+}
+
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public new T HasValue => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_04()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool HasValue => _value is not null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_05()
+        {
+            var src = @"
+class S01(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool HasValue => _value is not null;
+}
+
+class S02(object value) : S01(value)
+{
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S02
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_06()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public T HasValue => (T)(object)(_value != null);
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0<bool>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_07()
+        {
+            var src = @"
+class S0<T1, T2>(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public T1 HasValue => (T1)(object)(_value != null);
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<bool, T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_08()
+        {
+            var src = @"
+class S01<T1, T2, T3>(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public T1 HasValue => (T1)(object)(_value != null);
+}
+
+class S02<T1, T2>(object value) : S01<T1, T2, byte>(value)
+{
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S02<bool, T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_09()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+    public T HasValue => throw null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(10)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void HasValueProperty_10()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool HasValue => _value != null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is { HasValue: false } or S1 and not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [5]
+[1]: t1 = t0.HasValue; [2]
+[2]: t1 == False ? [4] : [3]
+[3]: t0 is S1 ? [4] : [5]
+[4]: leaf <isPatternSuccess> `{ HasValue: false } or S1 and not null`
+[5]: leaf <isPatternFailure> `u is { HasValue: false } or S1 and not null`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrueFalseFalseFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0017
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""bool S0.HasValue.get""
+  IL_0009:  brfalse.s  IL_0013
+  IL_000b:  ldarg.0
+  IL_000c:  isinst     ""S1""
+  IL_0011:  brfalse.s  IL_0017
+  IL_0013:  ldc.i4.1
+  IL_0014:  stloc.0
+  IL_0015:  br.s       IL_0019
+  IL_0017:  ldc.i4.0
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HasValueProperty_11()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool HasValue => _value != null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is (S1 and not null) or { HasValue: false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 is S1 ? [4] : [1]
+[1]: t0 != null ? [2] : [5]
+[2]: t1 = t0.HasValue; [3]
+[3]: t1 == False ? [4] : [5]
+[4]: leaf <isPatternSuccess> `(S1 and not null) or { HasValue: false }`
+[5]: leaf <isPatternFailure> `u is (S1 and not null) or { HasValue: false }`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrueFalseFalseFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""S1""
+  IL_0006:  brtrue.s   IL_0013
+  IL_0008:  ldarg.0
+  IL_0009:  brfalse.s  IL_0017
+  IL_000b:  ldarg.0
+  IL_000c:  callvirt   ""bool S0.HasValue.get""
+  IL_0011:  brtrue.s   IL_0017
+  IL_0013:  ldc.i4.1
+  IL_0014:  stloc.0
+  IL_0015:  br.s       IL_0019
+  IL_0017:  ldc.i4.0
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HasValueProperty_12_Override()
+        {
+            var src1 = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public virtual bool HasValue => _value != null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+
+    public override bool HasValue => base.HasValue;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is { HasValue: false } or S1 and not null;
+    }   
+}
+";
+            var comp = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [7]
+[1]: t1 = t0.HasValue; [2]
+[2]: t1 == False ? [8] : [3]
+[3]: t0 is S1 ? [4] : [7]
+[4]: t2 = (S1)t0; [5]
+[5]: t3 = t2.HasValue; [6]
+[6]: t3 == False ? [7] : [8]
+[7]: leaf <isPatternFailure> `u is { HasValue: false } or S1 and not null`
+[8]: leaf <isPatternSuccess> `{ HasValue: false } or S1 and not null`
+",
+forLowering: true);
+
+            var expectedOutput = "TrueFalseTrueTrueFalseFalseFalse";
+
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (S1 V_0,
+            bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0021
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""bool S0.HasValue.get""
+  IL_0009:  brfalse.s  IL_001d
+  IL_000b:  ldarg.0
+  IL_000c:  isinst     ""S1""
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  brfalse.s  IL_0021
+  IL_0015:  ldloc.0
+  IL_0016:  callvirt   ""bool S0.HasValue.get""
+  IL_001b:  brfalse.s  IL_0021
+  IL_001d:  ldc.i4.1
+  IL_001e:  stloc.1
+  IL_001f:  br.s       IL_0023
+  IL_0021:  ldc.i4.0
+  IL_0022:  stloc.1
+  IL_0023:  ldloc.1
+  IL_0024:  ret
+}
+";
+            verifier.VerifyIL("Program.Test1", expectedIL);
+
+            var src2 = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public virtual bool HasValue => _value != null;
+}
+
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+
+    public override bool HasValue => base.HasValue;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is { HasValue: false } or S1 and { HasValue: true };
+    }   
+}
+";
+            comp = CreateCompilation(src2, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [8]
+[1]: t1 = t0.HasValue; [2]
+[2]: t1 == False ? [7] : [3]
+[3]: t0 is S1 ? [4] : [8]
+[4]: t2 = (S1)t0; [5]
+[5]: t3 = t2.HasValue; [6]
+[6]: t3 == True ? [7] : [8]
+[7]: leaf <isPatternSuccess> `{ HasValue: false } or S1 and { HasValue: true }`
+[8]: leaf <isPatternFailure> `{ HasValue: false } or S1 and { HasValue: true }`
+",
+forLowering: true);
+
+            verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", expectedIL);
         }
     }
 }
