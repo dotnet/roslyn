@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,40 @@ public sealed class SelectionRangesTests(ITestOutputHelper testOutputHelper)
         // Verify that selection ranges form a proper nesting hierarchy from the caret position outward.
         Assert.NotNull(result);
         AssertRangeChainIsNestedCorrectly(result);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetSelectionRangeAsync_VerifiesExpectedSpans(bool mutatingLspWorkspace)
+    {
+        // The markup annotates key expected spans in the selection range chain.
+        // Starting at the caret inside literal '1', the chain should expand through
+        // the binary expression, the local variable statement, the method, and the compilation unit.
+        var markup =
+            """
+            {|compilationUnit:class C
+            {
+                {|method:void M()
+                {
+                    {|statement:var x = {|binary:{|caret:|}1 + 2|};|}
+                }|}
+            }|}
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var caret = testLspServer.GetLocations("caret").Single();
+
+        var result = await RunGetSelectionRangeAsync(testLspServer, caret);
+        Assert.NotNull(result);
+
+        // Collect all ranges in the chain from innermost to outermost.
+        var chain = new List<LSP.Range>();
+        for (var current = result; current is not null; current = current.Parent)
+            chain.Add(current.Range);
+
+        // Verify that each annotated span appears in the selection range chain.
+        Assert.Contains(testLspServer.GetLocations("binary").Single().Range, chain);
+        Assert.Contains(testLspServer.GetLocations("statement").Single().Range, chain);
+        Assert.Contains(testLspServer.GetLocations("method").Single().Range, chain);
+        Assert.Contains(testLspServer.GetLocations("compilationUnit").Single().Range, chain);
     }
 
     [Theory, CombinatorialData]
