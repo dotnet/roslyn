@@ -20308,4 +20308,43 @@ public static class E
 }
 """);
     }
+
+    [Fact]
+    public void LoopWithPatternDeclaration_ListPattern()
+    {
+        var source = """
+#nullable enable
+
+object? o = new object();
+
+for (var x = 0; x < 10; x++)
+{
+    var a = Infer(o);
+    if (a is [var z])
+    {
+        z.ToString();
+    }
+
+    o = null;
+}
+
+C<T> Infer<T>(T t) => throw null!;
+
+public class C<T> { }
+
+public static class E
+{
+    extension<T>(C<T> t)
+    {
+        public int Length => 1;
+        public T this[System.Index i] => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (10,9): warning CS8602: Dereference of a possibly null reference.
+            //         z.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9));
+    }
 }

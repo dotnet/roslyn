@@ -47653,5 +47653,24 @@ class Program
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        public void MissingMember_ArrayLength()
+        {
+            var source = """
+int[] i = [1, 2];
+int[] j = [0, .. i];
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Array__Length);
+            comp.VerifyEmitDiagnostics(
+                // (2,18): error CS0656: Missing compiler required member 'System.Array.Length'
+                // int[] j = [0, .. i];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i").WithArguments("System.Array", "Length").WithLocation(2, 18));
+        }
     }
 }

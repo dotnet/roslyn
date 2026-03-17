@@ -11458,6 +11458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverPlaceholder.Type.IsSZArray())
             {
                 bool foundApplicable = TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, syntax, diagnostics, out PropertySymbol lengthProperty);
+                Debug.Assert(foundApplicable == lengthProperty is not null);
                 if (lengthProperty is not null)
                 {
                     lengthOrCountAccess = new BoundPropertyAccess(syntax, receiverPlaceholder, initialBindingReceiverIsSubjectToCloning: ThreeState.False, lengthProperty, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
