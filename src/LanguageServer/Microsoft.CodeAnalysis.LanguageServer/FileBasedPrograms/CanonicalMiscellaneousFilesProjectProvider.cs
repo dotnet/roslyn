@@ -8,10 +8,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
-internal sealed class CanonicalMiscellaneousFilesProjectProvider
+internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly AsyncLazy<ImmutableArray<ProjectFileInfo>> _canonicalBuildResult;
+    private string? _tempDirectory;
 
     public CanonicalMiscellaneousFilesProjectProvider(ILoggerFactory loggerFactory)
     {
@@ -55,23 +56,22 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider
             </Project>
             """;
 
-        var tempDirectory = Path.Combine(Path.GetTempPath(), "roslyn-canonical-misc", Guid.NewGuid().ToString());
+        _tempDirectory = Path.Combine(Path.GetTempPath(), "roslyn-canonical-misc", Guid.NewGuid().ToString());
 
-        try
-        {
-            Directory.CreateDirectory(tempDirectory);
-            var virtualProjectPath = Path.Combine(tempDirectory, "Canonical.csproj");
+        Directory.CreateDirectory(_tempDirectory);
+        var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
 
-            const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-            await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], [], null, _loggerFactory);
-            var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
-            var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
+        const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
+        await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], [], null, _loggerFactory);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
+        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
 
-            return await loadedFile.GetProjectFileInfosAsync(cancellationToken);
-        }
-        finally
-        {
-            Directory.Delete(tempDirectory, recursive: true);
-        }
+        return await loadedFile.GetProjectFileInfosAsync(cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        if (_tempDirectory is not null)
+            Directory.Delete(_tempDirectory, recursive: true);
     }
 }

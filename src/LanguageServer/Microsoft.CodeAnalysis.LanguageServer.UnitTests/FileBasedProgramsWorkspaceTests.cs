@@ -245,6 +245,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         // Wait for the canonical project to finish loading.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        (_, canonicalDocumentTwo) = await GetLspWorkspaceAndDocumentAsync(looseFileUriTwo, testLspServer).ConfigureAwait(false);
 
         Assert.NotNull(canonicalDocumentTwo);
         Assert.NotEqual(canonicalDocumentOne.Project.Id, canonicalDocumentTwo.Project.Id);
@@ -470,8 +471,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """).ConfigureAwait(false);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        // Document is classified as file-based app, so is put in host workspace in a primordial state.
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.Equal(1, document.Project.Documents.Count());
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 

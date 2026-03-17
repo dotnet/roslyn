@@ -364,7 +364,7 @@ internal abstract class LanguageServerProjectLoader
             var projectCreationInfo = new ProjectSystemProjectCreationInfo
             {
                 AssemblyName = projectSystemName,
-                FilePath = projectPath,
+                FilePath = PathUtilities.IsAbsolute(projectPath) && File.Exists(projectPath) ? projectPath : null,
                 CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
             };
 

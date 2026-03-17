@@ -238,8 +238,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             var documentKind = await ClassifyDocumentAsync(documentPath, trackedDocumentInfo.Value, CancellationToken.None);
             if (documentKind is LooseDocumentKind.MiscellaneousFileWithNoReferences)
             {
-                // TODO2: it should perhaps be an error to get here with this classification.
-                // It's not clear that classification *can* occur exclusively in this method.
                 return null;
             }
 

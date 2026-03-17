@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Logging;
@@ -17,13 +18,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// </summary>
 internal sealed class LoadedProject : IDisposable
 {
-    private readonly string _projectFilePath;
-    private readonly string _projectDirectory;
+    private readonly string? _projectFilePath;
+    private readonly string? _projectDirectory;
 
     private readonly ProjectSystemProject _projectSystemProject;
     public ProjectSystemProjectFactory ProjectFactory { get; }
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
-    private readonly IFileChangeContext _sourceFileChangeContext;
+    private readonly IFileChangeContext? _sourceFileChangeContext;
     private readonly IFileChangeContext _projectFileChangeContext;
     private readonly IFileChangeContext _assetsFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
@@ -43,7 +44,6 @@ internal sealed class LoadedProject : IDisposable
 
     public LoadedProject(ProjectSystemProject projectSystemProject, ProjectSystemProjectFactory projectFactory, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
-        Contract.ThrowIfNull(projectSystemProject.FilePath);
         _projectFilePath = projectSystemProject.FilePath;
 
         _projectSystemProject = projectSystemProject;
@@ -53,14 +53,19 @@ internal sealed class LoadedProject : IDisposable
 
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
-        _projectDirectory = Path.GetDirectoryName(_projectFilePath)!;
-
-        _sourceFileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
-        _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
+        _projectDirectory = Path.GetDirectoryName(_projectFilePath);
+        if (_projectDirectory is not null)
+        {
+            _sourceFileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
+            _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
+        }
 
         _projectFileChangeContext = fileWatcher.CreateContext([]);
         _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
-        _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
+        if (_projectFilePath is not null)
+        {
+            _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
+        }
 
         _assetsFileChangeContext = fileWatcher.CreateContext([]);
         _assetsFileChangeContext.FileChanged += AssetsFileChangeContext_FileChanged;
@@ -68,6 +73,7 @@ internal sealed class LoadedProject : IDisposable
 
     private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
     {
+        Contract.ThrowIfTrue(_projectDirectory is null);
         var matchers = _mostRecentFileMatchers?.Value;
         if (matchers is null)
         {
@@ -128,7 +134,7 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     public void Dispose()
     {
-        _sourceFileChangeContext.Dispose();
+        _sourceFileChangeContext?.Dispose();
         _projectFileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
@@ -172,8 +178,20 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.Documents,
             _mostRecentFileInfo?.Documents,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
-            document => _projectSystemProject.RemoveSourceFile(document.FilePath),
+            document =>
+            {
+                if (PathUtilities.IsAbsolute(document.FilePath))
+                    _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders);
+                else
+                    _projectSystemProject.AddSourceTextContainer(SourceText.From("").Container, document.FilePath, folders: document.Folders);
+            },
+            document =>
+            {
+                if (PathUtilities.IsAbsolute(document.FilePath))
+                    _projectSystemProject.RemoveSourceFile(document.FilePath);
+                else
+                    throw ExceptionUtilities.Unreachable(); // We do not expect to remove a file which is not on disk from the project.
+            },
             "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 
         var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
