@@ -352,6 +352,7 @@ extends:
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: "[PR - #${{ parameters.PRNumber }}]"
             sourceBranch: $(ComponentBranchName)
+            componentBuildProjectName: $(System.TeamProject)
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
