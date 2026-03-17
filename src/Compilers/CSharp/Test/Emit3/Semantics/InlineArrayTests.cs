@@ -7011,7 +7011,31 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 9 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.s   9
+  IL_0013:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_0018:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
+            verifier = CompileAndVerify(comp, expectedOutput: "0 9 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -7060,13 +7084,14 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 10 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
 {
-  // Code size       25 (0x19)
-  .maxstack  2
+  // Code size       29 (0x1d)
+  .maxstack  4
   .locals init (int V_0,
                 System.Span<int> V_1)
   IL_0000:  ldarg.0
@@ -7078,8 +7103,32 @@ class Program
   IL_000f:  stloc.1
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldloc.0
-  IL_0013:  call       ""System.Span<int> System.Span<int>.Slice(int)""
-  IL_0018:  ret
+  IL_0013:  ldc.i4.s   10
+  IL_0015:  ldloc.0
+  IL_0016:  sub
+  IL_0017:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_001c:  ret
+}
+");
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: "0 10 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M2",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Buffer10<int> C.F""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldarg.1
+  IL_0011:  call       ""System.Span<int> System.Span<int>.Slice(int)""
+  IL_0016:  ret
 }
 ");
         }
@@ -23829,26 +23878,23 @@ class Program
 }
 """ : """
 {
-  // Code size       39 (0x27)
+  // Code size       37 (0x25)
   .maxstack  3
-  .locals init (int V_0,
-                System.Index V_1,
-                System.Span<int> V_2)
+  .locals init (System.Span<int> V_0,
+                System.Index V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     "Buffer10<int> C.F"
-  IL_0006:  call       "System.Index Program.GetStart()"
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  ldc.i4.s   10
-  IL_0010:  call       "int System.Index.GetOffset(int)"
-  IL_0015:  stloc.0
-  IL_0016:  ldc.i4.s   10
-  IL_0018:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
-  IL_001d:  stloc.2
-  IL_001e:  ldloca.s   V_2
-  IL_0020:  ldloc.0
-  IL_0021:  call       "System.Span<int> System.Span<int>.Slice(int)"
-  IL_0026:  ret
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       "System.Index Program.GetStart()"
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  ldc.i4.s   10
+  IL_001a:  call       "int System.Index.GetOffset(int)"
+  IL_001f:  call       "System.Span<int> System.Span<int>.Slice(int)"
+  IL_0024:  ret
 }
 """);
         }
@@ -23946,9 +23992,25 @@ class Program
 {
     static void Main()
     {
+        Test1();
+        System.Console.Write(' ');
+        Test2();
+    }
+
+    static void Test1()
+    {
         var x = new C();
         M(x, 1..)[0] = 111;
         System.Console.Write(M(x, 1..).Length);
+        System.Console.Write(' ');
+        System.Console.Write(x.F[1]);
+    }
+
+    static void Test2()
+    {
+        var x = new C();
+        M(x, 1..^1)[0] = 222;
+        System.Console.Write(M(x, 1..^1).Length);
         System.Console.Write(' ');
         System.Console.Write(x.F[1]);
     }
@@ -23958,7 +24020,7 @@ class Program
 """ + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "9 111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "9 111 8 222", verify: Verification.Fails).VerifyDiagnostics();
 
             // Range parameter goes through DeconstructRange, always uses Slice(int, int)
             verifier.VerifyIL("Program.M", """
@@ -24038,6 +24100,96 @@ class Program
   IL_0006:  ldc.i4.s   10
   IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
   IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SliceStart_08()
+        {
+            // SubtractFromLength strategy in start..
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M(x)[0] = 111;
+        System.Console.Write($"{M(x).Length} {x.F[7]}");
+    }
+
+    static System.Span<int> M(C x) => x.F[^3..];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "3 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldc.i4.7
+  IL_0011:  call       "System.Span<int> System.Span<int>.Slice(int)"
+  IL_0016:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SliceStart_09()
+        {
+            // UseGetOffsetAPI strategy in start..
+            var src = """
+class C
+{
+    public Buffer10<int> F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        M(x, 7)[0] = 111;
+        System.Console.Write($"{M(x, 7).Length} {x.F[7]}");
+    }
+
+    static System.Span<int> M(C x, System.Index start) => x.F[start..];
+}
+""" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "3 111", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Buffer10<int> C.F"
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldarga.s   V_1
+  IL_0012:  ldc.i4.s   10
+  IL_0014:  call       "int System.Index.GetOffset(int)"
+  IL_0019:  call       "System.Span<int> System.Span<int>.Slice(int)"
+  IL_001e:  ret
 }
 """);
         }

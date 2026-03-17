@@ -831,8 +831,73 @@ class C
         }
     }
 }";
+            // Without ReadOnlySpan.Slice
             var comp = CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(src, TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
+abcd
+abcd");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  4
+  .locals init (System.ReadOnlySpan<char> V_0, //span
+                string V_1,
+                System.ReadOnlySpan<char> V_2,
+                int V_3,
+                System.ReadOnlySpan<char>& V_4)
+  IL_0000:  ldstr      ""abcd""
+  IL_0005:  dup
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldloc.1
+  IL_000a:  callvirt   ""int string.Length.get""
+  IL_000f:  callvirt   ""string string.Substring(int, int)""
+  IL_0014:  call       ""void System.Console.WriteLine(string)""
+  IL_0019:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  stloc.s    V_4
+  IL_0023:  ldloc.s    V_4
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldloc.s    V_4
+  IL_0028:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_002d:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
+  IL_0032:  stloc.2
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.3
+  IL_0035:  br.s       IL_0049
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  ldloc.3
+  IL_003a:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_003f:  ldind.u2
+  IL_0040:  call       ""void System.Console.Write(char)""
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.1
+  IL_0047:  add
+  IL_0048:  stloc.3
+  IL_0049:  ldloc.3
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0051:  blt.s      IL_0037
+  IL_0053:  ret
+}");
+
+            var (model, elementAccesses) = GetModelAndAccesses(comp);
+
+            var info = model.GetSymbolInfo(elementAccesses[0]);
+            var substringCall = (IMethodSymbol)info.Symbol;
+            info = model.GetSymbolInfo(elementAccesses[1]);
+            var sliceCall = (IMethodSymbol)info.Symbol;
+
+            VerifyIndexCall(substringCall, "Substring", "String");
+            VerifyIndexCall(sliceCall, "Slice", "ReadOnlySpan");
+
+            // With ReadOnlySpan.Slice
+            comp = CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(src, TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"
 abcd
 abcd");
             verifier.VerifyIL("C.Main", @"
@@ -872,12 +937,12 @@ abcd");
   IL_0040:  ret
 }");
 
-            var (model, elementAccesses) = GetModelAndAccesses(comp);
+            (model, elementAccesses) = GetModelAndAccesses(comp);
 
-            var info = model.GetSymbolInfo(elementAccesses[0]);
-            var substringCall = (IMethodSymbol)info.Symbol;
+            info = model.GetSymbolInfo(elementAccesses[0]);
+            substringCall = (IMethodSymbol)info.Symbol;
             info = model.GetSymbolInfo(elementAccesses[1]);
-            var sliceCall = (IMethodSymbol)info.Symbol;
+            sliceCall = (IMethodSymbol)info.Symbol;
 
             VerifyIndexCall(substringCall, "Substring", "String");
             VerifyIndexCall(sliceCall, "Slice", "ReadOnlySpan");
@@ -1090,19 +1155,21 @@ class C
         Console.WriteLine(s[0]);
         Console.WriteLine(s[1]);
     }
-}", TestOptions.ReleaseExe); ;
+}", TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: @"f
 g
 f
 g");
             verifier.VerifyIL(@"C.Main", @"
 {
-  // Code size      116 (0x74)
-  .maxstack  3
+  // Code size      124 (0x7c)
+  .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //s
                 System.Index V_1, //index
                 System.ReadOnlySpan<char>& V_2,
-                int V_3)
+                int V_3,
+                int V_4)
   IL_0000:  ldstr      ""abcdefg""
   IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
@@ -1131,23 +1198,28 @@ g");
   IL_0045:  ldloca.s   V_0
   IL_0047:  dup
   IL_0048:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_004d:  ldc.i4.2
-  IL_004e:  sub
-  IL_004f:  stloc.3
-  IL_0050:  ldloc.3
-  IL_0051:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)""
-  IL_0056:  stloc.0
-  IL_0057:  ldloca.s   V_0
-  IL_0059:  ldc.i4.0
-  IL_005a:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-  IL_005f:  ldind.u2
-  IL_0060:  call       ""void System.Console.WriteLine(char)""
-  IL_0065:  ldloca.s   V_0
-  IL_0067:  ldc.i4.1
-  IL_0068:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-  IL_006d:  ldind.u2
-  IL_006e:  call       ""void System.Console.WriteLine(char)""
-  IL_0073:  ret
+  IL_004d:  stloc.3
+  IL_004e:  ldloc.3
+  IL_004f:  ldc.i4.2
+  IL_0050:  sub
+  IL_0051:  stloc.s    V_4
+  IL_0053:  ldloc.s    V_4
+  IL_0055:  ldloc.3
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  sub
+  IL_0059:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
+  IL_005e:  stloc.0
+  IL_005f:  ldloca.s   V_0
+  IL_0061:  ldc.i4.0
+  IL_0062:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0067:  ldind.u2
+  IL_0068:  call       ""void System.Console.WriteLine(char)""
+  IL_006d:  ldloca.s   V_0
+  IL_006f:  ldc.i4.1
+  IL_0070:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0075:  ldind.u2
+  IL_0076:  call       ""void System.Console.WriteLine(char)""
+  IL_007b:  ret
 }
 ");
         }
@@ -1170,18 +1242,20 @@ class C
         Console.WriteLine(s[1]);
     }
 }", TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: @"5
 6
 5
 6");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      128 (0x80)
-  .maxstack  3
+  // Code size      136 (0x88)
+  .maxstack  4
   .locals init (System.Span<int> V_0, //s
                 System.Index V_1, //index
                 System.Span<int>& V_2,
-                int V_3)
+                int V_3,
+                int V_4)
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     ""int""
   IL_0006:  dup
@@ -1214,23 +1288,28 @@ class C
   IL_0051:  ldloca.s   V_0
   IL_0053:  dup
   IL_0054:  call       ""int System.Span<int>.Length.get""
-  IL_0059:  ldc.i4.2
-  IL_005a:  sub
-  IL_005b:  stloc.3
-  IL_005c:  ldloc.3
-  IL_005d:  call       ""System.Span<int> System.Span<int>.Slice(int)""
-  IL_0062:  stloc.0
-  IL_0063:  ldloca.s   V_0
-  IL_0065:  ldc.i4.0
-  IL_0066:  call       ""ref int System.Span<int>.this[int].get""
-  IL_006b:  ldind.i4
-  IL_006c:  call       ""void System.Console.WriteLine(int)""
-  IL_0071:  ldloca.s   V_0
-  IL_0073:  ldc.i4.1
-  IL_0074:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0079:  ldind.i4
-  IL_007a:  call       ""void System.Console.WriteLine(int)""
-  IL_007f:  ret
+  IL_0059:  stloc.3
+  IL_005a:  ldloc.3
+  IL_005b:  ldc.i4.2
+  IL_005c:  sub
+  IL_005d:  stloc.s    V_4
+  IL_005f:  ldloc.s    V_4
+  IL_0061:  ldloc.3
+  IL_0062:  ldloc.s    V_4
+  IL_0064:  sub
+  IL_0065:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_006a:  stloc.0
+  IL_006b:  ldloca.s   V_0
+  IL_006d:  ldc.i4.0
+  IL_006e:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0073:  ldind.i4
+  IL_0074:  call       ""void System.Console.WriteLine(int)""
+  IL_0079:  ldloca.s   V_0
+  IL_007b:  ldc.i4.1
+  IL_007c:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0081:  ldind.i4
+  IL_0082:  call       ""void System.Console.WriteLine(int)""
+  IL_0087:  ret
 }
 ");
         }
@@ -4394,7 +4473,7 @@ static class Util
                 comp.MakeMemberMissing(WellKnownMember.System_Memory_T__Slice_Int);
             }
 
-            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123BCD"), verify: Verification.Skipped);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123BCD"), verify: Verification.FailsPEVerify);
 
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.ReadOnly",
@@ -4539,6 +4618,8 @@ public record class C
 using System;
 
 Console.Write(Util.M("0123", 1..).ToString());
+Console.Write(' ');
+Console.Write(Util.M("4567", 1..^1).ToString());
 
 static class Util
 {
@@ -4548,7 +4629,7 @@ static class Util
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
 
-            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123 56"), verify: Verification.Skipped);
             verify.VerifyDiagnostics();
             // Uses Slice(int, int)
             verify.VerifyIL("Util.M", """
@@ -4632,6 +4713,69 @@ static class C
                 // (3,81): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
                 //     public static System.ReadOnlySpan<char> M(System.ReadOnlySpan<char> s) => s[1..];
                 Diagnostic(ErrorCode.ERR_BadArgType, "1..").WithArguments("1", "System.Range", "int").WithLocation(3, 81));
+        }
+
+        [Fact]
+        public void SliceStart_09()
+        {
+            // SubtractFromLength strategy in start..
+            string source = """
+System.Console.Write(C.M("0123"));
+
+static class C
+{
+    public static string M(string s) => s[^3..];
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  callvirt   "int string.Length.get"
+  IL_0007:  ldc.i4.3
+  IL_0008:  sub
+  IL_0009:  callvirt   "string string.Substring(int)"
+  IL_000e:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_10()
+        {
+            // UseGetOffsetAPI strategy in start..
+            string source = """
+System.Console.Write(C.M("0123", new System.Index(1)));
+
+static class C
+{
+    public static string M(string s, System.Index start) => s[start..];
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldarga.s   V_1
+  IL_0005:  ldloc.0
+  IL_0006:  callvirt   "int string.Length.get"
+  IL_000b:  call       "int System.Index.GetOffset(int)"
+  IL_0010:  callvirt   "string string.Substring(int)"
+  IL_0015:  ret
+}
+""");
         }
     }
 }
