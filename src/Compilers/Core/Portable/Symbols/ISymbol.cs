@@ -159,6 +159,12 @@ namespace Microsoft.CodeAnalysis
         bool IsImplicitlyDeclared { get; }
 
         /// <summary>
+        /// Whether this symbol uses the updated memory safety rules and is considered <see langword="unsafe"/> under those rules.
+        /// </summary>
+        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
+        bool RequiresUnsafe { get; }
+
+        /// <summary>
         /// Returns true if this symbol can be referenced by its name in code.
         /// </summary>
         bool CanBeReferencedByName { get; }

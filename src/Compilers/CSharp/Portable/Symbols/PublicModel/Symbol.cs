@@ -245,6 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ISymbol.IsImplicitlyDeclared => UnderlyingSymbol.IsImplicitlyDeclared;
 
+        bool ISymbol.RequiresUnsafe => UnderlyingSymbol.CallerUnsafeMode != CallerUnsafeMode.None;
+
         bool ISymbol.CanBeReferencedByName => UnderlyingSymbol.CanBeReferencedByName;
 
         bool ISymbol.HasUnsupportedMetadata => UnderlyingSymbol.HasUnsupportedMetadata;

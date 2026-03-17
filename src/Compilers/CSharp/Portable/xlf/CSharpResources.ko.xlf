@@ -237,6 +237,11 @@
         <target state="translated">{1} 'with(...)' 요소 인수를 사용하는 메서드 '{0}'에 대한 오버로드가 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <note>{2} is a comma-separated list.</note>
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">오버로드된 복합 할당 연산자 '{0}'은(는) 매개 변수를 한 개 사용합니다.</target>

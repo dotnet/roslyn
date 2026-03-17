@@ -237,6 +237,11 @@
         <target state="translated">メソッド ‘{1}’ に、'with(...)' 要素の引数として {0} を受け取るオーバーロードはありません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <note>{2} is a comma-separated list.</note>
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">オーバーロードされた複合代入演算子 '{0}' は 1 つのパラメーターを受け取ります</target>

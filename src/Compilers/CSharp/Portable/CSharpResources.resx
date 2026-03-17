@@ -4326,6 +4326,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadCompilationOptionValue" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}'.</value>
   </data>
+  <data name="ERR_BadCompilationOptionValueAccepted" xml:space="preserve">
+    <value>Invalid '{0}' value: '{1}'. Accepted values are: {2}</value>
+    <comment>{2} is a comma-separated list.</comment>
+  </data>
   <data name="ERR_BadAppConfigPath" xml:space="preserve">
     <value>AppConfigPath must be absolute.</value>
   </data>
