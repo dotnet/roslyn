@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </remarks>
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
-    bool ManagesWorkspace(Workspace workspace);
+    bool IsMiscellaneousFilesWorkspace(Workspace workspace);
 
     /// <summary>
-    /// Gets or adds a document to the appropriate workspace potentially based on the document's contents.
+    /// Adds the document to an appropriate workspace. May initiate work to load a project for the document.
     /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
-    ValueTask<(TextDocument document, bool alreadyExists)?> GetOrAddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo, CancellationToken cancellationToken);
+    ValueTask<TextDocument> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo);
 
     /// <summary>
     /// Removes the document with the given <paramref name="uri"/> from the miscellaneous files workspace.

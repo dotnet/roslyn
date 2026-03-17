@@ -31,19 +31,13 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
 {
     public bool SupportsMutation => true;
 
-    public bool ManagesWorkspace(Workspace workspace) => this == workspace;
+    public bool IsMiscellaneousFilesWorkspace(Workspace workspace) => this == workspace;
 
     private readonly ILspLogger _logger = lspServices.GetRequiredService<AbstractLspLogger>();
 
-    public async ValueTask<(TextDocument document, bool alreadyExists)?> GetOrAddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo, CancellationToken cancellationToken)
+    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo)
     {
-        var documents = await CurrentSolution.GetTextDocumentsAsync(documentUri, cancellationToken).ConfigureAwait(false);
-        if (documents.SingleOrDefault() is { } existingDoc)
-            return (existingDoc, alreadyExists: true);
-
-        return AddMiscellaneousDocument(documentUri, trackedDocumentInfo.SourceText, trackedDocumentInfo.LanguageId) is { } document
-            ? (document, alreadyExists: false)
-            : null;
+        return AddMiscellaneousDocument(documentUri, trackedDocumentInfo.SourceText, trackedDocumentInfo.LanguageId);
     }
 
     private TextDocument? AddMiscellaneousDocument(DocumentUri uri, SourceText documentText, string languageId)

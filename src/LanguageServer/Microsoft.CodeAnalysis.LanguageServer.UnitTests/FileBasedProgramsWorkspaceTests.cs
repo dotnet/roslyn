@@ -242,6 +242,10 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """).ConfigureAwait(false);
 
         var (_, canonicalDocumentTwo) = await GetLspWorkspaceAndDocumentAsync(looseFileUriTwo, testLspServer).ConfigureAwait(false);
+
+        // Wait for the canonical project to finish loading.
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
         Assert.NotNull(canonicalDocumentTwo);
         Assert.NotEqual(canonicalDocumentOne.Project.Id, canonicalDocumentTwo.Project.Id);
         Assert.DoesNotContain(canonicalDocumentTwo.Project.Documents, d => d.Name == looseDocumentOne.Name);

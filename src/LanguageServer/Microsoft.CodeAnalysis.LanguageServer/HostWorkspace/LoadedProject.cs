@@ -134,7 +134,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(OutputKind OutputKind, ImmutableArray<CommandLineReference> MetadataReferences, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool isMiscellaneousFile, ILogger logger)
+    public async ValueTask<(OutputKind OutputKind, ImmutableArray<CommandLineReference> MetadataReferences, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool isMiscellaneousFile, bool hasAllInformation, ILogger logger)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -158,7 +158,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.GeneratedFilesOutputDirectory = newProjectInfo.GeneratedFilesOutputDirectory;
         _projectSystemProject.CompilationOutputAssemblyFilePath = newProjectInfo.IntermediateOutputFilePath;
         _projectSystemProject.DefaultNamespace = newProjectInfo.DefaultNamespace;
-        _projectSystemProject.HasAllInformation = !isMiscellaneousFile;
+        _projectSystemProject.HasAllInformation = hasAllInformation;
 
         if (newProjectInfo.TargetFrameworkIdentifier != null)
         {
