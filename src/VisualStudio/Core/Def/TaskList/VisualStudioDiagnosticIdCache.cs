@@ -128,6 +128,8 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
         ImmutableSegmentedList<ProjectId> projectIds,
         CancellationToken cancellationToken)
     {
+        CodeAnalysis.Solution? solution = null;
+        var builder = ImmutableArray.CreateBuilder<ProjectId>();
         foreach (var projectId in projectIds)
         {
             var project = _workspace.CurrentSolution.GetProject(projectId);
@@ -137,12 +139,23 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
                 continue;
             }
 
-            var list = await _analyzerService.GetAllDiagnosticIdsAsync(
-                project.Solution,
-                project.Id,
-                cancellationToken).ConfigureAwait(false);
+            solution ??= project.Solution;
+            builder.Add(projectId);
+        }
 
-            _projectIdToDiagnosticIdsCache[project.Id] = list;
+        if (builder.Count == 0)
+        {
+            return;
+        }
+
+        var projectIdToDiagnosticIdsMap = await _analyzerService.GetAllDiagnosticIdsAsync(
+            solution!,
+            builder.ToImmutable(),
+            cancellationToken).ConfigureAwait(false);
+
+        foreach (var projectIdToDiagnosticIds in projectIdToDiagnosticIdsMap)
+        {
+            _projectIdToDiagnosticIdsCache[projectIdToDiagnosticIds.Key] = projectIdToDiagnosticIds.Value;
         }
     }
 
