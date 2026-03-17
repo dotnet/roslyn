@@ -16,14 +16,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(SelectionRangeHandler)), Shared]
 [Method(Methods.TextDocumentSelectionRangeName)]
-internal sealed class SelectionRangeHandler : ILspServiceDocumentRequestHandler<SelectionRangeParams, SelectionRange[]?>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SelectionRangeHandler() : ILspServiceDocumentRequestHandler<SelectionRangeParams, SelectionRange[]?>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SelectionRangeHandler()
-    {
-    }
-
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
