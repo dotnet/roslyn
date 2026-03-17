@@ -211,7 +211,7 @@ internal abstract class LanguageServerProjectLoader
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string documentPath, TrackedDocumentInfo? trackedDocumentInfo, CancellationToken cancellationToken);
+        BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
@@ -230,7 +230,7 @@ internal abstract class LanguageServerProjectLoader
 
         try
         {
-            var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, projectToLoad.TrackedDocumentInfo, cancellationToken);
+            var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (remoteProjectLoadResult is null)
             {
                 // Example cases where this might occur:
@@ -406,7 +406,7 @@ internal abstract class LanguageServerProjectLoader
     /// <summary>
     /// Begins loading a project with an associated primordial project. Must not be called for a project which has already begun loading.
     /// </summary>
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, TrackedDocumentInfo trackedDocumentInfo)
+    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -419,7 +419,8 @@ internal abstract class LanguageServerProjectLoader
             }
 
             _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
-            _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, TrackedDocumentInfo: trackedDocumentInfo, ReportTelemetry: true));
+            if (doDesignTimeBuild)
+                _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
         }
     }
 
@@ -437,7 +438,7 @@ internal abstract class LanguageServerProjectLoader
             }
 
             _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
-            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, TrackedDocumentInfo: null, ReportTelemetry: true));
+            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true));
         }
     }
 

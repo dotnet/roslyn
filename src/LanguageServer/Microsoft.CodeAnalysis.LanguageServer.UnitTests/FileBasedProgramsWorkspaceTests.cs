@@ -85,15 +85,18 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
-        await testLspServer.OpenDocumentAsync(looseFileUri, """
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
             #:sdk Microsoft.Net.Sdk
             Console.WriteLine("Hello World!");
-            """).ConfigureAwait(false);
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        // Document is classified as file-based app, so is put in host workspace in a primordial state.
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        // Document is classified as file-based app, so is put in misc workspace in a primordial state.
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.False(document.Project.State.HasAllInformation);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
@@ -121,16 +124,19 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var looseFileUri = CreateAbsoluteDocumentUri("greeter");
-        await testLspServer.OpenDocumentAsync(looseFileUri, """
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
             #!/usr/bin/env dotnet
             #:sdk Microsoft.Net.Sdk
             Console.WriteLine("Hello World!");
-            """, languageId: "csharp").ConfigureAwait(false);
+            """;
+        var sourceFile = tempDir.CreateFile("greeter").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText, languageId: "csharp").ConfigureAwait(false);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        // Document is classified as file-based app, so is put in host workspace in a primordial state.
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        // Document is classified as file-based app, so is put in misc workspace in a primordial state.
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.False(document.Project.State.HasAllInformation);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
@@ -180,14 +186,18 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.cs");
-        await testLspServer.OpenDocumentAsync(looseFileUri, """
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
             #:sdk Microsoft.Net.Sdk
             Console.WriteLine("Hello World!");
-            """).ConfigureAwait(false);
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        // Document is in misc workspace in a primordial state before project load completes.
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
         await testLspServer.CloseDocumentAsync(looseFileUri);
@@ -630,10 +640,13 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
-        var looseFileUriOne = CreateAbsoluteDocumentUri("SomeFile.cs");
-        await testLspServer.OpenDocumentAsync(looseFileUriOne, """
+        var tempDir = _tempRoot.CreateDirectory();
+        var initialText = """
             Console.WriteLine("Hello World!");
-            """).ConfigureAwait(false);
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(initialText);
+        var looseFileUriOne = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUriOne, initialText).ConfigureAwait(false);
 
         // File should be initially found in a primordial misc files project
         var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
@@ -658,13 +671,15 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         // Adding a #! directive to a misc file causes it to move to a file-based program project.
         var textToInsert = $"#!/usr/bin/env dotnet{Environment.NewLine}";
+        // Write updated content to disk so the build host can load it.
+        sourceFile.WriteAllText($"#!/usr/bin/env dotnet{Environment.NewLine}{initialText}");
         await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
         var (_, fileBasedDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
 
         // The document is now in a primordial state in the FileBasedProgramsProjectSystem.
         Assert.NotEqual(fileBasedDocumentOne, canonicalDocumentOne);
         var fileBasedProject = fileBasedDocumentOne.Project;
-        Assert.Equal(WorkspaceKind.Host, fileBasedProject.Solution.WorkspaceKind);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, fileBasedProject.Solution.WorkspaceKind);
         Assert.NotEqual(canonicalDocumentOne.Project.Id, fileBasedProject.Id);
         Assert.Equal("""
             #!/usr/bin/env dotnet

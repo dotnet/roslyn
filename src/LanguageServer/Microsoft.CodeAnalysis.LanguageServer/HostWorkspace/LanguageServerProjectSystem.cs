@@ -79,7 +79,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string projectPath, TrackedDocumentInfo? trackedDocumentInfo, CancellationToken cancellationToken)
+        BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
         if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
             return null;

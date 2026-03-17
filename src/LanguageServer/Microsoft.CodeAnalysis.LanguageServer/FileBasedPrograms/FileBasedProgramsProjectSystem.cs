@@ -85,7 +85,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             try
             {
                 _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
-                // TODO: just reload now
                 await UnloadAllProjectsAsync();
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
@@ -114,35 +113,26 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
         var workspace = _workspaceFactory.MiscellaneousFilesWorkspace;
         var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
+        var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms: true);
+            workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
         projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
         var id = projectInfo.Documents.Single().Id;
         var primordialDoc = workspace.CurrentSolution.GetRequiredDocument(id);
-        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: primordialDoc.Project.Id, documentInfo);
+        var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
+        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
         return primordialDoc;
     }
 
-    // private ProjectFileInfo
-
-    private async ValueTask<LooseDocumentKind> ClassifyDocumentAsync(string filePath, TrackedDocumentInfo trackedDocumentInfo, CancellationToken cancellationToken)
+    private bool ClassifyAsMiscellaneousFileWithNoReferences(string filePath, LanguageInformation languageInformation)
     {
-        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-        if (!languageInfoProvider.TryGetLanguageInformation(ProtocolConversions.CreateAbsoluteDocumentUri(filePath), trackedDocumentInfo.LanguageId, out var languageInformation))
-        {
-            Contract.Fail($"Could not find language information for '{filePath}'");
-        }
-
-        // roslyn/docs/features/file-based-programs-vscode.md
-        // Note: Step (1) is skipped, as we assume a first-chance lookup in the host workspace will handle this case.
-
         // 2. Is `enableFileBasedPrograms` enabled?
         //    - No → Classify as Miscellaneous File With No References
         //    - Yes → Continue to next check
         var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
         if (!enableFileBasedPrograms)
         {
-            return LooseDocumentKind.MiscellaneousFileWithNoReferences;
+            return true;
         }
 
         // 3. Is the file a regular C# file? (i.e. not a `.csx` script, and not a file using a language besides C#)
@@ -151,19 +141,51 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (languageInformation.LanguageName != LanguageNames.CSharp
             || MiscellaneousFileUtilities.IsScriptFile(languageInformation, filePath))
         {
+            return true;
+        }
+
+        return false;
+    }
+
+    private async ValueTask<LooseDocumentKind> ClassifyDocumentAsync(string filePath, string languageId, CancellationToken cancellationToken)
+    {
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        if (!languageInfoProvider.TryGetLanguageInformation(ProtocolConversions.CreateAbsoluteDocumentUri(filePath), languageId, out var languageInformation))
+        {
+            Contract.Fail($"Could not find language information for '{filePath}'");
+        }
+
+        // roslyn/docs/features/file-based-programs-vscode.md
+        // Note: Step (1) is skipped, as we assume a first-chance lookup in the host workspace will handle this case.
+
+        // Step (2) and (3)
+        if (ClassifyAsMiscellaneousFileWithNoReferences(filePath, languageInformation))
+        {
             return LooseDocumentKind.MiscellaneousFileWithNoReferences;
         }
 
-        // 4. Does the file have an absolute path? (i.e. it represents a file on disk, and it is not a "virtual document" created for a new, not-yet-saved file, or similar.)
+        // 4. Does the file have an absolute path and exist on disk? (i.e. it is not a "virtual document" created for a new, not-yet-saved file, or similar.)
         // - Yes → Go to (5)
-        // - No → Go to (6)
+        // - No → Classify as Miscellaneous File With Standard References
+        if (!PathUtilities.IsAbsolute(filePath))
+            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+
+        SourceText sourceText;
+        try
+        {
+            // Note: SourceText.From eagerly reads the entire file
+            using var fileStream = File.OpenRead(filePath);
+            sourceText = SourceText.From(fileStream);
+        }
+        catch (FileNotFoundException)
+        {
+            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+        }
 
         // 5. Does the file have `#:` or `#!` directives?
         // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
         // - No → Continue to next check
-        var sourceText = trackedDocumentInfo.SourceText;
-        if (PathUtilities.IsAbsolute(filePath)
-            && VirtualProjectXmlProvider.HasFileBasedAppDirectives(sourceText))
+        if (VirtualProjectXmlProvider.HasFileBasedAppDirectives(sourceText))
         {
             return LooseDocumentKind.FileBasedApp;
         }
@@ -218,47 +240,37 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string documentPath, TrackedDocumentInfo? trackedDocumentInfo, CancellationToken cancellationToken)
+        BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
-        // TODO2: Perhaps we should avoid threading 'TrackedDocumentInfo' into here.
-        if (trackedDocumentInfo is null)
+        // Note: we assume that if we made it this far, the document is for the C# language.
+        var documentKind = await ClassifyDocumentAsync(documentPath, languageId: "csharp", CancellationToken.None);
+        _logger.LogDebug("Classified '{documentPath}' as '{documentKind}'.", documentPath, documentKind);
+
+        if (documentKind == LooseDocumentKind.MiscellaneousFileWithNoReferences)
         {
-            var hasFileBasedAppDirectives = IOUtilities.PerformIO(() => VirtualProjectXmlProvider.HasFileBasedAppDirectives(SourceText.From(File.ReadAllText(documentPath))));
-            if (!hasFileBasedAppDirectives)
-            {
-                // Project shouldn't be loaded any more because it's not open in the editor and it doesn't have '#:' in it.
-                await TryUnloadProjectAsync(documentPath);
-                return null;
-            }
-
-            // Fall through to ordinary file-based app handling.
+            // This might happen due to a race involving changes to option values.
+            // Just don't proceed with the reload and assume the option change handler will unload this project if needed.
+            _logger.LogWarning("A document classified as {documentKind} should not be design-time built.", documentKind);
+            return null;
         }
-        else
+
+        if (documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferences or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
         {
-            var documentKind = await ClassifyDocumentAsync(documentPath, trackedDocumentInfo.Value, CancellationToken.None);
-            if (documentKind is LooseDocumentKind.MiscellaneousFileWithNoReferences)
+            return new RemoteProjectLoadResult
             {
-                return null;
-            }
-
-            if (documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferences or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
-            {
-                return new RemoteProjectLoadResult
-                {
-                    ProjectFileInfos = await _canonicalProjectProvider.GetProjectInfoAsync(documentPath, cancellationToken).ConfigureAwait(false),
-                    DiagnosticLogItems = [],
-                    ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-                    IsFileBasedProgram = false,
-                    IsMiscellaneousFile = true,
-                    HasAllInformation = documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors,
-                    PreferredBuildHostKind = BuildHostProcessKind.NetCore,
-                    ActualBuildHostKind = BuildHostProcessKind.NetCore,
-                };
-            }
-
-            // Fall through to ordinary file-based app handling.
-            Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
+                ProjectFileInfos = await _canonicalProjectProvider.GetProjectInfoAsync(documentPath, cancellationToken).ConfigureAwait(false),
+                DiagnosticLogItems = [],
+                ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
+                IsFileBasedProgram = false,
+                IsMiscellaneousFile = true,
+                HasAllInformation = documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors,
+                PreferredBuildHostKind = BuildHostProcessKind.NetCore,
+                ActualBuildHostKind = BuildHostProcessKind.NetCore,
+            };
         }
+
+        // Fall through to ordinary file-based app handling.
+        Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
         var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _logger, cancellationToken);
         if (content is not var (virtualProjectContent, diagnostics))
