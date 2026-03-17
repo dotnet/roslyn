@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var output = e.MakeResultTemp();
                                         var outputSlot = getOrMakeAndRegisterDagTempSlot(output);
                                         Debug.Assert(outputSlot > 0);
-                                        SetState(ref this.State, outputSlot, NullableFlowState.NotNull); // Slice value is assumed to be never null
+                                        TrackNullableStateForAssignment(valueOpt: null, type, outputSlot, type.ToTypeWithState());
                                         break;
                                     }
                                 case BoundDagAssignmentEvaluation e:
@@ -976,6 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return property.GetTypeOrReturnType();
 
                     case BoundCall call:
+                        MethodSymbol method;
                         if (call.Method.IsExtensionBlockMember())
                         {
                             var reinferenceResult = ReInferMethodAndVisitArguments(
@@ -989,9 +990,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.DefaultArguments,
                                 call.Expanded,
                                 call.InvokedAsExtensionMethod);
-                            return reinferenceResult.Member.GetTypeOrReturnType();
+
+                            method = reinferenceResult.Member;
                         }
-                        return AsMemberOfType(inputType, call.Method).GetTypeOrReturnType();
+                        else
+                        {
+                            method = (MethodSymbol)AsMemberOfType(inputType, call.Method);
+                        }
+
+                        return method.GetTypeOrReturnType();
 
                     case BoundArrayAccess arrayAccess:
                         return isSlice

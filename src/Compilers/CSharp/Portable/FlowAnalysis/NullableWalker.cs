@@ -7454,6 +7454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (node is BoundCall && node.Syntax is SlicePatternSyntax)
+            {
+                // A Slice call
+                return true;
+            }
+
             var syntax = node.Syntax;
             if (syntax.Kind() != SyntaxKind.InvocationExpression)
             {

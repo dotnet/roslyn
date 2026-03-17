@@ -3029,8 +3029,10 @@ class Collection<T>
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics();
-            // Slice is assumed to be never null
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9));
         }
 
         [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]

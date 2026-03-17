@@ -47305,6 +47305,35 @@ static class E
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 69));
     }
 
+    [Fact]
+    public void Nullability_Deconstruct_07()
+    {
+        // generic Deconstruct
+        var src = """
+#nullable enable
+
+object? o = null;
+var (o1, o2) = Infer(o);
+o1.ToString();
+
+C<T> Infer<T>(T t) => throw null!;
+
+class C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public void Deconstruct(out T t1, out T t2) => throw null!;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // o1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o1").WithLocation(5, 1));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
     public void Nullability_PositionalPattern_01()
     {

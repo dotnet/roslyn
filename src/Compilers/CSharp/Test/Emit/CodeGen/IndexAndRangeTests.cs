@@ -3910,6 +3910,89 @@ class C
         }
 
         [Fact]
+        public void Nullable_01()
+        {
+            var source = @"
+#nullable enable
+
+object? o1 = null;
+Infer(o1)[^1].ToString();
+
+object? o2 = null;
+Infer(o2)[..].ToString();
+
+object? o3 = new object();
+Infer(o3)[^1].ToString();
+Infer(o3)[..].ToString();
+
+C<T> Infer<T>(T t) => throw null!;
+
+class C<T>
+{
+    public int Length => 0;
+    public T this[int i] => throw null!;
+    public T Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+            comp.VerifyDiagnostics(
+                // 0.cs(5,1): warning CS8602: Dereference of a possibly null reference.
+                // Infer(o1)[^1].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Infer(o1)[^1]").WithLocation(5, 1),
+                // 0.cs(8,1): warning CS8602: Dereference of a possibly null reference.
+                // Infer(o2)[..].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Infer(o2)[..]").WithLocation(8, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82802")]
+        public void Nullable_02()
+        {
+            var source = @"
+#nullable enable
+
+object? o1 = null;
+if (Infer(o1) is [var x])
+{
+    x.ToString();
+}
+
+object? o2 = null;
+if (Infer(o2) is [.. var y])
+{
+    y.ToString();
+}
+
+object? o3 = new object();
+if (Infer(o3) is [var z1])
+{
+    z1.ToString();
+}
+
+if (Infer(o3) is [.. var z2])
+{
+    z2.ToString();
+}
+
+C<T> Infer<T>(T t) => throw null!;
+
+class C<T>
+{
+    public int Length => 0;
+    public T this[int i] => throw null!;
+    public T Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+            comp.VerifyDiagnostics(
+                // 0.cs(7,5): warning CS8602: Dereference of a possibly null reference.
+                //     x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 5),
+                // 0.cs(13,5): warning CS8602: Dereference of a possibly null reference.
+                //     y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(13, 5));
+        }
+
+        [Fact]
         public void PatternIndexArrayAndAwait_01()
         {
             var src = @"
