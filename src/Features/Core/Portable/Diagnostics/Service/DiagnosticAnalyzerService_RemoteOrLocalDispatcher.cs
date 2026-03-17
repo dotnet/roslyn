@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -101,16 +102,16 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return builder.ToImmutableArray();
     }
 
-    public async Task<ImmutableHashSet<string>> GetAllDiagnosticIdsAsync(
-        Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
+    public async Task<ImmutableDictionary<ProjectId, ImmutableHashSet<string>>> GetAllDiagnosticIdsAsync(
+        Solution solution, ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
-            var list = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableHashSet<string>>(
+            var list = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<ProjectId, ImmutableHashSet<string>>>(
                 solution,
                 (service, solution, cancellationToken) => service.GetAllDiagnosticIdsAsync(
-                    solution, projectId, cancellationToken),
+                    solution, projectIds, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             if (!list.HasValue)
                 return [];
@@ -118,8 +119,13 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             return list.Value;
         }
 
+        var builder = ImmutableArray.CreateBuilder<Project>();
+
+        foreach (var projectId in projectIds)
+            builder.Add(solution.GetRequiredProject(projectId));
+
         return solution.SolutionState.Analyzers.GetAllDiagnosticIds(
-            this._analyzerInfoCache, solution.GetProject(projectId));
+            this._analyzerInfoCache, builder.ToImmutable());
     }
 
     public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(

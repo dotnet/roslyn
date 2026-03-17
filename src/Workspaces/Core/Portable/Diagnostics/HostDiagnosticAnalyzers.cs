@@ -78,22 +78,35 @@ internal sealed class HostDiagnosticAnalyzers
     /// <summary>
     /// Returns all the DiagnosticIds producible by the referenced DiagnosticAnalyzers.
     /// </summary>
-    public ImmutableHashSet<string> GetAllDiagnosticIds(
+    public ImmutableDictionary<ProjectId, ImmutableHashSet<string>> GetAllDiagnosticIds(
         DiagnosticAnalyzerInfoCache infoCache,
-        Project? project)
+        ImmutableArray<Project> projects)
     {
-        var descriptorsPerReference = GetDiagnosticDescriptorsPerReference(infoCache, project);
+        var builder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableHashSet<string>>();
 
-        var builder = ImmutableHashSet.CreateBuilder<string>();
-        foreach (var descriptors in descriptorsPerReference.Values)
+        foreach (var project in projects)
         {
-            foreach (var descriptor in descriptors)
-            {
-                builder.Add(descriptor.Id);
-            }
+            var diagnosticIds = GetAllDiagnosticIds(infoCache, project);
+            builder.Add(project.Id, diagnosticIds);
         }
 
         return builder.ToImmutable();
+
+        ImmutableHashSet<string> GetAllDiagnosticIds(DiagnosticAnalyzerInfoCache infoCache, Project project)
+        {
+            var descriptorsPerReference = GetDiagnosticDescriptorsPerReference(infoCache, project);
+
+            var diagnosticIdBuilder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var descriptors in descriptorsPerReference.Values)
+            {
+                foreach (var descriptor in descriptors)
+                {
+                    diagnosticIdBuilder.Add(descriptor.Id);
+                }
+            }
+
+            return diagnosticIdBuilder.ToImmutable();
+        }
     }
 
     public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(

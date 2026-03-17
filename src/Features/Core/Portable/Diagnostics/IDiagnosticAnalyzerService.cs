@@ -94,8 +94,8 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         CancellationToken cancellationToken);
 
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetAllDiagnosticIds"/>
-    Task<ImmutableHashSet<string>> GetAllDiagnosticIdsAsync(
-        Solution solution, ProjectId? projectId, CancellationToken cancellationToken);
+    Task<ImmutableDictionary<ProjectId, ImmutableHashSet<string>>> GetAllDiagnosticIdsAsync(
+        Solution solution, ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
