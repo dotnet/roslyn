@@ -630,6 +630,7 @@ start:
                 {
                     foreach (var attribute in symbol.GetAttributes())
                     {
+                        // https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
                         if (attribute.AttributeClass is { Name: "RequiresUnsafeAttribute", ContainingSymbol: INamespaceSymbol { Name: "CompilerServices", ContainingNamespace: { Name: "Runtime", ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true } } } })
                         {
                             return true;
