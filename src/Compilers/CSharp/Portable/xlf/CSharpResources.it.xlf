@@ -5931,13 +5931,13 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current rules.</target>
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless_Title">
-        <source>The 'unsafe' modifier does not have any effect here under the current rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current rules.</target>
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">

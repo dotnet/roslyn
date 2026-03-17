@@ -2754,7 +2754,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
             // unsafe enum E { A }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
-            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
             Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22),
         ];
@@ -2775,7 +2775,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
             // unsafe enum E { A }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
-            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
             Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22));
     }
@@ -3223,13 +3223,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,8): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
                 // D2 b = C.M;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M").WithArguments("C.M()").WithLocation(2, 8),
-                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe delegate void D2();
                 Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(7, 22),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
-                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current rules.
+                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe delegate void D2();
                 Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(7, 22),
             ]);
