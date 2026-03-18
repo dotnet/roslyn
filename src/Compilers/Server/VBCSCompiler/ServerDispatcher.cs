@@ -230,7 +230,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private void RunGC()
         {
             _gcTask = null;
-            GC.GetTotalMemory(forceFullCollection: true);
+            var before = GC.GetTotalMemory(forceFullCollection: false);
+            var after = GC.GetTotalMemory(forceFullCollection: true);
+            _logger.Log($"GC completed: before={before} bytes, after={after} bytes");
         }
 
         private void MaybeCreateListenTask()

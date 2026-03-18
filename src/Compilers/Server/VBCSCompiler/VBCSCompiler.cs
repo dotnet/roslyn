@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public static int Main(string[] args)
         {
-            using var logger = new CompilerServerLogger($"VBCSCompiler {Process.GetCurrentProcess().Id}");
+            // Pre-parse arguments to extract the log file path so the logger can be initialised
+            // with the correct path before the controller is created.  Ignore parse failures here
+            // as they will be properly reported when Run() is called.
+            BuildServerController.ParseCommandLine(args, out _, out _, out _, out var logFilePath);
+
+            using var logger = new CompilerServerLogger($"VBCSCompiler {Process.GetCurrentProcess().Id}", logFilePath);
 
             NameValueCollection appSettings;
             try

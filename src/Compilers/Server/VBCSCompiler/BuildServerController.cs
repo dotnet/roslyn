@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private readonly NameValueCollection _appSettings;
         private readonly ICompilerServerLogger _logger;
 
+        /// <summary>
+        /// Timeout override (in seconds) supplied via the <c>-timeout:</c> command-line argument.
+        /// A value of <c>-1</c> means no timeout.  When <see langword="null"/> the value from
+        /// application settings is used instead.
+        /// </summary>
+        private int? _commandLineTimeout;
+
         internal BuildServerController(NameValueCollection appSettings, ICompilerServerLogger logger)
         {
             _appSettings = appSettings;
@@ -38,10 +45,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             string? pipeName;
             bool shutdown;
-            if (!ParseCommandLine(args, out pipeName, out shutdown))
+            int? timeout;
+            string? logFilePath;
+            if (!ParseCommandLine(args, out pipeName, out shutdown, out timeout, out logFilePath))
             {
                 return CommonCompiler.Failed;
             }
+
+            _commandLineTimeout = timeout;
 
             pipeName = pipeName ?? GetDefaultPipeName();
             if (pipeName is null)
@@ -59,6 +70,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal TimeSpan? GetKeepAliveTimeout()
         {
+            if (_commandLineTimeout.HasValue)
+            {
+                return _commandLineTimeout.Value == -1
+                    ? null
+                    : TimeSpan.FromSeconds(_commandLineTimeout.Value);
+            }
+
             try
             {
                 if (int.TryParse(_appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
@@ -165,17 +183,42 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return success ? CommonCompiler.Succeeded : CommonCompiler.Failed;
         }
 
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown)
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out int? timeout, out string? logFilePath)
         {
             pipeName = null;
             shutdown = false;
+            timeout = null;
+            logFilePath = null;
 
             foreach (var arg in args)
             {
                 const string pipeArgPrefix = "-pipename:";
+                const string timeoutArgPrefix = "-timeout:";
+                const string logArgPrefix = "-log:";
                 if (arg.StartsWith(pipeArgPrefix, StringComparison.Ordinal))
                 {
                     pipeName = arg.Substring(pipeArgPrefix.Length);
+                }
+                else if (arg.StartsWith(timeoutArgPrefix, StringComparison.Ordinal))
+                {
+                    var timeoutValue = arg.Substring(timeoutArgPrefix.Length);
+                    if (!int.TryParse(timeoutValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTimeout) ||
+                        (parsedTimeout < 0 && parsedTimeout != -1))
+                    {
+                        return false;
+                    }
+
+                    timeout = parsedTimeout;
+                }
+                else if (arg.StartsWith(logArgPrefix, StringComparison.Ordinal))
+                {
+                    var parsedLogFilePath = arg.Substring(logArgPrefix.Length);
+                    if (parsedLogFilePath.Length == 0)
+                    {
+                        return false;
+                    }
+
+                    logFilePath = parsedLogFilePath;
                 }
                 else if (arg == "-shutdown")
                 {
