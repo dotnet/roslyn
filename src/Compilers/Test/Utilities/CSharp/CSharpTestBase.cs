@@ -711,9 +711,8 @@ namespace System.Runtime.CompilerServices
             }
             """;
 
-        // https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
         protected static readonly string RequiresUnsafeAttributeDefinition = """
-            namespace System.Runtime.CompilerServices
+            namespace System.Diagnostics.CodeAnalysis
             {
                 [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
                 public sealed class RequiresUnsafeAttribute : Attribute { }

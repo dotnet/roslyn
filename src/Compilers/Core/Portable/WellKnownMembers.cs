@@ -3971,9 +3971,9 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                 // System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor
+                 // System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute - WellKnownType.ExtSentinel),    // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
@@ -5727,7 +5727,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_ScopedRefAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor
-                ".ctor",                                    // System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor
+                ".ctor",                                    // System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_Span_T
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
                 "AsSpan",                                   // System_MemoryExtensions__AsSpan_String
