@@ -48,7 +48,6 @@ internal sealed record RoslynInsertionToolOptions(
     public string ClientSecret { get; init; } = string.Empty;
     public string TitlePrefix { get; init; } = string.Empty;
     public string TitleSuffix { get; init; } = string.Empty;
-    public string DescriptionPrefix { get; init; } = string.Empty;
     public bool SetAutoComplete { get; init; }
     public ImmutableArray<string> CherryPick { get; init; }
     public string ReviewerGUID { get; init; } = string.Empty;
