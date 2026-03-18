@@ -47671,71 +47671,51 @@ namespace System
     public class Object { }
     public class ValueType { }
     public struct Void { }
-    public struct Byte { }
     public struct Int32 { }
     public struct Boolean { }
-    public struct Char { }
     public class String { }
-    public class Delegate { }
-    public class MulticastDelegate { }
+    public class Enum { }
     public class Attribute { }
     public class Array { }
-    public class Enum { }
-    public class Exception { }
-    public class NotSupportedException : Exception { }
-    public class Type { }
-    public struct IntPtr { }
-    public struct RuntimeTypeHandle { }
-    public struct RuntimeMethodHandle { }
-    public struct Nullable<T> where T : struct { }
-    public interface IDisposable { }
     public class AttributeUsageAttribute : Attribute
     {
-        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
-        public bool AllowMultiple { get => throw null; set => throw null; }
-        public bool Inherited { get => throw null; set => throw null; }
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
     }
     public enum AttributeTargets { All = 0x7fff }
-    public readonly struct Index
-    {
-        public Index(int value, bool fromEnd = false) => throw null;
-        public int Value => throw null;
-        public bool IsFromEnd => throw null;
-        public int GetOffset(int length) => throw null;
-        public static implicit operator Index(int value) => throw null;
-    }
-    public readonly struct Range
-    {
-        public Index Start => throw null;
-        public Index End => throw null;
-        public Range(Index start, Index end) => throw null;
-    }
 }
 namespace System.Collections
 {
-    public interface IEnumerable { }
-}
-namespace System.Reflection
-{
-    public class DefaultMemberAttribute : Attribute
+    public interface IEnumerable
     {
-        public DefaultMemberAttribute(string memberName) => throw null;
+        IEnumerator GetEnumerator();
+    }
+    public interface IEnumerator
+    {
+        object Current { get; }
+        bool MoveNext();
     }
 }
-namespace System.Runtime.CompilerServices
+namespace System.Collections.Generic
 {
-    public static class RuntimeHelpers
+    public interface IEnumerable<T> : IEnumerable
     {
-        public static T[] GetSubArray<T>(T[] array, Range range) => throw null;
+        new IEnumerator<T> GetEnumerator();
     }
-    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    public interface IEnumerator<T> : IEnumerator
     {
-        public CompilerFeatureRequiredAttribute(string featureName) => throw null;
-        public string FeatureName => throw null;
-        public bool IsOptional { get => throw null; set => throw null; }
+        new T Current { get; }
     }
-    public sealed class RequiredMemberAttribute : Attribute { }
-    public class ExtensionAttribute : Attribute { }
+    public class List<T> : IEnumerable<T>
+    {
+        public List() { }
+        public List(int i) { }
+        public void Add(T item) { }
+        public T[] ToArray() { return null; }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() { return null; }
+        IEnumerator IEnumerable.GetEnumerator() { return null; }
+    }
 }
 """;
             var corlib = CreateEmptyCompilation(minCorlibSource);
@@ -47744,10 +47724,7 @@ namespace System.Runtime.CompilerServices
             var corlibRef = corlib.EmitToImageReference();
 
             comp = CreateEmptyCompilation(source, references: [corlibRef]);
-            comp.VerifyEmitDiagnostics(
-                // (2,18): error CS0656: Missing compiler required member 'System.Array.Length'
-                // int[] j = [0, .. i];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i").WithArguments("System.Array", "Length").WithLocation(2, 18));
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

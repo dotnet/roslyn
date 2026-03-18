@@ -28,24 +28,14 @@ namespace System
     public class Object { }
     public class ValueType { }
     public struct Void { }
-    public struct Byte { }
     public struct Int32 { }
     public struct Boolean { }
-    public struct Char { }
     public class String { }
-    public class Delegate { }
-    public class MulticastDelegate { }
     public class Attribute { }
     public class Array { }
     public class Enum { }
     public class Exception { }
     public class NotSupportedException : Exception { }
-    public class Type { }
-    public struct IntPtr { }
-    public struct RuntimeTypeHandle { }
-    public struct RuntimeMethodHandle { }
-    public struct Nullable<T> where T : struct { }
-    public interface IDisposable { }
     public class AttributeUsageAttribute : Attribute
     {
         public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
@@ -91,7 +81,6 @@ namespace System.Runtime.CompilerServices
         public string FeatureName => throw null;
         public bool IsOptional { get => throw null; set => throw null; }
     }
-    public sealed class RequiredMemberAttribute : Attribute { }
     public class ExtensionAttribute : Attribute { }
 }
 """;
