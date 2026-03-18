@@ -223,7 +223,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Note: we intentionally do not unload file-based apps in this path.
         // This is because we want to unload from the miscellaneous files workspace only, when a file is found in the host workspace.
         var documentPath = GetDocumentFilePath(uri);
-        return await TryUnloadProjectAsync(documentPath);
+        return await TryUnloadProjectAsync(documentPath, fromProjectFactory: _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory);
     }
 
     public async ValueTask CloseDocumentAsync(DocumentUri uri)
