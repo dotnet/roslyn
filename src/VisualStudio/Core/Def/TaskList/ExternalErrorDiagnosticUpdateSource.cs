@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -321,11 +321,19 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         }
     }
 
-    private sealed class InProgressState(Solution solution)
+    private sealed class InProgressState
     {
-        private readonly VisualStudioDiagnosticIdCache _diagnosticIdCache = solution.Workspace.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
+        private readonly VisualStudioDiagnosticIdCache _diagnosticIdCache;
 
-        public Solution Solution { get; } = solution;
+        public InProgressState(Solution solution)
+        {
+            _diagnosticIdCache = solution.Workspace.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
+            _diagnosticIdCache.Refresh();
+
+            Solution = solution;
+        }
+
+        public Solution Solution { get; }
 
         public bool IsUnsupportedDiagnosticId(ProjectId projectId, string id)
         {
