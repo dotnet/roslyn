@@ -16,62 +16,145 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SelectionRanges;
 public sealed class SelectionRangesTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    /// <summary>
+    /// Caret at the literal <c>1</c> inside a binary expression in a method body.
+    /// The chain expands through literal → binary → equals-value → declarator →
+    /// declaration → local-decl-stmt → block → method → class.
+    /// </summary>
     [Theory, CombinatorialData]
-    public async Task TestGetSelectionRangeAsync_MethodBody(bool mutatingLspWorkspace)
-    {
-        var markup =
+    public Task TestGetSelectionRangeAsync_MethodBody(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
             """
-            class C
+            [|class C
             {
-                void M()
-                {
-                    var x = {|caret:|}1 + 2;
-                }
-            }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var caret = testLspServer.GetLocations("caret").Single();
+                [|void M()
+                [|{
+                    [|[|var [|x [|= [|[|{|caret:|}1|] + 2|]|]|]|];|]
+                }|]|]
+            }|]
+            """);
 
-        var result = await RunGetSelectionRangeAsync(testLspServer, caret);
-
-        // Verify that selection ranges form a proper nesting hierarchy from the caret position outward.
-        Assert.NotNull(result);
-        AssertRangeChainIsNestedCorrectly(result);
-    }
-
+    /// <summary>
+    /// Caret at <c>1</c> in a top-level statement file (no class or namespace wrapper).
+    /// The chain reaches the compilation unit directly.
+    /// </summary>
     [Theory, CombinatorialData]
-    public async Task TestGetSelectionRangeAsync_VerifiesExpectedSpans(bool mutatingLspWorkspace)
-    {
-        // The markup annotates key expected spans in the selection range chain.
-        // Starting at the caret inside literal '1', the chain should expand through
-        // the binary expression, the local variable statement, the method, and the compilation unit.
-        var markup =
+    public Task TestGetSelectionRangeAsync_TopLevelStatements(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
             """
-            {|compilationUnit:class C
+            [|[|[|var [|x [|= [|[|{|caret:|}1|] + 2|]|]|]|];|]
+            var y = 1;|]
+            """);
+
+    /// <summary>
+    /// Caret at <c>1</c> in a method inside a file-scoped namespace.
+    /// The outermost range is the <c>FileScopedNamespaceDeclarationSyntax</c>.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task TestGetSelectionRangeAsync_FileScopedNamespace(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
+            """
+            [|namespace MyNamespace;
+            [|class C
             {
-                {|method:void M()
+                [|void M()
+                [|{
+                    [|[|var [|x [|= [|{|caret:|}1|]|]|]|];|]
+                }|]|]
+            }|]|]
+            """);
+
+    /// <summary>
+    /// Caret at <c>1</c> inside a doubly-nested namespace.
+    /// The chain expands through both inner and outer <c>NamespaceDeclarationSyntax</c> nodes.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task TestGetSelectionRangeAsync_NestedNamespaces(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
+            """
+            [|namespace Outer
+            {
+                [|namespace Inner
                 {
-                    {|statement:var x = {|binary:{|caret:|}1 + 2|};|}
-                }|}
-            }|}
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var caret = testLspServer.GetLocations("caret").Single();
+                    [|class C
+                    {
+                        [|void M()
+                        [|{
+                            [|[|var [|x [|= [|{|caret:|}1|]|]|]|];|]
+                        }|]|]
+                    }|]
+                }|]
+            }|]
+            """);
 
-        var result = await RunGetSelectionRangeAsync(testLspServer, caret);
-        Assert.NotNull(result);
+    /// <summary>
+    /// Caret at <c>a</c> inside the body of a local function.
+    /// The chain expands through the local function's block and then the outer method's block.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task TestGetSelectionRangeAsync_LocalFunction(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
+            """
+            [|class C
+            {
+                [|void M()
+                [|{
+                    [|int Compute(int a, int b)
+                    [|{
+                        [|return [|[|{|caret:|}a|] + b|];|]
+                    }|]|]
+                    _ = Compute(1, 2);
+                }|]|]
+            }|]
+            """);
 
-        // Collect all ranges in the chain from innermost to outermost.
-        var chain = new List<LSP.Range>();
-        for (var current = result; current is not null; current = current.Parent)
-            chain.Add(current.Range);
+    /// <summary>
+    /// Caret at <c>a</c> inside an expression-bodied method.
+    /// The chain expands through binary → arrow-expression-clause → method → class.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task TestGetSelectionRangeAsync_ExpressionBodyMember(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
+            """
+            [|class C
+            {
+                [|int Compute(int a, int b) [|=> [|[|{|caret:|}a|] + b|]|];|]
+            }|]
+            """);
 
-        // Verify that each annotated span appears in the selection range chain.
-        Assert.Contains(testLspServer.GetLocations("binary").Single().Range, chain);
-        Assert.Contains(testLspServer.GetLocations("statement").Single().Range, chain);
-        Assert.Contains(testLspServer.GetLocations("method").Single().Range, chain);
-        Assert.Contains(testLspServer.GetLocations("compilationUnit").Single().Range, chain);
-    }
+    /// <summary>
+    /// Caret at <c>1</c> (the true-branch literal) inside a conditional expression.
+    /// The chain expands through the full ternary before reaching the enclosing declaration.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task TestGetSelectionRangeAsync_ConditionalExpression(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
+            """
+            [|class C
+            {
+                [|void M(bool flag)
+                [|{
+                    [|[|var [|x [|= [|flag ? [|{|caret:|}1|] : 2|]|]|]|];|]
+                }|]|]
+            }|]
+            """);
+
+    /// <summary>
+    /// Caret at the <c>return</c> keyword inside a single-line if statement.
+    /// The chain expands: return-stmt → if-stmt → block → method → class.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public Task TestGetSelectionRangeAsync_SingleLineIf(bool mutatingLspWorkspace)
+        => AssertSelectionRangesAsync(mutatingLspWorkspace,
+            """
+            [|class C
+            {
+                [|void M()
+                [|{
+                    [|if (true) [|{|caret:|}return;|]|]
+                }|]|]
+            }|]
+            """);
 
     [Theory, CombinatorialData]
     public async Task TestGetSelectionRangeAsync_MultiplePositions(bool mutatingLspWorkspace)
@@ -107,23 +190,30 @@ public sealed class SelectionRangesTests(ITestOutputHelper testOutputHelper)
         AssertRangeChainIsNestedCorrectly(results[1]);
     }
 
-    [Theory, CombinatorialData]
-    public async Task TestGetSelectionRangeAsync_ClassDeclaration(bool mutatingLspWorkspace)
+    private async Task AssertSelectionRangesAsync(bool mutatingLspWorkspace, string markup)
     {
-        var markup =
-            """
-            {|caret:|}class C
-            {
-                void M() { }
-            }
-            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var caret = testLspServer.GetLocations("caret").Single();
-
         var result = await RunGetSelectionRangeAsync(testLspServer, caret);
-
         Assert.NotNull(result);
-        AssertRangeChainIsNestedCorrectly(result);
+
+        // Collect the actual chain from innermost to outermost.
+        var chain = new List<LSP.Range>();
+        for (var current = result; current is not null; current = current.Parent)
+            chain.Add(current.Range);
+
+        // [|...|] spans use the same LIFO stack as named spans, so SelectedSpans is
+        // returned innermost-first — matching the handler chain order. If the markup
+        // parser's ordering ever changes, these tests would surface the mismatch as
+        // a sequence-equality failure.
+        var testDocument = testLspServer.TestWorkspace.Documents.Single();
+        var document = testLspServer.GetCurrentSolution().GetDocument(testDocument.Id)!;
+        var text = await document.GetTextAsync(CancellationToken.None);
+        var expected = testDocument.SelectedSpans
+            .Select(span => ProtocolConversions.TextSpanToRange(span, text))
+            .ToList();
+
+        Assert.Equal(expected, chain);
     }
 
     private static async Task<LSP.SelectionRange?> RunGetSelectionRangeAsync(TestLspServer testLspServer, LSP.Location caret)
