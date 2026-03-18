@@ -331,6 +331,10 @@ internal ref partial struct Worker
 
     private void ClassifyIgnoredDirective(IgnoredDirectiveTriviaSyntax node)
     {
+        // https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md#directives-for-project-metadata
+
+        // #:kind name=value
+        // ^^
         AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
         AddClassification(node.ColonToken, ClassificationTypeNames.PreprocessorKeyword);
 
@@ -339,100 +343,79 @@ internal ref partial struct Worker
 
         if (firstWhitespaceIndex <= 0)
         {
+            // Only have a 'kind' here.
+            // #:kind
+            //   ^^^^
             AddClassification(node.Content, ClassificationTypeNames.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
             return;
         }
 
+        // #:kind name=value
+        //   ^^^^
         AddClassification(new TextSpan(node.Content.SpanStart, firstWhitespaceIndex), ClassificationTypeNames.PreprocessorKeyword);
 
-        var valueStart = firstWhitespaceIndex;
-        while (valueStart < contentText.Length && (contentText[valueStart] == ' ' || contentText[valueStart] == '\t'))
+        // Skip whitespace between 'kind' and 'name'
+        var nameStart = firstWhitespaceIndex;
+        while (nameStart < contentText.Length && (contentText[nameStart] == ' ' || contentText[nameStart] == '\t'))
         {
-            valueStart++;
+            nameStart++;
         }
 
-        AddClassification(new TextSpan(node.Content.SpanStart + firstWhitespaceIndex, valueStart - firstWhitespaceIndex), ClassificationTypeNames.StringLiteral);
-
-        if (valueStart < contentText.Length)
+        if (nameStart < contentText.Length)
         {
             var directiveKind = contentText[..firstWhitespaceIndex];
-            if (directiveKind.Equals("sdk".AsSpan(), StringComparison.Ordinal) ||
-                directiveKind.Equals("package".AsSpan(), StringComparison.Ordinal))
+            if (directiveKind.Equals("sdk".AsSpan(), StringComparison.Ordinal)
+                || directiveKind.Equals("package".AsSpan(), StringComparison.Ordinal))
             {
-                ClassifyAppDirectiveNameAndOptionalSeparatorValue(node.Content.SpanStart, contentText, valueStart, '@');
+                // #:kind name=value
+                //        ^^^^^^^^^^
+                ClassifyAppDirectiveNameAndOptionalSeparatorValue(node.Content.SpanStart, contentText, nameStart, '@');
             }
             else if (directiveKind.Equals("property".AsSpan(), StringComparison.Ordinal))
             {
-                ClassifyPropertyDirectiveValue(node.Content.SpanStart, contentText, valueStart);
+                // #:kind name=value
+                //        ^^^^^^^^^^
+                ClassifyAppDirectiveNameAndOptionalSeparatorValue(node.Content.SpanStart, contentText, nameStart, '=');
             }
             else
             {
-                ClassifyAppDirectiveValueAsString(node.Content.SpanStart, contentText, valueStart);
+                // #:kind name
+                //        ^^^^
+                AddClassification(new TextSpan(node.Content.SpanStart + nameStart, contentText.Length - nameStart), ClassificationTypeNames.StringLiteral);
             }
         }
 
         ClassifyDirectiveTrivia(node);
     }
 
-    private void ClassifyAppDirectiveValueAsString(int contentStart, ReadOnlySpan<char> contentText, int valueStart)
+    private void ClassifyAppDirectiveNameAndOptionalSeparatorValue(int contentStart, ReadOnlySpan<char> contentText, int nameStart, char separator)
     {
-        AddClassification(new TextSpan(contentStart + valueStart, contentText.Length - valueStart), ClassificationTypeNames.StringLiteral);
-    }
-
-    private void ClassifyAppDirectiveNameAndOptionalSeparatorValue(int contentStart, ReadOnlySpan<char> contentText, int valueStart, char separator)
-    {
-        var index = valueStart;
-        if (index < contentText.Length && IsAppDirectiveNameStart(contentText[index]))
+        var separatorIndex = contentText[nameStart..].IndexOf(separator);
+        if (separatorIndex == -1)
         {
-            var nameStart = index;
-            index++;
-
-            while (index < contentText.Length && IsAppDirectiveNamePart(contentText[index]))
-            {
-                index++;
-            }
-
-            ClassifyDottedName(contentStart, contentText, nameStart, index);
+            // Only have a name
+            ClassifyDottedName(contentStart, contentText, nameStart, contentText.Length);
+            return;
         }
 
-        if (index < contentText.Length && contentText[index] == separator)
+        // Adjust 'separatorIndex' to be relative to 'contentText'
+        separatorIndex += nameStart;
+
+        // my.name=value
+        // ^^^^^^^
+        ClassifyDottedName(contentStart, contentText, nameStart, separatorIndex);
+
+        // my.name=value
+        //        ^
+        AddClassification(new TextSpan(contentStart + separatorIndex, 1), ClassificationTypeNames.Punctuation);
+
+        var valueIndex = separatorIndex + 1;
+        if (valueIndex < contentText.Length)
         {
-            AddClassification(new TextSpan(contentStart + index, 1), ClassificationTypeNames.Punctuation);
-            index++;
-        }
-
-        if (index < contentText.Length)
-        {
-            AddClassification(new TextSpan(contentStart + index, contentText.Length - index), ClassificationTypeNames.StringLiteral);
-        }
-    }
-
-    private void ClassifyPropertyDirectiveValue(int contentStart, ReadOnlySpan<char> contentText, int valueStart)
-    {
-        var index = valueStart;
-        if (index < contentText.Length && IsPropertyDirectiveNameStart(contentText[index]))
-        {
-            var nameStart = index;
-            index++;
-
-            while (index < contentText.Length && IsPropertyDirectiveNamePart(contentText[index]))
-            {
-                index++;
-            }
-
-            AddClassification(new TextSpan(contentStart + nameStart, index - nameStart), ClassificationTypeNames.Identifier);
-        }
-
-        if (index < contentText.Length && contentText[index] == '=')
-        {
-            AddClassification(new TextSpan(contentStart + index, 1), ClassificationTypeNames.Punctuation);
-            index++;
-        }
-
-        if (index < contentText.Length)
-        {
-            AddClassification(new TextSpan(contentStart + index, contentText.Length - index), ClassificationTypeNames.StringLiteral);
+            // my.name=value
+            //         ^^^^^
+            AddClassification(new TextSpan(contentStart + valueIndex, contentText.Length - valueIndex), ClassificationTypeNames.StringLiteral);
         }
     }
 
@@ -448,30 +431,24 @@ internal ref partial struct Worker
 
             if (index > segmentStart)
             {
+                // left.right
+                // ^^^^
                 AddClassification(new TextSpan(contentStart + segmentStart, index - segmentStart), ClassificationTypeNames.Identifier);
             }
 
+            // left.right
+            //     ^
             AddClassification(new TextSpan(contentStart + index, 1), ClassificationTypeNames.Punctuation);
             segmentStart = index + 1;
         }
 
         if (end > segmentStart)
         {
+            // left.right
+            //      ^^^^^
             AddClassification(new TextSpan(contentStart + segmentStart, end - segmentStart), ClassificationTypeNames.Identifier);
         }
     }
-
-    private static bool IsAppDirectiveNameStart(char ch)
-        => char.IsLetter(ch) || ch == '_';
-
-    private static bool IsAppDirectiveNamePart(char ch)
-        => char.IsLetterOrDigit(ch) || ch == '_' || ch == '.';
-
-    private static bool IsPropertyDirectiveNameStart(char ch)
-        => char.IsLetter(ch) || ch == '_';
-
-    private static bool IsPropertyDirectiveNamePart(char ch)
-        => char.IsLetterOrDigit(ch) || ch == '_';
 
     private void ClassifyNullableDirective(NullableDirectiveTriviaSyntax node)
     {
