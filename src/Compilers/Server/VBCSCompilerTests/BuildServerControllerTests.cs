@@ -18,6 +18,42 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             NamedPipeTestUtil.DisposeAll();
         }
 
+        public sealed class GetKeepAliveFromCommandLineTests
+        {
+            private readonly NameValueCollection _appSettings = new NameValueCollection();
+            private readonly BuildServerController _controller;
+
+            public GetKeepAliveFromCommandLineTests(ITestOutputHelper testOutputHelper)
+            {
+                _controller = new BuildServerController(_appSettings, new XunitCompilerServerLogger(testOutputHelper));
+            }
+
+            [Fact]
+            public void TimeoutMinusOne_ReturnsNull()
+            {
+                Assert.Null(_controller.GetKeepAliveFromCommandLine(timeout: -1));
+            }
+
+            [Fact]
+            public void PositiveTimeout_ReturnsTimeSpan()
+            {
+                Assert.Equal(TimeSpan.FromSeconds(30), _controller.GetKeepAliveFromCommandLine(timeout: 30));
+            }
+
+            [Fact]
+            public void NoTimeout_FallsBackToAppSettings()
+            {
+                _appSettings[BuildServerController.KeepAliveSettingName] = "42";
+                Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveFromCommandLine(timeout: null));
+            }
+
+            [Fact]
+            public void NoTimeout_NoAppSettings_ReturnsDefault()
+            {
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveFromCommandLine(timeout: null));
+            }
+        }
+
         public sealed class GetKeepAliveTimeoutTests
         {
             private readonly NameValueCollection _appSettings = new NameValueCollection();

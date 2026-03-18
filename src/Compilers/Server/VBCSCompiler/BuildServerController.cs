@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            TimeSpan? keepAlive = timeout.HasValue
-                ? (timeout.Value == -1 ? null : TimeSpan.FromSeconds(timeout.Value))
-                : GetKeepAliveTimeout();
+            TimeSpan? keepAlive = GetKeepAliveFromCommandLine(timeout);
 
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
@@ -92,6 +90,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
+        internal TimeSpan? GetKeepAliveFromCommandLine(int? timeout)
+        {
+            if (timeout.HasValue)
+            {
+                return timeout.Value == -1 ? null : TimeSpan.FromSeconds(timeout.Value);
+            }
+
+            return GetKeepAliveTimeout();
+        }
+
         internal static IClientConnectionHost CreateClientConnectionHost(string pipeName, ICompilerServerLogger logger) => new NamedPipeClientConnectionHost(pipeName, logger);
 
         internal static ICompilerServerHost CreateCompilerServerHost(ICompilerServerLogger logger)
@@ -114,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             TimeSpan? keepAlive = null,
             CancellationToken cancellationToken = default)
         {
-            keepAlive ??= GetKeepAliveTimeout();
             listener ??= new EmptyDiagnosticListener();
             compilerServerHost ??= CreateCompilerServerHost(_logger);
             clientConnectionHost ??= CreateClientConnectionHost(pipeName, _logger);
@@ -154,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             appSettings ??= new NameValueCollection();
             logger ??= EmptyCompilerServerLogger.Instance;
             var controller = new BuildServerController(appSettings, logger);
+            keepAlive ??= controller.GetKeepAliveTimeout();
             return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken: cancellationToken);
         }
 
