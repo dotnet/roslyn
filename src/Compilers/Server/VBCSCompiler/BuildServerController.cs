@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            TimeSpan? keepAlive = GetKeepAliveFromCommandLine(timeout);
+            TimeSpan keepAlive = GetKeepAliveFromCommandLine(timeout);
 
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
                 : RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
-        internal TimeSpan? GetKeepAliveTimeout()
+        internal TimeSpan GetKeepAliveTimeout()
         {
             try
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     if (keepAliveValue == 0)
                     {
                         // This is a one time server entry.
-                        return null;
+                        return Timeout.InfiniteTimeSpan;
                     }
                     else
                     {
@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        internal TimeSpan? GetKeepAliveFromCommandLine(int? timeout)
+        internal TimeSpan GetKeepAliveFromCommandLine(int? timeout)
         {
             if (timeout.HasValue)
             {
-                return timeout.Value == -1 ? null : TimeSpan.FromSeconds(timeout.Value);
+                return timeout.Value == -1 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(timeout.Value);
             }
 
             return GetKeepAliveTimeout();
@@ -139,11 +139,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CommonCompiler.Failed;
                 }
 
-                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
+                var resolvedKeepAlive = keepAlive ?? Timeout.InfiniteTimeSpan;
+                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", resolvedKeepAlive.TotalMilliseconds);
                 FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
-                dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);
+                dispatcher.ListenAndDispatchConnections(resolvedKeepAlive, cancellationToken);
                 return CommonCompiler.Succeeded;
             }
         }
@@ -161,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             appSettings ??= new NameValueCollection();
             logger ??= EmptyCompilerServerLogger.Instance;
             var controller = new BuildServerController(appSettings, logger);
-            keepAlive ??= controller.GetKeepAliveTimeout();
-            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken: cancellationToken);
+            var resolvedKeepAlive = keepAlive ?? controller.GetKeepAliveTimeout();
+            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, resolvedKeepAlive, cancellationToken: cancellationToken);
         }
 
         internal int RunShutdown(string pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Specialized;
+using System.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             [Fact]
-            public void TimeoutMinusOne_ReturnsNull()
+            public void TimeoutMinusOne_ReturnsInfiniteTimeSpan()
             {
-                Assert.Null(_controller.GetKeepAliveFromCommandLine(timeout: -1));
+                Assert.Equal(Timeout.InfiniteTimeSpan, _controller.GetKeepAliveFromCommandLine(timeout: -1));
             }
 
             [Fact]
