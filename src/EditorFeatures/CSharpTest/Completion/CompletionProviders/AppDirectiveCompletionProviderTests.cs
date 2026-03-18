@@ -215,6 +215,8 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
         var code = """
             #:include SubDirectory/$$
             """;
+        // Note: today, the completion provider doesn't actually respect this.
+        // In future, we might want to use `FileBasedProgramsItemMapping` to restrict what file extensions we show in completion.
         var globalAnalyzerConfig = """
             is_global = true
             build_property.FileBasedProgramsItemMapping = .cs=Compile;.resx=EmbeddedResource;.json=None;.razor=Content
