@@ -262,8 +262,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     // Found the document in a non-miscellaneous files workspace.
                     // Unload it from the miscellaneous files workspace.
 
-                    // TODO2: restore this.
-                    // await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                    await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
                 }
 
                 // Record metadata on how we got this document.

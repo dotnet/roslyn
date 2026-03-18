@@ -158,7 +158,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // roslyn/docs/features/file-based-programs-vscode.md
         // Note: Step (1) is skipped, as we assume a first-chance lookup in the host workspace will handle this case.
 
-        // Step (2) and (3)
+        // Steps (2) and (3)
         if (ClassifyAsMiscellaneousFileWithNoReferences(filePath, languageInformation))
         {
             return LooseDocumentKind.MiscellaneousFileWithNoReferences;
@@ -179,6 +179,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
         catch (FileNotFoundException)
         {
+            // File had an absolute path but doesn't exist on disk. This is an entirely normal condition.
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
@@ -207,16 +208,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to next check
 
-        // Use an existing syntax tree from misc files workspace, if present.
-        // Otherwise we will have to do a parse (unfortunately).
-        var miscellaneousFilesSolution = _workspaceFactory.MiscellaneousFilesWorkspace.CurrentSolution;
-        var existingDocIds = miscellaneousFilesSolution.GetDocumentIdsWithFilePath(filePath);
-        var existingDoc = existingDocIds.Select(docId => miscellaneousFilesSolution.GetDocument(docId)).OfType<Document>().FirstOrDefault();
-        var syntaxTree = existingDoc is { } ? await existingDoc.GetSyntaxTreeAsync(cancellationToken) : null;
-        syntaxTree ??= CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
-
-        var containsTopLevelStatements = syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit
-            && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
+        var containsTopLevelStatements = syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
         if (!containsTopLevelStatements)
         {
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;

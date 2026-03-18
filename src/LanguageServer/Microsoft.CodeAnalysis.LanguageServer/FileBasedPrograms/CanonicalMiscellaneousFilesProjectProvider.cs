@@ -41,7 +41,6 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 
     private async Task<ImmutableArray<ProjectFileInfo>> LoadCanonicalProjectAsync(CancellationToken cancellationToken)
     {
-
         // Set the FileBasedProgram feature flag so that '#:' is permitted without errors in rich misc files.
         // This allows us to avoid spurious errors for files which contain '#:' directives yet are not treated
         // as file-based programs (due to not being saved to disk, for example.)

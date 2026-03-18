@@ -25,7 +25,7 @@ internal sealed class LoadedProject : IDisposable
     public ProjectSystemProjectFactory ProjectFactory { get; }
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
     private readonly IFileChangeContext? _sourceFileChangeContext;
-    private readonly IFileChangeContext _projectFileChangeContext;
+    private readonly IFileChangeContext? _projectFileChangeContext;
     private readonly IFileChangeContext _assetsFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
@@ -60,10 +60,10 @@ internal sealed class LoadedProject : IDisposable
             _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
         }
 
-        _projectFileChangeContext = fileWatcher.CreateContext([]);
-        _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
         if (_projectFilePath is not null)
         {
+            _projectFileChangeContext = fileWatcher.CreateContext([]);
+            _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
             _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
         }
 
@@ -135,7 +135,7 @@ internal sealed class LoadedProject : IDisposable
     public void Dispose()
     {
         _sourceFileChangeContext?.Dispose();
-        _projectFileChangeContext.Dispose();
+        _projectFileChangeContext?.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }

@@ -458,16 +458,22 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    internal async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
+    internal async ValueTask<bool> TryUnloadProjectAsync(string projectPath, ProjectSystemProjectFactory? fromProjectFactory = null)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            return await TryUnloadProject_NoLockAsync(projectPath);
+            return await TryUnloadProject_NoLockAsync(projectPath, fromProjectFactory);
         }
     }
 
-    private async ValueTask<bool> TryUnloadProject_NoLockAsync(string projectPath)
+    private async ValueTask<bool> TryUnloadProject_NoLockAsync(string projectPath, ProjectSystemProjectFactory? fromProjectFactory = null)
     {
+        // Caller can specify to only unload a project if it uses a specific project factory.
+        if (fromProjectFactory != null && !UsesProjectFactory(fromProjectFactory))
+        {
+            return false;
+        }
+
         if (!_loadedProjects.Remove(projectPath, out var loadState))
         {
             // It is common to be called with a path to a project which is already not loaded.
@@ -493,5 +499,31 @@ internal abstract class LanguageServerProjectLoader
         }
 
         return true;
+
+        bool UsesProjectFactory(ProjectSystemProjectFactory fromProjectFactory)
+        {
+            if (_loadedProjects.TryGetValue(projectPath, out var loadState1))
+            {
+                if (loadState1 is ProjectLoadState.Primordial(var projectFactory1, _))
+                {
+                    if (projectFactory1 == fromProjectFactory)
+                        return true;
+                }
+                else if (loadState1 is ProjectLoadState.LoadedTargets(var existingProjects))
+                {
+                    foreach (var existingProject in existingProjects)
+                    {
+                        if (existingProject.ProjectFactory == fromProjectFactory)
+                            return true;
+                    }
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(loadState1);
+                }
+            }
+
+            return false;
+        }
     }
 }
