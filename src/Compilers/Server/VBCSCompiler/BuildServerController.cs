@@ -28,13 +28,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private readonly NameValueCollection _appSettings;
         private readonly ICompilerServerLogger _logger;
 
-        /// <summary>
-        /// Timeout override (in seconds) supplied via the <c>-timeout:</c> command-line argument.
-        /// A value of <c>-1</c> means no timeout.  When <see langword="null"/> the value from
-        /// application settings is used instead.
-        /// </summary>
-        private int? _commandLineTimeout;
-
         internal BuildServerController(NameValueCollection appSettings, ICompilerServerLogger logger)
         {
             _appSettings = appSettings;
@@ -52,8 +45,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return CommonCompiler.Failed;
             }
 
-            _commandLineTimeout = timeout;
-
             pipeName = pipeName ?? GetDefaultPipeName();
             if (pipeName is null)
             {
@@ -65,18 +56,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, cancellationToken: cancellationTokenSource.Token);
+                : RunServer(pipeName, commandLineTimeout: timeout, cancellationToken: cancellationTokenSource.Token);
         }
 
         internal TimeSpan? GetKeepAliveTimeout()
         {
-            if (_commandLineTimeout.HasValue)
-            {
-                return _commandLineTimeout.Value == -1
-                    ? null
-                    : TimeSpan.FromSeconds(_commandLineTimeout.Value);
-            }
-
             try
             {
                 if (int.TryParse(_appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
@@ -124,9 +108,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             IClientConnectionHost? clientConnectionHost = null,
             IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
+            int? commandLineTimeout = null,
             CancellationToken cancellationToken = default)
         {
-            keepAlive ??= GetKeepAliveTimeout();
+            if (commandLineTimeout.HasValue)
+            {
+                keepAlive = commandLineTimeout.Value == -1 ? null : TimeSpan.FromSeconds(commandLineTimeout.Value);
+            }
+            else
+            {
+                keepAlive ??= GetKeepAliveTimeout();
+            }
             listener ??= new EmptyDiagnosticListener();
             compilerServerHost ??= CreateCompilerServerHost(_logger);
             clientConnectionHost ??= CreateClientConnectionHost(pipeName, _logger);
@@ -166,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             appSettings ??= new NameValueCollection();
             logger ??= EmptyCompilerServerLogger.Instance;
             var controller = new BuildServerController(appSettings, logger);
-            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken);
+            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken: cancellationToken);
         }
 
         internal int RunShutdown(string pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
