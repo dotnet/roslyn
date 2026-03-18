@@ -723,6 +723,8 @@ namespace Microsoft.CodeAnalysis
         System_Text_Encoding__get_UTF8,
         System_Text_Encoding__GetString,
 
+        System_Runtime_CompilerServices_UnionAttribute__ctor,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

@@ -11073,6 +11073,17 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public Task Union_01()
+        => AssertFormatAsync(
+            """
+            union U<T>(T, string) { }
+            """,
+            """
+            union  U  <  T   >   (  T ,string   )  {  }
+            """,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+
+    [Fact]
     public async Task FormatListPattern()
     {
         var code = """

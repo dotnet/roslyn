@@ -721,14 +721,14 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var utilCsText = """
             internal class Util { }
             """;
-        var utilCsFile = tempDir.CreateFile("util.cs").WriteAllText(utilCsText);
+        var utilCsFile = tempDir.CreateFile("Util.cs").WriteAllText(utilCsText);
 
         var appCsText = """
             #:property Foo=Bar
 
             new Util();
             """;
-        var appCsFile = tempDir.CreateFile("app.cs").WriteAllText(appCsText);
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
@@ -740,7 +740,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await testLspServer.OpenDocumentAsync(appCsUri, appCsText).ConfigureAwait(false);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
-        // Verify no semantic errors for app.cs
+        // Verify no semantic errors for App.cs
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
@@ -748,13 +748,14 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
         Assert.Empty(model.GetDiagnostics());
 
-        // Verify no semantic errors for util.cs
+        // Verify no semantic errors for Util.cs
         var appCsProject = document.Project;
         var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilCsFile.Path);
 
         // app.cs and util.cs are part of the same project
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(appCsProject, document.Project);
+        Assert.True(appCsProject.Id.Equals(document.Project.Id),
+            $"Unexpected false: ({appCsProject.FilePath}, {appCsProject.Id}), != ({document.Project.FilePath}, {document.Project.Id})");
 
         model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
         Assert.Empty(model.GetDiagnostics());

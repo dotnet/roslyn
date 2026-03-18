@@ -7,15 +7,15 @@ using System;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A value set factory, which can be used to create a value set instance.  A given instance of <see cref="IValueSetFactory"/>
+    /// A value set factory, which can be used to create a value set instance.  A given instance of <see cref="IConstantValueSetFactory"/>
     /// supports only one type for the value sets it can produce.
     /// </summary>
-    internal interface IValueSetFactory
+    internal interface IConstantValueSetFactory
     {
         /// <summary>
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>
-        IValueSet Related(BinaryOperatorKind relation, ConstantValue value);
+        IConstantValueSet Related(BinaryOperatorKind relation, ConstantValue value);
 
         /// <summary>
         /// Returns true iff the values are related according to the given relation.
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Produce a random value set with the given expected size for testing.
         /// </summary>
-        IValueSet Random(int expectedSize, Random random);
+        IConstantValueSet Random(int expectedSize, Random random);
 
         /// <summary>
         /// Produce a random value for testing.
@@ -35,23 +35,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set containing all values of the type.
         /// </summary>
-        IValueSet AllValues { get; }
+        IConstantValueSet AllValues { get; }
 
         /// <summary>
         /// The empty set of values.
         /// </summary>
-        IValueSet NoValues { get; }
+        IConstantValueSet NoValues { get; }
     }
 
     /// <summary>
     /// A value set factory, which can be used to create a value set instance.  Like <see cref="ValueSetFactory"/> but strongly
     /// typed to <typeparamref name="T"/>.
     /// </summary>
-    internal interface IValueSetFactory<T> : IValueSetFactory
+    internal interface IConstantValueSetFactory<T> : IConstantValueSetFactory
     {
         /// <summary>
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>
-        IValueSet<T> Related(BinaryOperatorKind relation, T value);
+        IConstantValueSet<T> Related(BinaryOperatorKind relation, T value);
     }
 }

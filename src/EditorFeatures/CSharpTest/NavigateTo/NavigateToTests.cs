@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -88,6 +88,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
             """);
         await TestAsync(testHost, composition, content, async w =>
         {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindUnion(TestHost testHost, Composition composition)
+    {
+        // Exercises the full NavigateTo pipeline for union declarations
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            union Goo(int)
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider using separate NavigateToItemKind and Glyph for unions
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
         });
