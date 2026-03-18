@@ -4752,11 +4752,12 @@ static string GetString() { System.Console.Write("GetString "); return "123456";
         {
             // UseGetOffsetAPI strategy in start..
             string source = """
-System.Console.Write(C.M("0123", new System.Index(1)));
+System.Console.Write(C.M("0123"));
 
 static class C
 {
-    public static string M(string s, System.Index start) => s[start..];
+    public static string M(string s) => s[GetStart()..];
+    public static System.Index GetStart() { System.Console.Write("GetStart "); return 1; }
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
@@ -4764,18 +4765,21 @@ static class C
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
 {
-  // Code size       22 (0x16)
+  // Code size       28 (0x1c)
   .maxstack  3
-  .locals init (string V_0)
+  .locals init (string V_0,
+                System.Index V_1)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  ldarga.s   V_1
-  IL_0005:  ldloc.0
-  IL_0006:  callvirt   "int string.Length.get"
-  IL_000b:  call       "int System.Index.GetOffset(int)"
-  IL_0010:  callvirt   "string string.Substring(int)"
-  IL_0015:  ret
+  IL_0003:  call       "System.Index C.GetStart()"
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldloc.0
+  IL_000c:  callvirt   "int string.Length.get"
+  IL_0011:  call       "int System.Index.GetOffset(int)"
+  IL_0016:  callvirt   "string string.Substring(int)"
+  IL_001b:  ret
 }
 """);
         }
