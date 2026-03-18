@@ -36,7 +36,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal(1, diagnosticIdCache.GetTestAccessor().RegisteredProjectCount)
                 Assert.False(diagnosticIdCache.TryGetDiagnosticIds(project.Id, Nothing))
 
-                ' Waiting for DiagnosticService to process should populate the cache.
+                ' Asking the cache to refresh and waiting for DiagnosticService to process should populate the cache.
+                diagnosticIdCache.Refresh()
                 Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 ' Cache should now be populated and contain the legacy project id.
@@ -63,8 +64,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 ' The cache should not contain the project until it is registered.
                 Assert.False(diagnosticIdCache.TryGetDiagnosticIds(project.Id, Nothing))
 
-                ' Register the project with cache (this mimics what LegacyProjects do automatically) and for it to populate.
+                ' Register the project with cache (this mimics what LegacyProjects do automatically) and request
+                ' the cache to refresh (this mimics what ExternalErrorDiagnosticUpdateSource does when a build is
+                ' started). Waiting for the DiagnosticService to process should populate the cache.
                 diagnosticIdCache.RegisterProject(project.Id)
+                diagnosticIdCache.Refresh()
                 Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 ' Cache should be populated and contain the diagnostic id from our analyzer.
@@ -90,8 +94,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(workspace.TryApplyChanges(project.Solution))
                 project = workspace.CurrentSolution.Projects.Single()
 
-                ' Register the project with cache (this mimics what LegacyProjects do automatically) and for it to populate.
+                ' Register the project with cache (this mimics what LegacyProjects do automatically) and request
+                ' the cache to refresh (this mimics what ExternalErrorDiagnosticUpdateSource does when a build is
+                ' started). Waiting for the DiagnosticService to process should populate the cache.
                 diagnosticIdCache.RegisterProject(project.Id)
+                diagnosticIdCache.Refresh()
                 Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 ' Cache should be populated and contain the diagnostic id from our analyzer.
@@ -109,8 +116,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(workspace.TryApplyChanges(project.Solution))
                 project = workspace.CurrentSolution.Projects.Single()
 
-                ' Wait for the workspace change event to propagate to the cache and for the cache to refresh.
-                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
+                ' Wait for the workspace change event to propagate to the cache.
+                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace})
+
+                ' Request the cache to refresh and wait for the DiagnosticService to process should populate the cache.
+                diagnosticIdCache.Refresh()
+                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 ' The cache should now contain the new diagnostic id but not the old one.
                 Dim refreshedDiagnosticIds As ImmutableHashSet(Of String) = Nothing
@@ -136,8 +147,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(workspace.TryApplyChanges(project.Solution))
                 project = workspace.CurrentSolution.Projects.Single()
 
-                ' Register the project with cache (this mimics what LegacyProjects do automatically) and for it to populate.
+                ' Register the project with cache (this mimics what LegacyProjects do automatically) and request
+                ' the cache to refresh (this mimics what ExternalErrorDiagnosticUpdateSource does when a build is
+                ' started). Waiting for the DiagnosticService to process should populate the cache.
                 diagnosticIdCache.RegisterProject(project.Id)
+                diagnosticIdCache.Refresh()
                 Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 ' The cache should now contain the project and have one registered project.
@@ -148,8 +162,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim newSolution = workspace.CurrentSolution.RemoveProject(project.Id)
                 Assert.True(workspace.TryApplyChanges(newSolution))
 
-                ' Wait for the workspace change event to propagate to the cache and for the cache to refresh.
-                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace, FeatureAttribute.DiagnosticService})
+                ' Wait for the workspace change event to propagate to the cache.
+                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.Workspace})
+
+                ' Request the cache to refresh and wait for the DiagnosticService to process should populate the cache.
+                diagnosticIdCache.Refresh()
+                Await listenerProvider.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService})
 
                 ' Ensure the cache no longer contains the project and it has been unregistered.
                 Assert.False(diagnosticIdCache.TryGetDiagnosticIds(project.Id, Nothing))
