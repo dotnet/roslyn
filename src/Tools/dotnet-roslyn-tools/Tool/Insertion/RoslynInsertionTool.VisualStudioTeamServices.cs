@@ -69,7 +69,7 @@ internal static partial class RoslynInsertionTool
         throw new ArgumentException($"Component AzDO uri must target either DevDiv or DncEng. Value: '{Options.ComponentBuildAzdoUri}'.");
     }
 
-    private static GitPullRequest CreatePullRequest(string sourceBranch, string targetBranch, string description, string buildToInsert, string reviewerId)
+    private static GitPullRequest CreatePullRequest(string sourceBranch, string targetBranch, string description, string buildToInsert, string? reviewerId)
     {
         LogInformation($"Creating pull request sourceBranch:{sourceBranch} targetBranch:{targetBranch} description:{description}");
 
@@ -96,7 +96,7 @@ internal static partial class RoslynInsertionTool
         return $"{prefix}{Options.InsertionName} '{Options.ComponentBranchName}/{buildToInsert}' Insertion into {Options.VisualStudioBranchName}{suffix}";
     }
 
-    private static async Task<GitPullRequest> CreateVSPullRequestAsync(string branchName, string message, string buildToInsert, string reviewerId, CancellationToken cancellationToken)
+    private static async Task<GitPullRequest> CreateVSPullRequestAsync(string branchName, string message, string buildToInsert, string? reviewerId, CancellationToken cancellationToken)
     {
         var gitClient = VisualStudioRepoConnection.GitClient;
         LogInformation($"Getting remote repository from {Options.VisualStudioBranchName} in {Options.VisualStudioRepoProjectName}");

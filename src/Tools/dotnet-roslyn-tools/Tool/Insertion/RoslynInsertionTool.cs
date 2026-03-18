@@ -459,9 +459,14 @@ internal static partial class RoslynInsertionTool
 
                     // Easiest way to get the reviewer GUIDs is to create a PR search in AzDo
                     // You'll get something like https://dev.azure.com/devdiv/DevDiv/_git/VS/pullrequests?_a=active&createdBy=GUID-here
-                    var reviewerId = (isPrValidation || isDevOrFeatureBranch) || !hasReviewer
-                        ? buildToInsert.RequestedBy.Id
-                        : Options.ReviewerGUID;
+                    //
+                    // Previously we were able to use the ID of the user who requested the build (buildToInsert.RequestedBy.Id),
+                    // however we now use a managed identity to queue validations runs from GitHub and using that ID throws
+                    // when creating the PR.
+    
+                    var reviewerId = (isPrValidation || isDevOrFeatureBranch) && hasReviewer
+                        ? Options.ReviewerGUID
+                        : null;
 
                     pullRequest = await CreateVSPullRequestAsync(insertionBranchName, prDescriptionMarkdown, buildVersion.ToString(), reviewerId, cancellationToken);
                     if (pullRequest == null)
