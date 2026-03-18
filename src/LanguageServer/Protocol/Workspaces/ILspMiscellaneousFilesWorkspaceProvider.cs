@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </remarks>
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
-    bool IsMiscellaneousFilesWorkspace(Workspace workspace);
-
     /// <summary>
     /// Adds the document to an appropriate workspace. May initiate work to load a project for the document.
     /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.

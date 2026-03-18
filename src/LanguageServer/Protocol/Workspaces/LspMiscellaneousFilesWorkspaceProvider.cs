@@ -31,8 +31,6 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
 {
     public bool SupportsMutation => true;
 
-    public bool IsMiscellaneousFilesWorkspace(Workspace workspace) => this == workspace;
-
     private readonly ILspLogger _logger = lspServices.GetRequiredService<AbstractLspLogger>();
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo)

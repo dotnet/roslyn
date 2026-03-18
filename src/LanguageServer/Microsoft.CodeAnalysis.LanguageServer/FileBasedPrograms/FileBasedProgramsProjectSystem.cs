@@ -96,11 +96,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     private static string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
-    public bool IsMiscellaneousFilesWorkspace(Workspace workspace)
-    {
-        return workspace == _workspaceFactory.MiscellaneousFilesWorkspace;
-    }
-
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
     {
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();

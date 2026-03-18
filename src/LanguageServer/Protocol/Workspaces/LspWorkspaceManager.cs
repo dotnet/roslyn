@@ -257,11 +257,10 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 // We have at least one document, so find the one in the right project context.
                 var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
-                if (_lspMiscellaneousFilesWorkspaceProvider?.IsMiscellaneousFilesWorkspace(workspace) == false)
+                if (workspace.Kind == WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
                 {
                     // Found the document in a non-miscellaneous files workspace.
                     // Unload it from the miscellaneous files workspace.
-
                     await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
                 }
 
@@ -570,7 +569,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
         {
-            return ValueTask.FromResult(_manager._lspMiscellaneousFilesWorkspaceProvider!.IsMiscellaneousFilesWorkspace(document.Project.Solution.Workspace));
+            return ValueTask.FromResult(document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles);
         }
 
         public async IAsyncEnumerable<T> GetMiscellaneousDocumentsAsync<T>(Func<Project, IEnumerable<T>> documentSelector) where T : TextDocument
