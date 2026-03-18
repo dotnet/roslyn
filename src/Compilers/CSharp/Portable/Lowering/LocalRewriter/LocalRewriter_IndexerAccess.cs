@@ -341,8 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            result = _factory.Call(
-                                _factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
+                            result = _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
                                 getItemOrSliceHelper, startExpr, rangeSizeExpr);
                         }
 
@@ -1081,20 +1080,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol? TryGetStartOnlyOverload(MethodSymbol method, SyntaxNode syntax)
         {
             // 1. string.Substring(int, int) → string.Substring(int)
+            MethodSymbol? startLengthOverload;
+            MethodSymbol? startOverload;
+
+            if (method is { Name: nameof(string.Substring), ContainingType: { Name: nameof(String), ContainingSymbol.Name: nameof(System) } }
+                && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringIntInt, out startLengthOverload, isOptional: true)
+                && ReferenceEquals(method, startLengthOverload)
+                && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringInt, out startOverload, isOptional: true))
             {
-                MethodSymbol? startLengthOverload;
-                MethodSymbol? startOverload;
+                Debug.Assert(startLengthOverload.Name == startOverload.Name
+                    && startLengthOverload.ReturnType.Equals(startOverload.ReturnType, TypeCompareKind.ConsiderEverything));
 
-                if (method is { Name: nameof(string.Substring) }
-                    && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringIntInt, out startLengthOverload, isOptional: true)
-                    && ReferenceEquals(method, startLengthOverload)
-                    && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringInt, out startOverload, isOptional: true))
-                {
-                    Debug.Assert(startLengthOverload.Name == startOverload.Name
-                        && startLengthOverload.ReturnType.Equals(startOverload.ReturnType, TypeCompareKind.ConsiderEverything));
-
-                    return startOverload;
-                }
+                return startOverload;
             }
 
             // 2. various Slice(int, int) → Slice(int) cases
@@ -1103,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var oneArgumentOverload = containingType.Name switch
+            startOverload = containingType.Name switch
             {
                 nameof(Span<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, originalDefinition, syntax),
                 nameof(ReadOnlySpan<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, originalDefinition, syntax),
@@ -1112,12 +1109,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null,
             };
 
-            if (oneArgumentOverload is null)
+            if (startOverload is null)
             {
                 return null;
             }
 
-            return oneArgumentOverload.AsMember(containingType);
+            return startOverload.AsMember(containingType);
 
             MethodSymbol? tryGetWellKnownSliceStartOverload(WellKnownMember startLengthMember, WellKnownMember startMember, MethodSymbol methodDefinition, SyntaxNode syntax)
             {
