@@ -464,7 +464,7 @@ internal static partial class RoslynInsertionTool
                     // however we now use a managed identity to queue validations runs from GitHub and using that ID throws
                     // when creating the PR.
     
-                    var reviewerId = (isPrValidation || isDevOrFeatureBranch) && hasReviewer
+                    var reviewerId = hasReviewer
                         ? Options.ReviewerGUID
                         : null;
 
