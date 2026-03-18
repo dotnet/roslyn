@@ -47665,8 +47665,85 @@ int[] j = [0, .. i];
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(source);
-            comp.MakeMemberMissing(SpecialMember.System_Array__Length);
+            string minCorlibSource = """
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Byte { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public struct Char { }
+    public class String { }
+    public class Delegate { }
+    public class MulticastDelegate { }
+    public class Attribute { }
+    public class Array { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class Type { }
+    public struct IntPtr { }
+    public struct RuntimeTypeHandle { }
+    public struct RuntimeMethodHandle { }
+    public struct Nullable<T> where T : struct { }
+    public interface IDisposable { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Collections
+{
+    public interface IEnumerable { }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static T[] GetSubArray<T>(T[] array, Range range) => throw null;
+    }
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) => throw null;
+        public string FeatureName => throw null;
+        public bool IsOptional { get => throw null; set => throw null; }
+    }
+    public sealed class RequiredMemberAttribute : Attribute { }
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+            var corlib = CreateEmptyCompilation(minCorlibSource);
+            corlib.VerifyDiagnostics();
+            Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__Length));
+            var corlibRef = corlib.EmitToImageReference();
+
+            comp = CreateEmptyCompilation(source, references: [corlibRef]);
             comp.VerifyEmitDiagnostics(
                 // (2,18): error CS0656: Missing compiler required member 'System.Array.Length'
                 // int[] j = [0, .. i];
