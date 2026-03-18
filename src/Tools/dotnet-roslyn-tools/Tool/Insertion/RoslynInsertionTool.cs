@@ -639,6 +639,8 @@ internal static partial class RoslynInsertionTool
 
         var prValidationMessage = GetGitHubPullRequestUrlMessage(buildToinsert, useMarkdown);
 
+        var nl = Environment.NewLine;
+
         var oneNoteLink = "https://aka.ms/roslyn-insertion-troubleshooting";
         var oneNoteWebLink = "https://aka.ms/roslyn-insertion-troubleshooting-web";
         var troubleshootingMessage = (Options.InsertionName, useMarkdown) switch
