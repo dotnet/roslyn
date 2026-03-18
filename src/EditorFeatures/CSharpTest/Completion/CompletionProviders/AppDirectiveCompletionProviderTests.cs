@@ -167,7 +167,7 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
 
         var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
         var code = """
-            #:project SubDirectory/$$
+            #:include SubDirectory/$$
             """;
         var markup = $"""
             <Workspace>
@@ -184,7 +184,7 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
     {
         // Test a virtual file scenario (e.g. ctrl+N in VS Code or other cases where there is not an actual file on disk.)
         var code = """
-            #:project $$
+            #:include $$
             """;
 
         var markup = $"""
@@ -203,7 +203,6 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
     [Fact]
     public async Task PathRecommendation_04()
     {
-        // TODO2: do we recommend an unknown file type?
         using var tempRoot = new TempRoot();
         var tempDirectory = tempRoot.CreateDirectory();
         var nestedDirectory = tempDirectory.CreateDirectory("SubDirectory");
@@ -214,7 +213,7 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
 
         var scriptFilePath = Path.Combine(tempDirectory.Path, "App.cs");
         var code = """
-            #:project SubDirectory/$$
+            #:include SubDirectory/$$
             """;
         var globalAnalyzerConfig = """
             is_global = true

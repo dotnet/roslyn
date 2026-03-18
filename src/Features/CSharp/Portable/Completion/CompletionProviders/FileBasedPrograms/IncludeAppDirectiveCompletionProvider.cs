@@ -48,35 +48,10 @@ internal sealed class IncludeAppDirectiveCompletionProvider() : AbstractAppDirec
         // Suppose we have a directive '#:include path/to/fi$$'
         // In this case, 'contentPrefix' is 'path/to/fi'.
 
-        // If 'FileBasedProgramsItemMapping' is not specified, or it is empty (corner case), allow any extension.
+        // Note: in the future, we may wish to use '<FileBasedProgramsItemMapping>' property
+        // as a hint for which file extensions to show in this completion.
+        // For now, we just allow any extension, and if user chooses a file with invalid extension, they'll just get a build error.
         ImmutableArray<string> allowableExtensions = [];
-
-        // TODO2: thread this property through
-        var globalOptions = context.Document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
-        if (globalOptions.TryGetValue("build_property.FileBasedProgramsItemMapping", out var mappingString)
-            && !string.IsNullOrEmpty(mappingString))
-        {
-            using var builder = TemporaryArray<string>.Empty;
-            // example value: ".cs=Compile;.resx=EmbeddedResource;.json=None;.razor=Content"
-            for (var entryIndex = 0; ;)
-            {
-                // scan for permitted extensions
-                var equalsIndex = mappingString.IndexOf('=', startIndex: entryIndex);
-                if (equalsIndex == -1)
-                    break;
-
-                builder.Add(mappingString[entryIndex..equalsIndex]);
-
-                // No more entries
-                var semicolonIndex = mappingString.IndexOf(';', startIndex: equalsIndex);
-                if (semicolonIndex == -1)
-                    break;
-
-                entryIndex = semicolonIndex + 1;
-            }
-
-            allowableExtensions = builder.ToImmutableAndClear();
-        }
 
         var documentDirectory = PathUtilities.GetDirectoryName(context.Document.FilePath);
         var fileSystemHelper = new FileSystemCompletionHelper(
