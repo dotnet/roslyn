@@ -139,6 +139,11 @@ internal static class CommonInsertionOptions
         Description = "Optional PR title suffix.",
     };
 
+    public static readonly Option<string> DescriptionPrefixOption = new("--description-prefix")
+    {
+        Description = "Optional PR description prefix.",
+    };
+
     public static readonly Option<string> CherryPickOption = new("--cherry-pick")
     {
         Description = "Comma-separated VS commit SHAs to cherry-pick.",

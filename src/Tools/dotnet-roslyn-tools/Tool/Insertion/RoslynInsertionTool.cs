@@ -625,6 +625,11 @@ internal static partial class RoslynInsertionTool
 
     private static string CreatePullRequestDescription(Build? oldBuild, Build buildToinsert, bool useMarkdown)
     {
+        var nl = Environment.NewLine;
+        var descriptionPrefix = string.IsNullOrWhiteSpace(Options.DescriptionPrefix)
+            ? string.Empty
+            : $"{Options.DescriptionPrefix}{nl}{nl}";
+
         var oldBuildDescription = "";
         if (oldBuild is not null)
         {
@@ -639,8 +644,6 @@ internal static partial class RoslynInsertionTool
 
         var prValidationMessage = GetGitHubPullRequestUrlMessage(buildToinsert, useMarkdown);
 
-        var nl = Environment.NewLine;
-
         var oneNoteLink = "https://aka.ms/roslyn-insertion-troubleshooting";
         var oneNoteWebLink = "https://aka.ms/roslyn-insertion-troubleshooting-web";
         var troubleshootingMessage = (Options.InsertionName, useMarkdown) switch
@@ -650,7 +653,7 @@ internal static partial class RoslynInsertionTool
             _ => ""
         };
 
-        return $"Updating {Options.InsertionName} {oldBuildDescription}{newBuildDescription}{nl}{prValidationMessage}{nl}{troubleshootingMessage}";
+        return $"{descriptionPrefix}Updating {Options.InsertionName} {oldBuildDescription}{newBuildDescription}{nl}{prValidationMessage}{nl}{troubleshootingMessage}";
     }
 
     private static string GetGitHubPullRequestUrlMessage(Build build, bool useMarkdown)

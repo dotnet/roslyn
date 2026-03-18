@@ -66,6 +66,7 @@ internal static class UpdateInsertionCommand
             CommonInsertionOptions.ReviewerGuidOption,
             CommonInsertionOptions.TitlePrefixOption,
             CommonInsertionOptions.TitleSuffixOption,
+            CommonInsertionOptions.DescriptionPrefixOption,
             CommonInsertionOptions.CherryPickOption,
 
             CommonInsertionOptions.BuildDropPathOption,
@@ -126,6 +127,7 @@ internal static class UpdateInsertionCommand
                 OverwritePr = parseResult.GetValue(s_overwritePrOption),
                 TitlePrefix = parseResult.GetValue(CommonInsertionOptions.TitlePrefixOption) ?? string.Empty,
                 TitleSuffix = parseResult.GetValue(CommonInsertionOptions.TitleSuffixOption) ?? string.Empty,
+                DescriptionPrefix = parseResult.GetValue(CommonInsertionOptions.DescriptionPrefixOption) ?? string.Empty,
                 SetAutoComplete = parseResult.GetValue(CommonInsertionOptions.SetAutoCompleteOption),
                 CherryPick = CommonInsertionOptions.ParseCsv(parseResult.GetValue(CommonInsertionOptions.CherryPickOption)),
                 ReviewerGUID = parseResult.GetValue(CommonInsertionOptions.ReviewerGuidOption) ?? string.Empty,

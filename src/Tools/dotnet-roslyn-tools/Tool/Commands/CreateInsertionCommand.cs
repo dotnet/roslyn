@@ -57,6 +57,7 @@ internal static class CreateInsertionCommand
             CommonInsertionOptions.ReviewerGuidOption,
             CommonInsertionOptions.TitlePrefixOption,
             CommonInsertionOptions.TitleSuffixOption,
+            CommonInsertionOptions.DescriptionPrefixOption,
             CommonInsertionOptions.CherryPickOption,
 
             s_dummyOption,
@@ -119,6 +120,7 @@ internal static class CreateInsertionCommand
                 OverwritePr = false,
                 TitlePrefix = parseResult.GetValue(CommonInsertionOptions.TitlePrefixOption) ?? string.Empty,
                 TitleSuffix = parseResult.GetValue(CommonInsertionOptions.TitleSuffixOption) ?? string.Empty,
+                DescriptionPrefix = parseResult.GetValue(CommonInsertionOptions.DescriptionPrefixOption) ?? string.Empty,
                 SetAutoComplete = parseResult.GetValue(CommonInsertionOptions.SetAutoCompleteOption),
                 CherryPick = CommonInsertionOptions.ParseCsv(parseResult.GetValue(CommonInsertionOptions.CherryPickOption)),
                 ReviewerGUID = parseResult.GetValue(CommonInsertionOptions.ReviewerGuidOption) ?? string.Empty,
