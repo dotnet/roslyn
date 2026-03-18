@@ -167,9 +167,11 @@ function Process-Arguments() {
     $script:useGlobalNuGetCache = $false
     $script:collectDumps = $true
     $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
+    $script:buildTests = !([System.Boolean]::Parse($officialSkipTests))
     $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
   } else {
     $script:applyOptimizationData = $false
+    $script:buildTests = $null
   }
 
   if ($binaryLogName -ne "") {
@@ -266,6 +268,7 @@ function BuildSolution() {
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+  $dotnetBuildTests = if ($buildTests -ne $null -and !$buildTests) { "/p:DotNetBuildTests=false" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -294,6 +297,7 @@ function BuildSolution() {
       $msbuildWarnAsError `
       $generateDocumentationFile `
       $roslynUseHardLinks `
+      $dotnetBuildTests `
       @properties
   }
   finally {
