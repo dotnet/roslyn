@@ -54,9 +54,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
+            TimeSpan? keepAlive = timeout.HasValue
+                ? (timeout.Value == -1 ? null : TimeSpan.FromSeconds(timeout.Value))
+                : GetKeepAliveTimeout();
+
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, commandLineTimeout: timeout, cancellationToken: cancellationTokenSource.Token);
+                : RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
         internal TimeSpan? GetKeepAliveTimeout()
@@ -108,17 +112,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             IClientConnectionHost? clientConnectionHost = null,
             IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
-            int? commandLineTimeout = null,
             CancellationToken cancellationToken = default)
         {
-            if (commandLineTimeout.HasValue)
-            {
-                keepAlive = commandLineTimeout.Value == -1 ? null : TimeSpan.FromSeconds(commandLineTimeout.Value);
-            }
-            else
-            {
-                keepAlive ??= GetKeepAliveTimeout();
-            }
+            keepAlive ??= GetKeepAliveTimeout();
             listener ??= new EmptyDiagnosticListener();
             compilerServerHost ??= CreateCompilerServerHost(_logger);
             clientConnectionHost ??= CreateClientConnectionHost(pipeName, _logger);
