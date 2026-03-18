@@ -82,8 +82,6 @@ dotnet roslyn-tools update-insertion \
   --component-build-queue dotnet-roslyn-official
 ```
 
-Use `--description-prefix "<text>"` with either insertion command to prepend custom text to the PR description body.
-
 ## How to Build from Source
 
 You can build and package the tool using the following commands. The instructions assume that you are in the root of the repository.
