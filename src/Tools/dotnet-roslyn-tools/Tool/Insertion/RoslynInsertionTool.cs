@@ -13,7 +13,7 @@ namespace Microsoft.RoslynTools.Insertion;
 
 internal static partial class RoslynInsertionTool
 {
-    private const string PRBuildTagPrefix = "PRNumber:";
+    private const string PRBuildTagPrefix = "PRNumber";
 
     public static readonly Guid VSRepoId = new("a290117c-5a8a-40f7-bc2c-f14dbe3acf6d");
     //Easiest way to get these GUIDs is to create a PR search in AzDo
@@ -676,7 +676,13 @@ internal static partial class RoslynInsertionTool
 
     private static string? GetBuildPRNumber(Build build)
     {
-        return build.Tags.FirstOrDefault(t => t.StartsWith(PRBuildTagPrefix))?[PRBuildTagPrefix.Length..];
+        var prTag = build.Tags.FirstOrDefault(t => t.StartsWith(PRBuildTagPrefix));
+        if (prTag is null)
+            return null;
+
+        // The PR tag prefix used to include a `:`. It no longer does but to be flexible
+        // we will skip non-digits.
+        return string.Join("", prTag.SkipWhile(c => !char.IsAsciiDigit(c)));
     }
 
     public static string GetBuildDescriptionMarkdown(this Build build)
