@@ -101,7 +101,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return workspace == _workspaceFactory.MiscellaneousFilesWorkspace;
     }
 
-    public async ValueTask<TextDocument> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
+    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
     {
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
         if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo.LanguageId, out var languageInformation))
