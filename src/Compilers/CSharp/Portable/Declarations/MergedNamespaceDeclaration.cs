@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -155,25 +154,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // PERF: Don't use ArrayBuilder.ToDictionary directly as it requires an extra dictionary allocation. Other options such
-                        // as MultiDictionary<string, SingleNamespaceDeclaration> and Dictionary<string, OneOrMany<SingleNamespaceDeclaration>>
-                        // are even less appealing as they don't perform well when their value sets grow to contain a large number of items,
-                        // as typically happens when processing the namespaces.
-                        var namespaceGroups = new Dictionary<string, ArrayBuilder<SingleNamespaceDeclaration>>(StringOrdinalComparer.Instance);
+                        // PERF: Not using ArrayBuilder as the value in this dictionary as these arrays commonly
+                        // exceed the builder threshold. Instead, calculate the number of SingleNamespaceDeclaration
+                        // for each name and create an exactly sized IA.Builder.
+                        var namespaceGroups = PooledDictionary<string, ImmutableArray<SingleNamespaceDeclaration>.Builder>.GetInstance();
+                        var namespaceCounts = PooledDictionary<string, int>.GetInstance();
 
+                        // First pass - collect the number of times each name is present
                         foreach (var n in namespaces)
                         {
-                            var builder = namespaceGroups.GetOrAdd(n.Name, static () => ArrayBuilder<SingleNamespaceDeclaration>.GetInstance());
+                            namespaceCounts[n.Name] = namespaceCounts.TryGetValue(n.Name, out var count)
+                                ? count + 1
+                                : 1;
+                        }
+
+                        // Second pass - populate the mapping from name to collection of matching SingleNamespaceDeclaration 
+                        foreach (var n in namespaces)
+                        {
+                            if (!namespaceGroups.TryGetValue(n.Name, out var builder))
+                            {
+                                var count = namespaceCounts[n.Name];
+                                builder = ImmutableArray.CreateBuilder<SingleNamespaceDeclaration>(count);
+                                namespaceGroups[n.Name] = builder;
+                            }
 
                             builder.Add(n);
                         }
 
-                        namespaces.Free();
-
+                        // Third pass - Create MergedNamespaceDeclaration from collections of matching SingleNamespaceDeclaration
                         foreach (var (_, namespaceGroup) in namespaceGroups)
                         {
-                            children.Add(MergedNamespaceDeclaration.Create(namespaceGroup.ToImmutableAndFree()));
+                            children.Add(MergedNamespaceDeclaration.Create(namespaceGroup.MoveToImmutable()));
                         }
+
+                        namespaces.Free();
+                        namespaceCounts.Free();
+                        namespaceGroups.Free();
                     }
                 }
             }
