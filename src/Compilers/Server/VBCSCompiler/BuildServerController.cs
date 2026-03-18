@@ -34,18 +34,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _logger = logger;
         }
 
-        internal int Run(string[] args)
+        internal int Run(string? pipeName, bool shutdown, TimeSpan? keepAlive)
         {
-            string? pipeName;
-            bool shutdown;
-            int? timeout;
-            string? logFilePath;
-            if (!ParseCommandLine(args, out pipeName, out shutdown, out timeout, out logFilePath))
-            {
-                return CommonCompiler.Failed;
-            }
-
-            pipeName = pipeName ?? GetDefaultPipeName();
+            pipeName ??= GetDefaultPipeName();
             if (pipeName is null)
             {
                 throw new Exception("Cannot calculate pipe name");
@@ -54,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            TimeSpan keepAlive = GetKeepAliveFromCommandLine(timeout);
+            keepAlive ??= GetKeepAliveTimeout();
 
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
@@ -90,15 +81,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        internal TimeSpan GetKeepAliveFromCommandLine(int? timeout)
-        {
-            if (timeout.HasValue)
-            {
-                return timeout.Value == -1 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(timeout.Value);
-            }
-
-            return GetKeepAliveTimeout();
-        }
+        internal TimeSpan GetKeepAliveFromCommandLine(TimeSpan? keepAlive) => keepAlive ?? GetKeepAliveTimeout();
 
         internal static IClientConnectionHost CreateClientConnectionHost(string pipeName, ICompilerServerLogger logger) => new NamedPipeClientConnectionHost(pipeName, logger);
 
@@ -139,12 +122,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CommonCompiler.Failed;
                 }
 
-                var resolvedKeepAlive = keepAlive ?? Timeout.InfiniteTimeSpan;
-                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", resolvedKeepAlive.TotalMilliseconds);
+                keepAlive ??= Timeout.InfiniteTimeSpan;
+                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive.Value.TotalMilliseconds);
                 FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
-                dispatcher.ListenAndDispatchConnections(resolvedKeepAlive, cancellationToken);
+                dispatcher.ListenAndDispatchConnections(keepAlive.Value, cancellationToken);
                 return CommonCompiler.Succeeded;
             }
         }
@@ -162,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             appSettings ??= new NameValueCollection();
             logger ??= EmptyCompilerServerLogger.Instance;
             var controller = new BuildServerController(appSettings, logger);
-            var resolvedKeepAlive = keepAlive ?? controller.GetKeepAliveTimeout();
-            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, resolvedKeepAlive, cancellationToken: cancellationToken);
+            keepAlive ??= controller.GetKeepAliveTimeout();
+            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken: cancellationToken);
         }
 
         internal int RunShutdown(string pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
@@ -180,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return success ? CommonCompiler.Succeeded : CommonCompiler.Failed;
         }
 
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out int? timeout, out string? logFilePath)
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out TimeSpan? timeout, out string? logFilePath)
         {
             pipeName = null;
             shutdown = false;
@@ -205,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return false;
                     }
 
-                    timeout = parsedTimeout;
+                    timeout = parsedTimeout == -1 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
                 }
                 else if (arg.StartsWith(logArgPrefix, StringComparison.Ordinal))
                 {

@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private string _pipeName;
             private bool _shutdown;
-            private int? _timeout;
+            private TimeSpan? _timeout;
             private string _logFilePath;
 
             private bool Parse(params string[] args)
@@ -462,14 +462,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void TimeoutSeconds()
             {
                 Assert.True(Parse("-timeout:60"));
-                Assert.Equal(60, _timeout);
+                Assert.Equal(TimeSpan.FromSeconds(60), _timeout);
             }
 
             [Fact]
             public void TimeoutNoTimeout()
             {
                 Assert.True(Parse("-timeout:-1"));
-                Assert.Equal(-1, _timeout);
+                Assert.Equal(Timeout.InfiniteTimeSpan, _timeout);
             }
 
             [Fact]
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 Assert.True(Parse("-pipename:test", "-timeout:120", "-log:/tmp/server.log"));
                 Assert.Equal("test", _pipeName);
-                Assert.Equal(120, _timeout);
+                Assert.Equal(TimeSpan.FromSeconds(120), _timeout);
                 Assert.Equal("/tmp/server.log", _logFilePath);
                 Assert.False(_shutdown);
             }

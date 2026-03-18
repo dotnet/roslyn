@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Pre-parse arguments to extract the log file path so the logger can be initialised
             // with the correct path before the controller is created.  Ignore parse failures here
             // as they will be properly reported when Run() is called.
-            BuildServerController.ParseCommandLine(args, out _, out _, out _, out var logFilePath);
+            BuildServerController.ParseCommandLine(args, out var pipeName, out var shutdown, out var keepAlive, out var logFilePath);
 
             using var logger = new CompilerServerLogger($"VBCSCompiler {Process.GetCurrentProcess().Id}", logFilePath);
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 var controller = new BuildServerController(appSettings, logger);
-                return controller.Run(args);
+                return controller.Run(pipeName, shutdown, keepAlive);
             }
             catch (Exception e)
             {

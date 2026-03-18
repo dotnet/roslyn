@@ -32,26 +32,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public void TimeoutMinusOne_ReturnsInfiniteTimeSpan()
             {
-                Assert.Equal(Timeout.InfiniteTimeSpan, _controller.GetKeepAliveFromCommandLine(timeout: -1));
+                Assert.Equal(Timeout.InfiniteTimeSpan, _controller.GetKeepAliveFromCommandLine(keepAlive: Timeout.InfiniteTimeSpan));
             }
 
             [Fact]
             public void PositiveTimeout_ReturnsTimeSpan()
             {
-                Assert.Equal(TimeSpan.FromSeconds(30), _controller.GetKeepAliveFromCommandLine(timeout: 30));
+                Assert.Equal(TimeSpan.FromSeconds(30), _controller.GetKeepAliveFromCommandLine(keepAlive: TimeSpan.FromSeconds(30)));
             }
 
             [Fact]
             public void NoTimeout_FallsBackToAppSettings()
             {
                 _appSettings[BuildServerController.KeepAliveSettingName] = "42";
-                Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveFromCommandLine(timeout: null));
+                Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveFromCommandLine(keepAlive: null));
             }
 
             [Fact]
             public void NoTimeout_NoAppSettings_ReturnsDefault()
             {
-                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveFromCommandLine(timeout: null));
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveFromCommandLine(keepAlive: null));
             }
         }
 
