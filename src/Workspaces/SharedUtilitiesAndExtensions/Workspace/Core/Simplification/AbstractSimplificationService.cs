@@ -219,6 +219,8 @@ internal abstract class AbstractSimplificationService<
                                 ? nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode()!, currentNodeOrToken.AsNode()!)
                                 : nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
 
+                            Debug.Assert(replacedParent.ChildNodesAndTokens().Count(c => c.HasAnnotation(annotation)) == 1);
+
                             currentNodeOrToken = replacedParent
                                 .ChildNodesAndTokens()
                                 .First(c => c.HasAnnotation(annotation));
