@@ -988,33 +988,76 @@ class X
     [Fact]
     public void ListPattern_MissingMembers_ArrayLength()
     {
-        var source = @"
+        // Array without Length property
+        var corlibSource = """
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Attribute { }
+    public class Array { }
+    public class Enum { }
+    public class Exception { }
+    public class Type { }
+    public struct RuntimeTypeHandle { }
+    public struct Nullable<T> where T : struct { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Collections
+{
+    public interface IEnumerable { }
+}
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static T[] GetSubArray<T>(T[] array, Range range) => throw null;
+    }
+}
+""";
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__get_Length));
+        var corlibRef = corlib.EmitToImageReference();
+
+        var source = """
 class X
 {
     public void M(int[] a)
     {
         _ = a is [0];
-        _ = a is [.._];
-        _ = a[^1];
-        _ = a[..];
-    } 
+    }
 }
-" + TestSources.GetSubArray;
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
-        compilation.MakeMemberMissing(SpecialMember.System_Array__Length);
-        compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS0656: Missing compiler required member 'System.Array.Length'
+""";
+        var compilation = CreateEmptyCompilation(source, references: [corlibRef], parseOptions: TestOptions.RegularWithListPatterns);
+        compilation.VerifyDiagnostics(
+            // (5,18): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
             //         _ = a is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Array", "Length").WithLocation(6, 18),
-            // (6,18): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
-            //         _ = a is [0];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[0]").WithArguments("int[]").WithLocation(6, 18),
-            // (7,18): error CS0656: Missing compiler required member 'System.Array.Length'
-            //         _ = a is [.._];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.._]").WithArguments("System.Array", "Length").WithLocation(7, 18),
-            // (7,18): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
-            //         _ = a is [.._];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.._]").WithArguments("int[]").WithLocation(7, 18));
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[0]").WithArguments("int[]").WithLocation(5, 18));
     }
 
     [Fact]
@@ -4338,14 +4381,14 @@ class C<T>
             rest.ToString(); // 1
 
         if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2
+            rest2.Value.ToString(); // (assumed not-null)
         else
-            rest2.Value.ToString(); // 3, 4
+            rest2.Value.ToString(); // 2, 3
 
         if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5
+            rest3.ToString(); // (assumed not-null)
         else
-            rest3.ToString(); // 6, 7
+            rest3.ToString(); // 4, 5
 
         if (new C<string>() is [1, ..var rest4])
         {
@@ -4353,11 +4396,11 @@ class C<T>
             rest4 = null;
         }
         else
-            rest4.ToString(); // 8, 9
+            rest4.ToString(); // 6, 7
 
         if (new C<T>() is [1, ..var rest5])
         {
-            rest5.ToString(); // 10
+            rest5.ToString(); // (assumed not-null)
             rest5 = default;
         }
     }
@@ -4365,36 +4408,27 @@ class C<T>
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-                // 0.cs(14,13): error CS0165: Use of unassigned local variable 'rest'
-                //             rest.ToString(); // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(14, 13),
-                // 0.cs(17,13): warning CS8629: Nullable value type may be null.
-                //             rest2.Value.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(17, 13),
-                // 0.cs(19,13): warning CS8629: Nullable value type may be null.
-                //             rest2.Value.ToString(); // 3, 4
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(19, 13),
-                // 0.cs(19,13): error CS0165: Use of unassigned local variable 'rest2'
-                //             rest2.Value.ToString(); // 3, 4
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(19, 13),
-                // 0.cs(22,13): warning CS8602: Dereference of a possibly null reference.
-                //             rest3.ToString(); // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(22, 13),
-                // 0.cs(24,13): warning CS8602: Dereference of a possibly null reference.
-                //             rest3.ToString(); // 6, 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(24, 13),
-                // 0.cs(24,13): error CS0165: Use of unassigned local variable 'rest3'
-                //             rest3.ToString(); // 6, 7
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "rest3").WithArguments("rest3").WithLocation(24, 13),
-                // 0.cs(32,13): warning CS8602: Dereference of a possibly null reference.
-                //             rest4.ToString(); // 8, 9
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest4").WithLocation(32, 13),
-                // 0.cs(32,13): error CS0165: Use of unassigned local variable 'rest4'
-                //             rest4.ToString(); // 8, 9
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(32, 13),
-                // 0.cs(36,13): warning CS8602: Dereference of a possibly null reference.
-                //             rest5.ToString(); // 10
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest5").WithLocation(36, 13)
+            // (14,13): error CS0165: Use of unassigned local variable 'rest'
+            //             rest.ToString(); // 1
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(14, 13),
+            // (19,13): warning CS8629: Nullable value type may be null.
+            //             rest2.Value.ToString(); // 2, 3
+            Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(19, 13),
+            // (19,13): error CS0165: Use of unassigned local variable 'rest2'
+            //             rest2.Value.ToString(); // 2, 3
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(19, 13),
+            // (24,13): warning CS8602: Dereference of a possibly null reference.
+            //             rest3.ToString(); // 4, 5
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(24, 13),
+            // (24,13): error CS0165: Use of unassigned local variable 'rest3'
+            //             rest3.ToString(); // 4, 5
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "rest3").WithArguments("rest3").WithLocation(24, 13),
+            // (32,13): warning CS8602: Dereference of a possibly null reference.
+            //             rest4.ToString(); // 6, 7
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest4").WithLocation(32, 13),
+            // (32,13): error CS0165: Use of unassigned local variable 'rest4'
+            //             rest4.ToString(); // 6, 7
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(32, 13)
             );
 
         var tree = compilation.SyntaxTrees.First();
@@ -4437,13 +4471,7 @@ class C
 }
 ";
         var compilation = CreateCompilationWithIndexAndRange(source);
-        compilation.VerifyEmitDiagnostics(
-            // (12,13): warning CS8602: Dereference of a possibly null reference.
-            //             slice.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "slice").WithLocation(12, 13),
-            // (14,13): warning CS8602: Dereference of a possibly null reference.
-            //             list.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "list").WithLocation(14, 13));
+        compilation.VerifyEmitDiagnostics();
 
         var tree = compilation.SyntaxTrees.Single();
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -4489,14 +4517,14 @@ class C<T>
             rest.ToString(); // 1
 
         if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2
+            rest2.Value.ToString(); // (assumed not-null)
         else
-            rest2.Value.ToString(); // 3, 4
+            rest2.Value.ToString(); // 2, 3
 
         if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5
+            rest3.ToString(); // (assumed not-null)
         else
-            rest3.ToString(); // 6, 7
+            rest3.ToString(); // 4, 5
 
         if (new C<string>() is [1, ..var rest4])
         {
@@ -4504,38 +4532,32 @@ class C<T>
             rest4 = null;
         }
         else
-            rest4.ToString(); // 8, 9
+            rest4.ToString(); // 6, 7
     }
 }
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-            // 0.cs(15,13): error CS0165: Use of unassigned local variable 'rest'
+            // (15,13): error CS0165: Use of unassigned local variable 'rest'
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(15, 13),
-            // 0.cs(18,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(18, 13),
-            // 0.cs(20,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 3, 4
+            // (20,13): warning CS8629: Nullable value type may be null.
+            //             rest2.Value.ToString(); // 2, 3
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(20, 13),
-            // 0.cs(20,13): error CS0165: Use of unassigned local variable 'rest2'
-            //             rest2.Value.ToString(); // 3, 4
+            // (20,13): error CS0165: Use of unassigned local variable 'rest2'
+            //             rest2.Value.ToString(); // 2, 3
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(20, 13),
-            // 0.cs(23,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 5
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(23, 13),
-            // 0.cs(25,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 6, 7
+            // (25,13): warning CS8602: Dereference of a possibly null reference.
+            //             rest3.ToString(); // 4, 5
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(25, 13),
-            // 0.cs(25,13): error CS0165: Use of unassigned local variable 'rest3'
-            //             rest3.ToString(); // 6, 7
+            // (25,13): error CS0165: Use of unassigned local variable 'rest3'
+            //             rest3.ToString(); // 4, 5
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest3").WithArguments("rest3").WithLocation(25, 13),
-            // 0.cs(33,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest4.ToString(); // 8, 9
+            // (33,13): warning CS8602: Dereference of a possibly null reference.
+            //             rest4.ToString(); // 6, 7
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest4").WithLocation(33, 13),
-            // 0.cs(33,13): error CS0165: Use of unassigned local variable 'rest4'
-            //             rest4.ToString(); // 8, 9
+            // (33,13): error CS0165: Use of unassigned local variable 'rest4'
+            //             rest4.ToString(); // 6, 7
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(33, 13)
             );
     }

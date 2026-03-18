@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var output = e.MakeResultTemp();
                                         var outputSlot = getOrMakeAndRegisterDagTempSlot(output);
                                         Debug.Assert(outputSlot > 0);
-                                        TrackNullableStateForAssignment(valueOpt: null, type, outputSlot, type.ToTypeWithState());
+                                        SetState(ref this.State, outputSlot, NullableFlowState.NotNull); // Slice value is assumed to be never null
                                         break;
                                     }
                                 case BoundDagAssignmentEvaluation e:

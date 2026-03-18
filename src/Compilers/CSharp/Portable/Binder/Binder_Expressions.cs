@@ -11455,22 +11455,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiverPlaceholder.Type is not null);
-            if (receiverPlaceholder.Type.IsSZArray())
-            {
-                bool foundApplicable = TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, syntax, diagnostics, out PropertySymbol lengthProperty);
-                Debug.Assert(foundApplicable == lengthProperty is not null);
-                if (lengthProperty is not null)
-                {
-                    lengthOrCountAccess = new BoundPropertyAccess(syntax, receiverPlaceholder, initialBindingReceiverIsSubjectToCloning: ThreeState.False, lengthProperty, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
-                }
-                else
-                {
-                    lengthOrCountAccess = new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
-                }
-
-                return foundApplicable;
-            }
-
             var lookupResult = LookupResult.GetInstance();
 
             Debug.Assert(receiverPlaceholder.Type is not null);

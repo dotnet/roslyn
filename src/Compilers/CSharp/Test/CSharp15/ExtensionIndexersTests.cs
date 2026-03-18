@@ -22,6 +22,80 @@ public class ExtensionIndexersTests : CompilingTestBase
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
     }
 
+    private static readonly string corlibWithNoArrayMembersSource = """
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Byte { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public struct Char { }
+    public class String { }
+    public class Delegate { }
+    public class MulticastDelegate { }
+    public class Attribute { }
+    public class Array { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class Type { }
+    public struct IntPtr { }
+    public struct RuntimeTypeHandle { }
+    public struct RuntimeMethodHandle { }
+    public struct Nullable<T> where T : struct { }
+    public interface IDisposable { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Collections
+{
+    public interface IEnumerable { }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static T[] GetSubArray<T>(T[] array, Range range) => throw null;
+    }
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) => throw null;
+        public string FeatureName => throw null;
+        public bool IsOptional { get => throw null; set => throw null; }
+    }
+    public sealed class RequiredMemberAttribute : Attribute { }
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
     [Theory, CombinatorialData]
     public void LangVer_01(bool useCompilationReference)
     {
@@ -6786,7 +6860,7 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82756")]
     public void ImplicitRangeIndexer_42()
     {
-        // array type, extension this[Index] + extension this[Range]
+        // array type (with and without Length), extension this[Index] + extension this[Range]
         var src = """
 public static class E
 {
@@ -6855,17 +6929,67 @@ public static class E
 }
 """);
 
+        var corlib = CreateEmptyCompilation(corlibWithNoArrayMembersSource);
+        corlib.VerifyDiagnostics();
+        Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__Length));
+        var corlibRef = corlib.EmitToImageReference();
+
+        // array type without Length, extension this[Index] + extension this[Range]
+        var src2 = """
+public static class E
+{
+    public static void M1(int[] i)
+    {
+        _ = i[^1];
+    }
+
+    public static void M2(int[] i)
+    {
+        _ = i[1..^1];
+    }
+
+    extension(int[] a)
+    {
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
+        // PROTOTYPE revisit implicit indexers on strings and array types
+        var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
+        comp2.VerifyEmitDiagnostics();
+
+        // array type without Length
+        src2 = """
+public static class E
+{
+    public static void M1(int[] i)
+    {
+        _ = i[^1];
+    }
+
+    public static void M2(int[] i)
+    {
+        _ = i[1..^1];
+    }
+
+    extension(int[] a)
+    {
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
         // Tracked by https://github.com/dotnet/roslyn/issues/82756
-        // Missing diagnostic for missing Array.Length member
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        comp.MakeMemberMissing(SpecialMember.System_Array__Length);
-        comp.VerifyEmitDiagnostics();
+        // Missing diagnostic about missing Array.Length
+        comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
+        comp2.VerifyEmitDiagnostics();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82756")]
     public void ImplicitRangeIndexer_43()
     {
-        // array type, extension Length + extension this[Index] + extension this[Range]
+        // array type (with and without Length), extension Length + extension this[Index] + extension this[Range]
         var src = """
 public static class E
 {
@@ -6898,44 +7022,66 @@ public static class E
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
 
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        comp.MakeMemberMissing(SpecialMember.System_Array__Length);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("32"), verify: Verification.Skipped).VerifyDiagnostics();
+        var corlib = CreateEmptyCompilation(corlibWithNoArrayMembersSource);
+        corlib.VerifyDiagnostics();
+        Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__Length));
+        var corlibRef = corlib.EmitToImageReference();
+
+        // array type without Length, extension Length + extension this[Index] + extension this[Range]
+        var src2 = """
+public static class E
+{
+    public static void M1(int[] i)
+    {
+        _ = i[^1];
+    }
+
+    public static void M2(int[] i)
+    {
+        _ = i[1..^1];
+    }
+
+    extension(int[] a)
+    {
+        public int Length => throw null;
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
+        var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
+        comp2.VerifyDiagnostics();
+        // PROTOTYPE revisit implicit indexers on strings and array types (dealing with missing Length, this[Index] extension whenGetSubArray is missing)
+        var verifier = CompileAndVerify(comp2, verify: Verification.Skipped);
         verifier.VerifyIL("E.M1", """
 {
-  // Code size       15 (0xf)
+  // Code size        9 (0x9)
   .maxstack  3
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  ldlen
-  IL_0004:  conv.i4
-  IL_0005:  ldc.i4.1
-  IL_0006:  sub
-  IL_0007:  ldelem.i4
-  IL_0008:  call       "void System.Console.Write(int)"
-  IL_000d:  nop
-  IL_000e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldlen
+  IL_0003:  conv.i4
+  IL_0004:  ldc.i4.1
+  IL_0005:  sub
+  IL_0006:  ldelem.i4
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
         verifier.VerifyIL("E.M2", """
 {
-  // Code size       34 (0x22)
+  // Code size       26 (0x1a)
   .maxstack  4
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.1
-  IL_0003:  call       "System.Index System.Index.op_Implicit(int)"
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "System.Index System.Index.op_Implicit(int)"
+  IL_0007:  ldc.i4.1
   IL_0008:  ldc.i4.1
-  IL_0009:  ldc.i4.1
-  IL_000a:  newobj     "System.Index..ctor(int, bool)"
-  IL_000f:  newobj     "System.Range..ctor(System.Index, System.Index)"
-  IL_0014:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
-  IL_0019:  ldc.i4.0
-  IL_001a:  ldelem.i4
-  IL_001b:  call       "void System.Console.Write(int)"
-  IL_0020:  nop
-  IL_0021:  ret
+  IL_0009:  newobj     "System.Index..ctor(int, bool)"
+  IL_000e:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0013:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
+  IL_0018:  pop
+  IL_0019:  ret
 }
 """);
     }
@@ -7231,7 +7377,7 @@ public static class E
 {
     extension(object o)
     {
-        public int Length => throw null; // only used to fulfill the requirement for implicit indexer
+        public int Length => throw null;
         public int this[int i] { get { System.Console.WriteLine(i); return 0; } }
     }
 }
@@ -8033,7 +8179,7 @@ namespace Outer
     }
 
     [Theory, CombinatorialData]
-    public void SpreadPattern_01(bool useCompilationReference)
+    public void SlicePattern_01(bool useCompilationReference)
     {
         // extension Length + extension this[Index] + extension this[Range]
         var libSrc = """
@@ -8082,7 +8228,7 @@ _ = new C() is [_, .. var x];
     }
 
     [Fact]
-    public void SpreadPattern_02()
+    public void SlicePattern_02()
     {
         // boxed receiver
         var src = """
@@ -8137,7 +8283,7 @@ public static class E
     }
 
     [Theory, CombinatorialData]
-    public void SpreadPattern_03(bool useCompilationReference)
+    public void SlicePattern_03(bool useCompilationReference)
     {
         // extension Length + extension this[int] + extension Slice(int, int)
         var libSrc = """
@@ -8192,7 +8338,7 @@ _ = new C() is [_, .. var x];
     }
 
     [Fact]
-    public void SpreadPattern_04()
+    public void SlicePattern_04()
     {
         // instance Length, inner extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8241,7 +8387,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_05()
+    public void SlicePattern_05()
     {
         // inner extension Length + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8290,7 +8436,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_06()
+    public void SlicePattern_06()
     {
         // inner ambiguous extension Length + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8350,7 +8496,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_07()
+    public void SlicePattern_07()
     {
         // inner extension Length + extension Count + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8400,7 +8546,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_08()
+    public void SlicePattern_08()
     {
         // inner extension Length + ambiguous extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8457,7 +8603,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_09()
+    public void SlicePattern_09()
     {
         // inner extension Length + extension this[int] + ambiguous extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8514,7 +8660,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_10()
+    public void SlicePattern_10()
     {
         // inner inapplicable extension Length + extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8569,7 +8715,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_11()
+    public void SlicePattern_11()
     {
         // inner extension Length + inapplicable extension this[int] + extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8598,7 +8744,7 @@ namespace Inner
         extension(C c)
         {
             public int Length => 3;
-            public int Slice(int i, int j) { System.Console.Write($"{i}..{j}"); return 0; }
+            public int Slice(int i, int j) => throw null;
         }
     }
 }
@@ -8610,18 +8756,18 @@ namespace Outer
         extension(C c)
         {
             public int this[System.Index i] { get => throw null; }
-            public int this[System.Range r] { get { System.Console.Write(r); return 0; } }
+            public int this[System.Range r] { get { System.Console.Write($"this[{r}]"); return 0; } }
         }
     }
 }
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("this[1..^0]"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
-    public void SpreadPattern_12()
+    public void SlicePattern_12()
     {
         // inner extension Length + extension this[int] + inapplicable extension Slice(int, int), outer extension this[Index] + extension this[Range]
         var src = """
@@ -8673,7 +8819,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_13()
+    public void SlicePattern_13()
     {
         // inner inapplicable extension this[Range], outer extension Length + extension this[Index] + extension this[Range]
         var src = """
@@ -8708,7 +8854,7 @@ namespace Outer
     {
         extension(object o)
         {
-            public int Length => 3;
+            public int Length { get { System.Console.Write("Length, "); return 3; } }
             public int this[System.Index i] { get { System.Console.Write(i); return 0; } }
             public int this[System.Range r] { get { System.Console.Write($"{r}, "); return 0; } }
         }
@@ -8717,11 +8863,11 @@ namespace Outer
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("0..^1, ^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length, 0..^1, ^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
-    public void SpreadPattern_14()
+    public void SlicePattern_14()
     {
         // generic extension Length + generic extension this[Index] + generic extension Slice(int, int)
         var src = """
@@ -8745,7 +8891,7 @@ public static class E
     }
 
     [Fact]
-    public void SpreadPattern_15()
+    public void SlicePattern_15()
     {
         // generic extension Length + generic extension this[Index] + generic extension this[Range]
         var src = """
@@ -8769,7 +8915,7 @@ public static class E
     }
 
     [Fact]
-    public void SpreadPattern_16()
+    public void SlicePattern_16()
     {
         // extension Length + extension this[Index] + extension Slice<T>(T, T)
         var src = """
@@ -8796,7 +8942,7 @@ public static class E
     }
 
     [Fact]
-    public void SpreadPattern_17()
+    public void SlicePattern_17()
     {
         // array type, extension this[Index] + extension this[Range]
         var src = """
@@ -8865,21 +9011,12 @@ public static class E
   IL_0035:  ret
 }
 """);
-
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        comp.MakeMemberMissing(SpecialMember.System_Array__Length);
-        comp.VerifyEmitDiagnostics(
-            // (11,21): error CS0656: Missing compiler required member 'System.Array.Length'
-            //         return i is [.. var x, 3];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. var x, 3]").WithArguments("System.Array", "Length").WithLocation(11, 21),
-            // (11,21): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
-            //         return i is [.. var x, 3];
-            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[.. var x, 3]").WithArguments("int[]").WithLocation(11, 21));
     }
 
     [Fact]
-    public void SpreadPattern_17_WithExtensionLength()
+    public void SlicePattern_17_WithExtensionLength()
     {
+        // PROTOTYPE revisit implicit indexers on strings and array types (dealing with missing Length, this[Index] extension whenGetSubArray is missing)
         // array type (with and without Length), extension Length + extension this[Index] + extension this[Range]
         var src = """
 public static class E
@@ -8897,7 +9034,7 @@ public static class E
 
     extension(int[] a)
     {
-        public int Length => throw null;
+        public int Length { get { System.Console.Write("Length "); return 3; } }
         public int this[System.Index i] { get => throw null; }
         public int this[System.Range r] { get => throw null; }
     }
@@ -8907,55 +9044,70 @@ public static class E
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
         var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
 
-        // Note: the presence of extension Length allows binding to succeed, but we still lower with specialized IL
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe);
-        verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped).VerifyDiagnostics();
-        verifier.VerifyIL("E.M", """
+        var corlib = CreateEmptyCompilation(corlibWithNoArrayMembersSource);
+        corlib.VerifyDiagnostics();
+        Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__Length));
+        var corlibRef = corlib.EmitToImageReference();
+
+        // array type without Length, extension Length + extension this[Index] + extension this[Range]
+        var src2 = """
+public static class E
 {
-  // Code size       54 (0x36)
+    public static bool M(int[] i)
+    {
+        return i is [.. var x, 3];
+    }
+
+    extension(int[] a)
+    {
+        public int Length => throw null;
+        public int this[System.Index i] { get => throw null; }
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+""";
+        var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
+        comp2.VerifyDiagnostics();
+        var verifier2 = CompileAndVerify(comp2, verify: Verification.Skipped);
+        verifier2.VerifyIL("E.M", """
+{
+  // Code size       51 (0x33)
   .maxstack  4
-  .locals init (int[] V_0, //x
-                int V_1,
-                bool V_2)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  brfalse.s  IL_0030
-  IL_0004:  ldarg.0
-  IL_0005:  ldlen
-  IL_0006:  conv.i4
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
-  IL_0009:  ldc.i4.1
-  IL_000a:  blt.s      IL_0030
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     "System.Index..ctor(int, bool)"
-  IL_0014:  ldc.i4.1
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     "System.Index..ctor(int, bool)"
-  IL_001b:  newobj     "System.Range..ctor(System.Index, System.Index)"
-  IL_0020:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
-  IL_0025:  stloc.0
-  IL_0026:  ldarg.0
-  IL_0027:  ldloc.1
-  IL_0028:  ldc.i4.1
-  IL_0029:  sub
-  IL_002a:  ldelem.i4
-  IL_002b:  ldc.i4.3
-  IL_002c:  ceq
-  IL_002e:  br.s       IL_0031
-  IL_0030:  ldc.i4.0
-  IL_0031:  stloc.2
-  IL_0032:  br.s       IL_0034
-  IL_0034:  ldloc.2
-  IL_0035:  ret
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0031
+  IL_0003:  ldarg.0
+  IL_0004:  call       "int E.get_Length(int[])"
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_0031
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  newobj     "System.Index..ctor(int, bool)"
+  IL_0016:  ldc.i4.1
+  IL_0017:  ldc.i4.1
+  IL_0018:  newobj     "System.Index..ctor(int, bool)"
+  IL_001d:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0022:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
+  IL_0027:  pop
+  IL_0028:  ldarg.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  ldelem.i4
+  IL_002d:  ldc.i4.3
+  IL_002e:  ceq
+  IL_0030:  ret
+  IL_0031:  ldc.i4.0
+  IL_0032:  ret
 }
 """);
     }
 
     [Fact]
-    public void SpreadPattern_18()
+    public void SlicePattern_18()
     {
         // instance Length, inner extension Length + extension this[int], outer extension Length + extension Slice(int, int)
         var src = """
@@ -9045,7 +9197,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_19()
+    public void SlicePattern_19()
     {
         // instance Length + this[int], inner extension Length + inner Slice(int, int), outer extension Length
         var src = """
@@ -14882,7 +15034,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean
     [Fact]
     public void IOperation_04()
     {
-        // spread pattern, extension Range indexer
+        // slice pattern, extension Range indexer
         var src = """
 C c = new C();
 
@@ -20349,7 +20501,8 @@ public static class E
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void LoopWithPatternDeclaration_SpreadPattern()
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82802")]
+    public void LoopWithPatternDeclaration_SlicePattern()
     {
         var source = """
 #nullable enable
@@ -20382,14 +20535,13 @@ public static class E
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (10,9): warning CS8602: Dereference of a possibly null reference.
-            //         z.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9));
+        // Note: slice patterns currently assume that returned slices are not-null
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void LoopWithPatternDeclaration_SpreadPattern_Slice()
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82802")]
+    public void LoopWithPatternDeclaration_SlicePattern_SliceMethod()
     {
         var source = """
 #nullable enable
@@ -20422,9 +20574,7 @@ public static class E
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (10,9): warning CS8602: Dereference of a possibly null reference.
-            //         z.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9));
+        // Note: slice patterns currently assume that returned slices are not-null
+        comp.VerifyEmitDiagnostics();
     }
 }
