@@ -4720,27 +4720,29 @@ static class C
         {
             // SubtractFromLength strategy in start..
             string source = """
-System.Console.Write(C.M("0123"));
+System.Console.Write(GetString()[^GetStart()..]);
 
-static class C
-{
-    public static string M(string s) => s[^3..];
-}
+static int GetStart() { System.Console.Write("GetStart "); return 3; }
+static string GetString() { System.Console.Write("GetString "); return "123456"; }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetString GetStart 456"), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", """
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       15 (0xf)
+  // Code size       30 (0x1e)
   .maxstack  3
-  IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  callvirt   "int string.Length.get"
-  IL_0007:  ldc.i4.3
-  IL_0008:  sub
-  IL_0009:  callvirt   "string string.Substring(int)"
-  IL_000e:  ret
+  .locals init (int V_0)
+  IL_0000:  call       "string Program.<<Main>$>g__GetString|0_1()"
+  IL_0005:  call       "int Program.<<Main>$>g__GetStart|0_0()"
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  callvirt   "int string.Length.get"
+  IL_0011:  ldloc.0
+  IL_0012:  sub
+  IL_0013:  callvirt   "string string.Substring(int)"
+  IL_0018:  call       "void System.Console.Write(string)"
+  IL_001d:  ret
 }
 """);
         }

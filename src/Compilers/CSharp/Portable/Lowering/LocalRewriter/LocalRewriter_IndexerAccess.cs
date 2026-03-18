@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TryGetStartOnlyOverload(getItemOrSliceHelper, node.Syntax) is MethodSymbol startOnlyOverload)
                     {
                         BoundExpression startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
-                        if (startExpr.ConstantValueOpt?.Int32Value == 0)
+                        if (isInt32ConstantZero(startExpr))
                         {
                             // Start is 0, so the result is the full span. No need for Slice at all.
                             result = _factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true);
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             sideEffectsBuilder.Insert(0, refCapture);
                         }
 
-                        if (startExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 } &&
+                        if (isInt32ConstantZero(startExpr) &&
                             rangeSizeExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: >= 0 and int rangeSizeConst } &&
                             rangeSizeConst <= length)
                         {
@@ -358,6 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+
+            static bool isInt32ConstantZero(BoundExpression expr)
+            {
+                return expr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 };
+            }
 
             BoundExpression makePatternIndexOffsetExpression(BoundExpression? makeOffsetInput, int length, PatternIndexOffsetLoweringStrategy strategy)
             {
@@ -913,6 +918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rangeExpr is not null)
             {
                 BoundExpression? lengthAccess = null;
+                Debug.Assert(startStrategy is not PatternIndexOffsetLoweringStrategy.Length);
+                Debug.Assert(endMakeOffsetInput is not null || endStrategy == PatternIndexOffsetLoweringStrategy.Length);
 
                 // For open-ended ranges like `start..`, use Slice(int) or Substring(int) when available
                 if (!cacheAllArgumentsOnly &&
@@ -1083,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? startLengthOverload;
             MethodSymbol? startOverload;
 
-            if (method is { Name: nameof(string.Substring), ContainingType: { Name: nameof(String), ContainingSymbol.Name: nameof(System) } }
+            if (method is { Name: nameof(string.Substring), ContainingType.SpecialType: SpecialType.System_String }
                 && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringIntInt, out startLengthOverload, isOptional: true)
                 && ReferenceEquals(method, startLengthOverload)
                 && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringInt, out startOverload, isOptional: true))

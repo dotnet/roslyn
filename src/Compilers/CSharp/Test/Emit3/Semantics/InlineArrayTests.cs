@@ -24123,17 +24123,18 @@ class Program
         System.Console.Write($"{M(x).Length} {x.F[7]}");
     }
 
-    static System.Span<int> M(C x) => x.F[^3..];
+    static System.Span<int> M(C x) => x.F[^GetStart()..];
+    static int GetStart() { System.Console.Write("GetStart "); return 3; }
 }
 """ + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "3 111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "GetStart GetStart 3 111", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M", """
 {
-  // Code size       23 (0x17)
-  .maxstack  2
+  // Code size       30 (0x1e)
+  .maxstack  3
   .locals init (System.Span<int> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     "Buffer10<int> C.F"
@@ -24141,9 +24142,11 @@ class Program
   IL_0008:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)"
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.7
-  IL_0011:  call       "System.Span<int> System.Span<int>.Slice(int)"
-  IL_0016:  ret
+  IL_0010:  ldc.i4.s   10
+  IL_0012:  call       "int Program.GetStart()"
+  IL_0017:  sub
+  IL_0018:  call       "System.Span<int> System.Span<int>.Slice(int)"
+  IL_001d:  ret
 }
 """);
         }
