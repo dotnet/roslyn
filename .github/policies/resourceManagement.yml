@@ -311,6 +311,15 @@ configuration:
 
 
             You can refer to the [.NET SDK breaking change guidelines](https://github.com/dotnet/sdk/blob/main/documentation/project-docs/breaking-change-guidelines.md)
-      
+
+    - description: Add a CodeFlow link to new pull requests
+      if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Opened
+      then:
+      - addCodeFlowLink
+
 onFailure: 
 onSuccess:
+

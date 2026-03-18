@@ -612,6 +612,11 @@
         <target state="translated">Bu koleksiyonun öğe türü başvuru yapısı veya başvuru yapısına izin veren tür parametresi olamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">C# {2} için geçersiz '{0}' değeri: '{1}'. Lütfen '{3}' veya daha yüksek bir dil sürümü kullanın.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">Derleme birimi alanlar, metotlar veya özellikler gibi üyeleri doğrudan içeremez</target>
@@ -900,6 +905,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">İfade ağacı, demetin == veya != işlecini içeremez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="translated">İfade ağacı, birleşim dönüştürmesi içeremez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1237,6 +1247,16 @@
         <target state="translated">Satır içi dizi öğesi alanı gerekli, salt okunur, geçici veya sabit boyutlu arabellek olarak bildirilemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="translated">'union' bildiriminde tek parametreli açıkça bildirilen genel oluşturuculara izin verilmez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="translated">'union' bildiriminde örnek alanlara, otomatik özelliklere veya alan benzeri olaylara izin verilmez.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">'{0}': adsız alıcı parametresi olan bir genişletme bloğunda örnek üyeler bildirilemez</target>
@@ -1466,6 +1486,11 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">' {0}' '{1}' için bir tanım içermiyor ve '{0}' türünden ilk bağımsız değişkeni kabul eden erişilebilir '{1}' uzantı yöntemi bulunamadı (zaman uyumsuz koleksiyon üzerinde 'await foreach' ile yineleme yapmak mı istediniz?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="translated">'{0}' türü, örtülü başvuru veya paketleme dönüştürmesiyle 'object' türüne dönüştürülemez</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
@@ -1860,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">'Uyarılar', 'ek açıklama' veya yönergenin sonu bekleniyordu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">C# {2} için geçersiz '{0}' değeri: '{1}'. Lütfen '{3}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2677,6 +2697,21 @@
         <target state="translated">Beklenmeyen parametre listesi.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="translated">'union' bildirimi içinde bildirilen bir oluşturucunun, sentezlenmiş oluşturucuyu veya açıkça bildirilmiş bir oluşturucuyu çağıran bir 'this' başlatıcısı olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="translated">'union' bildirimi en az bir durum türü belirtmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="translated">'{0}' türündeki bir ifade bu desen tarafından işlenemez; bu konumdaki ek hatalara bakın.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}', 'UnmanagedCallersOnly' ile ilişkilendirilmiş ve doğrudan çağrılamaz. Bu yöntem için bir işlev işaretçisi edinin.</target>
@@ -2691,6 +2726,11 @@
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
         <target state="translated">'{0}' tanınmayan bir {1} sürümünde tanımlandı, '{2}' bekleniyor.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">'RequiresUnsafe' veya 'extern' olarak işaretlenen '{0}' oluşturucusu için, '{1}' içindeki '{2}' tür parametresinin 'new()' kısıtlamasını karşılamak üzere güvenli olmayan bir bağlam gereklidir</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
@@ -3090,6 +3130,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nameof işlecindeki bağlı olmayan genel türler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="translated">birleşimler</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -5885,6 +5930,16 @@
         <target state="translated">Parametre okunmadı. Bu ada sahip özelliği başlatmak için bu parametreyi kullanmayı unutmuş olabilirsiniz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
         <target state="translated">UnscopedRefAttribute yalnızca C# 11 veya sonraki sürümde veya net7.0 veya üzeri hedeflendiğinde geçerlidir.</target>
@@ -7161,8 +7216,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt sınıfı, tümü yapı, tümü kayıt yapısı veya tümü arabirim olmalıdır</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="translated">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt sınıfı, tümü yapı, tümü birleşim, tümü kayıt yapısı veya tümü arabirim olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

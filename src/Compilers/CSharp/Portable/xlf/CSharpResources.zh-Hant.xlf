@@ -612,6 +612,11 @@
         <target state="translated">此集合的元素類型不能是 ref struct 或允許 ref struct 的類型參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">'{0}' 值無效: 若是 C# {2}，則為 '{1}'。請使用 '{3}' 或更高的語言版本。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">編譯單元不可直接包含欄位、方法或屬性等成員</target>
@@ -900,6 +905,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">運算式樹狀架構不得包含元組 == 或 != 運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="translated">運算式樹狀架構不得包含聯集轉換。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1237,6 +1247,16 @@
         <target state="translated">不可將內嵌陣列元素欄位宣告為必要、readonly、易變或為固定的大小緩衝區。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="translated">在 'union' 宣告中，不允許使用單一參數明確宣告的公用建構函式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="translated">'union' 宣告中不允許使用執行個體欄位、自動屬性或類似欄位的事件。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">'{0}': 在擁有未命名接收者參數的擴充區塊中，無法宣告執行個體成員</target>
@@ -1466,6 +1486,11 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">'{0}' 不包含 '{1}' 的定義，而且找不到接受類型 '{0}' 的第一個引數的可存取方法 '{1}' (您是否要改為使用 'await foreach' 來逐一查看非同步集合?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="translated">無法透過隱含參考或 Boxing 轉換，將類型 '{0}' 轉換為 'object'</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
@@ -1860,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">必須是 'warnings'、'annotations' 或指示詞結尾</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">'{0}' 值無效: 若是 C# {2}，則為 '{1}'。請使用 '{3}' 或更高的語言版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2677,6 +2697,21 @@
         <target state="translated">未預期的參數清單。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="translated">在 'union' 宣告中宣告的建構函式必須具有 'this' 初始設定式，以呼叫合成的建構函式或明確宣告的建構函式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="translated">聯集宣告必須指定至少一個案例類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="translated">此模式無法處理 '{0}' 類型的運算式，請在此位置查看其他錯誤。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法直接呼叫。取得此方法的函式指標。</target>
@@ -2691,6 +2726,11 @@
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
         <target state="translated">'{0}' 定義於具有無法辨識 {1} 版本的模組中，預期為 '{2}'。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">建構函式 '{0}' 標記為 'RequiresUnsafe' 或 'extern'，需要不安全的上下文，以符合 '{1}' 中類型參數 '{2}' 的 'new()' 限制</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
@@ -3090,6 +3130,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">運算子 nameof 中的未系結泛型型別</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="translated">聯集</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -5885,6 +5930,16 @@ strument:TestCoverage      產生檢測要收集
         <target state="translated">參數未讀取。是否忘記使用該參數來初始化該名稱的屬性?</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
         <target state="translated">UnscopedRefAttribute 只在 C# 11 或更新版本中有效，或以 net7.0 或更新版本為目標時有效。</target>
@@ -7161,8 +7216,8 @@ strument:TestCoverage      產生檢測要收集
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">'{0}' 中有一部分宣告必須全是類別、全是記錄類別、全是結構、全是記錄結構，或全是介面</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="translated">'{0}' 中有一部分宣告必須全是類別、全是記錄類別、全是結構、全是聯集、全是記錄結構，或全是介面</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

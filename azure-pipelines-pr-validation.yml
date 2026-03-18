@@ -19,9 +19,6 @@ parameters:
 - name: VisualStudioBranchName
   type: string
   default: default
-- name: OptionalTitlePrefix
-  type: string
-  default: '[PR Validation]'
 - name: VisualStudioCherryPickSHA
   type: string
   default: '(default)'
@@ -53,7 +50,7 @@ extends:
     sdl:
       enableAllTools: false
     pool:
-      name: VSEngSS-MicroBuild2022-1ES
+      name: VSEng-MicroBuildVSStable
       demands:
       - msbuild
       - visualstudio
@@ -151,7 +148,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - task: Powershell@2
           name: SetOriginalBuildNumber
           displayName: Setting OriginalBuildNumber variable
@@ -350,13 +347,12 @@ extends:
             createDraftPR: true
             autoComplete: false
             insertToolset: ${{ parameters.InsertToolset }}
-            buildUserName: "dn-bot@microsoft.com"
-            buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            componentUserName: "dn-bot@microsoft.com"
-            componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+            dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
-            titlePrefix: ${{ parameters.OptionalTitlePrefix }}
+            titlePrefix: "[PR - #${{ parameters.PRNumber }}]"
             sourceBranch: $(ComponentBranchName)
+            componentBuildProjectName: $(System.TeamProject)
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'

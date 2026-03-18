@@ -3500,8 +3500,9 @@ public class C
             "_ = new C()[..];"
         };
 
-        foreach (var source in sources)
+        for (int i = 0; i < sources.Length; i++)
         {
+            string source = sources[i];
             var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference(), rangeRef });
             comp.VerifyDiagnostics();
             var used = comp.GetUsedAssemblyReferences();

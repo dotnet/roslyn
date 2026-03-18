@@ -1153,7 +1153,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -5795,7 +5795,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</value>
   </data>
-  <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
+  <data name="ERR_CompilationOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
@@ -8272,8 +8272,44 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</value>
     <comment>'RequiresUnsafeAttribute' is not localizable</comment>
   </data>
+  <data name="ERR_UnsafeConstructorConstraint" xml:space="preserve">
+    <value>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</value>
+    <comment>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</comment>
+  </data>
+  <data name="WRN_UnsafeMeaningless" xml:space="preserve">
+    <value>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</value>
+    <comment>'unsafe' is a keyword, should not be localized.</comment>
+  </data>
+  <data name="WRN_UnsafeMeaningless_Title" xml:space="preserve">
+    <value>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</value>
+    <comment>'unsafe' is a keyword, should not be localized.</comment>
+  </data>
   <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</value>
     <comment>'await foreach' is not localizable</comment>
+  </data>
+  <data name="ERR_ExpressionTreeContainsUnionConversion" xml:space="preserve">
+    <value>An expression tree may not contain a union conversion.</value>
+  </data>
+  <data name="IDS_FeatureUnions" xml:space="preserve">
+    <value>unions</value>
+  </data>
+  <data name="ERR_UnionDeclarationNeedsCaseTypes" xml:space="preserve">
+    <value>A union declaration must specify at least one case type.</value>
+  </data>
+  <data name="ERR_NoImplicitConversionToObject" xml:space="preserve">
+    <value>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</value>
+  </data>
+  <data name="ERR_UnionMatchingWrongPattern" xml:space="preserve">
+    <value>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</value>
+  </data>
+  <data name="ERR_InstanceFieldInUnion" xml:space="preserve">
+    <value>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</value>
+  </data>
+  <data name="ERR_InstanceCtorWithOneParameterInUnion" xml:space="preserve">
+    <value>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</value>
+  </data>
+  <data name="ERR_UnionConstructorCallsDefaultConstructor" xml:space="preserve">
+    <value>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</value>
   </data>
 </root>

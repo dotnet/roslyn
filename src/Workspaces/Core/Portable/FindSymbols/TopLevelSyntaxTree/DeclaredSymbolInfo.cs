@@ -15,6 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
+/// <summary>
+/// When adding a new value, also bump <see cref="AbstractSyntaxIndex{TIndex}.s_serializationFormatChecksum"/>.
+/// </summary>
 internal enum DeclaredSymbolInfoKind : byte
 {
     Class,
@@ -36,6 +39,7 @@ internal enum DeclaredSymbolInfoKind : byte
     Record,
     RecordStruct,
     Struct,
+    Union,
 }
 
 [DataContract]
