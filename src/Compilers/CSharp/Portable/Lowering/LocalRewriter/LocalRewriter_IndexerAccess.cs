@@ -1049,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var rangeSizeLocal = F.StoreToTemp(rangeSizeExpr, out var rangeSizeStore);
                     localsBuilder.Add(rangeSizeLocal.LocalSymbol);
                     sideEffectsBuilder.Add(rangeSizeStore);
-                    rangeSizeExpr = startLocal;
+                    rangeSizeExpr = rangeSizeLocal;
                 }
             }
             else

@@ -213,7 +213,7 @@ internal class ServerCapabilities
     /// <remarks>Since LSP 3.15</remarks>
     [JsonPropertyName("selectionRangeProvider")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SumType<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>? SelectionRangeProvider { get; init; }
+    public SumType<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>? SelectionRangeProvider { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the server supports linked editing range.
