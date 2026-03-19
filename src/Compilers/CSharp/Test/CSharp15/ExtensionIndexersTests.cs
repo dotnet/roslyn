@@ -6944,9 +6944,41 @@ public static class E
     }
 }
 """;
-        // PROTOTYPE revisit implicit indexers on strings and array types
+        // PROTOTYPE revisit implicit indexers on strings and array types (what is the expected behavior?)
         var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
         comp2.VerifyEmitDiagnostics();
+        var verifier2 = CompileAndVerify(comp2);
+        verifier2.VerifyIL("E.M1", """
+{
+  // Code size        9 (0x9)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldlen
+  IL_0003:  conv.i4
+  IL_0004:  ldc.i4.1
+  IL_0005:  sub
+  IL_0006:  ldelem.i4
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+        verifier2.VerifyIL("E.M2", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "System.Index System.Index.op_Implicit(int)"
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     "System.Index..ctor(int, bool)"
+  IL_000e:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0013:  call       "int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)"
+  IL_0018:  pop
+  IL_0019:  ret
+}
+""");
 
         // array type without Length
         src2 = """
@@ -6960,12 +6992,6 @@ public static class E
     public static void M2(int[] i)
     {
         _ = i[1..^1];
-    }
-
-    extension(int[] a)
-    {
-        public int this[System.Index i] { get => throw null; }
-        public int this[System.Range r] { get => throw null; }
     }
 }
 """;

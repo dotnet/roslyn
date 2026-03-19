@@ -3959,7 +3959,7 @@ if (Infer(o1) is [var x])
 object? o2 = null;
 if (Infer(o2) is [.. var y])
 {
-    y.ToString();
+    y.ToString(); // (assumed not-null)
 }
 
 object? o3 = new object();
@@ -3986,10 +3986,7 @@ class C<T>
             comp.VerifyDiagnostics(
                 // 0.cs(7,5): warning CS8602: Dereference of a possibly null reference.
                 //     x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 5),
-                // 0.cs(13,5): warning CS8602: Dereference of a possibly null reference.
-                //     y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(13, 5));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 5));
         }
 
         [Fact]
