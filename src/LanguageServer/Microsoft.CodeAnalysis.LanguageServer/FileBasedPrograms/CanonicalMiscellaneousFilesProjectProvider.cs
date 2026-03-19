@@ -1,8 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
@@ -11,12 +13,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 {
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ILoggerFactory _loggerFactory;
     private readonly AsyncLazy<ImmutableArray<ProjectFileInfo>> _canonicalBuildResult;
     private string? _tempDirectory;
 
-    public CanonicalMiscellaneousFilesProjectProvider(ILoggerFactory loggerFactory)
+    public CanonicalMiscellaneousFilesProjectProvider(LanguageServerWorkspaceFactory workspaceFactory, ILoggerFactory loggerFactory)
     {
+        _workspaceFactory = workspaceFactory;
         _loggerFactory = loggerFactory;
         _canonicalBuildResult = AsyncLazy.Create(LoadCanonicalProjectAsync);
     }
@@ -62,7 +66,11 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], [], null, _loggerFactory);
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+            globalMSBuildProperties: [],
+            binaryLogPathProvider: null,
+            _loggerFactory);
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
 
