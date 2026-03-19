@@ -4761,7 +4761,7 @@ static class C
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart 123"), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
 {
