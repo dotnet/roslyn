@@ -54,11 +54,10 @@ internal sealed class LoadedProject : IDisposable
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
         _projectDirectory = Path.GetDirectoryName(_projectFilePath);
-        if (_projectDirectory is not null)
-        {
-            _sourceFileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
-            _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
-        }
+        _sourceFileChangeContext = fileWatcher.CreateContext(_projectDirectory is not null
+            ? [new(_projectDirectory, [".cs", ".cshtml", ".razor"])]
+            : []);
+        _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
 
         if (_projectFilePath is not null)
         {
@@ -73,7 +72,6 @@ internal sealed class LoadedProject : IDisposable
 
     private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
     {
-        Contract.ThrowIfTrue(_projectDirectory is null);
         var matchers = _mostRecentFileMatchers?.Value;
         if (matchers is null)
         {
@@ -183,14 +181,15 @@ internal sealed class LoadedProject : IDisposable
                 if (PathUtilities.IsAbsolute(document.FilePath))
                     _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders);
                 else
+                    // When the file doesn't have an absolute path, then we think it doesn't exist on disk.
+                    // e.g. it is a virtual document for an unsaved file or similar.
+                    // In this case we just put a SourceTextContainer with empty text for it and rely on the LSP's solution forking to ensure it has up to date text.
                     _projectSystemProject.AddSourceTextContainer(SourceText.From("").Container, document.FilePath, folders: document.Folders);
             },
             document =>
             {
-                if (PathUtilities.IsAbsolute(document.FilePath))
-                    _projectSystemProject.RemoveSourceFile(document.FilePath);
-                else
-                    throw ExceptionUtilities.Unreachable(); // We do not expect to remove a file which is not on disk from the project.
+                Contract.ThrowIfFalse(PathUtilities.IsAbsolute(document.FilePath), "We do not expect to remove a file which is not on disk from the project.");
+                _projectSystemProject.RemoveSourceFile(document.FilePath);
             },
             "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 

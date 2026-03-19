@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -71,6 +72,8 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
     public void Dispose()
     {
         if (_tempDirectory is not null)
-            Directory.Delete(_tempDirectory, recursive: true);
+        {
+            IOUtilities.PerformIO(() => Directory.Delete(_tempDirectory, recursive: true));
+        }
     }
 }

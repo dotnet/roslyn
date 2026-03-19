@@ -29,9 +29,7 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 
     /// <summary>
     /// Removes the document with the given <paramref name="uri"/> from the miscellaneous files workspace.
-    /// If the miscellaneous files workspace already does not contain such a document, does nothing.
-    /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.
-    /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
+    /// 
     /// </summary>
     /// <returns><see langword="true"/> when a document was found and removed</returns>
     ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri);

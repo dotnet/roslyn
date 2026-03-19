@@ -84,7 +84,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             using var token = Listener.BeginAsyncOperation(nameof(HandleEnableFileBasedProgramsChangedAsync));
             try
             {
-                _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
+                _logger.LogDebug($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
                 await UnloadAllProjectsAsync();
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
@@ -95,29 +95,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     }
 
     private static string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
-
-    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
-    {
-        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo.LanguageId, out var languageInformation))
-        {
-            Contract.Fail($"Could not find language information for '{documentUri}'");
-        }
-
-        var documentFilePath = GetDocumentFilePath(documentUri);
-        var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
-        var workspace = _workspaceFactory.MiscellaneousFilesWorkspace;
-        var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
-        var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
-        var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
-        projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
-        var id = projectInfo.Documents.Single().Id;
-        var primordialDoc = workspace.CurrentSolution.GetRequiredDocument(id);
-        var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
-        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
-        return primordialDoc;
-    }
 
     private bool ClassifyAsMiscellaneousFileWithNoReferences(string filePath, LanguageInformation languageInformation)
     {
@@ -165,16 +142,16 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (!PathUtilities.IsAbsolute(filePath))
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
 
-        SourceText sourceText;
-        try
+        SourceText? sourceText = IOUtilities.PerformIO(() =>
         {
             // Note: SourceText.From eagerly reads the entire file
             using var fileStream = File.OpenRead(filePath);
-            sourceText = SourceText.From(fileStream);
-        }
-        catch (FileNotFoundException)
+            return SourceText.From(fileStream);
+        });
+
+        // File had an absolute path but we were unable to read it, due to it not existing or to some other I/O issue.
+        if (sourceText is null)
         {
-            // File had an absolute path but doesn't exist on disk. This is an entirely normal condition.
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
@@ -190,9 +167,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to heuristic detection
 
-        // Note: Option 'EnableFileBasedProgramsWhenAmbiguous' is confusingly named.
-        // What it actually controls is whether to show semantic errors in miscellaneous files with top-level statements and no #: directives.
-        if (!GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        if (!GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles))
         {
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
@@ -201,16 +176,36 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // 7. Are top-level statements present?
         // - No → Classify as Miscellaneous File With Standard References
-        // - Yes → Continue to next check
+        // - Yes → Classify as Miscellaneous File With Standard References and Semantic Errors
 
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
         var containsTopLevelStatements = syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
-        if (!containsTopLevelStatements)
+        return containsTopLevelStatements
+            ? LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors
+            : LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+    }
+
+    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
+    {
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo.LanguageId, out var languageInformation))
         {
-            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+            Contract.Fail($"Could not find language information for '{documentUri}'");
         }
 
-        return LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
+        var documentFilePath = GetDocumentFilePath(documentUri);
+        var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+        var workspace = _workspaceFactory.MiscellaneousFilesWorkspace;
+        var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
+        var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
+        var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+            workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
+        projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
+        var id = projectInfo.Documents.Single().Id;
+        var primordialDoc = workspace.CurrentSolution.GetRequiredDocument(id);
+        var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
+        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
+        return primordialDoc;
     }
 
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
@@ -231,7 +226,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
         // Note: we assume that if we made it this far, the document is for the C# language.
-        var documentKind = await ClassifyDocumentAsync(documentPath, languageId: "csharp", CancellationToken.None);
+        var documentKind = await ClassifyDocumentAsync(documentPath, languageId: "csharp", cancellationToken);
         _logger.LogDebug("Classified '{documentPath}' as '{documentKind}'.", documentPath, documentKind);
 
         if (documentKind == LooseDocumentKind.MiscellaneousFileWithNoReferences)

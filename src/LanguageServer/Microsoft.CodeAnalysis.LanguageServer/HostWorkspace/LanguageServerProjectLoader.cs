@@ -211,7 +211,7 @@ internal abstract class LanguageServerProjectLoader
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken);
+        BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
@@ -364,6 +364,8 @@ internal abstract class LanguageServerProjectLoader
             var projectCreationInfo = new ProjectSystemProjectCreationInfo
             {
                 AssemblyName = projectSystemName,
+                // Note: the project file might be for a virtual file that doesn't exist on disk.
+                // In this case, we don't want to pass its path through here, as this will result in trying to take file system timestamps for it, watch it for changes, etc.
                 FilePath = PathUtilities.IsAbsolute(projectPath) && File.Exists(projectPath) ? projectPath : null,
                 CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
             };
@@ -511,6 +513,7 @@ internal abstract class LanguageServerProjectLoader
                 }
                 else if (loadState1 is ProjectLoadState.LoadedTargets(var existingProjects))
                 {
+                    // Assumption: All 'existingProject' items will use the same project factory.
                     foreach (var existingProject in existingProjects)
                     {
                         if (existingProject.ProjectFactory == fromProjectFactory)

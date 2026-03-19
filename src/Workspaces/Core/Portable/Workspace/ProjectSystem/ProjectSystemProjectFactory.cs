@@ -561,8 +561,8 @@ internal sealed partial class ProjectSystemProjectFactory
             // but metadata references come in later. CanConvertMetadataReferenceToProjectReference isn't terribly expensive
             // but when called enough times things can start to add up.
             if (projectToRetarget.MetadataReferences.Count > 0 &&
-                CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectToRetarget, candidateProjectState) &&
-                TryGetReferenceInformation(projectToRetarget.Id, projectUpdateState, out var projectInfo))
+                TryGetReferenceInformation(projectToRetarget.Id, projectUpdateState, out var projectReferenceInfo) &&
+                CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectToRetarget, candidateProjectState))
             {
                 foreach (var reference in projectToRetarget.MetadataReferences)
                 {
@@ -578,8 +578,8 @@ internal sealed partial class ProjectSystemProjectFactory
 
                         solutionChanges.UpdateSolutionForProjectAction(projectToRetarget.Id, newSolution);
 
-                        projectInfo = projectInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference);
-                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectToRetarget.Id, projectInfo);
+                        projectReferenceInfo = projectReferenceInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference);
+                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectToRetarget.Id, projectReferenceInfo);
 
                         // We have converted one, but you could have more than one reference with different aliases that
                         // we need to convert, so we'll keep going

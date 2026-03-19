@@ -28,5 +28,5 @@ internal static class LanguageServerProjectSystemOptionsStorage
     /// <summary>
     /// Controls whether to show semantic errors in miscellaneous files with top-level statements and no #: directives.
     /// </summary>
-    public static readonly Option2<bool> EnableFileBasedProgramsWhenAmbiguous = new("dotnet_enable_file_based_programs_when_ambiguous", defaultValue: true, s_optionGroup);
+    public static readonly Option2<bool> EnableSemanticErrorsInMiscellaneousFiles = new("dotnet_enable_file_based_programs_when_ambiguous", defaultValue: true, s_optionGroup);
 }
