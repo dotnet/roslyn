@@ -203,7 +203,7 @@ extends:
               $email = git log -1 --pretty=format:"%ae" ${{ parameters.CommitSHA }}
               $parts = $email -split '@', 2
               $localPart = $parts[0]
-              $prTitlePrefix = "[PR - #${{ parameters.PRNumber }} $localPart]"
+              $prTitlePrefix = "[PR #${{ parameters.PRNumber }} $localPart]"
               Write-Host "##vso[task.setvariable variable=PRTitlePrefix;isoutput=true;isreadonly=true]$prTitlePrefix"
 
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(OriginalBuildNumber)"
