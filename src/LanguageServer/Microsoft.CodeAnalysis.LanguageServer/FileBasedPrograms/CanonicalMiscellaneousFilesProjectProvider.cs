@@ -67,15 +67,33 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
+
+        var logger = _loggerFactory.CreateLogger<CanonicalMiscellaneousFilesProjectProvider>();
+        var knownCommandLineParserLanguages = _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
+        if (knownCommandLineParserLanguages is [])
+        {
+            logger.LogError("No languages found to load canonical project with.");
+        }
+
         await using var buildHostProcessManager = new BuildHostProcessManager(
-            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+            knownCommandLineParserLanguages,
             globalMSBuildProperties: [],
             binaryLogPathProvider: null,
             _loggerFactory);
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
 
-        return await loadedFile.GetProjectFileInfosAsync(cancellationToken);
+        var projectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
+        foreach (var projectFileInfo in projectFileInfos)
+        {
+            logger.LogDebug("Loaded canonical project with {projectFileInfo.Documents.Length} documents:", projectFileInfo.Documents.Length);
+            foreach (var document in projectFileInfo.Documents)
+            {
+                logger.LogDebug("- {document.FilePath}", document.FilePath);
+            }
+        }
+
+        return projectFileInfos;
     }
 
     public void Dispose()
