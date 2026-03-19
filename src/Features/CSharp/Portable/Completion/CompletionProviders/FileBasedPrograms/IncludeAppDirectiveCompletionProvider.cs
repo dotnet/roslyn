@@ -22,9 +22,8 @@ using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(IncludeAppDirectiveCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(IncludeAppDirectiveCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(ProjectAppDirectiveCompletionProvider))]
-[Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class IncludeAppDirectiveCompletionProvider() : AbstractAppDirectiveCompletionProvider
@@ -39,8 +38,8 @@ internal sealed class IncludeAppDirectiveCompletionProvider() : AbstractAppDirec
                 new(SymbolDisplayPartKind.Space, symbol: null, " "),
                 new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Include_directive_file_path),
                 new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),
-                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Adds_a_project_reference),
-                ]));
+                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Adds_a_file_reference),
+            ]));
     }
 
     protected override async Task AddDirectiveContentCompletionsAsync(CompletionContext context, ReadOnlyMemory<char> contentPrefix)
@@ -48,18 +47,16 @@ internal sealed class IncludeAppDirectiveCompletionProvider() : AbstractAppDirec
         // Suppose we have a directive '#:include path/to/fi$$'
         // In this case, 'contentPrefix' is 'path/to/fi'.
 
-        // Note: in the future, we may wish to use '<FileBasedProgramsItemMapping>' property
-        // as a hint for which file extensions to show in this completion.
-        // For now, we just allow any extension, and if user chooses a file with invalid extension, they'll just get a build error.
-        ImmutableArray<string> allowableExtensions = [];
-
         var documentDirectory = PathUtilities.GetDirectoryName(context.Document.FilePath);
         var fileSystemHelper = new FileSystemCompletionHelper(
             Glyph.OpenFolder,
             Glyph.CSharpFile,
             searchPaths: [],
             baseDirectory: PathUtilities.IsAbsolute(documentDirectory) ? documentDirectory : null,
-            allowableExtensions,
+            // Note: in the future, we may wish to use '<FileBasedProgramsItemMapping>' property
+            // as a hint for which file extensions to show in this completion.
+            // For now, we just allow any extension, and if user chooses a file with invalid extension, they'll just get a build error.
+            allowableExtensions: [],
             CompletionItemRules.Default);
 
         var contentDirectory = PathUtilities.GetDirectoryName(contentPrefix.ToString());
