@@ -150,7 +150,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             Contract.Fail($"Could not find language information for '{filePath}'");
         }
 
-        // roslyn/docs/features/file-based-programs-vscode.md
+        // The design of this is described in docs/features/file-based-programs-vscode.md
         // Note: Step (1) is skipped, as we assume a first-chance lookup in the host workspace will handle this case.
 
         // Steps (2) and (3)
