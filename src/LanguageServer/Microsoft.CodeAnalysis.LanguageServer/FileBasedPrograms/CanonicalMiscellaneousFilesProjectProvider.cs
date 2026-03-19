@@ -53,7 +53,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         var virtualProjectXml = $"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
-                <TargetFramework>$(BundledNETCoreAppTargetFramework)</TargetFramework>
+                <TargetFramework>net$(BundledNETCoreAppTargetFrameworkVersion)</TargetFramework>
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
                 <Features>$(Features);FileBasedProgram</Features>
