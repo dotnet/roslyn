@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -156,8 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // PERF: Not using ArrayBuilder as the value in this dictionary as these arrays commonly
                         // exceed the builder threshold. Instead, calculate the number of SingleNamespaceDeclaration
-                        // for each name and create an exactly sized IA.Builder.
-                        var namespaceGroups = PooledDictionary<string, ImmutableArray<SingleNamespaceDeclaration>.Builder>.GetInstance();
+                        // for each name and create an exactly sized array.
+                        var namespaceGroups = PooledDictionary<string, (SingleNamespaceDeclaration[] Declarations, int Index)>.GetInstance();
                         var namespaceCounts = PooledDictionary<string, int>.GetInstance();
 
                         // First pass - collect the number of times each name is present
@@ -171,20 +172,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Second pass - populate the mapping from name to collection of matching SingleNamespaceDeclaration 
                         foreach (var n in namespaces)
                         {
-                            if (!namespaceGroups.TryGetValue(n.Name, out var builder))
-                            {
-                                var count = namespaceCounts[n.Name];
-                                builder = ImmutableArray.CreateBuilder<SingleNamespaceDeclaration>(count);
-                                namespaceGroups[n.Name] = builder;
-                            }
+                            var name = n.Name;
+                            var (declarations, index) = namespaceGroups.TryGetValue(name, out var declAndIndex)
+                                ? declAndIndex
+                                : (new SingleNamespaceDeclaration[namespaceCounts[name]], 0);
 
-                            builder.Add(n);
+                            declarations[index] = n;
+                            namespaceGroups[name] = (declarations, index + 1);
                         }
 
                         // Third pass - Create MergedNamespaceDeclaration from collections of matching SingleNamespaceDeclaration
                         foreach (var (_, namespaceGroup) in namespaceGroups)
                         {
-                            children.Add(MergedNamespaceDeclaration.Create(namespaceGroup.MoveToImmutable()));
+                            var declarations = ImmutableCollectionsMarshal.AsImmutableArray(namespaceGroup.Declarations);
+                            children.Add(MergedNamespaceDeclaration.Create(declarations));
                         }
 
                         namespaces.Free();
