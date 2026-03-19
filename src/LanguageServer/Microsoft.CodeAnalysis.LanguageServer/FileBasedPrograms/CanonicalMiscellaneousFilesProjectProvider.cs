@@ -84,6 +84,11 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
 
         var projectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
+        if (projectFileInfos is [])
+        {
+            logger.LogError("Did not obtain any ProjectFileInfos to load canonical project with.");
+        }
+
         foreach (var projectFileInfo in projectFileInfos)
         {
             logger.LogDebug("Loaded canonical project with {projectFileInfo.Documents.Length} documents:", projectFileInfo.Documents.Length);
