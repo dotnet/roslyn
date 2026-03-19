@@ -703,10 +703,11 @@ namespace System.Runtime.CompilerServices
         protected static readonly string MemorySafetyRulesAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
+                [AttributeUsage(AttributeTargets.Module, Inherited = false, AllowMultiple = false)] 
                 public sealed class MemorySafetyRulesAttribute : Attribute
                 {
                     public MemorySafetyRulesAttribute(int version) { Version = version; }
-                    public int Version;
+                    public int Version { get; }
                 }
             }
             """;

@@ -528,14 +528,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public struct Void;
                 public struct Int32;
                 public struct Boolean;
-                public class AttributeUsageAttribute
+                public class AttributeUsageAttribute : Attribute
                 {
                     public AttributeUsageAttribute(AttributeTargets t) { }
                     public bool AllowMultiple { get; set; }
                     public bool Inherited { get; set; }
                 }
                 public class Enum;
-                public enum AttributeTargets;
+                public enum AttributeTargets
+                {
+                    Module = 2
+                }
             }
             """;
 
@@ -797,6 +800,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         comp = CreateCompilation(source, [ref1], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
         comp.VerifyDiagnostics(
+            // (2,12): error CS0592: Attribute 'MemorySafetyRules' is not valid on this declaration type. It is only valid on 'module' declarations.
+            // [assembly: MemorySafetyRules(2)]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "MemorySafetyRules").WithArguments("MemorySafetyRules", "module").WithLocation(2, 12),
             // (3,10): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
             // [module: MemorySafetyRules(2)]
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(3, 10));
