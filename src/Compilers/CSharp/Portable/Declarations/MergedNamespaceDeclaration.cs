@@ -161,36 +161,81 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var namespaceGroups = PooledDictionary<string, (SingleNamespaceDeclaration[] Declarations, int Index)>.GetInstance();
                         var namespaceCounts = PooledDictionary<string, int>.GetInstance();
 
-                        // First pass - collect the number of times each name is present
-                        foreach (var n in namespaces)
-                        {
-                            namespaceCounts[n.Name] = namespaceCounts.TryGetValue(n.Name, out var count)
-                                ? count + 1
-                                : 1;
-                        }
+                        // First pass - collect the number of times each namespace name is present
+                        populateNamespaceCounts(namespaces, namespaceCounts);
 
-                        // Second pass - populate the mapping from name to collection of matching SingleNamespaceDeclaration 
-                        foreach (var n in namespaces)
-                        {
-                            var name = n.Name;
-                            var (declarations, index) = namespaceGroups.TryGetValue(name, out var declAndIndex)
-                                ? declAndIndex
-                                : (new SingleNamespaceDeclaration[namespaceCounts[name]], 0);
+                        // Second pass - populate the mapping from namespace name to matching namespace declarations
+                        populateNamespaceGroups(namespaces, namespaceGroups, namespaceCounts);
 
-                            declarations[index] = n;
-                            namespaceGroups[name] = (declarations, index + 1);
-                        }
-
-                        // Third pass - Create MergedNamespaceDeclaration from collections of matching SingleNamespaceDeclaration
-                        foreach (var (_, namespaceGroup) in namespaceGroups)
-                        {
-                            var declarations = ImmutableCollectionsMarshal.AsImmutableArray(namespaceGroup.Declarations);
-                            children.Add(MergedNamespaceDeclaration.Create(declarations));
-                        }
+                        // Third pass - populate the children collection based on the namespace groupings
+                        populateChildren(children, namespaceGroups);
 
                         namespaces.Free();
                         namespaceCounts.Free();
                         namespaceGroups.Free();
+                    }
+                }
+
+                static void populateNamespaceCounts(ArrayBuilder<SingleNamespaceDeclaration> namespaces, PooledDictionary<string, int> namespaceCounts)
+                {
+                    var name = namespaces[0].Name;
+                    var count = 0;
+
+                    foreach (var n in namespaces)
+                    {
+                        // Slight optimization as same named namespaces are likely grouped together. This is a high-traffic codepath
+                        // and this reduces dictionary lookups
+                        if (n.Name != name)
+                        {
+                            // Write out to the dictionary the updated count for name
+                            namespaceCounts[name] = count;
+
+                            name = n.Name;
+                            count = namespaceCounts.TryGetValue(name, out var oldCount) ? oldCount : 0;
+                        }
+
+                        count++;
+                    }
+
+                    // Write out to the dictionary the updated count for name
+                    namespaceCounts[name] = count;
+                }
+
+                static void populateNamespaceGroups(ArrayBuilder<SingleNamespaceDeclaration> namespaces, PooledDictionary<string, (SingleNamespaceDeclaration[] Declarations, int Index)> namespaceGroups, PooledDictionary<string, int> namespaceCounts)
+                {
+                    var name = namespaces[0].Name;
+                    var declarations = new SingleNamespaceDeclaration[namespaceCounts[name]];
+                    var index = 0;
+
+                    foreach (var n in namespaces)
+                    {
+                        // Slight optimization as same named namespaces are likely grouped together. This is a high-traffic codepath
+                        // and this reduces dictionary lookups and writes
+                        if (n.Name != name)
+                        {
+                            // Write out to the dictionary the updated declarations and index for name
+                            namespaceGroups[name] = (declarations, index);
+
+                            name = n.Name;
+                            (declarations, index) = namespaceGroups.TryGetValue(name, out var declAndIndex)
+                                ? declAndIndex
+                                : (new SingleNamespaceDeclaration[namespaceCounts[name]], 0);
+                        }
+
+                        declarations[index] = n;
+                        index++;
+                    }
+
+                    // Write out to the dictionary the updated declarations and index for name
+                    namespaceGroups[name] = (declarations, index);
+                }
+
+                static void populateChildren(ArrayBuilder<MergedNamespaceOrTypeDeclaration> children, PooledDictionary<string, (SingleNamespaceDeclaration[] Declarations, int Index)> namespaceGroups)
+                {
+                    foreach (var (_, namespaceGroup) in namespaceGroups)
+                    {
+                        var declarations = ImmutableCollectionsMarshal.AsImmutableArray(namespaceGroup.Declarations);
+                        children.Add(MergedNamespaceDeclaration.Create(declarations));
                     }
                 }
             }
