@@ -22,7 +22,6 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
                 enforceOnBuild: EnforceOnBuild.Never,
                 title: DiagnosticId,
                 messageFormat: "{0}",
-                hasAnyCodeStyleOption: false,
                 isUnnecessary: false,
                 isEnabledByDefault: true,
                 isConfigurable: false,

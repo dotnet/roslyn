@@ -26,13 +26,12 @@ internal abstract class AbstractRemoveUnnecessaryAttributeSuppressionsDiagnostic
     private static readonly DiagnosticDescriptor s_invalidScopeDescriptor = CreateDescriptor(
         IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId,
         EnforceOnBuildValues.InvalidSuppressMessageAttribute,
-        s_localizableTitle, s_localizableInvalidScopeMessage,
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        s_localizableTitle, s_localizableInvalidScopeMessage, isUnnecessary: true);
     private static readonly DiagnosticDescriptor s_invalidOrMissingTargetDescriptor = CreateDescriptor(
         IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId,
         EnforceOnBuildValues.InvalidSuppressMessageAttribute,
         s_localizableTitle, s_localizableInvalidOrMissingTargetMessage,
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        isUnnecessary: true);
 
     private static readonly LocalizableResourceString s_localizableLegacyFormatTitle = new(
        nameof(AnalyzersResources.Avoid_legacy_format_target_in_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
@@ -42,7 +41,7 @@ internal abstract class AbstractRemoveUnnecessaryAttributeSuppressionsDiagnostic
         IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId,
         EnforceOnBuildValues.LegacyFormatSuppressMessageAttribute,
         s_localizableLegacyFormatTitle, s_localizableLegacyFormatMessage,
-        hasAnyCodeStyleOption: false, isUnnecessary: false);
+        isUnnecessary: false);
 
     protected AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer()
         : base([s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor], GeneratedCodeAnalysisFlags.None)

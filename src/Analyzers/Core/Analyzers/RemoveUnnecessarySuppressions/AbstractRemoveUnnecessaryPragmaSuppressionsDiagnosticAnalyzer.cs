@@ -31,7 +31,7 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
         IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId,
         EnforceOnBuildValues.RemoveUnnecessaryPragmaSuppression,
         s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression,
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        isUnnecessary: true);
 
     private readonly Lazy<ImmutableHashSet<int>> _lazySupportedCompilerErrorCodes;
 
