@@ -368,7 +368,7 @@ internal ref partial struct Worker
             if (directiveKind.Equals("sdk".AsSpan(), StringComparison.Ordinal)
                 || directiveKind.Equals("package".AsSpan(), StringComparison.Ordinal))
             {
-                // #:kind name=value
+                // #:kind name@value
                 //        ^^^^^^^^^^
                 ClassifyAppDirectiveNameAndOptionalSeparatorValue(node.Content.SpanStart, contentText, nameStart, '@');
             }
