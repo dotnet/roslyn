@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsInsideNameof => NextRequired.IsInsideNameof;
 
-        internal static bool IsObjectInitializerMemberLvalue(SyntaxNode node)
+        internal static bool IsObjectInitializerMemberTarget(SyntaxNode node)
         {
             while (node.Parent is { } parent)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
 
                     case BracketedArgumentListSyntax:
-                        // We cut off inside the indexer argument list of a an object initializer so
+                        // We cut off inside the indexer argument list of an object initializer so
                         // things like "new C().StaticProp" get standard error messages, rather than
                         // the object initializer specific error CS1914.
                         return false;

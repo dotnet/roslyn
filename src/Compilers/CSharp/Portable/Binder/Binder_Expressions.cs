@@ -5844,12 +5844,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression)
                 MessageID.IDS_FeatureObjectInitializer.CheckFeatureAvailability(diagnostics, initializerSyntax.OpenBraceToken);
 
-            // Binding object initializer field/property access needs object initializer specific diagnostics:
-            //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
-            //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
-            //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
-            // These only apply on the left side of an object initializer member assignment, not the RHS.
-
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
             // Member name map to report duplicate assignments to a field/property.
@@ -5883,12 +5877,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SimpleAssignmentExpression:
                     {
                         var initializer = (AssignmentExpressionSyntax)memberInitializer;
-
-                        // Binding the left side of an object initializer member assignment needs object initializer specific diagnostics:
-                        //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
-                        //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
-                        //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
-                        // See comments in BindObjectInitializerExpression for more details.
 
                         BoundExpression boundLeft = BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
 
@@ -6431,8 +6419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    collectionInitializerAddMethodBinder is used only for binding the Add method invocation expression, but not the entire initializer.
                 // NOTE:    Hence it is being passed as a parameter to BindCollectionInitializerElement().
                 // NOTE:    Ideally we would want to avoid this and bind the entire initializer with the collectionInitializerAddMethodBinder.
-                // NOTE:    However, this approach has few issues. These issues also occur when binding object initializer member assignments.
-                // NOTE:    See comments in BindObjectInitializerExpression method for details about the pitfalls of alternate approaches.
+                // NOTE:    However, this approach has few issues. These same issues also occur when binding object initializer member assignments.
 
                 BoundExpression boundElementInitializer = BindCollectionInitializerElement(elementInitializer, initializerType,
                     hasEnumerableInitializerType, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver);
@@ -9420,7 +9407,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!IsInsideNameof)
                     {
-                        ErrorCode errorCode = IsObjectInitializerMemberLvalue(node) ?
+                        // Binding object initializer field/property access needs object initializer specific diagnostics:
+                        //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
+                        //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
+                        //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
+                        // These only apply on the left side of an object initializer member assignment, not the RHS.
+                        ErrorCode errorCode = IsObjectInitializerMemberTarget(node) ?
                             ErrorCode.ERR_StaticMemberInObjectInitializer :
                             ErrorCode.ERR_ObjectProhibited;
                         Error(diagnostics, errorCode, node, symbol);
