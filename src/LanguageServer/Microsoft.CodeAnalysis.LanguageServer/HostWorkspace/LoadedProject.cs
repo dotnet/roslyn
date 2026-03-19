@@ -24,7 +24,7 @@ internal sealed class LoadedProject : IDisposable
     private readonly ProjectSystemProject _projectSystemProject;
     public ProjectSystemProjectFactory ProjectFactory { get; }
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
-    private readonly IFileChangeContext? _sourceFileChangeContext;
+    private readonly IFileChangeContext? _sourceFileCreatedOrDeletedChangeContext;
     private readonly IFileChangeContext? _projectFileChangeContext;
     private readonly IFileChangeContext _assetsFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
@@ -54,10 +54,11 @@ internal sealed class LoadedProject : IDisposable
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
         _projectDirectory = Path.GetDirectoryName(_projectFilePath);
-        _sourceFileChangeContext = fileWatcher.CreateContext(_projectDirectory is not null
-            ? [new(_projectDirectory, [".cs", ".cshtml", ".razor"])]
-            : []);
-        _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
+        if (_projectDirectory is not null)
+        {
+            _sourceFileCreatedOrDeletedChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
+            _sourceFileCreatedOrDeletedChangeContext.FileChanged += SourceFileCreatedOrDeletedChangeContext_FileChanged;
+        }
 
         if (_projectFilePath is not null)
         {
@@ -70,10 +71,12 @@ internal sealed class LoadedProject : IDisposable
         _assetsFileChangeContext.FileChanged += AssetsFileChangeContext_FileChanged;
     }
 
-    private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
+    private void SourceFileCreatedOrDeletedChangeContext_FileChanged(object? sender, string filePath)
     {
+        Contract.ThrowIfNull(_projectDirectory);
+
         var matchers = _mostRecentFileMatchers?.Value;
-        if (matchers is null || _projectDirectory is null)
+        if (matchers is null)
         {
             return;
         }
@@ -132,7 +135,7 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     public void Dispose()
     {
-        _sourceFileChangeContext?.Dispose();
+        _sourceFileCreatedOrDeletedChangeContext?.Dispose();
         _projectFileChangeContext?.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
