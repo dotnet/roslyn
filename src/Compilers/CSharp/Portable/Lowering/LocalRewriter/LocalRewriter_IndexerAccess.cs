@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -930,6 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (startStrategy == PatternIndexOffsetLoweringStrategy.SubtractFromLength)
                         {
+                            Debug.Assert(startMakeOffsetInput is not null);
                             storeExpressionIfNotConstant(ref startMakeOffsetInput, localsBuilder, sideEffectsBuilder);
                         }
 
@@ -1010,11 +1011,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((rewriteFlags & captureStartOffset) != 0)
                 {
+                    Debug.Assert(startMakeOffsetInput is not null);
                     storeExpressionIfNotConstant(ref startMakeOffsetInput, localsBuilder, sideEffectsBuilder);
                 }
 
                 if ((rewriteFlags & captureEndOffset) != 0)
                 {
+                    Debug.Assert(endMakeOffsetInput is not null);
                     storeExpressionIfNotConstant(ref endMakeOffsetInput, localsBuilder, sideEffectsBuilder);
                 }
 
@@ -1067,10 +1070,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenIndexerAccess;
 
-            void storeExpressionIfNotConstant(ref BoundExpression? expression, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
+            void storeExpressionIfNotConstant([DisallowNull] ref BoundExpression? expression, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
             {
-                Debug.Assert(expression is not null);
-                if (expression!.ConstantValueOpt is null)
+                if (expression.ConstantValueOpt is null)
                 {
                     expression = this._factory.StoreToTemp(expression, out BoundAssignmentOperator store);
                     localsBuilder.Add(((BoundLocal)expression).LocalSymbol);
