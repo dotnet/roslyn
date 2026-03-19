@@ -186,17 +186,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <seealso cref="AnalyzerActions"/>
         private AnalyzerActions _lazyAnalyzerActions;
 
-        private ImmutableHashSet<DiagnosticAnalyzer>? _lazyNonConfigurableAndCustomConfigurableAnalyzers;
+        private ImmutableHashSet<DiagnosticAnalyzer>? _lazyNonConfigurableAnalyzers;
 
         /// <summary>
-        /// Set of unsuppressed analyzers that report non-configurable or custom configurable diagnostics that cannot be suppressed with end user configuration.
+        /// Set of unsuppressed analyzers that report non-configurable diagnostics that cannot be suppressed with end user configuration.
         /// </summary>
-        private ImmutableHashSet<DiagnosticAnalyzer> NonConfigurableAndCustomConfigurableAnalyzers
+        private ImmutableHashSet<DiagnosticAnalyzer> NonConfigurableAnalyzers
         {
             get
             {
-                Debug.Assert(_lazyNonConfigurableAndCustomConfigurableAnalyzers != null);
-                return _lazyNonConfigurableAndCustomConfigurableAnalyzers;
+                Debug.Assert(_lazyNonConfigurableAnalyzers != null);
+                return _lazyNonConfigurableAnalyzers;
             }
         }
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     (_lazyAnalyzerActions, _lazyUnsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyAnalyzerGateMap = await CreateAnalyzerGateMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
-                    _lazyNonConfigurableAndCustomConfigurableAnalyzers = ComputeNonConfigurableAndCustomConfigurableAnalyzers(UnsuppressedAnalyzers, cancellationToken);
+                    _lazyNonConfigurableAnalyzers = ComputeNonConfigurableAnalyzers(UnsuppressedAnalyzers, cancellationToken);
                     _lazySymbolStartAnalyzers = ComputeSymbolStartAnalyzers(UnsuppressedAnalyzers);
                     _lazyGeneratedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyTreatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap);
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return null;
         }
 
-        private ImmutableHashSet<DiagnosticAnalyzer> ComputeNonConfigurableAndCustomConfigurableAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers, CancellationToken cancellationToken)
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeNonConfigurableAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers, CancellationToken cancellationToken)
         {
             var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
             foreach (var analyzer in unsuppressedAnalyzers)
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor, cancellationToken);
                 foreach (var descriptor in descriptors)
                 {
-                    if (descriptor.IsNotConfigurable() || descriptor.IsCustomSeverityConfigurable())
+                    if (descriptor.IsNotConfigurable())
                     {
                         builder.Add(analyzer);
                         break;
@@ -1382,9 +1382,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableHashSet<DiagnosticAnalyzer>.Builder? suppressedAnalyzersBuilder = null;
             foreach (var analyzer in UnsuppressedAnalyzers)
             {
-                if (NonConfigurableAndCustomConfigurableAnalyzers.Contains(analyzer))
+                if (NonConfigurableAnalyzers.Contains(analyzer))
                 {
-                    // Analyzers reporting non-configurable or custom configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
+                    // Analyzers reporting non-configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
                     continue;
                 }
 
