@@ -101,9 +101,13 @@ This is the decision tree for determining how to classify a C# file:
 
 7. **Are top-level statements present?**
    - **No** → Classify as **Miscellaneous File With Standard References**
-   - **Yes** → **Miscellaneous File With Standard References and Semantic Errors**
+   - **Yes** → Continue to next check
 
-NOTE: the csproj-in-cone check is pending here for implementation in a future PR.
+8. **Is the file included in a `.csproj` cone?**
+   - "Cone" means that a containing directory, at some level of nesting, has a `.csproj` file in it.
+   - Note that this specific check is only performed at the time the file is opened. We think that the typical case is that the user will load a new project they are creating. Loading the project will cause the file to start being treated as project-based app per (1). If the user does not load the new project, then stale diagnostics may remain present until the file is closed and re-opened.
+   - **Yes** → Classify as **Miscellaneous File With Standard References** (wait for project to load)
+   - **No** → Classify as **Miscellaneous File With Standard References and Semantic Errors**
 
 ### Opt-out
 

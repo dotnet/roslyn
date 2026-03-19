@@ -176,13 +176,25 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // 7. Are top-level statements present?
         // - No → Classify as Miscellaneous File With Standard References
-        // - Yes → Classify as Miscellaneous File With Standard References and Semantic Errors
+        // - Yes → Continue to next check
 
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
         var containsTopLevelStatements = syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
-        return containsTopLevelStatements
-            ? LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors
-            : LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+        if (!containsTopLevelStatements)
+        {
+            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+        }
+
+        // 8. Is the file included in a `.csproj` cone?
+        // - Yes → Classify as Miscellaneous File With Standard References (wait for project to load)
+        // - No → Classify as Miscellaneous File With Standard References and Semantic Errors
+        var csprojInConeChecker = _lspServices.GetRequiredService<CsprojInConeChecker>();
+        if (csprojInConeChecker.IsContainedInCsprojCone(filePath))
+        {
+            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+        }
+
+        return LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
     }
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
