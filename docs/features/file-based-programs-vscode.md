@@ -142,42 +142,15 @@ In this case we want the user to do one of 2 things to resolve the issue:
 
 We expect the appropriate project system(s) to be able to observe either of the above changes and move the workspace into a "healthy" state once the user has corrected the error.
 
-### `LspWorkspaceManager.GetLspDocumentInfoAsync()`
-
-Today, the way file-based apps are discovered and loaded, is by opening them in the editor, and by LSP requests coming in for them.
-
-`GetLspDocumentInfoAsync` is the point where we may perform the checks defined in [File-based app detection](#file-based-app-detection), to decide how to handle the files.
-
-This section "translates" those detection steps, into steps involving more specific implementation details.
-
-1) Do a lookup in the host workspace (any *non-miscellaneous files* workspace) for the document by URI. Use the *active project context* to provide the document for the desired project/TFM.
-    - If we find the document here, we just unload the same document URI from the misc files workspace, if it exists and we're done. This is a long-standing existing behavior.
-    - This effectively handles the *project-based app* classification above, and that classification doesn't need an explicit representation in the implementation code.
-2) We didn't find it in the host workspace. Now we need to do a *classification* as either a file-based app or some flavor of miscellaneous file. Refer to steps defined in [File-based app detection](#file-based-app-detection).
-   - Note that this classification effectively happens every time the file is edited, because new requests will keep coming in for it.
-   - If the file is classified as any of the •miscellaneous file* classifications: simply get or load it in the `CanonicalMiscFilesProjectLoader`. Depending on presence of top-level statements, potentially adjust the `HasAllInformation` flag on the workspaces project for the file.
-   - If the file is classified as a file-based app: begin loading it using the `FileBasedProgramsProjectSystem`.
-
-### `CanonicalMiscFilesProjectLoader`
-
-This component handles loading files with the following classifications.
-- **Miscellaneous File**
-- **Miscellaneous File With Standard References**
-- **Miscellaneous File With Standard References and Semantic Errors**
-
-The way it works is: an empty `Canonical.cs` file is dropped into a temp location on disk, and it is design-time built as if it is a blank console app.
-
-The resulting project contains a standard set of references and compiler flags for the current SDK. This is used as a "base project" for miscellaneous files.
-
 ### `FileBasedProgramsProjectSystem`
 
-Loads file-based programs. i.e. it uses the entry point file, translates it to a virtual msbuild project, then runs a design-time build on that project. If it detects missing assets, it may also restore the virtual project.
+Manages projects for file-based programs and miscellaneous files.
+
+This project system effectively performs the classification process described in [File-based app detection](#file-based-app-detection) when a design-time build is performed for the project, and transitions the state of the project to match the latest classification.
+
+This uses the file-based program entry point file, translates it to a virtual msbuild project, then runs a design-time build on that project. If it detects missing assets, it may also restore the virtual project.
 
 It uses file watchers to watch the project globs and redo the design time build on relevant changes, such as changes to `#:` directives.
-
-Note that in a previous section, we stated that a file becomes a file-based app from the editor's POV, when `#:` directives are added to it. The opposite also happens when all the directives are deleted from it--it stops being a file-based app, and essentially goes back to being a miscellaneous file.
-
-This project system has the responsibility of unloading the file implicitly, if it notices all the directives were deleted from it. This allows us to proceed with a "simple" lookup behavior in `GetLspDocumentInfoAsync()`, while still catching cases where files changed classification from file-based app to something else.
 
 ## Future considerations
 
@@ -189,11 +162,9 @@ This section is not intended to serve as permanent documentation but as more of 
 
 We may want to make a change in the future, to stop using this designation for files which exist on disk, and instead classify files not part of an ordinary project, containing top-level statements, and with no csproj-in-cone, as being file-based apps. This would improve accuracy in the editor in certain cases, and make it easier to do things like avoid showing the *This is a miscellanous file, things may be broken* popup.
 
-This designation does enable some potentially useful things, such as the ability to provide semantic errors in files that have not been saved to disk. We may find it interesting to allow running such files in the editor. See https://github.com/microsoft/vscode-dotnettools/issues/2792.
-
 ### Allowing non-entry-point files to contain `#:` directives
 
-We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points. Likely the presence of top-level statements would be used for this.
+We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points. We think we want users to use a `#!` at the top of the file, in this case, to indicate that it is an entry point.
 
 ### Checking top-level statements presence without doing a full parse
 
@@ -207,15 +178,7 @@ In situations where the user opens an ordinary file `#:include`d by a file-based
 
 We are considering various methods for accomplishing this, such as:
 - performing a "crawl" of `.cs` files in the workspace which are outside any `.csproj` cone, and:
-   - cracking the `.cs` files to check for `#:` directives, or, possibly requiring a naming convention such as `MyTool.app.cs`
+   - cracking the `.cs` files to check for `#:` or `#!` directives, or, possibly requiring a naming convention such as `MyTool.app.cs`
 - or introducing some convention for listing the paths of file-based apps in a discoverable location. (smells very strongly like a solution file).
 
 It feels like "low-configuration, low-ceremony, simple conventions", is the norm for file-based apps. So, it feels like doing a crawl which includes some heuristics to ignore files that are very likely not file-based app entry points, may be viable here. We just need to do the work and prove it out.
-
-### Need for *primordial state*
-
-The FileBasedProgramsProjectLoader uses a special ProjectLoadState, called `Primordial`, to ensure that when the first design-time build finishes, we know which project to unload from which workspace, to ensure the correct project is looked up the next time a document is requested.
-
-However, it seems like with an approach of "file-based app projects are just projects", the existing approach of "first-chance lookup in host workspace, and unload from misc workspace if we get a hit", would work to accomplish that, just like it does with ordinary projects.
-
-This would probably be accompanied by a (simplifying) change to `CanonicalMiscFilesProjectLoader`, which would have it use `LanguageServerProjectLoader` functionality only for loading the canonical project, and otherwise use direct interaction with the workspace instead of tracking a "project load state" for miscellaneous files which will never be design-time built.  (Note that this would probably cause this loader to more closely resemble its original design.)

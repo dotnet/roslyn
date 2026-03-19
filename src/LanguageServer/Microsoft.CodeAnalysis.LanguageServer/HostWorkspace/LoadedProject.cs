@@ -73,7 +73,7 @@ internal sealed class LoadedProject : IDisposable
     private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
     {
         var matchers = _mostRecentFileMatchers?.Value;
-        if (matchers is null)
+        if (matchers is null || _projectDirectory is null)
         {
             return;
         }
@@ -84,7 +84,6 @@ internal sealed class LoadedProject : IDisposable
             // CPS re-creates the msbuild globs from the includes/excludes/removes and the project XML directory and
             // ignores the MSBuildGlob.FixedDirectoryPart.  We'll do the same here and match using the project directory as the relative path.
             // See https://devdiv.visualstudio.com/DevDiv/_git/CPS?path=/src/Microsoft.VisualStudio.ProjectSystem/Build/MsBuildGlobFactory.cs
-            Contract.ThrowIfNull(_projectDirectory);
             var relativeDirectory = _projectDirectory;
 
             var matches = matcher.Match(relativeDirectory, filePath);

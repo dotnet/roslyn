@@ -39,6 +39,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         {
             FilePath = miscDocumentPath,
             Documents = info.Documents.Add(miscDocFileInfo),
+            FileGlobs = [],
         });
 
         return forkedInfos;
