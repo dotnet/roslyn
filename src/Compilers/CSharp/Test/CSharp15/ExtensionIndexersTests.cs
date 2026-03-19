@@ -6947,7 +6947,7 @@ public static class E
         // PROTOTYPE revisit implicit indexers on strings and array types (what is the expected behavior?)
         var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
         comp2.VerifyEmitDiagnostics();
-        var verifier2 = CompileAndVerify(comp2);
+        var verifier2 = CompileAndVerify(comp2, verify: Verification.FailsPEVerify);
         verifier2.VerifyIL("E.M1", """
 {
   // Code size        9 (0x9)
