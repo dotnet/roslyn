@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // Same type may be represented by multiple instances.
                 // Therefore the use of "Equals" here.
                 return _constraints == other._constraints &&
-                    (_type == other._type || _type.Equals(other._type));
+                    (Cci.SymbolEquivalentEqualityComparer.Instance.Equals(_type, other._type));
             }
 
             public override int GetHashCode()
-                => Hash.Combine(_type, (int)_constraints);
+                => Hash.Combine(Cci.SymbolEquivalentEqualityComparer.Instance.GetHashCode(_type), (int)_constraints);
 
             public override bool Equals(object? obj)
                 => obj is LocalSignature ls && Equals(ls);
@@ -67,6 +65,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // pool of free slots partitioned by their signature.
         private KeyedStack<LocalSignature, LocalDefinition>? _freeSlots;
+
+        // these locals cannot be added to "FreeSlots"
+        private HashSet<LocalDefinition>? _nonReusableLocals;
+
+        // locals whose address has been taken; excludes non-reusable local kinds
+        private ArrayBuilder<LocalDefinition>? _addressedLocals;
+        private int _addressedLocalScopes;
 
         // all locals in order
         private ArrayBuilder<Cci.ILocalDefinition>? _lazyAllLocals;
@@ -79,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             _slotAllocator = slotAllocator;
 
-            // Add placeholders for pre-allocated locals. 
+            // Add placeholders for pre-allocated locals.
             // The actual identities are populated if/when the locals are reused.
             if (slotAllocator != null)
             {
@@ -156,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void FreeLocal(ILocalSymbolInternal symbol)
         {
             var slot = GetLocal(symbol);
-            LocalMap.Remove(symbol);
+            var removed = LocalMap.Remove(symbol);
+            Debug.Assert(removed, $"Attempted to free '{symbol}' more than once.");
             FreeSlot(slot);
         }
 
@@ -247,7 +253,55 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void FreeSlot(LocalDefinition slot)
         {
             Debug.Assert(slot.Name == null);
-            FreeSlots.Push(new LocalSignature(slot.Type, slot.Constraints), slot);
+
+            if (_nonReusableLocals?.Remove(slot) != true)
+            {
+                FreeSlots.Push(new LocalSignature(slot.Type, slot.Constraints), slot);
+            }
+        }
+
+        internal int StartScopeOfTrackingAddressedLocals()
+        {
+            Debug.Assert((_addressedLocals == null) == (_addressedLocalScopes == 0));
+            _addressedLocals ??= ArrayBuilder<LocalDefinition>.GetInstance();
+            _addressedLocalScopes++;
+            return _addressedLocals.Count;
+        }
+
+        internal void AddAddressedLocal(LocalDefinition localDef, OptimizationLevel optimizations)
+        {
+            // No need to add non-reusable local kinds to `_addressedLocals` because that list
+            // only contains locals with reusable kinds to mark them as actually non-reusable.
+            if (localDef != null && localDef.SymbolOpt?.SynthesizedKind.IsSlotReusable(optimizations) != false)
+            {
+                _addressedLocals?.Add(localDef);
+            }
+        }
+
+        internal void EndScopeOfTrackingAddressedLocals(int countBefore, bool markAsNotReusable)
+        {
+            Debug.Assert(_addressedLocals != null);
+
+            if (markAsNotReusable && countBefore < _addressedLocals.Count)
+            {
+                _nonReusableLocals ??= new HashSet<LocalDefinition>(ReferenceEqualityComparer.Instance);
+                for (var i = countBefore; i < _addressedLocals.Count; i++)
+                {
+                    _nonReusableLocals.Add(_addressedLocals[i]);
+                }
+            }
+
+            _addressedLocalScopes--;
+            if (_addressedLocalScopes > 0)
+            {
+                _addressedLocals.Count = countBefore;
+            }
+            else
+            {
+                Debug.Assert(_addressedLocalScopes == 0 && countBefore == 0);
+                _addressedLocals.Free();
+                _addressedLocals = null;
+            }
         }
 
         public ImmutableArray<Cci.ILocalDefinition> LocalsInOrder()

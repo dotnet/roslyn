@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -11,11 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxIdentifier : SyntaxToken
         {
-            static SyntaxIdentifier()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifier), r => new SyntaxIdentifier(r));
-            }
-
             protected readonly string TextField;
 
             internal SyntaxIdentifier(string text)
@@ -28,19 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : base(SyntaxKind.IdentifierToken, text.Length, diagnostics, annotations)
             {
                 this.TextField = text;
-            }
-
-            internal SyntaxIdentifier(ObjectReader reader)
-                : base(reader)
-            {
-                this.TextField = reader.ReadString();
-                this.FullWidth = this.TextField.Length;
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-                writer.WriteString(this.TextField);
             }
 
             public override string Text

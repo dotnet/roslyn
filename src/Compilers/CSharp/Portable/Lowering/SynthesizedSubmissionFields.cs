@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)hostObjectTypeSymbol != null && hostObjectTypeSymbol.Kind != SymbolKind.ErrorType)
             {
                 return _hostObjectField = new SynthesizedFieldSymbol(
-                    _declaringSubmissionClass, hostObjectTypeSymbol, "<host-object>", isPublic: false, isReadOnly: true, isStatic: false);
+                    _declaringSubmissionClass, hostObjectTypeSymbol, "<host-object>", DeclarationModifiers.Private, isReadOnly: true, isStatic: false);
             }
 
             return null;
@@ -93,13 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var field in FieldSymbols)
             {
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field);
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field.GetCciAdapter());
             }
 
             FieldSymbol hostObjectField = GetHostObjectField();
             if ((object)hostObjectField != null)
             {
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField);
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField.GetCciAdapter());
             }
         }
     }

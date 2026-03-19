@@ -63,17 +63,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             ' Parameters always have arity 0 and are not namespaces or types.
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly Or LookupOptions.MustNotBeLocalOrParameter)) = 0 Then
                 Dim parameterSymbol As Symbol = Nothing
                 If _parameterMap.TryGetValue(name, parameterSymbol) Then
-                    lookupResult.SetFrom(CheckViability(parameterSymbol, arity, options, Nothing, useSiteDiagnostics))
+                    lookupResult.SetFrom(CheckViability(parameterSymbol, arity, options, Nothing, useSiteInfo))
                 End If
             Else
-                MyBase.LookupInSingleBinder(lookupResult, name, arity, options, originalBinder, useSiteDiagnostics)
+                MyBase.LookupInSingleBinder(lookupResult, name, arity, options, originalBinder, useSiteInfo)
             End If
         End Sub
 

@@ -5,37 +5,34 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal abstract class AbstractTaggerEventSource : ITaggerEventSource
 {
-    internal abstract class AbstractTaggerEventSource : ITaggerEventSource
+    private bool _paused;
+
+    protected AbstractTaggerEventSource()
     {
-        private readonly TaggerDelay _delay;
+    }
 
-        protected AbstractTaggerEventSource(TaggerDelay delay)
-        {
-            _delay = delay;
-        }
+    public abstract void Connect();
+    public abstract void Disconnect();
 
-        public abstract void Connect();
-        public abstract void Disconnect();
+    public event EventHandler<TaggerEventArgs>? Changed;
 
-        public event EventHandler<TaggerEventArgs> Changed;
-        public event EventHandler UIUpdatesPaused;
-        public event EventHandler UIUpdatesResumed;
+    protected void RaiseChanged()
+    {
+        if (!_paused)
+            this.Changed?.Invoke(this, TaggerEventArgs.Empty);
+    }
 
-        protected virtual void RaiseChanged()
-        {
-            this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
-        }
+    public void Pause()
+    {
+        _paused = true;
+    }
 
-        protected virtual void RaiseUIUpdatesPaused()
-        {
-            this.UIUpdatesPaused?.Invoke(this, EventArgs.Empty);
-        }
-
-        protected virtual void RaiseUIUpdatesResumed()
-        {
-            this.UIUpdatesResumed?.Invoke(this, EventArgs.Empty);
-        }
+    public void Resume()
+    {
+        _paused = false;
     }
 }

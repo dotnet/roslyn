@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember;
@@ -9,536 +11,437 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GoToAdjacentMember
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GoToAdjacentMember;
+
+[Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTests
 {
-    public class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTests
+    protected override string LanguageName => LanguageNames.CSharp;
+    protected override ParseOptions DefaultParseOptions => CSharpParseOptions.Default;
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public async Task EmptyFile()
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-        protected override ParseOptions DefaultParseOptions => CSharpParseOptions.Default;
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task EmptyFile()
-        {
-            var code = @"$$";
-            Assert.Null(await GetTargetPositionAsync(code, next: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task ClassWithNoMembers()
-        {
-            var code = @"class C
-{
-$$
-}";
-            Assert.Null(await GetTargetPositionAsync(code, next: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task BeforeClassWithMember()
-        {
-            var code = @"$$
-class C
-{
-    [||]void M() { }
-}";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task AfterClassWithMember()
-        {
-            var code = @"
-class C
-{
-    [||]void M() { }
-}
-
-$$";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task BetweenClasses()
-        {
-            var code = @"
-class C1
-{
-    void M() { }
-}
-
-$$
-
-class C2
-{
-    [||]void M() { }
-} ";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task BetweenClassesPrevious()
-        {
-            var code = @"
-class C1
-{
-    [||]void M() { }
-}
-
-$$
-
-class C2
-{
-    void M() { }
-} ";
-
-            await AssertNavigatedAsync(code, next: false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task FromFirstMemberToSecond()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]void M2() { }
-}";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task FromSecondToFirst()
-        {
-            var code = @"
-class C
-{
-    [||]void M1() { }
-    $$void M2() { }
-}";
-
-            await AssertNavigatedAsync(code, next: false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task NextWraps()
-        {
-            var code = @"
-class C
-{
-    [||]void M1() { }
-    $$void M2() { }
-}";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task PreviousWraps()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]void M2() { }
-}";
-
-            await AssertNavigatedAsync(code, next: false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task DescendsIntoNestedType()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-
-    class N
-    {
-        [||]void M2() { }
-    }
-}";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtConstructor()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]public C() { }
-}";
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtDestructor()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]~C() { }
-}";
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtOperator()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]static C operator+(C left, C right) { throw new System.NotImplementedException(); }
-}";
-            await AssertNavigatedAsync(code, next: true);
-        }
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtField()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]int F;
-}";
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtFieldlikeEvent()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]event System.EventHandler E;
-}";
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtAutoProperty()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-    [||]int P { get; set ; }
-}";
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtPropertyWithAccessors()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
-
-    [||]int P
-    {
-        get { return 42; }
-        set { }
-    }
-}";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task SkipsPropertyAccessors()
-        {
-            var code = @"
-class C
-{
-    void M1() { }
-
-    $$int P
-    {
-        get { return 42; }
-        set { }
+        Assert.Null(await GetTargetPositionAsync(@"$$", next: true));
     }
 
-    [||]void M2() { }
-}";
-
-            await AssertNavigatedAsync(code, next: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task FromInsideAccessor()
-        {
-            var code = @"
-class C
-{
-    void M1() { }
-
-    int P
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public async Task ClassWithNoMembers()
     {
-        get { return $$42; }
-        set { }
+        Assert.Null(await GetTargetPositionAsync("""
+            class C
+            {
+            $$
+            }
+            """, next: true));
     }
 
-    [||]void M2() { }
-}";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task BeforeClassWithMember()
+        => AssertNavigatedAsync("""
+            $$
+            class C
+            {
+                [||]void M() { }
+            }
+            """, next: true);
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task AfterClassWithMember()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M() { }
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtIndexerWithAccessors()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
+            $$
+            """, next: true);
 
-    [||]int this[int i]
-    {
-        get { return 42; }
-        set { }
-    }
-}";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task BetweenClasses()
+        => AssertNavigatedAsync("""
+            class C1
+            {
+                void M() { }
+            }
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+            $$
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task SkipsIndexerAccessors()
-        {
-            var code = @"
-class C
-{
-    void M1() { }
+            class C2
+            {
+                [||]void M() { }
+            }
+            """, next: true);
 
-    $$int this[int i]
-    {
-        get { return 42; }
-        set { }
-    }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task BetweenClassesPrevious()
+        => AssertNavigatedAsync("""
+            class C1
+            {
+                [||]void M() { }
+            }
 
-    [||]void M2() { }
-}";
+            $$
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+            class C2
+            {
+                void M() { }
+            }
+            """, next: false);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtEventWithAddRemove()
-        {
-            var code = @"
-class C
-{
-    $$void M1() { }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task FromFirstMemberToSecond()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]void M2() { }
+            }
+            """, next: true);
 
-    [||]event EventHandler E
-    {
-        add { }
-        remove { }
-    }
-}";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task FromSecondToFirst()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M1() { }
+                $$void M2() { }
+            }
+            """, next: false);
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task NextWraps()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M1() { }
+                $$void M2() { }
+            }
+            """, next: true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task SkipsEventAddRemove()
-        {
-            var code = @"
-class C
-{
-    void M1() { }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task PreviousWraps()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]void M2() { }
+            }
+            """, next: false);
 
-    $$event EventHandler E
-    {
-        add { }
-        remove { }
-    }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task DescendsIntoNestedType()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
 
-    [||]void M2() { }
-}";
+                class N
+                {
+                    [||]void M2() { }
+                }
+            }
+            """, next: true);
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtConstructor()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]public C() { }
+            }
+            """, next: true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task FromInsideMethod()
-        {
-            var code = @"
-class C
-{
-    void M1()
-    {
-        $$System.Console.WriteLine();
-    }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtDestructor()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]~C() { }
+            }
+            """, next: true);
 
-    [||]void M2() { }
-}";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtOperator()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]static C operator+(C left, C right) { throw new System.NotImplementedException(); }
+            }
+            """, next: true);
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtField()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]int F;
+            }
+            """, next: true);
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtFieldlikeEvent()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]event System.EventHandler E;
+            }
+            """, next: true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task NextFromBetweenMethods()
-        {
-            var code = @"
-class C
-{
-    void M1() { }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtAutoProperty()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
+                [||]int P { get; set ; }
+            }
+            """, next: true);
 
-    $$
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtPropertyWithAccessors()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
 
-    [||]void M2() { }
-}";
+                [||]int P
+                {
+                    get { return 42; }
+                    set { }
+                }
+            }
+            """, next: true);
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task SkipsPropertyAccessors()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                void M1() { }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task PreviousFromBetweenMethods()
-        {
-            var code = @"
-class C
-{
-    [||]void M1() { }
+                $$int P
+                {
+                    get { return 42; }
+                    set { }
+                }
 
-    $$
+                [||]void M2() { }
+            }
+            """, next: true);
 
-    void M2() { }
-}";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task FromInsideAccessor()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                void M1() { }
 
-            await AssertNavigatedAsync(code, next: false);
-        }
+                int P
+                {
+                    get { return $$42; }
+                    set { }
+                }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task NextFromBetweenMethodsInTrailingTrivia()
-        {
-            var code = @"
-class C
-{
-    void M1()
-    {
-    } $$
+                [||]void M2() { }
+            }
+            """, next: true);
 
-    [||]void M2() { }
-}";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtIndexerWithAccessors()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+                [||]int this[int i]
+                {
+                    get { return 42; }
+                    set { }
+                }
+            }
+            """, next: true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task PreviousFromBetweenMethodsInTrailingTrivia()
-        {
-            var code = @"
-class C
-{
-    [||]void M1()
-    {
-    } $$
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task SkipsIndexerAccessors()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                void M1() { }
 
-    void M2() { }
-}";
+                $$int this[int i]
+                {
+                    get { return 42; }
+                    set { }
+                }
 
-            await AssertNavigatedAsync(code, next: false);
-        }
+                [||]void M2() { }
+            }
+            """, next: true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task StopsAtExpressionBodiedMember()
-        {
-            var code = @"
-class C
-{
-    int M1() => $$42;
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtEventWithAddRemove()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                $$void M1() { }
 
-    [||]int M2() => 42;
-}";
+                [||]event EventHandler E
+                {
+                    add { }
+                    remove { }
+                }
+            }
+            """, next: true);
 
-            await AssertNavigatedAsync(code, next: true);
-        }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task SkipsEventAddRemove()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                void M1() { }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        [WorkItem(10588, "https://github.com/dotnet/roslyn/issues/10588")]
-        public async Task PreviousFromInsideCurrent()
-        {
-            var code = @"
-class C
-{
-    [||]void M1()
-    {
-        Console.WriteLine($$);
-    }
+                $$event EventHandler E
+                {
+                    add { }
+                    remove { }
+                }
 
-    void M2()
-    {
-    }
-}";
+                [||]void M2() { }
+            }
+            """, next: true);
 
-            await AssertNavigatedAsync(code, next: false);
-        }
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task FromInsideMethod()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                void M1()
+                {
+                    $$System.Console.WriteLine();
+                }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task NextInScript()
-        {
-            var code = @"
-$$void M1() { }
+                [||]void M2() { }
+            }
+            """, next: true);
 
-[||]void M2() { }";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task NextFromBetweenMethods()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                void M1() { }
 
-            await AssertNavigatedAsync(code, next: true, sourceCodeKind: SourceCodeKind.Script);
-        }
+                $$
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
-        public async Task PrevInScript()
-        {
-            var code = @"
-[||]void M1() { }
+                [||]void M2() { }
+            }
+            """, next: true);
 
-$$void M2() { }";
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task PreviousFromBetweenMethods()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M1() { }
 
-            await AssertNavigatedAsync(code, next: false, sourceCodeKind: SourceCodeKind.Script);
-        }
-    }
+                $$
+
+                void M2() { }
+            }
+            """, next: false);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task NextFromBetweenMethodsInTrailingTrivia()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                void M1()
+                {
+                } $$
+
+                [||]void M2() { }
+            }
+            """, next: true);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task PreviousFromBetweenMethodsInTrailingTrivia()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M1()
+                {
+                } $$
+
+                void M2() { }
+            }
+            """, next: false);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task StopsAtExpressionBodiedMember()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                int M1() => $$42;
+
+                [||]int M2() => 42;
+            }
+            """, next: true);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/10588")]
+    public Task PreviousFromInsideCurrent()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M1()
+                {
+                    Console.WriteLine($$);
+                }
+
+                void M2()
+                {
+                }
+            }
+            """, next: false);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task NextInScript()
+        => AssertNavigatedAsync("""
+            $$void M1() { }
+
+            [||]void M2() { }
+            """, next: true, sourceCodeKind: SourceCodeKind.Script);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    public Task PrevInScript()
+        => AssertNavigatedAsync("""
+            [||]void M1() { }
+
+            $$void M2() { }
+            """, next: false, sourceCodeKind: SourceCodeKind.Script);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77393")]
+    public Task SelectionNextMethod()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                {|selection:$$void M1() { }|}
+                [||]void M2() { }
+            }
+            """, next: true);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77393")]
+    public Task SelectionPreviousMethod()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M1() { }
+                {|selection:$$void M2() { }|}
+            }
+            """, next: false);
 }

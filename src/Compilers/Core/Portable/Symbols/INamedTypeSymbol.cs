@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -57,6 +56,11 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="TypeAttributes.Import"/> and <see cref="ComImportAttribute"/>
         /// </summary>
         bool IsComImport { get; }
+
+        /// <summary>
+        /// Indicates the type is declared in source and is only visible in the file it is declared in.
+        /// </summary>
+        bool IsFileLocal { get; }
 
         /// <summary>
         /// Returns collection of names of members declared within this type.
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<IMethodSymbol> StaticConstructors { get; }
 
         /// <summary>
-        /// Get the both instance and static constructors for this type.
+        /// Get both instance and static constructors for this type.
         /// </summary>
         ImmutableArray<IMethodSymbol> Constructors { get; }
 
@@ -161,8 +165,8 @@ namespace Microsoft.CodeAnalysis
         ISymbol? AssociatedSymbol { get; }
 
         /// <summary>
-        /// Determines if the symbol might contain extension methods. 
-        /// If false, the symbol does not contain extension methods. 
+        /// Determines if the symbol might contain extension members or methods. 
+        /// If false, the symbol does not contain extension members or methods. 
         /// </summary>
         bool MightContainExtensionMethods { get; }
 
@@ -186,5 +190,37 @@ namespace Microsoft.CodeAnalysis
         /// True if the type is serializable (has Serializable metadata flag).
         /// </summary>
         bool IsSerializable { get; }
+
+        /// <summary>
+        /// If this is a native integer, returns the symbol for the underlying type,
+        /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
+        /// Otherwise, returns null.
+        /// </summary>
+        INamedTypeSymbol? NativeIntegerUnderlyingType { get; }
+
+        /// <summary>
+        /// Is this a symbol for an extension declaration.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
+        new bool IsExtension { get; }
+
+        /// <summary>
+        /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
+        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
+        /// </summary>
+        new IParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the grouping type.
+        /// Returns null otherwise.
+        /// Note: the metadata name for generic grouping types includes an arity suffix, so differs from the ExtensionGroupingName property.
+        /// </summary>
+        string? ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// Returns null otherwise.
+        /// </summary>
+        string? ExtensionMarkerName { get; }
     }
 }

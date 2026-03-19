@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -61,19 +64,22 @@ namespace Microsoft.CodeAnalysis
 
             _identity = modules[0].ReadAssemblyIdentityOrThrow();
 
-            var refs = ArrayBuilder<AssemblyIdentity>.GetInstance();
-            int[] refCounts = new int[modules.Length];
+            // Pre-calculate size to ensure this code only requires a single array allocation.
+            var totalRefCount = modules.Sum(static module => module.ReferencedAssemblies.Length);
+            var refCounts = ArrayBuilder<int>.GetInstance(modules.Length);
+
+            var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(totalRefCount);
 
             for (int i = 0; i < modules.Length; i++)
             {
                 ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
-                refCounts[i] = refsForModule.Length;
+                refCounts.Add(refsForModule.Length);
                 refs.AddRange(refsForModule);
             }
 
             _modules = modules;
             this.AssemblyReferences = refs.ToImmutableAndFree();
-            this.ModuleReferenceCounts = refCounts.AsImmutableOrNull();
+            this.ModuleReferenceCounts = refCounts.ToImmutableAndFree();
             _owner = owner;
         }
 
@@ -157,14 +163,26 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
-            if (_lazyInternalsVisibleToMap == null)
-                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+            EnsureInternalsVisibleToMapInitialized();
 
             List<ImmutableArray<byte>> result;
 
             _lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
 
             return result ?? SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
+        }
+
+        internal IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            EnsureInternalsVisibleToMapInitialized();
+
+            return _lazyInternalsVisibleToMap.Keys;
+        }
+
+        private void EnsureInternalsVisibleToMapInitialized()
+        {
+            if (_lazyInternalsVisibleToMap == null)
+                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
         }
 
         internal bool DeclaresTheObjectClass

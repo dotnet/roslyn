@@ -2,14 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyntaxAnnotationTests
@@ -664,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Private ReadOnly _annotation As SyntaxAnnotation
 
             Public Sub New(annotation As SyntaxAnnotation)
-                MyBase.New(VisitIntoStructuredTrivia:=True)
+                MyBase.New(visitIntoStructuredTrivia:=True)
                 Me._annotation = annotation
             End Sub
 
@@ -703,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Private ReadOnly _myRandom As Random
 
             Public Sub New(annotations As List(Of SyntaxAnnotation))
-                MyBase.New(VisitIntoStructuredTrivia:=True)
+                MyBase.New(visitIntoStructuredTrivia:=True)
                 Me._annotations = annotations
                 Me._myRandom = New Random(10)
             End Sub
@@ -747,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Private ReadOnly _triviaMap As Dictionary(Of SyntaxTrivia, SyntaxTrivia)
 
             Public Sub New(nodeOrTokenMap As Dictionary(Of SyntaxNodeOrToken, SyntaxNodeOrToken), triviaMap As Dictionary(Of SyntaxTrivia, SyntaxTrivia))
-                MyBase.New(VisitIntoStructuredTrivia:=True)
+                MyBase.New(visitIntoStructuredTrivia:=True)
                 Me._nodeOrTokenMap = nodeOrTokenMap
                 Me._triviaMap = triviaMap
             End Sub

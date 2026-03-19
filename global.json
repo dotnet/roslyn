@@ -1,12 +1,20 @@
 {
+  "sdk": {
+    "version": "10.0.105",
+    "allowPrerelease": false,
+    "rollForward": "patch"
+  },
   "tools": {
-    "dotnet": "3.1.101",
+    "dotnet": "10.0.105",
     "vs": {
-      "version": "16.4"
+      "version": "17.14.0"
     },
-    "xcopy-msbuild": "16.4.0-alpha"
+    "vswhere": "3.1.7",
+    "xcopy-msbuild": "18.0.0"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "5.0.0-beta.20166.3"
+    "Microsoft.DotNet.Arcade.Sdk": "10.0.0-beta.26168.1",
+    "Microsoft.DotNet.Helix.Sdk": "10.0.0-beta.26168.1",
+    "Microsoft.Build.Traversal": "3.4.0"
   }
 }

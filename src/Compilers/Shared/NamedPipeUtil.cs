@@ -57,18 +57,18 @@ namespace Microsoft.CodeAnalysis
         {
             if (PlatformInformation.IsWindows)
             {
-                var serverIdentity = getIdentity(impersonating: false);
+                var serverIdentity = getIdentity();
 
                 (string name, bool admin) clientIdentity = default;
-                pipeStream.RunAsClient(() => { clientIdentity = getIdentity(impersonating: true); });
+                pipeStream.RunAsClient(() => { clientIdentity = getIdentity(); });
 
                 return
                     StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.name, clientIdentity.name) &&
                     serverIdentity.admin == clientIdentity.admin;
 
-                (string name, bool admin) getIdentity(bool impersonating)
+                (string name, bool admin) getIdentity()
                 {
-                    var currentIdentity = WindowsIdentity.GetCurrent(impersonating);
+                    var currentIdentity = WindowsIdentity.GetCurrent();
                     var currentPrincipal = new WindowsPrincipal(currentIdentity);
                     var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
                     return (currentIdentity.Name, elevatedToAdmin);
@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis
 
 #if NET472
 
-        const int s_currentUserOnlyValue = unchecked((int)0x20000000);
+        const int s_currentUserOnlyValue = 0x20000000;
 
         /// <summary>
         /// Mono supports CurrentUserOnly even though it's not exposed on the reference assemblies for net472. This 
         /// must be used because ACL security does not work.
         /// </summary>
-        private static PipeOptions CurrentUserOption = PlatformInformation.IsRunningOnMono
+        private static readonly PipeOptions CurrentUserOption = PlatformInformation.IsRunningOnMono
             ? (PipeOptions)s_currentUserOnlyValue
             : PipeOptions.None;
 
@@ -168,10 +168,12 @@ namespace Microsoft.CodeAnalysis
 
 #elif NETCOREAPP
 
-        private static PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
+        private const PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
 
         // Validation is handled by CurrentUserOnly
+#pragma warning disable IDE0060 // Remove unused parameter
         internal static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream) => true;
+#pragma warning restore IDE0060 // Remove unused parameter
 
         // Validation is handled by CurrentUserOnly
         internal static PipeSecurity? CreatePipeSecurity() => null;

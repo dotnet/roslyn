@@ -2,9 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -823,7 +823,6 @@ End Module
             Next
 
         End Sub
-
 
         <WorkItem(543114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543114")>
         <Fact()>
@@ -2072,7 +2071,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2111,7 +2109,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
@@ -2148,7 +2145,6 @@ Module Program
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
@@ -2207,7 +2203,6 @@ Module Program
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
@@ -2286,7 +2281,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -2327,7 +2321,6 @@ Module Program
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
@@ -2371,7 +2364,6 @@ Module Program
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
@@ -2433,7 +2425,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -2488,7 +2479,6 @@ Module Program
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 

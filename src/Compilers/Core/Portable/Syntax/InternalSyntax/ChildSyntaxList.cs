@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct ChildSyntaxList
@@ -43,7 +41,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private GreenNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get
             {

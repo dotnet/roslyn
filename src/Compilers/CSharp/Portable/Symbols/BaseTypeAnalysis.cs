@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -63,30 +66,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)on != null);
             Debug.Assert(on.IsDefinition);
 
-            var hs = PooledHashSet<Symbol>.GetInstance();
-            StructDependsClosure(depends, hs, on);
+            var hs = PooledHashSet<NamedTypeSymbol>.GetInstance();
+            var typesWithCycle = PooledHashSet<NamedTypeSymbol>.GetInstance();
+            StructDependsClosure(depends, hs, typesWithCycle, ConsList<NamedTypeSymbol>.Empty.Prepend(on));
 
-            var result = hs.Contains(on);
+            var result = typesWithCycle.Contains(on);
+            typesWithCycle.Free();
             hs.Free();
 
             return result;
         }
 
-        private static void StructDependsClosure(NamedTypeSymbol type, HashSet<Symbol> partialClosure, NamedTypeSymbol on)
+        private static void StructDependsClosure(NamedTypeSymbol type, HashSet<NamedTypeSymbol> partialClosure, HashSet<NamedTypeSymbol> typesWithCycle, ConsList<NamedTypeSymbol> on)
         {
             Debug.Assert((object)type != null);
 
-            if ((object)type.OriginalDefinition == on)
+            if (typesWithCycle.Contains(type.OriginalDefinition))
+            {
+                return;
+            }
+
+            if (on.ContainsReference(type.OriginalDefinition))
             {
                 // found a possibly expanding cycle, for example
                 //     struct X<T> { public T t; }
                 //     struct W<T> { X<W<W<T>>> x; }
                 // while not explicitly forbidden by the spec, it should be.
-                partialClosure.Add(on);
+                typesWithCycle.Add(type.OriginalDefinition);
                 return;
             }
 
             if (partialClosure.Add(type))
+            {
+                if (!type.IsDefinition)
+                {
+                    // First, visit type as a definition in order to detect the fact that it itself has a cycle.
+                    // This prevents us from going into an infinite generic expansion while visiting constructed form
+                    // of the type below.
+                    visitFields(type.OriginalDefinition, partialClosure, typesWithCycle, on.Prepend(type.OriginalDefinition));
+                }
+
+                visitFields(type, partialClosure, typesWithCycle, on);
+            }
+
+            static void visitFields(NamedTypeSymbol type, HashSet<NamedTypeSymbol> partialClosure, HashSet<NamedTypeSymbol> typesWithCycle, ConsList<NamedTypeSymbol> on)
             {
                 foreach (var member in type.GetMembersUnordered())
                 {
@@ -97,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    StructDependsClosure((NamedTypeSymbol)fieldType, partialClosure, on);
+                    StructDependsClosure((NamedTypeSymbol)fieldType, partialClosure, typesWithCycle, on);
                 }
             }
         }
@@ -110,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///     all special types have spec'd values (basically, (non-string) primitives) are not managed;
         /// 
         /// Only structs are complicated, because the definition is recursive.  A struct type is managed
-        /// if one of its instance fields is managed.  Unfortunately, this can result in infinite recursion.
+        /// if one of its instance fields is managed or a ref field.  Unfortunately, this can result in infinite recursion.
         /// If the closure is finite, and we don't find anything definitely managed, then we return true.
         /// If the closure is infinite, we disregard all but a representative of any expanding cycle.
         /// 
@@ -118,20 +141,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
         /// is because we can point to object.
         /// </summary>
-        internal static ManagedKind GetManagedKind(NamedTypeSymbol type)
+        internal static ManagedKind GetManagedKind(NamedTypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var (isManaged, hasGenerics) = IsManagedTypeHelper(type);
+            // The code below should be kept in sync with NamedTypeSymbol.GetManagedKind in VB
+
+            var (isManaged, hasGenerics) = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(type);
             var definitelyManaged = isManaged == ThreeState.True;
             if (isManaged == ThreeState.Unknown)
             {
                 // Otherwise, we have to build and inspect the closure of depended-upon types.
                 var hs = PooledHashSet<Symbol>.GetInstance();
-                var result = DependsOnDefinitelyManagedType(type, hs);
+                var result = dependsOnDefinitelyManagedType(type, hs, ref useSiteInfo);
                 definitelyManaged = result.definitelyManaged;
                 hasGenerics = hasGenerics || result.hasGenerics;
                 hs.Free();
             }
-
 
             if (definitelyManaged)
             {
@@ -145,144 +169,94 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ManagedKind.Unmanaged;
             }
-        }
 
-        // NOTE: If we do not check HasPointerType, we will unconditionally
-        //       bind Type and that may cause infinite recursion.
-        //       HasPointerType can use syntax directly and break recursion.
-        internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
-            field.HasPointerType ? null : field.Type;
-
-        private static (bool definitelyManaged, bool hasGenerics) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
-        {
-            Debug.Assert((object)type != null);
-
-            var hasGenerics = false;
-            if (partialClosure.Add(type))
+            static (bool definitelyManaged, bool hasGenerics) dependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                foreach (var member in type.GetInstanceFieldsAndEvents())
+                Debug.Assert((object)type != null);
+
+                var hasGenerics = false;
+                if (partialClosure.Add(type))
                 {
-                    // Only instance fields (including field-like events) affect the outcome.
-                    FieldSymbol field;
-                    switch (member.Kind)
+                    foreach (var member in type.GetInstanceFieldsAndEvents())
                     {
-                        case SymbolKind.Field:
-                            field = (FieldSymbol)member;
-                            Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
-                                "Didn't expect to find a field-like event backing field in the member list.");
-                            break;
-                        case SymbolKind.Event:
-                            field = ((EventSymbol)member).AssociatedField;
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(member.Kind);
-                    }
-
-                    if ((object)field == null)
-                    {
-                        continue;
-                    }
-
-                    TypeSymbol fieldType = field.NonPointerType();
-                    if (fieldType is null)
-                    {
-                        // pointers are unmanaged
-                        continue;
-                    }
-
-                    NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
-                    if ((object)fieldNamedType == null)
-                    {
-                        if (fieldType.IsManagedType)
+                        // Only instance fields (including field-like events) affect the outcome.
+                        FieldSymbol field;
+                        switch (member.Kind)
                         {
+                            case SymbolKind.Field:
+                                field = (FieldSymbol)member;
+                                Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
+                                    "Didn't expect to find a field-like event backing field in the member list.");
+                                break;
+                            case SymbolKind.Event:
+                                field = ((EventSymbol)member).AssociatedField;
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                        }
+
+                        if ((object)field == null)
+                        {
+                            continue;
+                        }
+
+                        if (field.RefKind != RefKind.None)
+                        {
+                            // A ref struct which has a ref field is never considered unmanaged
                             return (true, hasGenerics);
                         }
-                    }
-                    else
-                    {
-                        var result = IsManagedTypeHelper(fieldNamedType);
-                        hasGenerics = hasGenerics || result.hasGenerics;
-                        // NOTE: don't use ManagedKind.get on a NamedTypeSymbol - that could lead
-                        // to infinite recursion.
-                        switch (result.isManaged)
+
+                        TypeSymbol fieldType = field.NonPointerType();
+                        if (fieldType is null)
                         {
-                            case ThreeState.True:
+                            // pointers are unmanaged
+                            continue;
+                        }
+
+                        fieldType.AddUseSiteInfo(ref useSiteInfo);
+                        NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
+                        if ((object)fieldNamedType == null)
+                        {
+                            if (fieldType.IsManagedType(ref useSiteInfo))
+                            {
                                 return (true, hasGenerics);
+                            }
+                        }
+                        else
+                        {
+                            var result = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(fieldNamedType);
+                            hasGenerics = hasGenerics || result.hasGenerics;
+                            // NOTE: don't use ManagedKind.get on a NamedTypeSymbol - that could lead
+                            // to infinite recursion.
+                            switch (result.isManaged)
+                            {
+                                case ThreeState.True:
+                                    return (true, hasGenerics);
 
-                            case ThreeState.False:
-                                continue;
+                                case ThreeState.False:
+                                    continue;
 
-                            case ThreeState.Unknown:
-                                if (!fieldNamedType.OriginalDefinition.KnownCircularStruct)
-                                {
-                                    var (definitelyManaged, childHasGenerics) = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure);
-                                    hasGenerics = hasGenerics || childHasGenerics;
-                                    if (definitelyManaged)
+                                case ThreeState.Unknown:
+                                    if (!fieldNamedType.OriginalDefinition.KnownCircularStruct)
                                     {
-                                        return (true, hasGenerics);
+                                        var (definitelyManaged, childHasGenerics) = dependsOnDefinitelyManagedType(fieldNamedType, partialClosure, ref useSiteInfo);
+                                        hasGenerics = hasGenerics || childHasGenerics;
+                                        if (definitelyManaged)
+                                        {
+                                            return (true, hasGenerics);
+                                        }
                                     }
-                                }
-                                continue;
+                                    continue;
+                            }
                         }
                     }
                 }
-            }
 
-            return (false, hasGenerics);
-        }
-
-        /// <summary>
-        /// Returns True or False if we can determine whether the type is managed
-        /// without looking at its fields and Unknown otherwise.
-        /// Also returns whether or not the given type is generic.
-        /// </summary>
-        private static (ThreeState isManaged, bool hasGenerics) IsManagedTypeHelper(NamedTypeSymbol type)
-        {
-            // To match dev10, we treat enums as their underlying types.
-            if (type.IsEnumType())
-            {
-                type = type.GetEnumUnderlyingType();
-            }
-
-            // Short-circuit common cases.
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_Void:
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Char:
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Decimal:
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
-                case SpecialType.System_TypedReference:
-                case SpecialType.System_ArgIterator:
-                case SpecialType.System_RuntimeArgumentHandle:
-                    return (ThreeState.False, false);
-                case SpecialType.None:
-                default:
-                    // CONSIDER: could provide cases for other common special types.
-                    break; // Proceed with additional checks.
-            }
-
-            bool hasGenerics = type.IsGenericType;
-            switch (type.TypeKind)
-            {
-                case TypeKind.Enum:
-                    return (ThreeState.False, hasGenerics);
-                case TypeKind.Struct:
-                    return (ThreeState.Unknown, hasGenerics);
-                default:
-                    return (ThreeState.True, hasGenerics);
+                return (false, hasGenerics);
             }
         }
+
+        internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
+            field.HasPointerType ? null : field.Type;
     }
 }

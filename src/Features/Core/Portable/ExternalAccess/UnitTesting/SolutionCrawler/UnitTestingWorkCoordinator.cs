@@ -1,0 +1,734 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
+{
+    internal sealed partial class UnitTestingWorkCoordinator : IUnitTestingWorkCoordinator
+    {
+        private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
+        private readonly IAsynchronousOperationListener _listener;
+
+        private readonly CancellationTokenSource _shutdownNotificationSource = new();
+        private readonly CancellationToken _shutdownToken;
+
+        /// <summary>
+        /// A piece of work logged into the work coordinator queue. Includes the time the work was added, so when looking at a dump you can
+        /// get a sense how long things have been waiting in the queue and whether it was a slow but continuous trickle or a burst of work.
+        /// </summary>
+        private record struct TimestampedWorkItem(Func<Task> Work, DateTime TimestampAdded);
+
+        private readonly AsyncBatchingWorkQueue<TimestampedWorkItem> _eventProcessingQueue;
+
+        // points to processor task
+        private readonly UnitTestingIncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
+        private readonly UnitTestingSemanticChangeProcessor _semanticChangeProcessor;
+
+        public UnitTestingWorkCoordinator(
+             IAsynchronousOperationListener listener,
+             IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
+             UnitTestingRegistration registration)
+        {
+            Registration = registration;
+
+            _listener = listener;
+
+            // event and worker queues
+            _shutdownToken = _shutdownNotificationSource.Token;
+
+            _eventProcessingQueue = new(
+                TimeSpan.Zero,
+                ProcessWorkQueueAsync,
+                listener,
+                _shutdownToken);
+
+            var allFilesWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
+            var entireProjectWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
+
+            _documentAndProjectWorkerProcessor = new UnitTestingIncrementalAnalyzerProcessor(
+                listener,
+                analyzerProviders,
+                Registration,
+                allFilesWorkerBackOffTimeSpan,
+                entireProjectWorkerBackOffTimeSpan,
+                _shutdownToken);
+
+            var semanticBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.SemanticChangeBackOff;
+            var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;
+
+            _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, Registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
+        }
+
+        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<TimestampedWorkItem> list, CancellationToken cancellationToken)
+        {
+            foreach (var workItem in list)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var task = Task.Run(workItem.Work, cancellationToken);
+                _ = task.ReportNonFatalErrorAsync();
+                await task.NoThrowAwaitableInternal(captureContext: false);
+            }
+        }
+
+        public UnitTestingRegistration Registration { get; }
+        public int CorrelationId => Registration.CorrelationId;
+
+        public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer)
+        {
+            // add analyzer
+            _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer);
+
+            // and ask to re-analyze whole solution for the given analyzer
+            var scope = new UnitTestingReanalyzeScope(Registration.GetSolutionToAnalyze().Id);
+            Reanalyze(analyzer, scope);
+        }
+
+        public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
+        {
+            AddWork(() => EnqueueWorkItemAsync(analyzer, scope));
+
+            if (scope.HasMultipleDocuments)
+            {
+                // log big reanalysis request from things like fix all, suppress all or option changes
+                // we are not interested in 1 file re-analysis request which can happen from like venus typing
+                var solution = Registration.GetSolutionToAnalyze();
+                UnitTestingSolutionCrawlerLogger.LogReanalyze(
+                    CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution));
+            }
+        }
+
+        private void AddWork(Func<Task> work)
+        {
+            _eventProcessingQueue.AddWork(new TimestampedWorkItem(work, DateTime.UtcNow));
+        }
+
+        public void OnWorkspaceChanged(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments)
+        {
+            // guard us from cancellation
+            try
+            {
+                ProcessEvent(args, processSourceGeneratedDocuments);
+            }
+            catch (OperationCanceledException oce)
+            {
+                if (NotOurShutdownToken(oce))
+                {
+                    throw;
+                }
+
+                // it is our cancellation, ignore
+            }
+            catch (AggregateException ae)
+            {
+                ae = ae.Flatten();
+
+                // If we had a mix of exceptions, don't eat it
+                if (ae.InnerExceptions.Any(e => e is not OperationCanceledException) ||
+                    ae.InnerExceptions.Cast<OperationCanceledException>().Any(NotOurShutdownToken))
+                {
+                    // We had a cancellation with a different token, so don't eat it
+                    throw;
+                }
+
+                // it is our cancellation, ignore
+            }
+        }
+
+        private bool NotOurShutdownToken(OperationCanceledException oce)
+            => oce.CancellationToken == _shutdownToken;
+
+        private void ProcessEvent(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments)
+        {
+            UnitTestingSolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, args.Kind);
+
+            // TODO: add telemetry that record how much it takes to process an event (max, min, average and etc)
+            switch (args.Kind)
+            {
+                case WorkspaceChangeKind.SolutionAdded:
+                    EnqueueFullSolutionEvent(args.NewSolution, UnitTestingInvocationReasons.DocumentAdded, processSourceGeneratedDocuments);
+                    break;
+
+                case WorkspaceChangeKind.SolutionChanged:
+                case WorkspaceChangeKind.SolutionReloaded:
+                    EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, processSourceGeneratedDocuments);
+                    break;
+
+                case WorkspaceChangeKind.SolutionCleared:
+                case WorkspaceChangeKind.SolutionRemoved:
+                    // Not used in unit testing crawling
+                    break;
+
+                case WorkspaceChangeKind.ProjectAdded:
+                    Contract.ThrowIfNull(args.ProjectId);
+                    EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentAdded, processSourceGeneratedDocuments);
+                    break;
+
+                case WorkspaceChangeKind.ProjectChanged:
+                case WorkspaceChangeKind.ProjectReloaded:
+                    Contract.ThrowIfNull(args.ProjectId);
+                    EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId, processSourceGeneratedDocuments);
+                    break;
+
+                case WorkspaceChangeKind.ProjectRemoved:
+                    Contract.ThrowIfNull(args.ProjectId);
+                    EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentRemoved, processSourceGeneratedDocuments);
+                    break;
+
+                case WorkspaceChangeKind.DocumentAdded:
+                    Contract.ThrowIfNull(args.DocumentId);
+                    EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentAdded);
+                    break;
+
+                case WorkspaceChangeKind.DocumentReloaded:
+                case WorkspaceChangeKind.DocumentChanged:
+                    Contract.ThrowIfNull(args.DocumentId);
+                    EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId);
+                    break;
+
+                case WorkspaceChangeKind.DocumentRemoved:
+                    Contract.ThrowIfNull(args.DocumentId);
+                    EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentRemoved);
+                    break;
+
+                case WorkspaceChangeKind.AdditionalDocumentAdded:
+                case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                case WorkspaceChangeKind.AdditionalDocumentChanged:
+                case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+                    // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
+                    Contract.ThrowIfNull(args.ProjectId);
+                    EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.AdditionalDocumentChanged, processSourceGeneratedDocuments);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(args.Kind);
+            }
+        }
+
+        private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution, bool processSourceGeneratedDocuments)
+        {
+            AddWork(
+                async () =>
+                {
+                    var solutionChanges = newSolution.GetChanges(oldSolution);
+
+                    // TODO: Async version for GetXXX methods?
+                    foreach (var addedProject in solutionChanges.GetAddedProjects())
+                    {
+                        await EnqueueFullProjectWorkItemAsync(addedProject, UnitTestingInvocationReasons.DocumentAdded, processSourceGeneratedDocuments).ConfigureAwait(false);
+                    }
+
+                    foreach (var projectChanges in solutionChanges.GetProjectChanges())
+                    {
+                        await EnqueueWorkItemAsync(projectChanges, processSourceGeneratedDocuments).ConfigureAwait(continueOnCapturedContext: false);
+                    }
+
+                    foreach (var removedProject in solutionChanges.GetRemovedProjects())
+                    {
+                        await EnqueueFullProjectWorkItemAsync(removedProject, UnitTestingInvocationReasons.DocumentRemoved, processSourceGeneratedDocuments).ConfigureAwait(false);
+                    }
+                });
+        }
+
+        private void EnqueueFullSolutionEvent(Solution solution, UnitTestingInvocationReasons invocationReasons, bool processSourceGeneratedDocuments)
+        {
+            AddWork(
+                async () =>
+                {
+                    foreach (var projectId in solution.ProjectIds)
+                    {
+                        await EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons, processSourceGeneratedDocuments).ConfigureAwait(false);
+                    }
+                });
+        }
+
+        private void EnqueueProjectChangedEvent(Solution oldSolution, Solution newSolution, ProjectId projectId, bool processSourceGeneratedDocuments)
+        {
+            AddWork(
+                async () =>
+                {
+                    var oldProject = oldSolution.GetRequiredProject(projectId);
+                    var newProject = newSolution.GetRequiredProject(projectId);
+
+                    await EnqueueWorkItemAsync(newProject.GetChanges(oldProject), processSourceGeneratedDocuments).ConfigureAwait(false);
+                });
+        }
+
+        private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, UnitTestingInvocationReasons invocationReasons, bool processSourceGeneratedDocuments)
+        {
+            AddWork(
+                () => EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons, processSourceGeneratedDocuments));
+        }
+
+        private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, UnitTestingInvocationReasons invocationReasons)
+        {
+            AddWork(
+                () =>
+                {
+                    var project = solution.GetRequiredProject(documentId.ProjectId);
+                    return EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons);
+                });
+        }
+
+        private void EnqueueDocumentChangedEvent(Solution oldSolution, Solution newSolution, DocumentId documentId)
+        {
+            // document changed event is the special one.
+            AddWork(
+                async () =>
+                {
+                    var oldProject = oldSolution.GetRequiredProject(documentId.ProjectId);
+                    var newProject = newSolution.GetRequiredProject(documentId.ProjectId);
+
+                    await EnqueueChangedDocumentWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(false);
+
+                    // If all features are enabled for source generated documents, the solution crawler needs to
+                    // include them in incremental analysis.
+
+                    // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
+                    // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
+                    var oldProjectSourceGeneratedDocuments = await oldProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                    var oldProjectSourceGeneratedDocumentsById = oldProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+                    var newProjectSourceGeneratedDocuments = await newProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                    var newProjectSourceGeneratedDocumentsById = newProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+
+                    foreach (var (oldDocumentId, _) in oldProjectSourceGeneratedDocumentsById)
+                    {
+                        if (!newProjectSourceGeneratedDocumentsById.ContainsKey(oldDocumentId))
+                        {
+                            // This source generated document was removed
+                            EnqueueFullDocumentEvent(oldSolution, oldDocumentId, UnitTestingInvocationReasons.DocumentRemoved);
+                        }
+                    }
+
+                    foreach (var (newDocumentId, newDocument) in newProjectSourceGeneratedDocumentsById)
+                    {
+                        if (!oldProjectSourceGeneratedDocumentsById.TryGetValue(newDocumentId, out var oldDocument))
+                        {
+                            // This source generated document was added
+                            EnqueueFullDocumentEvent(newSolution, newDocumentId, UnitTestingInvocationReasons.DocumentAdded);
+                        }
+                        else
+                        {
+                            // This source generated document may have changed
+                            await EnqueueChangedDocumentWorkItemAsync(oldDocument, newDocument).ConfigureAwait(continueOnCapturedContext: false);
+                        }
+                    }
+                });
+        }
+
+        private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, UnitTestingInvocationReasons invocationReasons, SyntaxNode? changedMember = null)
+        {
+            // we are shutting down
+            _shutdownToken.ThrowIfCancellationRequested();
+
+            var priorityService = project.GetLanguageService<IUnitTestingWorkCoordinatorPriorityService>();
+            document ??= project.GetTextDocument(documentId);
+            var sourceDocument = document as Document;
+            var isLowPriority = priorityService != null && sourceDocument != null && await priorityService.IsLowPriorityAsync(sourceDocument, _shutdownToken).ConfigureAwait(false);
+
+            var currentMember = GetSyntaxPath(changedMember);
+
+            // call to this method is serialized. and only this method does the writing.
+            _documentAndProjectWorkerProcessor.Enqueue(
+                new UnitTestingWorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
+
+            // enqueue semantic work planner
+            if (invocationReasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged) && sourceDocument != null)
+            {
+                // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
+                // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.
+                _semanticChangeProcessor.Enqueue(project, documentId, sourceDocument, currentMember);
+            }
+        }
+
+        private static Document GetRequiredDocument(Project project, DocumentId documentId, Document? document)
+            => document ?? project.GetRequiredDocument(documentId);
+
+        private static SyntaxPath? GetSyntaxPath(SyntaxNode? changedMember)
+        {
+            // using syntax path might be too expansive since it will be created on every keystroke.
+            // but currently, we have no other way to track a node between two different tree (even for incrementally parsed one)
+            if (changedMember == null)
+            {
+                return null;
+            }
+
+            return new SyntaxPath(changedMember);
+        }
+
+        private async Task EnqueueFullProjectWorkItemAsync(Project project, UnitTestingInvocationReasons invocationReasons, bool processSourceGeneratedDocuments)
+        {
+            foreach (var documentId in project.DocumentIds)
+                await EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+            foreach (var documentId in project.AdditionalDocumentIds)
+                await EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+            foreach (var documentId in project.AnalyzerConfigDocumentIds)
+                await EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+            if (processSourceGeneratedDocuments)
+            {
+                // If all features are enabled for source generated documents, the solution crawler needs to
+                // include them in incremental analysis.
+                foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
+                    await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
+            }
+        }
+
+        private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
+        {
+            var solution = Registration.GetSolutionToAnalyze();
+            var invocationReasons =
+                UnitTestingInvocationReasons.Reanalyze;
+
+            foreach (var (project, documentId) in scope.GetDocumentIds(solution))
+                await EnqueueWorkItemAsync(analyzer, project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+        }
+
+        private async Task EnqueueWorkItemAsync(
+            IUnitTestingIncrementalAnalyzer analyzer, Project project, DocumentId documentId, Document? document, UnitTestingInvocationReasons invocationReasons)
+        {
+            var priorityService = project.GetLanguageService<IUnitTestingWorkCoordinatorPriorityService>();
+            var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(
+                GetRequiredDocument(project, documentId, document), _shutdownToken).ConfigureAwait(false);
+
+            _documentAndProjectWorkerProcessor.Enqueue(
+                new UnitTestingWorkItem(documentId, project.Language, invocationReasons,
+                    isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
+        }
+
+        private async Task EnqueueWorkItemAsync(ProjectChanges projectChanges, bool processSourceGeneratedDocuments)
+        {
+            await EnqueueProjectConfigurationChangeWorkItemAsync(projectChanges, processSourceGeneratedDocuments).ConfigureAwait(false);
+
+            foreach (var addedDocumentId in projectChanges.GetAddedDocuments())
+                await EnqueueDocumentWorkItemAsync(projectChanges.NewProject, addedDocumentId, document: null, UnitTestingInvocationReasons.DocumentAdded).ConfigureAwait(false);
+
+            foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
+            {
+                await EnqueueChangedDocumentWorkItemAsync(projectChanges.OldProject.GetRequiredDocument(changedDocumentId), projectChanges.NewProject.GetRequiredDocument(changedDocumentId))
+                    .ConfigureAwait(continueOnCapturedContext: false);
+            }
+
+            foreach (var removedDocumentId in projectChanges.GetRemovedDocuments())
+                await EnqueueDocumentWorkItemAsync(projectChanges.OldProject, removedDocumentId, document: null, UnitTestingInvocationReasons.DocumentRemoved).ConfigureAwait(false);
+        }
+
+        private async Task EnqueueProjectConfigurationChangeWorkItemAsync(ProjectChanges projectChanges, bool processSourceGeneratedDocuments)
+        {
+            var oldProject = projectChanges.OldProject;
+            var newProject = projectChanges.NewProject;
+
+            // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
+            var projectConfigurationChange = UnitTestingInvocationReasons.Empty;
+
+            // We will create an invocation reason for each kind of change we might detect; this makes it easy to identify in
+            // a memory dump why a particular project reanalysis was happening.
+            if (projectChanges.GetAddedMetadataReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.MetadataReferences) + "Added");
+
+            if (projectChanges.GetAddedProjectReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.ProjectReferences) + "Added");
+
+            if (projectChanges.GetAddedAnalyzerReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerReferences) + "Added");
+
+            if (projectChanges.GetRemovedMetadataReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.MetadataReferences) + "Removed");
+
+            if (projectChanges.GetRemovedProjectReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.ProjectReferences) + "Removed");
+
+            if (projectChanges.GetRemovedAnalyzerReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerReferences) + "Removed");
+
+            if (!object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.CompilationOptions) + "Changed");
+
+            if (!object.Equals(oldProject.AssemblyName, newProject.AssemblyName))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AssemblyName) + "Changed");
+
+            if (!object.Equals(oldProject.Name, newProject.Name))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.Name) + "Changed");
+
+            if (!object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerOptions) + "Changed");
+
+            if (!object.Equals(oldProject.HostAnalyzerOptions, newProject.HostAnalyzerOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.HostAnalyzerOptions) + "Changed");
+
+            if (!object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.DefaultNamespace) + "Changed");
+
+            if (!object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.OutputFilePath) + "Changed");
+
+            if (!object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.OutputRefFilePath) + "Changed");
+
+            if (!oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.CompilationOutputInfo) + "Changed");
+
+            if (oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
+                projectConfigurationChange = projectConfigurationChange.With(nameof(ProjectState.RunAnalyzers) + "Changed");
+
+            if (!projectConfigurationChange.IsEmpty)
+            {
+                // Also include the generic change reason which is used by other parts of the system, since nothing else looks at the specific
+                // reasons we created above.
+                projectConfigurationChange = projectConfigurationChange.With(UnitTestingPredefinedInvocationReasons.ProjectConfigurationChanged);
+                await EnqueueFullProjectWorkItemAsync(projectChanges.NewProject, projectConfigurationChange, processSourceGeneratedDocuments).ConfigureAwait(false);
+            }
+        }
+
+        private async Task EnqueueChangedDocumentWorkItemAsync(Document oldDocument, Document newDocument)
+        {
+            var differenceService = newDocument.GetLanguageService<IUnitTestingDocumentDifferenceService>();
+
+            if (differenceService == null)
+            {
+                // For languages that don't use a Roslyn syntax tree, they don't export a document difference service.
+                // The whole document should be considered as changed in that case.
+                await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, UnitTestingInvocationReasons.DocumentChanged).ConfigureAwait(false);
+            }
+            else
+            {
+                var differenceResult = differenceService.GetDifference(oldDocument, newDocument, _shutdownToken);
+
+                if (differenceResult != null)
+                    await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
+            }
+        }
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly UnitTestingWorkCoordinator _workCoordinator;
+
+            internal TestAccessor(UnitTestingWorkCoordinator workCoordinator)
+            {
+                _workCoordinator = workCoordinator;
+            }
+
+            internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
+            {
+                var solution = _workCoordinator.Registration.GetSolutionToAnalyze();
+                var list = new List<UnitTestingWorkItem>();
+
+                foreach (var project in solution.Projects)
+                {
+                    foreach (var document in project.Documents)
+                    {
+                        list.Add(new UnitTestingWorkItem(document.Id, document.Project.Language, UnitTestingInvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                    }
+                }
+
+                _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion(workers, list);
+            }
+
+            internal void WaitUntilCompletion()
+                => _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion();
+        }
+    }
+
+    internal readonly struct UnitTestingReanalyzeScope
+    {
+        private readonly SolutionId? _solutionId;
+        private readonly ISet<object>? _projectOrDocumentIds;
+
+        public UnitTestingReanalyzeScope(SolutionId solutionId)
+        {
+            _solutionId = solutionId;
+            _projectOrDocumentIds = null;
+        }
+
+        public UnitTestingReanalyzeScope(IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
+        {
+            projectIds ??= [];
+            documentIds ??= [];
+
+            _solutionId = null;
+            _projectOrDocumentIds = new HashSet<object>(projectIds);
+
+            foreach (var documentId in documentIds)
+            {
+                if (_projectOrDocumentIds.Contains(documentId.ProjectId))
+                {
+                    continue;
+                }
+
+                _projectOrDocumentIds.Add(documentId);
+            }
+        }
+
+        public bool HasMultipleDocuments => _solutionId != null || _projectOrDocumentIds?.Count > 1;
+
+        public string GetLanguagesStringForTelemetry(Solution solution)
+        {
+            if (_solutionId != null && solution.Id != _solutionId)
+            {
+                // return empty if given solution is not 
+                // same as solution this scope is created for
+                return string.Empty;
+            }
+
+            using var pool = SharedPools.Default<HashSet<string>>().GetPooledObject();
+            if (_solutionId != null)
+            {
+                pool.Object.UnionWith(solution.SortedProjectStates.Select(project => project.Language));
+                return string.Join(",", pool.Object);
+            }
+
+            Contract.ThrowIfNull(_projectOrDocumentIds);
+
+            foreach (var projectOrDocumentId in _projectOrDocumentIds)
+            {
+                switch (projectOrDocumentId)
+                {
+                    case ProjectId projectId:
+                        var project = solution.GetProject(projectId);
+                        if (project != null)
+                        {
+                            pool.Object.Add(project.Language);
+                        }
+
+                        break;
+                    case DocumentId documentId:
+                        var document = solution.GetDocument(documentId);
+                        if (document != null)
+                        {
+                            pool.Object.Add(document.Project.Language);
+                        }
+
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                }
+            }
+
+            return string.Join(",", pool.Object);
+        }
+
+        public int GetDocumentCount(Solution solution)
+        {
+            if (_solutionId != null && solution.Id != _solutionId)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            if (_solutionId != null)
+            {
+                foreach (var projectState in solution.SortedProjectStates)
+                {
+                    count += projectState.DocumentStates.Count;
+                }
+
+                return count;
+            }
+
+            Contract.ThrowIfNull(_projectOrDocumentIds);
+
+            foreach (var projectOrDocumentId in _projectOrDocumentIds)
+            {
+                switch (projectOrDocumentId)
+                {
+                    case ProjectId projectId:
+                        var project = solution.GetProject(projectId);
+                        if (project != null)
+                        {
+                            count += project.DocumentIds.Count;
+                        }
+
+                        break;
+                    case DocumentId documentId:
+                        count++;
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                }
+            }
+
+            return count;
+        }
+
+        public IEnumerable<(Project project, DocumentId documentId)> GetDocumentIds(Solution solution)
+        {
+            if (_solutionId != null && solution.Id != _solutionId)
+            {
+                yield break;
+            }
+
+            if (_solutionId != null)
+            {
+                foreach (var project in solution.Projects)
+                {
+                    foreach (var documentId in project.DocumentIds)
+                        yield return (project, documentId);
+                }
+
+                yield break;
+            }
+
+            Contract.ThrowIfNull(_projectOrDocumentIds);
+
+            foreach (var projectOrDocumentId in _projectOrDocumentIds)
+            {
+                switch (projectOrDocumentId)
+                {
+                    case ProjectId projectId:
+                        {
+                            var project = solution.GetProject(projectId);
+                            if (project != null)
+                            {
+                                foreach (var documentId in project.DocumentIds)
+                                    yield return (project, documentId);
+                            }
+
+                            break;
+                        }
+                    case DocumentId documentId:
+                        {
+                            var project = solution.GetProject(documentId.ProjectId);
+                            if (project != null)
+                            {
+                                // ReanalyzeScopes are created and held in a queue before they are processed later; it's possible the document
+                                // that we queued for is no longer present.
+                                if (project.ContainsDocument(documentId))
+                                    yield return (project, documentId);
+                            }
+
+                            break;
+                        }
+                }
+            }
+        }
+    }
+}

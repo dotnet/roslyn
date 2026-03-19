@@ -6,9 +6,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Partial Class BoundMethodOrPropertyGroup
+    Partial Friend Class BoundMethodOrPropertyGroup
 
         ''' <summary>
         ''' returns name used to lookup the method/property in the group.

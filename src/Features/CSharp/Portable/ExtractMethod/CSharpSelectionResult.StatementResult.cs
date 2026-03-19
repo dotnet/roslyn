@@ -3,105 +3,104 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal partial class CSharpSelectionResult
+    internal abstract partial class CSharpSelectionResult
     {
-        private class StatementResult : CSharpSelectionResult
+        /// <summary>
+        /// Used when extracting either a single statement, or multiple statements to extract.
+        /// </summary>
+        private sealed class StatementResult(
+            SemanticDocument document,
+            SelectionType selectionType,
+            TextSpan finalSpan)
+            : CSharpSelectionResult(document, selectionType, finalSpan)
         {
-            public StatementResult(
-                OperationStatus status,
-                TextSpan originalSpan,
-                TextSpan finalSpan,
-                OptionSet options,
-                bool selectionInExpression,
-                SemanticDocument document,
-                SyntaxAnnotation firstTokenAnnotation,
-                SyntaxAnnotation lastTokenAnnotation)
-                : base(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
-            {
-            }
-
             public override bool ContainingScopeHasAsyncKeyword()
-            {
-                var node = this.GetContainingScope();
-
-                return node switch
+                => GetContainingScope() switch
                 {
-                    AccessorDeclarationSyntax access => false,
                     MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
-                    ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
-                    SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
-                    AnonymousMethodExpressionSyntax anonymous => anonymous.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
+                    LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                    AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.AsyncKeyword != default,
                     _ => false,
                 };
-            }
 
             public override SyntaxNode GetContainingScope()
             {
-                Contract.ThrowIfNull(this.SemanticDocument);
-                Contract.ThrowIfTrue(this.SelectionInExpression);
+                Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
-                // it contains statements
-                var firstToken = this.GetFirstTokenInSelection();
-                return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
-                {
-                    return n is AccessorDeclarationSyntax ||
-                           n is LocalFunctionStatementSyntax ||
-                           n is BaseMethodDeclarationSyntax ||
-                           n is AccessorDeclarationSyntax ||
-                           n is ParenthesizedLambdaExpressionSyntax ||
-                           n is SimpleLambdaExpressionSyntax ||
-                           n is AnonymousMethodExpressionSyntax ||
-                           n is CompilationUnitSyntax;
-                });
+                return GetFirstTokenInSelection().GetRequiredParent().AncestorsAndSelf().First(n =>
+                    n is AccessorDeclarationSyntax or
+                         LocalFunctionStatementSyntax or
+                         BaseMethodDeclarationSyntax or
+                         AnonymousFunctionExpressionSyntax or
+                         CompilationUnitSyntax);
             }
 
-            public override ITypeSymbol GetContainingScopeType()
+            protected override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken)
             {
-                Contract.ThrowIfTrue(this.SelectionInExpression);
-
-                var node = this.GetContainingScope();
-                var semanticModel = this.SemanticDocument.SemanticModel;
+                var node = GetContainingScope();
+                var semanticModel = SemanticDocument.SemanticModel;
 
                 switch (node)
                 {
                     case AccessorDeclarationSyntax access:
-                        // property or event case
-                        if (access.Parent == null || access.Parent.Parent == null)
+                        return semanticModel.GetDeclaredSymbol(access.GetRequiredParent().GetRequiredParent(), cancellationToken) switch
                         {
-                            return null;
-                        }
-
-                        return semanticModel.GetDeclaredSymbol(access.Parent.Parent) switch
-                        {
-                            IPropertySymbol propertySymbol => propertySymbol.Type,
-                            IEventSymbol eventSymbol => eventSymbol.Type,
-                            _ => null,
+                            IPropertySymbol propertySymbol => (propertySymbol.Type, propertySymbol.ReturnsByRef),
+                            IEventSymbol eventSymbol => (eventSymbol.Type, false),
+                            _ => throw ExceptionUtilities.UnexpectedValue(node),
                         };
 
-                    case MethodDeclarationSyntax method:
-                        return semanticModel.GetDeclaredSymbol(method).ReturnType;
+                    case LocalFunctionStatementSyntax localFunction:
+                        {
+                            var method = semanticModel.GetRequiredDeclaredSymbol(localFunction, cancellationToken);
+                            return (method.ReturnType, method.ReturnsByRef);
+                        }
 
-                    case ParenthesizedLambdaExpressionSyntax lambda:
-                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda);
+                    case BaseMethodDeclarationSyntax methodDeclaration:
+                        {
+                            var method = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
+                            return (method.ReturnType, method.ReturnsByRef);
+                        }
 
-                    case SimpleLambdaExpressionSyntax lambda:
-                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda);
-
-                    case AnonymousMethodExpressionSyntax anonymous:
-                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(anonymous);
+                    case AnonymousFunctionExpressionSyntax function:
+                        {
+                            return semanticModel.GetSymbolInfo(function, cancellationToken).Symbol is not IMethodSymbol method
+                                ? default
+                                : (method.ReturnType, method.ReturnsByRef);
+                        }
 
                     default:
-                        return null;
+                        return default;
                 }
+            }
+
+            public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                if (this.IsExtractMethodOnSingleStatement)
+                {
+                    var firstStatement = this.GetFirstStatement();
+                    return firstStatement.GetRequiredParent();
+                }
+
+                if (this.IsExtractMethodOnMultipleStatements)
+                {
+                    var firstStatement = this.GetFirstStatementUnderContainer();
+                    var container = firstStatement.GetRequiredParent();
+                    return container is GlobalStatementSyntax ? container.GetRequiredParent() : container;
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

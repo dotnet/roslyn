@@ -8,7 +8,6 @@ Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.VisualStudio.Debugger
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports System.Text
 
@@ -29,6 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Sub New()
         End Sub
 
+        Friend Overrides Function GetCompactName(method As MethodSymbol) As String
+            Dim symbol = If(method.AssociatedSymbol, method)
+            Return symbol.ToDisplayString(CompactNameFormat)
+        End Function
+
         Friend Overrides Sub AppendFullName(builder As StringBuilder, method As MethodSymbol)
             Dim parts = method.ToDisplayParts(DisplayFormat)
             Dim numParts = parts.Length
@@ -37,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim displayString = part.ToString()
                 Select Case part.Kind
                     Case SymbolDisplayPartKind.ClassName
-                        If Not displayString.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+                        If Not displayString.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
                             builder.Append(displayString)
                         Else
                             ' Drop any remaining display class name parts and the subsequent dot...
@@ -47,13 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             i -= 1
                         End If
                     Case SymbolDisplayPartKind.MethodName
-                        If displayString.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
+                        If displayString.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
                             builder.Append(s_closureDisplayName)
                             builder.Append("."c)
                             ' NOTE: The old implementation only appended the first ordinal number.  Since this is not useful
                             ' in uniquely identifying the lambda, we'll append the entire ordinal suffix (which may contain
                             ' multiple numbers, as well as '-' or '_').
-                            builder.AppendFormat(s_lambdaDisplayName, displayString.Substring(StringConstants.LambdaMethodNamePrefix.Length))
+                            builder.AppendFormat(s_lambdaDisplayName, displayString.Substring(GeneratedNameConstants.LambdaMethodNamePrefix.Length))
                         Else
                             builder.Append(displayString)
                         End If
@@ -86,19 +90,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function GetCompilation(moduleInstance As DkmClrModuleInstance) As VisualBasicCompilation
             Dim appDomain = moduleInstance.AppDomain
-            Dim moduleVersionId = moduleInstance.Mvid
+            Dim moduleId = moduleInstance.GetModuleId()
             Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
 
             Dim kind = GetMakeAssemblyReferencesKind()
-            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
+            Dim contextId = MetadataContextId.GetContextId(moduleId, kind)
             Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
             Dim previousContext As VisualBasicMetadataContext = Nothing
             assemblyContexts.TryGetValue(contextId, previousContext)
 
             Dim compilation = previousContext.Compilation
             If compilation Is Nothing Then
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
+                compilation = metadataBlocks.ToCompilation(moduleId, kind)
                 appDomain.SetMetadataContext(
                     New MetadataContext(Of VisualBasicMetadataContext)(
                         metadataBlocks,
@@ -111,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function GetMethod(compilation As VisualBasicCompilation, instructionAddress As DkmClrInstructionAddress) As MethodSymbol
             Dim methodHandle = CType(MetadataTokens.Handle(instructionAddress.MethodId.Token), MethodDefinitionHandle)
-            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, methodHandle)
+            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.GetModuleId(), methodHandle)
         End Function
 
         Friend Overrides Function GetTypeNameDecoder(compilation As VisualBasicCompilation, method As MethodSymbol) As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol)

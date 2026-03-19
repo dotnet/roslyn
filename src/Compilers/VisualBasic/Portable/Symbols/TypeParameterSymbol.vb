@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property Ordinal As Integer
 
-        Friend Overridable Function GetConstraintsUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overridable Function GetConstraintsUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Return Nothing
         End Function
 
@@ -61,13 +61,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
-        Friend Function ConstraintTypesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
+        Friend Function ConstraintTypesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of TypeSymbol)
             Dim result = ConstraintTypesNoUseSiteDiagnostics
 
-            Me.AddConstraintsUseSiteDiagnostics(useSiteDiagnostics)
+            Me.AddConstraintsUseSiteInfo(useSiteInfo)
 
             For Each constraint In result
-                constraint.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                constraint.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             Next
 
             Return result
@@ -317,11 +317,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride ReadOnly Property HasValueTypeConstraint As Boolean Implements ITypeParameterSymbol.HasValueTypeConstraint
 
-        Private ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
-            Get
-                Return False
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property AllowsRefLikeType As Boolean Implements ITypeParameterSymbol.AllowsRefLikeType
+
+        Friend MustOverride ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
 
         Private ReadOnly Property HasNotNullConstraint As Boolean Implements ITypeParameterSymbol.HasNotNullConstraint
             Get
@@ -330,6 +328,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public MustOverride ReadOnly Property Variance As VarianceKind Implements ITypeParameterSymbol.Variance
+
+        Friend Overrides Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            Return If(HasUnmanagedTypeConstraint, ManagedKind.Unmanaged, ManagedKind.Managed)
+        End Function
 
         ''' <summary>
         ''' If this is a type parameter of a reduced extension method, gets the type parameter definition that
@@ -418,6 +420,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitTypeParameter(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitTypeParameter(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

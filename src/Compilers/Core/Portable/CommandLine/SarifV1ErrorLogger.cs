@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 #pragma warning disable RS0013 // We need to invoke Diagnostic.Descriptor here to log all the metadata properties of the diagnostic.
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     /// Used for logging compiler diagnostics to a stream in the unstandardized SARIF
     /// (Static Analysis Results Interchange Format) v1.0.0 format.
     /// https://github.com/sarif-standard/sarif-spec
-    /// https://rawgit.com/sarif-standard/sarif-spec/master/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
+    /// https://rawgit.com/sarif-standard/sarif-spec/main/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
     /// </summary>
     /// <remarks>
     /// To log diagnostics in the standardized SARIF v2.1.0 format, use the SarifV2ErrorLogger.
@@ -44,7 +44,11 @@ namespace Microsoft.CodeAnalysis
             _writer.Write("version", toolAssemblyVersion.ToString());
             _writer.Write("fileVersion", toolFileVersion);
             _writer.Write("semanticVersion", toolAssemblyVersion.ToString(fieldCount: 3));
-            _writer.Write("language", culture.Name);
+
+            // Emit the 'language' property only if it is a non-empty string to match the SARIF spec.
+            if (culture.Name.Length > 0)
+                _writer.Write("language", culture.Name);
+
             _writer.WriteObjectEnd(); // tool
 
             _writer.WriteArrayStart("results");
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PrimaryLocationPropertyName => "resultFile";
 
-        public override void LogDiagnostic(Diagnostic diagnostic)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
@@ -124,11 +128,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
+        {
+            // We log all analyzer descriptors only in SARIF v2+ format.
+        }
+
         protected override void WritePhysicalLocation(Location location)
         {
             Debug.Assert(HasPath(location));
 
-            FileLinePositionSpan span = location.GetLineSpan();
+            FileLinePositionSpan span = location.GetMappedLineSpan();
 
             _writer.WriteObjectStart();
             _writer.Write("uri", GetUri(span.Path));
@@ -179,11 +188,11 @@ namespace Microsoft.CodeAnalysis
 
                     _writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
 
-                    if (descriptor.CustomTags.Any())
+                    if (descriptor.ImmutableCustomTags.Any())
                     {
                         _writer.WriteArrayStart("tags");
 
-                        foreach (string tag in descriptor.CustomTags)
+                        foreach (string tag in descriptor.ImmutableCustomTags)
                         {
                             _writer.Write(tag);
                         }

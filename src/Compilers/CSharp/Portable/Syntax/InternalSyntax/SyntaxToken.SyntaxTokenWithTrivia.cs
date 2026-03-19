@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Roslyn.Utilities;
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -11,11 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxTokenWithTrivia : SyntaxToken
         {
-            static SyntaxTokenWithTrivia()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithTrivia), r => new SyntaxTokenWithTrivia(r));
-            }
-
             protected readonly GreenNode LeadingField;
             protected readonly GreenNode TrailingField;
 
@@ -47,30 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AdjustFlagsAndWidth(trailing);
                     this.TrailingField = trailing;
                 }
-            }
-
-            internal SyntaxTokenWithTrivia(ObjectReader reader)
-                : base(reader)
-            {
-                var leading = (GreenNode)reader.ReadValue();
-                if (leading != null)
-                {
-                    this.AdjustFlagsAndWidth(leading);
-                    this.LeadingField = leading;
-                }
-                var trailing = (GreenNode)reader.ReadValue();
-                if (trailing != null)
-                {
-                    this.AdjustFlagsAndWidth(trailing);
-                    this.TrailingField = trailing;
-                }
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-                writer.WriteValue(this.LeadingField);
-                writer.WriteValue(this.TrailingField);
             }
 
             public override GreenNode GetLeadingTrivia()

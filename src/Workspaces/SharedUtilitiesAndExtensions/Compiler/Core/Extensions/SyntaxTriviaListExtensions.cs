@@ -2,28 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
-{
-    internal static class SyntaxTriviaListExtensions
-    {
-        public static SyntaxTrivia? FirstOrNull(this SyntaxTriviaList triviaList, Func<SyntaxTrivia, bool> predicate)
-        {
-            foreach (var trivia in triviaList)
-            {
-                if (predicate(trivia))
-                {
-                    return trivia;
-                }
-            }
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-            return null;
+internal static class SyntaxTriviaListExtensions
+{
+    public static SyntaxTrivia? FirstOrNull(this SyntaxTriviaList triviaList, Func<SyntaxTrivia, bool> predicate)
+    {
+        foreach (var trivia in triviaList)
+        {
+            if (predicate(trivia))
+            {
+                return trivia;
+            }
         }
 
-        public static SyntaxTrivia LastOrDefault(this SyntaxTriviaList triviaList)
-            => triviaList.Any() ? triviaList.Last() : default;
+        return null;
     }
+
+    public static SyntaxTrivia LastOrDefault(this SyntaxTriviaList triviaList)
+        => triviaList.Any() ? triviaList.Last() : default;
 }

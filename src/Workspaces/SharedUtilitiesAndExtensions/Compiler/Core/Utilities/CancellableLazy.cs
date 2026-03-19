@@ -5,18 +5,13 @@
 using System;
 using System.Threading;
 
-namespace Roslyn.Utilities
-{
-    internal static class CancellableLazy
-    {
-        public static CancellableLazy<T> Create<T>(T value)
-        {
-            return new CancellableLazy<T>(value);
-        }
+namespace Roslyn.Utilities;
 
-        public static CancellableLazy<T> Create<T>(Func<CancellationToken, T> valueFactory)
-        {
-            return new CancellableLazy<T>(valueFactory);
-        }
-    }
+internal static class CancellableLazy
+{
+    public static CancellableLazy<T> Create<T>(T value)
+        => new(value);
+
+    public static CancellableLazy<T> Create<T>(Func<CancellationToken, T> valueFactory)
+        => new(valueFactory);
 }

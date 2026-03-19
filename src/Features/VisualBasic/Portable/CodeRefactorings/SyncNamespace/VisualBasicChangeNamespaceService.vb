@@ -7,18 +7,29 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ChangeNamespace
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
     <ExportLanguageService(GetType(IChangeNamespaceService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicChangeNamespaceService
-        Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
+    Friend NotInheritable Class VisualBasicChangeNamespaceService
+        Inherits AbstractChangeNamespaceService(Of
+            CompilationUnitSyntax,
+            StatementSyntax,
+            NamespaceStatementSyntax,
+            NameSyntax,
+            SimpleNameSyntax,
+            CrefReferenceSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Public Overrides ReadOnly Property NameReducer As AbstractReducer = New VisualBasicNameReducer()
 
         Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
@@ -29,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
                 Return False
             End If
 
-            If syntaxFacts.IsRightSideOfQualifiedName(nameRef) Then
+            If syntaxFacts.IsRightOfQualifiedName(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
@@ -40,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
                 [new] = [new].WithTriviaFrom(old)
 
-            ElseIf syntaxFacts.IsNameOfMemberAccessExpression(nameRef) Then
+            ElseIf syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.SimpleMemberAccessExpression(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
@@ -57,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
         ' TODO: Implement the service for VB
         Protected Overrides Function GetValidContainersFromAllLinkedDocumentsAsync(document As Document, container As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (DocumentId, SyntaxNode)))
-            Return Task.FromResult(CType(Nothing, ImmutableArray(Of (DocumentId, SyntaxNode))))
+            Return SpecializedTasks.Default(Of ImmutableArray(Of (DocumentId, SyntaxNode)))()
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.

@@ -45,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
                     If child.FullSpan.Start > _maxPosition Then
                         Exit For
                     End If
+
                     If child.IsNode Then
                         Visit(child.AsNode())
                     End If

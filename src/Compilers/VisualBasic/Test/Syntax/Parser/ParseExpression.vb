@@ -4,11 +4,9 @@
 
 Imports System.Globalization
 Imports System.Text
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -531,7 +529,6 @@ ToString]]>.Value)
         expr = ParseExpression("Boo(1,2, x:=3)(ha)")
         Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind)
     End Sub
-
 
     <Fact>
     Public Sub FromQueryClause()
@@ -1084,7 +1081,6 @@ Skip 2
         Diagnostic(ERRID.ERR_SubRequiresSingleStatement, "sub () select case 0 : case 0 : end select"))
     End Sub
 
-
     <Fact>
     Public Sub TestLambdaInModule1()
         ParseAndVerify(<![CDATA[
@@ -1201,7 +1197,6 @@ Skip 2
          </errors>)
     End Sub
 
-
     <Fact>
     Public Sub TestMultiLineLambdaSub()
         ParseAndVerify(<![CDATA[
@@ -1248,7 +1243,6 @@ Skip 2
                  <error id="30081"/>
              </errors>)
     End Sub
-
 
     <Fact>
     Public Sub TestMultiLineLambdaFunction()
@@ -1299,7 +1293,6 @@ Skip 2
         </errors>)
     End Sub
 
-
     <Fact>
     Public Sub TestMultiLineLambdaFunctionClosedWithEndModule()
         ParseAndVerify(<![CDATA[
@@ -1349,7 +1342,6 @@ Skip 2
                  <error id="30026"/>
              </errors>)
     End Sub
-
 
     <Fact>
     Public Sub TestMultiLineLambdaFunctionWithOutBody1()
@@ -1430,7 +1422,6 @@ Skip 2
             <error id="36674"/>
         </errors>)
     End Sub
-
 
     <Fact>
     Public Sub ParseBadlyTerminatedLambdaScenario2()
@@ -1861,7 +1852,6 @@ End Module
         ]]>)
     End Sub
 
-
     <WorkItem(538492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538492")>
     <Fact>
     Public Sub TestMultipleConditionValid002()
@@ -2022,7 +2012,6 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-
     <Fact>
     Public Sub InvalidTypeName()
         Dim code = <String>*ERROR*</String>.Value
@@ -2079,7 +2068,6 @@ Module Program
 End Module
 ]]>, Diagnostic(ERRID.ERR_ExpectedEndOfExpression, "Sum"))
     End Sub
-
 
     <WorkItem(544274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544274")>
     <Fact()>

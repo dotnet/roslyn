@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.MoveToNamespace
-{
-    internal partial class MoveToNamespaceAnalysisResult
-    {
-        public enum ContainerType
-        {
-            Namespace,
-            NamedType
-        }
+namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
+internal sealed partial class MoveToNamespaceAnalysisResult
+{
+    public enum ContainerType
+    {
+        Namespace,
+        NamedType
     }
 }

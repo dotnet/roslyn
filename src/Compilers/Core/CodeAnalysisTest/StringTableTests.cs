@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var s3 = st.Add(" ");
             Assert.Same(s2, s3);
 
-            var s4 = st.Add(new char[1] { ' ' }, 0, 1);
+            var s4 = st.Add([' ']);
             Assert.Same(s3, s4);
 
             var s5 = st.Add("ABC DEF", 3, 1);
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(s1, s2);
         }
 
-        private unsafe static bool TestTextEqualsASCII(string str, string ascii)
+        private static unsafe bool TestTextEqualsASCII(string str, string ascii)
         {
             fixed (byte* ptr = Encoding.ASCII.GetBytes(ascii))
             {

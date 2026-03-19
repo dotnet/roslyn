@@ -5,50 +5,29 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+/// <summary>
+/// Utility class that can be used to track the progress of an operation in a threadsafe manner.
+/// </summary>
+internal sealed class StreamingProgressTracker(Func<int, int, CancellationToken, ValueTask>? updateAction = null) : IStreamingProgressTracker
 {
-    /// <summary>
-    /// Utility class that can be used to track the progress of an operation in a threadsafe manner.
-    /// </summary>
-    internal class StreamingProgressTracker : IStreamingProgressTracker
+    private int _completedItems;
+    private int _totalItems;
+
+    public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
     {
-        private int _completedItems;
-        private int _totalItems;
-
-        private readonly Func<int, int, Task> _updateActionOpt;
-
-        public StreamingProgressTracker()
-            : this(null)
-        {
-        }
-
-        public StreamingProgressTracker(Func<int, int, Task> updateActionOpt)
-        {
-            _updateActionOpt = updateActionOpt;
-        }
-
-        public Task AddItemsAsync(int count)
-        {
-            Interlocked.Add(ref _totalItems, count);
-            return UpdateAsync();
-        }
-
-        public Task ItemCompletedAsync()
-        {
-            Interlocked.Increment(ref _completedItems);
-            return UpdateAsync();
-        }
-
-        private Task UpdateAsync()
-        {
-            if (_updateActionOpt == null)
-            {
-                return Task.CompletedTask;
-            }
-
-            return _updateActionOpt(_completedItems, _totalItems);
-        }
+        Interlocked.Add(ref _totalItems, count);
+        return UpdateAsync(cancellationToken);
     }
+
+    public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+    {
+        Interlocked.Add(ref _completedItems, count);
+        return UpdateAsync(cancellationToken);
+    }
+
+    private ValueTask UpdateAsync(CancellationToken cancellationToken)
+        => updateAction?.Invoke(Volatile.Read(ref _completedItems), Volatile.Read(ref _totalItems), cancellationToken) ?? default;
 }

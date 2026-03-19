@@ -2,174 +2,268 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class RefKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.RefKeyword)
 {
-    internal class RefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    /// <summary>
+    /// Same as <see cref="SyntaxKindSet.AllMemberModifiers"/> with ref specific exclusions
+    /// </summary>
+    private static readonly ISet<SyntaxKind> RefMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.AbstractKeyword,
+            // SyntaxKind.AsyncKeyword,    // async methods cannot be byref
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.OverrideKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.ProtectedKeyword,
+            // SyntaxKind.ReadOnlyKeyword, // fields cannot be byref
+            SyntaxKind.SealedKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.VirtualKeyword,
+            // SyntaxKind.VolatileKeyword, // fields cannot be byref
+        };
+
+    /// <summary>
+    /// Same as <see cref="SyntaxKindSet.AllGlobalMemberModifiers"/> with ref-specific exclusions
+    /// </summary>
+    private static readonly ISet<SyntaxKind> RefGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            // SyntaxKind.AsyncKeyword,    // async local functions cannot be byref
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.OverrideKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.ReadOnlyKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.VolatileKeyword,
+        };
+
+    /// <summary>
+    /// Same as <see cref="SyntaxKindSet.AllGlobalMemberModifiers"/> with ref-specific exclusions for C# script
+    /// </summary>
+    private static readonly ISet<SyntaxKind> RefGlobalMemberScriptModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            // SyntaxKind.AsyncKeyword,    // async methods cannot be byref
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.OverrideKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.PrivateKeyword,
+            // SyntaxKind.ReadOnlyKeyword, // fields cannot be byref
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.UnsafeKeyword,
+            // SyntaxKind.VolatileKeyword, // fields cannot be byref
+        };
+
+    protected override int PreselectMatchPriority => SymbolMatchPriority.PreferRequiredKeyword;
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public RefKeywordRecommender()
-            : base(SyntaxKind.RefKeyword)
+        var syntaxTree = context.SyntaxTree;
+        return
+            IsRefParameterModifierContext(position, context) ||
+            IsValidContextForType(context, cancellationToken) ||
+            syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+            syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+            context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
+            context.TargetToken.IsXmlCrefParameterModifierContext() ||
+            IsValidNewByRefContext(syntaxTree, position, context, cancellationToken) ||
+            IsAllowsRefStructConstraintContext(context);
+    }
+
+    protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        if (!context.TargetToken.IsConstructorOrMethodParameterArgumentContext())
+            return false;
+
+        var parent = context.TargetToken.GetAncestor(n => n is ArgumentListSyntax);
+        if (parent is not ArgumentListSyntax argumentList)
+            return false;
+
+        var symbol = context.SemanticModel.GetSymbolInfo(argumentList.GetRequiredParent(), cancellationToken).GetAnySymbol();
+        if (symbol is not IMethodSymbol methodSymbol)
+            return false;
+
+        var parameter = DetermineParameter();
+        return parameter?.RefKind is RefKind.Ref or RefKind.RefReadOnlyParameter;
+
+        IParameterSymbol? DetermineParameter()
         {
-        }
-
-        /// <summary>
-        /// Same as <see cref="SyntaxKindSet.AllMemberModifiers"/> with ref specific exclusions
-        /// </summary>
-        private static readonly ISet<SyntaxKind> RefMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+            if (context.TargetToken.IsKind(SyntaxKind.ColonToken))
             {
-                SyntaxKind.AbstractKeyword,
-                // SyntaxKind.AsyncKeyword,    // async methods cannot be byref
-                SyntaxKind.ExternKeyword,
-                SyntaxKind.InternalKeyword,
-                SyntaxKind.NewKeyword,
-                SyntaxKind.OverrideKeyword,
-                SyntaxKind.PublicKeyword,
-                SyntaxKind.PrivateKeyword,
-                SyntaxKind.ProtectedKeyword,
-                // SyntaxKind.ReadOnlyKeyword, // fields cannot be byref
-                SyntaxKind.SealedKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.UnsafeKeyword,
-                SyntaxKind.VirtualKeyword,
-                // SyntaxKind.VolatileKeyword, // fields cannot be byref
-            };
-
-        /// <summary>
-        /// Same as <see cref="SyntaxKindSet.AllGlobalMemberModifiers"/> with ref specific exclusions
-        /// </summary>
-        private static readonly ISet<SyntaxKind> RefGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+                if (context.TargetToken.Parent is NameColonSyntax nameColon)
+                    return methodSymbol.Parameters.FirstOrDefault(p => p.Name == nameColon.Name.Identifier.ValueText);
+            }
+            else if (context.TargetToken.Kind() == SyntaxKind.OpenParenToken)
             {
-                // SyntaxKind.AsyncKeyword,    // async methods cannot be byref
-                SyntaxKind.ExternKeyword,
-                SyntaxKind.InternalKeyword,
-                SyntaxKind.NewKeyword,
-                SyntaxKind.OverrideKeyword,
-                SyntaxKind.PublicKeyword,
-                SyntaxKind.PrivateKeyword,
-                // SyntaxKind.ReadOnlyKeyword, // fields cannot be byref
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.UnsafeKeyword,
-                // SyntaxKind.VolatileKeyword, // fields cannot be byref
-            };
-
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var syntaxTree = context.SyntaxTree;
-            return
-                IsRefParameterModifierContext(position, context) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
-                IsValidContextForType(context, cancellationToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
-                context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
-                context.TargetToken.IsXmlCrefParameterModifierContext() ||
-                IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
-        }
-
-        private static bool IsRefParameterModifierContext(int position, CSharpSyntaxContext context)
-        {
-            if (context.SyntaxTree.IsParameterModifierContext(
-                    position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
+                return methodSymbol.Parameters.FirstOrDefault();
+            }
+            else if (context.TargetToken.Kind() == SyntaxKind.CommaToken)
             {
-                if (previousModifier == SyntaxKind.None)
+                var index = argumentList.Arguments.GetWithSeparators().IndexOf(context.TargetToken);
+                if (index >= 0)
                 {
-                    return true;
-                }
-
-                if (previousModifier == SyntaxKind.ThisKeyword &&
-                    parameterIndex == 0 &&
-                    context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
-                {
-                    return true;
+                    // Foo(a,       Comma index is '1', argument index is '1'
+                    // Foo(a,b,     Comma index is '3', argument index is '2'
+                    // Foo(a,b,c,   Comma index is '5', argument index is '3'
+                    var argumentIndex = (index + 1) / 2;
+                    return methodSymbol.Parameters.ElementAtOrDefault(argumentIndex);
                 }
             }
 
-            return false;
+            return null;
         }
+    }
 
-        private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    private static bool IsAllowsRefStructConstraintContext(CSharpSyntaxContext context)
+    {
+        // cases:
+        //    where T : allows |
+        //    where T : struct, allows |
+        //    where T : new(), allows |
+        //    where T : Goo, allows |
+        // note: 'allows ref struct' can't come after a 'class' constraint.
+
+        var token = context.TargetToken;
+
+        if (token.Kind() == SyntaxKind.IdentifierToken && SyntaxFacts.GetContextualKeywordKind((string)token.Value!) == SyntaxKind.AllowsKeyword &&
+            token.Parent is IdentifierNameSyntax identifier && identifier.Identifier == token &&
+            identifier.Parent is TypeConstraintSyntax typeConstraint && typeConstraint.Type == identifier &&
+            typeConstraint.Parent is TypeParameterConstraintClauseSyntax constraintClause)
         {
-            return
-                IsValidRefExpressionContext(context) ||
-                context.IsDelegateReturnTypeContext ||
-                syntaxTree.IsGlobalMemberDeclarationContext(position, RefGlobalMemberModifiers, cancellationToken) ||
-                context.IsMemberDeclarationContext(
-                    validModifiers: RefMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
-                    canBePartial: true,
-                    cancellationToken: cancellationToken);
+            if (!constraintClause.Constraints
+                    .OfType<ClassOrStructConstraintSyntax>()
+                    .Any(c => c.ClassOrStructKeyword.Kind() == SyntaxKind.ClassKeyword))
+            {
+                return true;
+            }
         }
 
-        private static bool IsValidRefExpressionContext(CSharpSyntaxContext context)
+        return false;
+    }
+
+    private static bool IsRefParameterModifierContext(int position, CSharpSyntaxContext context)
+    {
+        if (context.SyntaxTree.IsParameterModifierContext(
+                position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
+        {
+            if (previousModifier is SyntaxKind.None or SyntaxKind.ScopedKeyword)
+            {
+                return true;
+            }
+
+            if (previousModifier == SyntaxKind.ThisKeyword &&
+                parameterIndex == 0 &&
+                context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return
+            IsValidRefExpressionContext(context) ||
+            context.IsDelegateReturnTypeContext ||
+            syntaxTree.IsGlobalMemberDeclarationContext(position, syntaxTree.IsScript() ? RefGlobalMemberScriptModifiers : RefGlobalMemberModifiers, cancellationToken) ||
+            context.IsMemberDeclarationContext(
+                validModifiers: RefMemberModifiers,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
+                cancellationToken: cancellationToken);
+    }
+
+    private static bool IsValidRefExpressionContext(CSharpSyntaxContext context)
+    {
+        // {
+        //     ref var x ...
+        // 
+        if (context.IsStatementContext)
+        {
+            return true;
+        }
+
+        // 
+        //  ref Goo(int x, ...
+        // 
+        if (context.IsGlobalStatementContext)
+        {
+            return true;
+        }
+
+        var token = context.TargetToken;
+
+        switch (token.Kind())
         {
             // {
-            //     ref var x ...
+            //     return ref  ...
             // 
-            if (context.IsStatementContext)
-            {
+            case SyntaxKind.ReturnKeyword:
                 return true;
-            }
 
-            // 
-            //  ref Goo(int x, ...
-            // 
-            if (context.IsGlobalStatementContext)
-            {
+            // scoped ref ...
+            case SyntaxKind.ScopedKeyword:
+            case SyntaxKind.IdentifierToken when token.Text == "scoped":
                 return true;
-            }
 
-            var token = context.TargetToken;
+            // {
+            //     () => ref ...
+            // 
+            case SyntaxKind.EqualsGreaterThanToken:
+                return true;
 
-            switch (token.Kind())
-            {
-                // {
-                //     return ref  ...
-                // 
-                case SyntaxKind.ReturnKeyword:
-                    return true;
+            // {
+            //     for (ref var x ...
+            //
+            //     foreach (ref var x ...
+            //
+            case SyntaxKind.OpenParenToken:
+                var previous = token.GetPreviousToken(includeSkipped: true);
+                return previous.Kind() is SyntaxKind.ForKeyword or SyntaxKind.ForEachKeyword;
 
-                // {
-                //     () => ref ...
-                // 
-                case SyntaxKind.EqualsGreaterThanToken:
-                    return true;
+            // {
+            //     ref var x = ref
+            // 
+            case SyntaxKind.EqualsToken:
+                var parent = token.Parent;
+                return parent?.Kind() == SyntaxKind.SimpleAssignmentExpression
+                    || parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
 
-                // {
-                //     for (ref var x ...
-                //
-                //     foreach (ref var x ...
-                //
-                case SyntaxKind.OpenParenToken:
-                    var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.IsKind(SyntaxKind.ForKeyword)
-                        || previous.IsKind(SyntaxKind.ForEachKeyword);
-
-                // {
-                //     ref var x = ref
-                // 
-                case SyntaxKind.EqualsToken:
-                    var parent = token.Parent;
-                    return parent?.Kind() == SyntaxKind.SimpleAssignmentExpression
-                        || parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
-
-                // {
-                //     var x = true ?
-                //     var x = true ? ref y :
-                case SyntaxKind.QuestionToken:
-                case SyntaxKind.ColonToken:
-                    return token.Parent?.Kind() == SyntaxKind.ConditionalExpression;
-            }
-
-            return false;
+            // {
+            //     var x = true ?
+            //     var x = true ? ref y :
+            case SyntaxKind.QuestionToken:
+            case SyntaxKind.ColonToken:
+                return token.Parent?.Kind() == SyntaxKind.ConditionalExpression;
         }
 
-        private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken);
-        }
+        return false;
+    }
+
+    private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken);
     }
 }

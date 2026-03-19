@@ -4,125 +4,126 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditorConfig.Parsing;
+using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+
+internal static partial class EditorConfigNamingStyleParser
 {
-    internal static partial class EditorConfigNamingStyleParser
+    internal static bool TryGetNamingStyle(
+        Section section,
+        string namingRuleName,
+        IReadOnlyDictionary<string, string> entries,
+        IReadOnlyDictionary<string, TextLine> lines,
+        [NotNullWhen(true)] out NamingScheme? namingScheme)
     {
-        private static bool TryGetNamingStyleData(
-            string namingRuleName,
-            IReadOnlyDictionary<string, string> rawOptions,
-            out NamingStyle namingStyle)
+        if (TryGetStyleProperties(
+            namingRuleName,
+            entries,
+            out var specification,
+            out var prefix,
+            out var suffix,
+            out var wordSeparator,
+            out var capitalization) &&
+            capitalization.Value.HasValue)
         {
-            namingStyle = default;
-            if (!TryGetNamingStyleTitle(namingRuleName, rawOptions, out var namingStyleTitle))
-            {
-                return false;
-            }
-
-            var requiredPrefix = GetNamingRequiredPrefix(namingStyleTitle, rawOptions);
-            var requiredSuffix = GetNamingRequiredSuffix(namingStyleTitle, rawOptions);
-            var wordSeparator = GetNamingWordSeparator(namingStyleTitle, rawOptions);
-            if (!TryGetNamingCapitalization(namingStyleTitle, rawOptions, out var capitalization))
-            {
-                return false;
-            }
-
-            namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                name: namingStyleTitle,
-                prefix: requiredPrefix,
-                suffix: requiredSuffix,
-                wordSeparator: wordSeparator,
-                capitalizationScheme: capitalization);
+            namingScheme = new NamingScheme(
+                OptionName: new(section, specification.GetSpan(lines), specification.Value),
+                Prefix: new(section, prefix.GetSpan(lines), prefix.Value),
+                Suffix: new(section, suffix.GetSpan(lines), suffix.Value),
+                WordSeparator: new(section, wordSeparator.GetSpan(lines), wordSeparator.Value),
+                Capitalization: new(section, capitalization.GetSpan(lines), capitalization.Value.Value));
 
             return true;
         }
 
-        private static bool TryGetNamingStyleTitle(
-            string namingRuleName,
-            IReadOnlyDictionary<string, string> conventionsDictionary,
-            out string namingStyleName)
-        {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.style", out namingStyleName))
-            {
-                return namingStyleName != null;
-            }
+        namingScheme = null;
+        return false;
+    }
 
-            namingStyleName = null;
+    private static bool TryGetNamingStyle(
+        string namingRuleName,
+        IReadOnlyDictionary<string, string> entries,
+        out NamingStyle namingStyle)
+    {
+        if (TryGetStyleProperties(
+            namingRuleName,
+            entries,
+            out var specification,
+            out var prefix,
+            out var suffix,
+            out var wordSeparator,
+            out var capitalization) &&
+            capitalization.Value.HasValue)
+        {
+            namingStyle = new NamingStyle(
+                id: Guid.NewGuid(),
+                specification.Value,
+                prefix.Value,
+                suffix.Value,
+                wordSeparator.Value,
+                capitalization.Value.Value);
+
+            return true;
+        }
+
+        namingStyle = default;
+        return false;
+    }
+
+    private static bool TryGetStyleProperties(
+        string namingRuleTitle,
+        IReadOnlyDictionary<string, string> entries,
+        out Property<string> specification,
+        out Property<string?> prefix,
+        out Property<string?> suffix,
+        out Property<string?> wordSeparator,
+        out Property<Capitalization?> capitalization)
+    {
+        var key = $"dotnet_naming_rule.{namingRuleTitle}.style";
+        if (!entries.TryGetValue(key, out var name))
+        {
+            specification = default;
+            prefix = default;
+            suffix = default;
+            wordSeparator = default;
+            capitalization = default;
             return false;
         }
 
-        private static string GetNamingRequiredPrefix(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary)
-            => GetStringFromConventionsDictionary(namingStyleName, "required_prefix", conventionsDictionary);
+        specification = new Property<string>(key, name);
 
-        private static string GetNamingRequiredSuffix(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary)
-            => GetStringFromConventionsDictionary(namingStyleName, "required_suffix", conventionsDictionary);
-
-        private static string GetNamingWordSeparator(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary)
-            => GetStringFromConventionsDictionary(namingStyleName, "word_separator", conventionsDictionary);
-
-        private static bool TryGetNamingCapitalization(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary, out Capitalization capitalization)
-        {
-            var result = GetStringFromConventionsDictionary(namingStyleName, "capitalization", conventionsDictionary);
-            return TryParseCapitalizationScheme(result, out capitalization);
-        }
-
-        private static string GetStringFromConventionsDictionary(string namingStyleName, string optionName, IReadOnlyDictionary<string, string> conventionsDictionary)
-        {
-            conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.{optionName}", out var result);
-            return result ?? string.Empty;
-        }
-
-        private static bool TryParseCapitalizationScheme(string namingStyleCapitalization, out Capitalization capitalization)
-        {
-            switch (namingStyleCapitalization)
-            {
-                case "pascal_case":
-                    capitalization = Capitalization.PascalCase;
-                    return true;
-                case "camel_case":
-                    capitalization = Capitalization.CamelCase;
-                    return true;
-                case "first_word_upper":
-                    capitalization = Capitalization.FirstUpper;
-                    return true;
-                case "all_upper":
-                    capitalization = Capitalization.AllUpper;
-                    return true;
-                case "all_lower":
-                    capitalization = Capitalization.AllLower;
-                    return true;
-                default:
-                    capitalization = default;
-                    return false;
-            }
-        }
-
-        public static string ToEditorConfigString(this Capitalization capitalization)
-        {
-            switch (capitalization)
-            {
-                case Capitalization.PascalCase:
-                    return "pascal_case";
-
-                case Capitalization.CamelCase:
-                    return "camel_case";
-
-                case Capitalization.FirstUpper:
-                    return "first_word_upper";
-
-                case Capitalization.AllUpper:
-                    return "all_upper";
-
-                case Capitalization.AllLower:
-                    return "all_lower";
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(capitalization);
-            }
-        }
+        const string group = "dotnet_naming_style";
+        prefix = GetProperty(entries, group, name, "required_prefix", static s => s, defaultValue: null);
+        suffix = GetProperty(entries, group, name, "required_suffix", static s => s, defaultValue: null);
+        wordSeparator = GetProperty(entries, group, name, "word_separator", static s => s, defaultValue: null);
+        capitalization = GetProperty(entries, group, name, "capitalization", ParseCapitalization, defaultValue: null);
+        return true;
     }
+
+    private static Capitalization? ParseCapitalization(string namingStyleCapitalization)
+        => namingStyleCapitalization switch
+        {
+            "pascal_case" => Capitalization.PascalCase,
+            "camel_case" => Capitalization.CamelCase,
+            "first_word_upper" => Capitalization.FirstUpper,
+            "all_upper" => Capitalization.AllUpper,
+            "all_lower" => Capitalization.AllLower,
+            _ => default,
+        };
+
+    public static string ToEditorConfigString(this Capitalization capitalization)
+        => capitalization switch
+        {
+            Capitalization.PascalCase => "pascal_case",
+            Capitalization.CamelCase => "camel_case",
+            Capitalization.FirstUpper => "first_word_upper",
+            Capitalization.AllUpper => "all_upper",
+            Capitalization.AllLower => "all_lower",
+            _ => throw ExceptionUtilities.UnexpectedValue(capitalization),
+        };
 }

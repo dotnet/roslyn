@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -13,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         private ArrayElement<GreenNode?>[] _nodes;
         public int Count { get; private set; }
+        public int Capacity => _nodes.Length;
 
         public SyntaxListBuilder(int size)
         {
@@ -26,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         public void Clear()
         {
+            Array.Clear(_nodes, 0, _nodes.Length);
             this.Count = 0;
         }
 
@@ -95,9 +95,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public void AddRange(SyntaxList<GreenNode> list)
+        public SyntaxListBuilder AddRange(SyntaxList<GreenNode> list)
         {
             this.AddRange(list, 0, list.Count);
+            return this;
         }
 
         public void AddRange(SyntaxList<GreenNode> list, int offset, int length)

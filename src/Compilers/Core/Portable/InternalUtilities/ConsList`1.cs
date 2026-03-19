@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Roslyn.Utilities
@@ -18,16 +15,14 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class ConsList<T> : IEnumerable<T>
     {
-        public static readonly ConsList<T> Empty = new ConsList<T>();
+        public static readonly ConsList<T> Empty = new();
 
-        [AllowNull, MaybeNull]
-        private readonly T _head;
+        private readonly T? _head;
         private readonly ConsList<T>? _tail;
 
         internal struct Enumerator : IEnumerator<T>
         {
-            [AllowNull, MaybeNull]
-            private T _current;
+            private T? _current;
             private ConsList<T> _tail;
 
             internal Enumerator(ConsList<T> list)
@@ -54,9 +49,7 @@ namespace Roslyn.Utilities
 
                 if (newTail != null)
                 {
-                    // Suppress false positive CS8717 reported for MaybeNull assignment to AllowNull
-                    // https://github.com/dotnet/roslyn/issues/38926
-                    _current = currentTail._head!;
+                    _current = currentTail._head;
                     _tail = newTail;
                     return true;
                 }
@@ -158,7 +151,7 @@ namespace Roslyn.Utilities
                 any = true;
             }
 
-            result.Append("]");
+            result.Append(']');
             return result.ToString();
         }
     }

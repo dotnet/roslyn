@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +12,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -273,8 +274,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndNonConstantDynamic()
         {
             var source =
@@ -342,8 +342,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndNonConstantNonDynamic()
         {
             var source =
@@ -401,8 +400,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndConstantDynamic()
         {
             var source =
@@ -501,8 +499,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndConstantNonDynamic()
         {
             var source =
@@ -747,7 +744,7 @@ class Generic<T>
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void ComplexDynamicType()
         {
             var source =
@@ -816,7 +813,7 @@ public class Outer<T, U>
                     testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, null);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       60 (0x3c)
@@ -874,7 +871,7 @@ public class Outer<T, U>
                         DkmClrAliasKind.Variable,
                         "d2",
                         "d2",
-                        typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName,
+                        typeof(Dictionary<Dictionary<object, Dictionary<object[], object[]>>, object>).AssemblyQualifiedName,
                         MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -952,7 +949,7 @@ public class Outer<T, U>
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -988,7 +985,7 @@ class C
 {
   // Code size       77 (0x4d)
   .maxstack  9
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0037
   IL_0007:  ldc.i4.0
@@ -1018,8 +1015,7 @@ class C
             });
         }
 
-        [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
         public void AwaitDynamic()
         {
             var source = @"
@@ -1249,8 +1245,7 @@ class C
             });
         }
 
-        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         public void InvokeStaticMemberInLambda()
         {
             var source = @"
@@ -1261,6 +1256,10 @@ class C
     static void Goo(dynamic y)
     {
         System.Action a = () => Goo(x);
+    }
+
+    static void Goo(int y)
+    {
     }
 }
 ";
@@ -1357,8 +1356,7 @@ class C
             });
         }
 
-        [WorkItem(1095613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
         public void HoistedLocalsLoseDynamicAttribute()
         {
             var source = @"
@@ -1373,6 +1371,9 @@ class C
     static void Goo(int x)
     {
         M(x);
+    }
+    static void Goo(string x)
+    {
     }
 }
 ";
@@ -1498,10 +1499,7 @@ class C
             {
                 Assert.Equal(CustomTypeInfo.PayloadTypeId, customTypeInfoId);
                 // Include leading count byte.
-                var builder = ArrayBuilder<byte>.GetInstance();
-                builder.Add((byte)expectedBytes.Length);
-                builder.AddRange(expectedBytes);
-                expectedBytes = builder.ToArrayAndFree();
+                expectedBytes = [(byte)expectedBytes.Length, .. expectedBytes];
                 Assert.Equal(expectedBytes, customTypeInfo);
             }
         }

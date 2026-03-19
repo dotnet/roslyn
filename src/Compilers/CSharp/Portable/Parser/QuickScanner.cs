@@ -4,9 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -152,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.FollowingCR,         // CR
                 (byte)QuickScanState.DoneAfterNext,       // LF
                 (byte)QuickScanState.Done,                // Letter
-                (byte)QuickScanState.Number,              // Digit
+                (byte)QuickScanState.Bad,                 // Dot followed by number.  Could be a fp `.0` or could be a range + num `..0`.  Can't tell here.
                 (byte)QuickScanState.Done,                // Punct
                 (byte)QuickScanState.Bad,                 // Dot (DotDot range token, exit so that we handle it in subsequent scanning code)
                 (byte)QuickScanState.Done,                // Compound
@@ -192,26 +189,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             },
         };
 
-        private SyntaxToken QuickScanSyntaxToken()
+        private SyntaxToken? QuickScanSyntaxToken()
         {
             this.Start();
             var state = QuickScanState.Initial;
-            int i = TextWindow.Offset;
-            int n = TextWindow.CharacterWindowCount;
-            n = Math.Min(n, i + MaxCachedTokenSize);
+
+            var textWindowCharSpan = TextWindow.CurrentWindowSpan;
+
+            // Cap how much of the char span we're willing to look at.
+            textWindowCharSpan = textWindowCharSpan[..Math.Min(MaxCachedTokenSize, textWindowCharSpan.Length)];
 
             int hashCode = Hash.FnvOffsetBias;
 
             //localize frequently accessed fields
-            var charWindow = TextWindow.CharacterWindow;
-            var charPropLength = s_charProperties.Length;
+            var charPropLength = CharProperties.Length;
 
-            for (; i < n; i++)
+            // Where we are currently pointing in the charWindow as we read in a character at a time.
+            var currentIndex = 0;
+            for (; currentIndex < textWindowCharSpan.Length; currentIndex++)
             {
-                char c = charWindow[i];
+                char c = textWindowCharSpan[currentIndex];
                 int uc = unchecked((int)c);
 
-                var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
+                var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
 
                 state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
                 // NOTE: that Bad > Done and it is the only state like that
@@ -231,36 +231,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             state = QuickScanState.Bad; // ran out of characters in window
 exitWhile:
 
-            TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
+                var tokenLength = currentIndex;
+
+                Debug.Assert(tokenLength > 0);
+
+                // It is fine to advance text window here.  AdvanceChar is doc'ed to not change charWindow in any way.
+                // Note: we need to advance here, instead of after LookupToken as LookupToken can call into CreateQuickToken
+                // as a callback, which expects the text window to be in the position after lexing has occurred.
+                TextWindow.AdvanceChar(tokenLength);
+
                 var token = _cache.LookupToken(
-                    TextWindow.CharacterWindow,
-                    TextWindow.LexemeRelativeStart,
-                    i - TextWindow.LexemeRelativeStart,
+                    textWindowCharSpan[..tokenLength],
                     hashCode,
-                    _createQuickTokenFunction);
+                    CreateQuickToken,
+                    this);
                 return token;
             }
             else
             {
-                TextWindow.Reset(TextWindow.LexemeStartPosition);
                 return null;
             }
         }
 
-        private readonly Func<SyntaxToken> _createQuickTokenFunction;
-
-        private SyntaxToken CreateQuickToken()
+        private static SyntaxToken CreateQuickToken(Lexer lexer)
         {
 #if DEBUG
-            var quickWidth = TextWindow.Width;
+            var quickWidth = lexer.CurrentLexemeWidth;
 #endif
-            TextWindow.Reset(TextWindow.LexemeStartPosition);
-            var token = this.LexSyntaxToken();
+            lexer.TextWindow.Reset(lexer.LexemeStartPosition);
+            var token = lexer.LexSyntaxToken();
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);
 #endif
@@ -271,7 +275,7 @@ exitWhile:
         // # is marked complex as it may start directives.
         // PERF: Use byte instead of CharFlags so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[] s_charProperties = new[]
+        private static ReadOnlySpan<byte> CharProperties => new[]
         {
             // 0 .. 31
             (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex,

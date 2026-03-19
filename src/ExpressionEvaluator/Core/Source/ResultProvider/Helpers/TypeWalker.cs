@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct TypeWalker
+    internal readonly struct TypeWalker
     {
         private readonly Type _type;
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _stack.Push(type);
             }
 
-            public Type Current => _stack.Peek();
+            public readonly Type Current => _stack.Peek();
 
             public bool MoveNext()
             {

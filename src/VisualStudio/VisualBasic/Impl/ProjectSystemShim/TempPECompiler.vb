@@ -5,8 +5,6 @@
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.VisualStudio
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
 
@@ -43,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                       punkProject As Object,
                                       pProjHier As IVsHierarchy,
                                       pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
-            Dim project = New TempPEProject(Me, pVbCompilerHost)
+            Dim project = New TempPEProject(pVbCompilerHost)
 
             _projects.Add(project)
 

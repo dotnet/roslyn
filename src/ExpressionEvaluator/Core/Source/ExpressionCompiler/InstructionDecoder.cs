@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,6 +23,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        internal static readonly SymbolDisplayFormat CompactNameFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+            genericsOptions: SymbolDisplayGenericsOptions.None,
+            memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         private readonly bool _useReferencedAssembliesOnly;
 
         internal InstructionDecoder()
@@ -37,6 +41,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
         }
+
+        internal abstract string GetCompactName(TMethodSymbol method);
 
         internal abstract void AppendFullName(StringBuilder builder, TMethodSymbol method);
 

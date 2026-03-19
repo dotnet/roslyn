@@ -2,11 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -18,369 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             string expectedOutput = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            Verification verify = Verification.Passes) => CompileAndVerify(source, references, targetFramework: TargetFramework.Standard, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
+            Verification verify = default) => CompileAndVerify(source, references, targetFramework: TargetFramework.Standard, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
 
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
         protected static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
-
-
-        #region A string containing expression-tree dumping utilities
-        private const string ExpressionTestLibrary = @"
-using System;
-using System.Globalization;
-using System.Linq.Expressions;
-using System.Text;
-
-public class TestBase
-{
-    protected static void DCheck<T>(Expression<T> e, string expected) { Check(e.Dump(), expected); }
-    protected static void Check<T>(Expression<Func<T>> e, string expected) { Check(e.Dump(), expected); }
-    protected static void Check<T1, T2>(Expression<Func<T1, T2>> e, string expected) { Check(e.Dump(), expected); }
-    protected static void Check<T1, T2, T3>(Expression<Func<T1, T2, T3>> e, string expected) { Check(e.Dump(), expected); }
-    protected static void Check<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4>> e, string expected) { Check(e.Dump(), expected); }
-    protected static string ToString<T>(Expression<Func<T>> e) { return e.Dump(); }
-    protected static string ToString<T1, T2>(Expression<Func<T1, T2>> e) { return e.Dump(); }
-    protected static string ToString<T1, T2, T3>(Expression<Func<T1, T2, T3>> e) { return e.Dump(); }
-    private static void Check(string actual, string expected)
-    {
-        if (expected != actual)
-        {
-            Console.WriteLine(""FAIL"");
-            Console.WriteLine(""expected: "" + expected);
-            Console.WriteLine(""actual:   "" + actual);
-//            throw new Exception(""expected='"" + expected + ""'; actual='"" + actual + ""'"");
-        }
-    }
-}
-
-public static class ExpressionExtensions
-{
-    public static string Dump<T>(this Expression<T> self)
-    {
-        return ExpressionPrinter.Print(self.Body);
-    }
-}
-
-class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
-{
-    private StringBuilder s = new StringBuilder();
-
-    public static string Print(Expression e)
-    {
-        var p = new ExpressionPrinter();
-        p.Visit(e);
-        return p.s.ToString();
-    }
-
-    public override Expression Visit(Expression node)
-    {
-        if (node == null) { s.Append(""null""); return null; }
-        s.Append(node.NodeType.ToString());
-        s.Append(""("");
-        base.Visit(node);
-        s.Append("" Type:"" + node.Type);
-        s.Append("")"");
-        return null;
-    }
-
-    protected override MemberBinding VisitMemberBinding(MemberBinding node)
-    {
-        if (node == null) { s.Append(""null""); return null; }
-        return base.VisitMemberBinding(node);
-    }
-
-    protected override MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding node)
-    {
-        s.Append(""MemberMemberBinding(Member="");
-        s.Append(node.Member.ToString());
-        foreach (var b in node.Bindings)
-        {
-            s.Append("" "");
-            VisitMemberBinding(b);
-        }
-        s.Append("")"");
-        return null;
-    }
-
-    protected override MemberListBinding VisitMemberListBinding(MemberListBinding node)
-    {
-        s.Append(""MemberListBinding(Member="");
-        s.Append(node.Member.ToString());
-        foreach (var i in node.Initializers)
-        {
-            s.Append("" "");
-            VisitElementInit(i);
-        }
-        s.Append("")"");
-        return null;
-    }
-
-    protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
-    {
-        s.Append(""MemberAssignment(Member="");
-        s.Append(node.Member.ToString());
-        s.Append("" Expression="");
-        Visit(node.Expression);
-        s.Append("")"");
-        return null;
-    }
-
-    protected override Expression VisitMemberInit(MemberInitExpression node)
-    {
-        s.Append(""NewExpression: "");
-        Visit(node.NewExpression);
-        s.Append("" Bindings:["");
-        bool first = true;
-        foreach (var b in node.Bindings)
-        {
-            if (!first) s.Append("" "");
-            VisitMemberBinding(b);
-            first = false;
-        }
-        s.Append(""]"");
-        return null;
-    }
-
-    protected override Expression VisitBinary(BinaryExpression node)
-    {
-        Visit(node.Left);
-        s.Append("" "");
-        Visit(node.Right);
-        if (node.Conversion != null)
-        {
-            s.Append("" Conversion:"");
-            Visit(node.Conversion);
-        }
-        if (node.IsLifted) s.Append("" Lifted"");
-        if (node.IsLiftedToNull) s.Append("" LiftedToNull"");
-        if (node.Method != null) s.Append("" Method:["" + node.Method + ""]"");
-        return null;
-    }
-
-    protected override Expression VisitConditional(ConditionalExpression node)
-    {
-        Visit(node.Test);
-        s.Append("" ? "");
-        Visit(node.IfTrue);
-        s.Append("" : "");
-        Visit(node.IfFalse);
-        return null;
-    }
-
-    protected override Expression VisitConstant(ConstantExpression node)
-    {
-        // s.Append(node.Value == null ? ""null"" : node.Value.ToString());
-        s.Append(node.Value == null ? ""null"" : GetCultureInvariantString(node.Value));
-        return null;
-    }
-
-    protected override Expression VisitDefault(DefaultExpression node)
-    {
-        return null;
-    }
-
-    protected override Expression VisitIndex(IndexExpression node)
-    {
-        Visit(node.Object);
-        s.Append(""["");
-        int n = node.Arguments.Count;
-        for (int i = 0; i < n; i++)
-        {
-            if (i != 0) s.Append("" "");
-            Visit(node.Arguments[i]);
-        }
-        s.Append(""]"");
-        if (node.Indexer != null) s.Append("" Indexer:"" + node.Indexer);
-        return null;
-    }
-
-    protected override Expression VisitInvocation(InvocationExpression node)
-    {
-        Visit(node.Expression);
-        s.Append(""("");
-        int n = node.Arguments.Count;
-        for (int i = 0; i < n; i++)
-        {
-            if (i != 0) s.Append("" "");
-            Visit(node.Arguments[i]);
-        }
-        s.Append("")"");
-        return null;
-    }
-
-    protected override Expression VisitLambda<T>(Expression<T> node)
-    {
-        s.Append(""("");
-        int n = node.Parameters.Count;
-        for (int i = 0; i < n; i++)
-        {
-            if (i != 0) s.Append("" "");
-            Visit(node.Parameters[i]);
-        }
-        s.Append("") => "");
-        if (node.Name != null) s.Append(node.Name);
-        Visit(node.Body);
-        if (node.ReturnType != null) s.Append("" ReturnType:"" + node.ReturnType);
-        if (node.TailCall) s.Append("" TailCall"");
-        return null;
-    }
-
-    protected override Expression VisitListInit(ListInitExpression node)
-    {
-        Visit(node.NewExpression);
-        s.Append(""{"");
-        int n = node.Initializers.Count;
-        for (int i = 0; i < n; i++)
-        {
-            if (i != 0) s.Append("" "");
-            Visit(node.Initializers[i]);
-        }
-        s.Append(""}"");
-        return null;
-    }
-
-    protected override ElementInit VisitElementInit(ElementInit node)
-    {
-        Visit(node);
-        return null;
-    }
-
-    private void Visit(ElementInit node)
-    {
-        s.Append(""ElementInit("");
-        s.Append(node.AddMethod);
-        int n = node.Arguments.Count;
-        for (int i = 0; i < n; i++)
-        {
-            s.Append("" "");
-            Visit(node.Arguments[i]);
-        }
-        s.Append("")"");
-    }
-
-    protected override Expression VisitMember(MemberExpression node)
-    {
-        Visit(node.Expression);
-        s.Append(""."");
-        s.Append(node.Member.Name);
-        return null;
-    }
-
-    protected override Expression VisitMethodCall(MethodCallExpression node)
-    {
-        Visit(node.Object);
-        s.Append("".["" + node.Method + ""]"");
-        s.Append(""("");
-        int n = node.Arguments.Count;
-        for (int i = 0; i < n; i++)
-        {
-            if (i != 0) s.Append("", "");
-            Visit(node.Arguments[i]);
-        }
-        s.Append("")"");
-        return null;
-    }
-
-    protected override Expression VisitNew(NewExpression node)
-    {
-        s.Append((node.Constructor != null) ? ""["" + node.Constructor + ""]"" : ""<.ctor>"");
-        s.Append(""("");
-        int n = node.Arguments.Count;
-        for (int i = 0; i < n; i++)
-        {
-            if (i != 0) s.Append("", "");
-            Visit(node.Arguments[i]);
-        }
-        s.Append("")"");
-        if (node.Members != null)
-        {
-            n = node.Members.Count;
-            if (n != 0)
-            {
-                s.Append(""{"");
-                for (int i = 0; i < n; i++)
-                {
-                    var info = node.Members[i];
-                    if (i != 0) s.Append("" "");
-                    s.Append(info);
-                }
-                s.Append(""}"");
-            }
-        }
-        return null;
-    }
-
-    protected override Expression VisitNewArray(NewArrayExpression node)
-    {
-        s.Append(""["");
-        int n = node.Expressions.Count;
-        for (int i = 0; i < n; i++)
-        {
-            if (i != 0) s.Append("" "");
-            Visit(node.Expressions[i]);
-        }
-        s.Append(""]"");
-        return null;
-    }
-
-    protected override Expression VisitParameter(ParameterExpression node)
-    {
-        s.Append(node.Name);
-        if (node.IsByRef) s.Append("" ByRef"");
-        return null;
-    }
-
-    protected override Expression VisitTypeBinary(TypeBinaryExpression node)
-    {
-        Visit(node.Expression);
-        s.Append("" TypeOperand:"" + node.TypeOperand);
-        return null;
-    }
-
-    protected override Expression VisitUnary(UnaryExpression node)
-    {
-        Visit(node.Operand);
-        if (node.IsLifted) s.Append("" Lifted"");
-        if (node.IsLiftedToNull) s.Append("" LiftedToNull"");
-        if (node.Method != null) s.Append("" Method:["" + node.Method + ""]"");
-        return null;
-    }
-
-    public static string GetCultureInvariantString(object value)
-    {
-        var valueType = value.GetType();
-        if (valueType == typeof(string))
-        {
-            return value as string;
-        }
-
-        if (valueType == typeof(DateTime))
-        {
-            return ((DateTime)value).ToString(""M/d/yyyy h:mm:ss tt"", CultureInfo.InvariantCulture);
-        }
-
-        if (valueType == typeof(float))
-        {
-            return ((float)value).ToString(CultureInfo.InvariantCulture);
-        }
-
-        if (valueType == typeof(double))
-        {
-            return ((double)value).ToString(CultureInfo.InvariantCulture);
-        }
-
-        if (valueType == typeof(decimal))
-        {
-            return ((decimal)value).ToString(CultureInfo.InvariantCulture);
-        }
-
-        return value.ToString();
-    }
-}
-";
-        #endregion A string containing expression-tree dumping utilities
 
         [Fact]
         public void ExprLambdaReordering()
@@ -1413,7 +1061,8 @@ class P
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
+        [Fact]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void GrabBag02()
         {
             var source =
@@ -1660,6 +1309,31 @@ partial class Program
                 expectedOutput: "k");
         }
 
+        [Fact]
+        public void LambdaDefaultParameter()
+        {
+            var source = """
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression e1 = (int x = 1) => x;
+        Expression e2 = (int x) => (int y = 1) => y;
+        Console.WriteLine(ExpressionPrinter.Print(e1));
+        Console.WriteLine(ExpressionPrinter.Print(e2));
+    }
+}
+""";
+            CompileAndVerifyUtil(
+                new[] { source, ExpressionTestLibrary },
+                expectedOutput: """
+Lambda((Parameter(x Type:System.Int32)) => Parameter(x Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0`2[System.Int32,System.Int32])
+Lambda((Parameter(x Type:System.Int32)) => Lambda((Parameter(y Type:System.Int32)) => Parameter(y Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0`2[System.Int32,System.Int32]) ReturnType:<>f__AnonymousDelegate0`2[System.Int32,System.Int32] Type:System.Func`2[System.Int32,<>f__AnonymousDelegate0`2[System.Int32,System.Int32]])
+""");
+        }
+
         [WorkItem(544218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544218")]
         [Fact]
         public void Linq()
@@ -1785,6 +1459,77 @@ partial class Program : TestBase
                 new[] { text, ExpressionTestLibrary },
                 expectedOutput: @"null
 S");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72571")]
+        public void LambdaWithBindingErrorInInitializerOfTargetTypedNew()
+        {
+            var src = """
+AddConfig(new()
+{
+    A = a =>
+    {
+        a // 1
+    },
+});
+
+static void AddConfig(Config config) { }
+
+class Config
+{
+    public System.Action<A> A { get; set; }
+}
+
+class A { }
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,10): error CS1002: ; expected
+                //         a // 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "a");
+            Assert.Equal("A a", model.GetSymbolInfo(s).Symbol.ToTestDisplayString());
+            Assert.Equal(new string[] { }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72571")]
+        public void LambdaWithBindingErrorInInitializerWithReadonlyTarget()
+        {
+            var src = """
+AddConfig(new Config()
+{
+    A = a =>
+    {
+        a // 1
+    },
+});
+
+static void AddConfig(Config config) { }
+
+class Config
+{
+    public System.Action<A> A { get; }
+}
+
+class A { }
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0200: Property or indexer 'Config.A' cannot be assigned to -- it is read only
+                //     A = a =>
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "A").WithArguments("Config.A").WithLocation(3, 5),
+                // (5,10): error CS1002: ; expected
+                //         a // 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "a");
+            Assert.Equal("A a", model.GetSymbolInfo(s).Symbol.ToTestDisplayString());
+            Assert.Equal(new string[] { }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
         }
 
         #region Regression Tests
@@ -2006,7 +1751,7 @@ class Test
 
             CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
@@ -2356,7 +2101,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "x"));
         }
 
-
         [WorkItem(544276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void UnsafeParamTypeInDelegate()
@@ -2434,14 +2178,15 @@ public class Test
 }
                     ");
 
-            var comp45 = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
 
             // no use Array.Empty here since it is not available
             CompileAndVerify(
-                comp45,
+                comp,
                 expectedOutput: expectedOutput).
                     VerifyIL("Test.Main",
                     @"
@@ -2494,8 +2239,9 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [Fact]
-        public void MethodCallWithParams3()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void MethodCallWithParams3(LanguageVersion languageVersion)
         {
             var text =
 @"using System;
@@ -2511,12 +2257,20 @@ public class Test
         Console.WriteLine(testExpr);
     }
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(text)
-                .VerifyDiagnostics(
-                // (10,48): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                //         Expression<Func<int>> testExpr = () => ModAdd2();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "ModAdd2()")
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,48): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Expression<Func<int>> testExpr = () => ModAdd2();
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "ModAdd2()")
+                    );
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => ModAdd2(3, 4, new [] {})");
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [WorkItem(544419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544419")]
@@ -2575,7 +2329,6 @@ Lambda:
                 new[] { text, TreeWalkerLib },
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
-
 
         [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
         [Fact]
@@ -3114,9 +2867,10 @@ unsafe class Test
     }
 }";
 
+            // PEVerify: [ : Test::Main][mdToken=0x6000001][offset 0x00000009][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
             var c = CompileAndVerifyUtil(text,
                 options: TestOptions.UnsafeReleaseDll,
-                verify: Verification.Fails);
+                verify: Verification.FailsPEVerify);
 
             c.VerifyDiagnostics();
         }
@@ -3485,7 +3239,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { MscorlibRef, SystemCoreRef },
+                new[] { Net40.References.mscorlib, Net40.References.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
@@ -3493,7 +3247,7 @@ class Program
             //NOTE: different shape of delegate creation in 45+ is bydesign and matches behavior of the with old compiler.
             string expectedOutput45 = @"Convert(Call(Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo).[System.Delegate CreateDelegate(System.Type, System.Object)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1)) Type:System.Delegate) Type:Del)";
 
-            var comp45 = CreateCompilationWithMscorlib45(
+            var comp45 = CreateCompilationWithMscorlib461(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 TestOptions.ReleaseExe);
@@ -3736,19 +3490,16 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
 namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (2,11): error CS7000: Unexpected use of an aliased name
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
                 // (2,19): error CS1001: Identifier expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
-                // (2,20): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // (2,71): error CS8124: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithArguments("tuples", "7.0").WithLocation(2, 20),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 71),
                 // (2,76): error CS1026: ) expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
-                // (2,79): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,79): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,19): error CS1514: { expected
@@ -3763,22 +3514,21 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
-                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(2, 93),
                 // (2,94): error CS8124: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 94),
                 // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
+                // (2,11): error CS7000: Unexpected use of an aliased name
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
                 // (2,84): error CS1520: Method must have a return type
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84)
-                );
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84));
         }
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
@@ -4829,7 +4579,6 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-
         [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
         public void GenericPropertyReceiverCastStruct()
         {
@@ -5279,7 +5028,7 @@ class C
 {
     static Expression<D> E = () => new C();
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5341,7 +5090,7 @@ class B<T>
     static object F = null;
     static Expression<D> G = () => F;
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5414,7 +5163,7 @@ class B<T>
     static void M() { }
     B(object o) { }
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5902,23 +5651,24 @@ class C : TestBase
         /// </summary>
         [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
         [Fact]
-        public void IgnoreInaccessibleExpressionMembers()
+        public void IgnoreInaccessibleExpressionMembers_01()
         {
             var source1 =
 @"namespace System.Linq.Expressions
 {
     public class Expression
     {
-        public static Expression Constant(object o, Type t) { return null; }
+        public static ConstantExpression Constant(object o, Type t) { return null; }
         protected static Expression Convert(object e, Type t) { return null; }
         public static Expression Convert(Expression e, object t) { return null; }
-        protected static void Lambda<T>(Expression e, ParameterExpression[] args) { }
+        protected static Expression<T> Lambda<T>(Expression e, ParameterExpression[] args) { return null; }
         public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
     }
     public class Expression<T> { }
     public class ParameterExpression : Expression { }
+    public class ConstantExpression : Expression { }
 }";
-            var compilation1 = CreateCompilationWithMscorlib45(source1);
+            var compilation1 = CreateCompilationWithMscorlib461(source1);
             compilation1.VerifyDiagnostics();
             var reference1 = compilation1.EmitToImageReference();
 
@@ -5929,16 +5679,66 @@ class C
 {
     static Expression<D> E = () => 1;
 }";
-            var compilation2 = CreateCompilationWithMscorlib45(source2, references: new[] { reference1 });
+            var compilation2 = CreateCompilationWithMscorlib461(source2, references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
 
             using (var stream = new MemoryStream())
             {
                 var result = compilation2.Emit(stream);
-                result.Diagnostics.Verify();
+                result.Diagnostics.Verify(
+                    // (5,36): error CS0656: Missing compiler required member 'System.Linq.Expressions.Expression.Convert'
+                    //     static Expression<D> E = () => 1;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1").WithArguments("System.Linq.Expressions.Expression", "Convert").WithLocation(5, 36)
+                    );
             }
         }
 
+        /// <summary>
+        /// Ignore inaccessible members of System.Linq.Expressions.Expression.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void IgnoreInaccessibleExpressionMembers_02()
+        {
+            var source1 =
+@"namespace System.Linq.Expressions
+{
+    public class Expression
+    {
+        public static ConstantExpression Constant(object o, Type t) { return null; }
+        public static UnaryExpression Convert(Expression e, Type t) { return null; }
+        protected static Expression<T> Lambda<T>(Expression e, ParameterExpression[] args) { return null; }
+        public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
+    }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
+    public class ConstantExpression : Expression { }
+    public class UnaryExpression : Expression { }
+}";
+            var compilation1 = CreateCompilationWithMscorlib461(source1);
+            compilation1.VerifyDiagnostics();
+            var reference1 = compilation1.EmitToImageReference();
+
+            var source2 =
+@"using System.Linq.Expressions;
+delegate object D();
+class C
+{
+    static Expression<D> E = () => 1;
+}";
+            var compilation2 = CreateCompilationWithMscorlib461(source2, references: new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+
+            using (var stream = new MemoryStream())
+            {
+                var result = compilation2.Emit(stream);
+                result.Diagnostics.Verify(
+                    // (5,30): error CS0656: Missing compiler required member 'System.Linq.Expressions.Expression.Lambda'
+                    //     static Expression<D> E = () => 1;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "() => 1").WithArguments("System.Linq.Expressions.Expression", "Lambda").WithLocation(5, 30)
+                    );
+            }
+        }
 
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]

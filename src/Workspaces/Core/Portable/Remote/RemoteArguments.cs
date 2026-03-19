@@ -3,214 +3,239 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+#region FindReferences
+
+[DataContract]
+internal sealed class SerializableSymbolAndProjectId(string symbolKeyData, ProjectId projectId) : IEquatable<SerializableSymbolAndProjectId>
 {
-    #region FindReferences
+    [DataMember(Order = 0)]
+    public readonly string SymbolKeyData = symbolKeyData;
 
-    internal class SerializableFindReferencesSearchOptions
+    [DataMember(Order = 1)]
+    public readonly ProjectId ProjectId = projectId;
+
+    public override bool Equals(object? obj)
+        => Equals(obj as SerializableSymbolAndProjectId);
+
+    public bool Equals(SerializableSymbolAndProjectId? other)
     {
-        public bool AssociatePropertyReferencesWithSpecificAccessor;
-        public bool Cascade;
+        if (other == null)
+            return false;
 
-        public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
-        {
-            return new SerializableFindReferencesSearchOptions
-            {
-                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor,
-                Cascade = options.Cascade,
-            };
-        }
+        if (this == other)
+            return true;
 
-        public FindReferencesSearchOptions Rehydrate()
-        {
-            return new FindReferencesSearchOptions(
-                associatePropertyReferencesWithSpecificAccessor: AssociatePropertyReferencesWithSpecificAccessor,
-                cascade: Cascade);
-        }
+        return this.ProjectId == other?.ProjectId &&
+               this.SymbolKeyData == other?.SymbolKeyData;
     }
 
-    internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
+    public override int GetHashCode()
+        => Hash.Combine(this.SymbolKeyData, this.ProjectId.GetHashCode());
+
+    [return: NotNullIfNotNull(nameof(alias))]
+    public static SerializableSymbolAndProjectId? Dehydrate(
+        IAliasSymbol? alias, Document document, CancellationToken cancellationToken)
     {
-        public string SymbolKeyData;
-        public ProjectId ProjectId;
-
-        public override int GetHashCode()
-            => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
-
-        public override bool Equals(object obj)
-            => Equals(obj as SerializableSymbolAndProjectId);
-
-        public bool Equals(SerializableSymbolAndProjectId other)
-            => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
-
-        public static SerializableSymbolAndProjectId Dehydrate(
-            IAliasSymbol alias, Document document)
-        {
-            return alias == null
-                ? null
-                : Dehydrate(new SymbolAndProjectId(alias, document.Project.Id));
-        }
-
-        public static SerializableSymbolAndProjectId Dehydrate(
-            SymbolAndProjectId symbolAndProjectId)
-        {
-            return new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = symbolAndProjectId.ProjectId
-            };
-        }
-
-        public async Task<SymbolAndProjectId?> TryRehydrateAsync(
-            Solution solution, CancellationToken cancellationToken)
-        {
-            var projectId = ProjectId;
-            var project = solution.GetProject(projectId);
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            // The server and client should both be talking about the same compilation.  As such
-            // locations in symbols are save to resolve as we rehydrate the SymbolKey.
-            var symbol = SymbolKey.ResolveString(
-                SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
-
-            if (symbol == null)
-            {
-                try
-                {
-                    throw new InvalidOperationException(
-                        $"We should always be able to resolve a symbol back on the host side:\r\n{SymbolKeyData}");
-                }
-                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
-                {
-                    return null;
-                }
-            }
-
-            return new SymbolAndProjectId(symbol, projectId);
-        }
+        return alias == null
+            ? null
+            : Dehydrate(document.Project.Solution, alias, cancellationToken);
     }
 
-    internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
+    public static SerializableSymbolAndProjectId Dehydrate(
+        Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
-        public bool IsValueUsageInfo;
-        public int UsageInfoUnderlyingValue;
+        var project = solution.GetOriginatingProject(symbol);
+        Contract.ThrowIfNull(project, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
 
-        public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
-        {
-            bool isValueUsageInfo;
-            int usageInfoUnderlyingValue;
-            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
-            {
-                isValueUsageInfo = true;
-                usageInfoUnderlyingValue = (int)symbolUsageInfo.ValueUsageInfoOpt.Value;
-            }
-            else
-            {
-                isValueUsageInfo = false;
-                usageInfoUnderlyingValue = (int)symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
-            }
-
-            return new SerializableSymbolUsageInfo
-            {
-                IsValueUsageInfo = isValueUsageInfo,
-                UsageInfoUnderlyingValue = usageInfoUnderlyingValue
-            };
-        }
-
-        public SymbolUsageInfo Rehydrate()
-        {
-            return IsValueUsageInfo
-                ? SymbolUsageInfo.Create((ValueUsageInfo)UsageInfoUnderlyingValue)
-                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)UsageInfoUnderlyingValue);
-        }
-
-        public bool Equals(SerializableSymbolUsageInfo other)
-        {
-            return other != null &&
-                IsValueUsageInfo == other.IsValueUsageInfo &&
-                UsageInfoUnderlyingValue == other.UsageInfoUnderlyingValue;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as SerializableSymbolUsageInfo);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
-        }
+        return Create(symbol, project, cancellationToken);
     }
 
-    internal class SerializableReferenceLocation
+    public static SerializableSymbolAndProjectId Create(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        => new(symbol.GetSymbolKey(cancellationToken).ToString(), project.Id);
+
+    public static bool TryCreate(
+        ISymbol symbol, Solution solution, CancellationToken cancellationToken,
+        [NotNullWhen(true)] out SerializableSymbolAndProjectId? result)
     {
-        public DocumentId Document { get; set; }
-
-        public SerializableSymbolAndProjectId Alias { get; set; }
-
-        public TextSpan Location { get; set; }
-
-        public bool IsImplicit { get; set; }
-
-        public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
-
-        public ImmutableDictionary<string, string> AdditionalProperties { get; set; }
-
-        public CandidateReason CandidateReason { get; set; }
-
-        public static SerializableReferenceLocation Dehydrate(
-            ReferenceLocation referenceLocation)
+        var project = solution.GetOriginatingProject(symbol);
+        if (project == null)
         {
-            return new SerializableReferenceLocation
+            result = null;
+            return false;
+        }
+
+        return TryCreate(symbol, project, cancellationToken, out result);
+    }
+
+    public static bool TryCreate(
+        ISymbol symbol, Project project, CancellationToken cancellationToken,
+        [NotNullWhen(true)] out SerializableSymbolAndProjectId? result)
+    {
+        if (!SymbolKey.CanCreate(symbol, cancellationToken))
+        {
+            result = null;
+            return false;
+        }
+
+        result = new SerializableSymbolAndProjectId(SymbolKey.CreateString(symbol, cancellationToken), project.Id);
+        return true;
+    }
+
+    public async ValueTask<ISymbol?> TryRehydrateAsync(
+        Solution solution, CancellationToken cancellationToken)
+    {
+        var projectId = ProjectId;
+        var project = solution.GetRequiredProject(projectId);
+        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+        // The server and client should both be talking about the same compilation.  As such
+        // locations in symbols are save to resolve as we rehydrate the SymbolKey.
+        var symbol = SymbolKey.ResolveString(
+            SymbolKeyData, compilation, out var failureReason, cancellationToken).GetAnySymbol();
+
+        if (symbol == null)
+        {
+            try
             {
-                Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
-                Location = referenceLocation.Location.SourceSpan,
-                IsImplicit = referenceLocation.IsImplicit,
-                SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
-                AdditionalProperties = referenceLocation.AdditionalProperties,
-                CandidateReason = referenceLocation.CandidateReason
-            };
-        }
-
-        public async Task<ReferenceLocation> RehydrateAsync(
-            Solution solution, CancellationToken cancellationToken)
-        {
-            var document = solution.GetDocument(this.Document);
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
-            var additionalProperties = this.AdditionalProperties;
-            return new ReferenceLocation(
-                document,
-                aliasSymbol,
-                CodeAnalysis.Location.Create(syntaxTree, Location),
-                isImplicit: IsImplicit,
-                symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
-                additionalProperties: additionalProperties ?? ImmutableDictionary<string, string>.Empty,
-                candidateReason: CandidateReason);
-        }
-
-        private async Task<IAliasSymbol> RehydrateAliasAsync(
-            Solution solution, CancellationToken cancellationToken)
-        {
-            if (Alias == null)
+                throw new InvalidOperationException(
+                    $"We should always be able to resolve a symbol back on the host side:\r\n'{project.Name}-{project.Language}'\r\n'{SymbolKeyData}'\r\n'{failureReason}'");
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
                 return null;
             }
-
-            var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
         }
+
+        return symbol;
+    }
+}
+
+[DataContract]
+internal readonly struct SerializableReferenceLocation(
+    DocumentId document,
+    SerializableSymbolAndProjectId? alias,
+    TextSpan location,
+    bool isImplicit,
+    SymbolUsageInfo symbolUsageInfo,
+    ImmutableArray<(string key, string value)> additionalProperties,
+    CandidateReason candidateReason)
+{
+    [DataMember(Order = 0)]
+    public readonly DocumentId Document = document;
+
+    [DataMember(Order = 1)]
+    public readonly SerializableSymbolAndProjectId? Alias = alias;
+
+    [DataMember(Order = 2)]
+    public readonly TextSpan Location = location;
+
+    [DataMember(Order = 3)]
+    public readonly bool IsImplicit = isImplicit;
+
+    [DataMember(Order = 4)]
+    public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
+
+    [DataMember(Order = 5)]
+    public readonly ImmutableArray<(string key, string value)> AdditionalProperties = additionalProperties;
+
+    [DataMember(Order = 6)]
+    public readonly CandidateReason CandidateReason = candidateReason;
+
+    public static SerializableReferenceLocation Dehydrate(
+        ReferenceLocation referenceLocation, CancellationToken cancellationToken)
+    {
+        return new SerializableReferenceLocation(
+            referenceLocation.Document.Id,
+            SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
+            referenceLocation.Location.SourceSpan,
+            referenceLocation.IsImplicit,
+            referenceLocation.SymbolUsageInfo,
+            referenceLocation.AdditionalProperties,
+            referenceLocation.CandidateReason);
     }
 
-    #endregion
+    public async ValueTask<ReferenceLocation> RehydrateAsync(
+        Solution solution, CancellationToken cancellationToken)
+    {
+        var document = await solution.GetRequiredDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
+        var additionalProperties = this.AdditionalProperties;
+        return new ReferenceLocation(
+            document,
+            aliasSymbol,
+            CodeAnalysis.Location.Create(syntaxTree, Location),
+            IsImplicit,
+            SymbolUsageInfo,
+            additionalProperties,
+            CandidateReason);
+    }
+
+    private async Task<IAliasSymbol?> RehydrateAliasAsync(
+        Solution solution, CancellationToken cancellationToken)
+    {
+        if (Alias == null)
+            return null;
+
+        var symbol = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+        return symbol as IAliasSymbol;
+    }
 }
+
+[DataContract]
+internal sealed class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
+{
+    [DataMember(Order = 0)]
+    public readonly HashSet<SerializableSymbolAndProjectId> Symbols = [.. symbols];
+
+    private int _hashCode;
+
+    public override bool Equals(object? obj)
+        => obj is SerializableSymbolGroup group && Equals(group);
+
+    public bool Equals(SerializableSymbolGroup? other)
+    {
+        if (other == null)
+            return false;
+
+        if (this == other)
+            return true;
+
+        return this.Symbols.SetEquals(other.Symbols);
+    }
+
+    public override int GetHashCode()
+    {
+        if (_hashCode == 0)
+        {
+            var hashCode = 0;
+            foreach (var symbol in Symbols)
+                hashCode += symbol.SymbolKeyData.GetHashCode();
+            _hashCode = hashCode == 0 ? 1 : hashCode;
+        }
+
+        return _hashCode;
+    }
+
+    public static SerializableSymbolGroup Dehydrate(Solution solution, SymbolGroup group, CancellationToken cancellationToken)
+    {
+        return new SerializableSymbolGroup([.. group.Symbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))]);
+    }
+}
+
+#endregion

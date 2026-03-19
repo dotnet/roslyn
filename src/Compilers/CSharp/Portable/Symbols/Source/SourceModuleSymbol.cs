@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -42,6 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamespaceSymbol _globalNamespace;
 
         private bool _hasBadAttributes;
+
+        private ThreeState _lazyUseUpdatedEscapeRules;
+        private ThreeState _lazyRequiresRefSafetyRulesAttribute;
 
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
@@ -189,12 +196,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     var globalNS = new SourceNamespaceSymbol(
                         this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
-                    Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+
+                    if (Interlocked.CompareExchange(ref _globalNamespace, globalNS, null) == null)
+                    {
+                        this.AddDeclarationDiagnostics(diagnostics);
+                    }
+
                     diagnostics.Free();
-                    Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
 
                 return _globalNamespace;
@@ -211,7 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -225,19 +237,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            DiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag? diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
-                                diagnostics = DiagnosticBag.GetInstance();
+                                diagnostics = BindingDiagnosticBag.GetInstance();
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
+
+                            // If "data section string literals" are enabled, check the necessary APIs are available so used assemblies are tracked correctly.
+                            if (this.DeclaringCompilation.DataSectionStringLiteralThreshold != null)
+                            {
+                                diagnostics ??= BindingDiagnosticBag.GetInstance();
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__get_UTF8, diagnostics, NoLocation.Singleton);
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__GetString, diagnostics, NoLocation.Singleton);
+                            }
+
+                            AddMemorySafetyRulesAttributeIfNeeded(ref diagnostics);
 
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
                                 if (diagnostics != null)
                                 {
-                                    _assemblySymbol.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
+                                    _assemblySymbol.AddDeclarationDiagnostics(diagnostics);
                                 }
 
                                 _state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);
@@ -258,15 +280,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.MembersCompleted:
-                        this.GlobalNamespace.ForceComplete(locationOpt, cancellationToken);
+                        this.GlobalNamespace.ForceComplete(locationOpt, filter, cancellationToken);
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
+                            // Completing the global namespace members means all InterceptsLocationAttributes have been bound.
+                            Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
+
                             _state.NotePartComplete(CompletionPart.MembersCompleted);
                         }
                         else
                         {
-                            Debug.Assert(locationOpt != null, "If no location was specified, then the namespace members should be completed");
+                            Debug.Assert(locationOpt != null || filter != null, "If no location or filter was specified, then the namespace members should be completed");
                             return;
                         }
 
@@ -285,7 +310,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ValidateLinkedAssemblies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void AddMemorySafetyRulesAttributeIfNeeded(ref BindingDiagnosticBag? diagnostics)
+        {
+            if (UseUpdatedMemorySafetyRules)
+            {
+                var needsDiagnostics = DeclaringCompilation.Options.OutputKind == OutputKind.NetModule;
+
+                if (needsDiagnostics)
+                {
+                    diagnostics ??= BindingDiagnosticBag.GetInstance();
+                }
+
+                DeclaringCompilation.EnsureMemorySafetyRulesAttributeExists(
+                    needsDiagnostics ? diagnostics : null,
+                    Location.None,
+                    modifyCompilation: true);
+            }
+        }
+
+        private void ValidateLinkedAssemblies(BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             foreach (AssemblySymbol a in GetReferencedAssemblySymbols())
             {
@@ -293,47 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!a.IsMissing && a.IsLinked)
                 {
-                    bool hasGuidAttribute = false;
-                    bool hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = false;
-
-                    foreach (var attrData in a.GetAttributes())
-                    {
-                        if (attrData.IsTargetAttribute(a, AttributeDescription.GuidAttribute))
-                        {
-                            string guidString;
-                            if (attrData.TryGetGuidAttributeValue(out guidString))
-                            {
-                                hasGuidAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.ImportedFromTypeLibAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 1)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.PrimaryInteropAssemblyAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 2)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-
-                        if (hasGuidAttribute && hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!hasGuidAttribute)
+                    if (!a.GetGuidString(out _))
                     {
                         // ERRID_PIAHasNoAssemblyGuid1/ERR_NoPIAAssemblyMissingAttribute
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttribute, NoLocation.Singleton, a, AttributeDescription.GuidAttribute.FullName);
                     }
 
-                    if (!hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
+                    if (!a.HasImportedFromTypeLibAttribute && !a.HasPrimaryInteropAssemblyAttribute)
                     {
                         // ERRID_PIAHasNoTypeLibAttribute1/ERR_NoPIAAssemblyMissingAttributes
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttributes, NoLocation.Singleton, a,
@@ -343,6 +352,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal void DiscoverInterceptorsIfNeeded()
+        {
+            if (!Volatile.Read(ref DeclaringCompilation.InterceptorsDiscoveryComplete))
+            {
+                discoverInterceptors();
+                Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
+            }
+
+            void discoverInterceptors()
+            {
+                var location = this.GlobalNamespace.GetFirstLocationOrNone();
+                if (!location.IsInSource)
+                {
+                    return;
+                }
+
+                var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+
+                // Search the namespaces which were indicated to contain interceptors.
+                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsNamespaces;
+                foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
+                {
+                    if (namespaceParts is ["global"])
+                    {
+                        toVisit.Clear();
+                        toVisit.Add(GlobalNamespace);
+                        // No point in continuing, we already are going to search the entire module in this case.
+                        break;
+                    }
+
+                    var cursor = GlobalNamespace;
+                    foreach (string namespacePart in namespaceParts)
+                    {
+                        cursor = (NamespaceSymbol?)cursor.GetNestedNamespace(namespacePart);
+                        if (cursor is null)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (cursor is not null)
+                    {
+                        toVisit.Add(cursor);
+                    }
+                }
+
+                while (toVisit.Count > 0)
+                {
+                    var item = toVisit.Pop();
+                    if (item is SourceMemberContainerTypeSymbol type)
+                    {
+                        type.DiscoverInterceptors(toVisit);
+                    }
+                    else if (item is SourceNamespaceSymbol @namespace)
+                    {
+                        foreach (var member in @namespace.GetMembers())
+                        {
+                            if (member is not NamespaceOrTypeSymbol namespaceOrType)
+                            {
+                                throw ExceptionUtilities.UnexpectedValue(member);
+                            }
+
+                            toVisit.Add(namespaceOrType);
+                        }
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(item);
+                    }
+                }
+
+                toVisit.Free();
+            }
+        }
+#nullable disable
 
         public override ImmutableArray<Location> Locations
         {
@@ -492,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
-        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -500,34 +585,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
                 if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
-                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attribute.GetAttributeArgumentLocation(0), arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
                     arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.NullableContextAttribute
+                | ReservedAttributes.NullablePublicOnlyAttribute
+                | ReservedAttributes.RefSafetyRulesAttribute
+                | ReservedAttributes.MemorySafetyRulesAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullablePublicOnlyAttribute))
-            {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullablePublicOnlyAttribute);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExperimentalAttribute))
+            {
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ExperimentalAttributeData = attribute.DecodeExperimentalAttribute();
+            }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+#nullable enable
+
+        internal bool RequiresRefSafetyRulesAttribute()
+        {
+            if (_lazyRequiresRefSafetyRulesAttribute == ThreeState.Unknown)
+            {
+                bool value = UseUpdatedEscapeRules &&
+                    !isFeatureDisabled(_assemblySymbol.DeclaringCompilation) &&
+                    namespaceIncludesTypeDeclarations(GlobalNamespace);
+                _lazyRequiresRefSafetyRulesAttribute = value.ToThreeState();
+            }
+            return _lazyRequiresRefSafetyRulesAttribute.Value();
+
+            static bool isFeatureDisabled(CSharpCompilation compilation)
+            {
+                var options = (CSharpParseOptions?)compilation.SyntaxTrees.FirstOrDefault()?.Options;
+                return options?.HasFeature(Feature.NoRefSafetyRulesAttribute) == true;
+            }
+
+            static bool namespaceIncludesTypeDeclarations(NamespaceSymbol ns)
+            {
+                foreach (var member in ns.GetMembersUnordered())
+                {
+                    switch (member.Kind)
+                    {
+                        case SymbolKind.Namespace:
+                            if (namespaceIncludesTypeDeclarations((NamespaceSymbol)member))
+                            {
+                                return true;
+                            }
+                            break;
+                        case SymbolKind.NamedType:
+                            return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -540,6 +667,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor));
                 }
+            }
+
+            if (RequiresRefSafetyRulesAttribute())
+            {
+                var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, 11));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRefSafetyRulesAttribute(version));
+            }
+
+            if (UseUpdatedMemorySafetyRules)
+            {
+                var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeMemorySafetyRulesAttribute(version));
             }
 
             if (moduleBuilder.ShouldEmitNullablePublicOnlyAttribute())
@@ -586,6 +725,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ModuleMetadata GetMetadata() => null;
+        public override ModuleMetadata? GetMetadata() => null;
+
+        internal override bool UseUpdatedEscapeRules
+        {
+            get
+            {
+                if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
+                {
+                    var compilation = _assemblySymbol.DeclaringCompilation;
+                    bool value = compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefFields) || _assemblySymbol.RuntimeSupportsByRefFields;
+                    _lazyUseUpdatedEscapeRules = value.ToThreeState();
+                }
+                return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
+
+        internal override bool UseUpdatedMemorySafetyRules
+        {
+            get
+            {
+                return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules ||
+                    // https://github.com/dotnet/roslyn/issues/82546: temporary way to opt in
+                    _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null;
+            }
+        }
+
+        /// <summary>
+        /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
+        /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                var attributesBag = _lazyCustomAttributesBag;
+                if (attributesBag != null && attributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var decodedData = (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+                    return decodedData?.ExperimentalAttributeData;
+                }
+
+                var attributesDeclarations = ((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations();
+                if (attributesDeclarations.IsEmpty)
+                {
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
+            }
+        }
     }
 }

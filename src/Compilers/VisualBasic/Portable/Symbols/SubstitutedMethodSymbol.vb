@@ -21,9 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _propertyOrEventSymbolOpt As Symbol
 
-        ' The overridden or hidden methods.
-        Private _lazyOverriddenMethods As OverriddenMembersResult(Of MethodSymbol)
-
         Protected Sub New()
         End Sub
 
@@ -219,6 +216,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return OriginalDefinition.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
                 Return OriginalDefinition.IsOverridable
@@ -252,6 +253,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property IsIterator As Boolean
             Get
                 Return OriginalDefinition.IsIterator
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return OriginalDefinition.IsInitOnly
             End Get
         End Property
 
@@ -400,6 +407,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             Return OriginalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return OriginalDefinition.HasSetsRequiredMembers
+            End Get
+        End Property
 
         ''' <summary>
         ''' Base class for symbols representing non-generic or open generic methods contained within constructed generic type.
@@ -575,8 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' alpha-renamed type parameters.
                 Debug.Assert(container.TypeSubstitution IsNot Nothing AndAlso
                              container.TypeSubstitution.TargetGenericDefinition Is originalDefinition.ContainingSymbol)
-                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution,
-                                                                         StaticCast(Of TypeParameterSymbol).From(newTypeParameters))
+                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution, newTypeParameters)
                 Debug.Assert(substitution.TargetGenericDefinition Is originalDefinition)
 
                 ' Now create the symbol.

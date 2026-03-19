@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' a NoPia embedded type symbol that was attempted to be substituted with canonical type, 
     ''' but the canonical type was ambiguous.
     ''' </summary>
-    Friend Class NoPiaAmbiguousCanonicalTypeSymbol
+    Friend NotInheritable Class NoPiaAmbiguousCanonicalTypeSymbol
         Inherits ErrorTypeSymbol
 
         Private ReadOnly _embeddingAssembly As AssemblySymbol
@@ -60,10 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return RuntimeHelpers.GetHashCode(Me)
         End Function
 
-        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
             Return obj Is Me
         End Function
-
 
         Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
             Get

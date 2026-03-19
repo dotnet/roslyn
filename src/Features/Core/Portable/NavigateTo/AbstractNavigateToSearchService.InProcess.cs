@@ -9,311 +9,330 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo;
+
+internal abstract partial class AbstractNavigateToSearchService
 {
-    internal abstract partial class AbstractNavigateToSearchService
+    private static readonly ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
+        [
+            (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
+            (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),
+            (PatternMatchKind.NonLowercaseSubstring, NavigateToMatchKind.Substring),
+            (PatternMatchKind.StartOfWordSubstring, NavigateToMatchKind.Substring),
+            (PatternMatchKind.CamelCaseExact, NavigateToMatchKind.CamelCaseExact),
+            (PatternMatchKind.CamelCasePrefix, NavigateToMatchKind.CamelCasePrefix),
+            (PatternMatchKind.CamelCaseNonContiguousPrefix, NavigateToMatchKind.CamelCaseNonContiguousPrefix),
+            (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
+            (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
+            (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy),
+
+            // LowercaseSubstring is the weakest non-fuzzy PatternMatchKind (an all-lowercase pattern found
+            // inside a candidate at a non-word-boundary, e.g. "line" in "Readline"). NavigateToMatchKind has
+            // no dedicated bucket for it, so we map it to Fuzzy as the closest available quality tier.
+            (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy),
+        ];
+
+    private static async ValueTask SearchSingleDocumentAsync(
+        Document document,
+        string patternName,
+        string? patternContainer,
+        DeclaredSymbolInfoKindSet kinds,
+        Action<RoslynNavigateToItem> onItemFound,
+        CancellationToken cancellationToken)
     {
-        public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        // First, load the lightweight filter index to check if this document could possibly match.
+        // This avoids loading the much larger TopLevelSyntaxTreeIndex for non-matching documents.
+        var filterIndex = await NavigateToSearchIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        var matchKinds = filterIndex.CouldContainNavigateToMatch(patternName, patternContainer);
+        if (matchKinds == PatternMatcherKind.None)
+            return;
+
+        // The filter passed — now load the full index with all declared symbols.
+        var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        using var _ = ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>.GetInstance(out var linkedIndices);
+
+        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
         {
-            return FindSearchResultsAsync(
-                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, cancellationToken: cancellationToken);
+            var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
+            var linkedIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).ConfigureAwait(false);
+            linkedIndices.Add((linkedIndex, linkedDocumentId.ProjectId));
         }
 
-        public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        ProcessIndex(
+            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
+            matchKinds, index, linkedIndices, onItemFound, cancellationToken);
+    }
+
+    private static void ProcessIndex(
+        DocumentKey documentKey,
+        Document? document,
+        string patternName,
+        string? patternContainer,
+        DeclaredSymbolInfoKindSet kinds,
+        PatternMatcherKind matchKinds,
+        TopLevelSyntaxTreeIndex index,
+        ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices,
+        Action<RoslynNavigateToItem> onItemFound,
+        CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        using var containerMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true);
+        using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, matchKinds);
+
+        foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {
-            return FindSearchResultsAsync(
-                document.Project, priorityDocuments: ImmutableArray<Document>.Empty,
-                document, searchPattern, kinds, cancellationToken);
-        }
+            if (cancellationToken.IsCancellationRequested)
+                return;
 
-        private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
-            string pattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-        {
-            // If the user created a dotted pattern then we'll grab the last part of the name
-            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-            var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
+            // Namespaces are never returned in nav-to as they're too common and have too many locations.
+            if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
+                continue;
 
-            var containerMatcherOpt = patternContainerOpt != null
-                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
-                : null;
+            using var nameMatches = TemporaryArray<PatternMatch>.Empty;
+            using var containerMatches = TemporaryArray<PatternMatch>.Empty;
 
-            using (nameMatcher)
-            using (containerMatcherOpt)
-            {
-                using var _1 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
-                using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
-
-                var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-                var searchResults = await ComputeSearchResultsAsync(
-                    project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt,
-                    declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
-
-                return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
-            }
-        }
-
-        private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
-            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
-            DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            CancellationToken cancellationToken)
-        {
-            var result = ArrayBuilder<SearchResult>.GetInstance();
-
-            // Prioritize the active documents if we have any.
-            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id))
-                                               .ToImmutableArray();
-
-            var highPriDocsSet = highPriDocs.ToSet();
-            var lowPriDocs = project.Documents.Where(d => !highPriDocsSet.Contains(d));
-
-            var orderedDocs = highPriDocs.AddRange(lowPriDocs);
-
-            Debug.Assert(priorityDocuments.All(d => project.ContainsDocument(d.Id)), "Priority docs included doc not from project.");
-            Debug.Assert(orderedDocs.Length == project.Documents.Count(), "Didn't have the same number of project after ordering them!");
-            Debug.Assert(orderedDocs.Distinct().Length == orderedDocs.Length, "Ordered list contained a duplicate!");
-            Debug.Assert(project.Documents.All(d => orderedDocs.Contains(d)), "At least one document from the project was missing from the ordered list!");
-
-            foreach (var document in orderedDocs)
-            {
-                if (searchDocument != null && document != searchDocument)
-                {
-                    continue;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-                var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
-                {
-                    AddResultIfMatch(
-                        document, declaredSymbolInfo,
-                        nameMatcher, containerMatcherOpt,
-                        kinds,
-                        nameMatches, containerMatches,
-                        result, cancellationToken);
-                }
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        private static void AddResultIfMatch(
-            Document document, DeclaredSymbolInfo declaredSymbolInfo,
-            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
-            DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
-        {
-            nameMatches.Clear();
-            containerMatches.Clear();
-
-            cancellationToken.ThrowIfCancellationRequested();
             if (kinds.Contains(declaredSymbolInfo.Kind) &&
-                nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
-                containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
+                nameMatcher.AddMatches(declaredSymbolInfo.Name, ref nameMatches.AsRef()) &&
+                containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, ref containerMatches.AsRef()) != false)
             {
-                result.Add(ConvertResult(
-                    declaredSymbolInfo, document, nameMatches, containerMatches));
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                // See if we have a match in a linked file.  If so, see if we have the same match in
+                // other projects that this file is linked in.  If so, include the full set of projects
+                // the match is in so we can display that well in the UI.
+                //
+                // We can only do this in the case where the solution is loaded and thus we can examine
+                // the relationship between this document and the other documents linked to it.  In the
+                // case where the solution isn't fully loaded and we're just reading in cached data, we
+                // don't know what other files we're linked to and can't merge results in this fashion.
+                var additionalMatchingProjects = GetAdditionalProjectsWithMatch(
+                    document, declaredSymbolInfo, linkedIndices);
+
+                var result = ConvertResult(
+                    documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
+                onItemFound(result);
             }
         }
+    }
 
-        private static SearchResult ConvertResult(
-            DeclaredSymbolInfo declaredSymbolInfo, Document document,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches)
+    private static RoslynNavigateToItem ConvertResult(
+        DocumentKey documentKey,
+        Document? document,
+        DeclaredSymbolInfo declaredSymbolInfo,
+        in TemporaryArray<PatternMatch> nameMatches,
+        in TemporaryArray<PatternMatch> containerMatches,
+        ImmutableArray<ProjectId> additionalMatchingProjects)
+    {
+        var matchKind = GetNavigateToMatchKind(nameMatches);
+
+        // A match is considered to be case sensitive if all its constituent pattern matches are
+        // case sensitive. 
+        var isCaseSensitive = nameMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
+        var kind = GetItemKind(declaredSymbolInfo);
+
+        using var matchedSpans = TemporaryArray<TextSpan>.Empty;
+        foreach (var match in nameMatches)
+            matchedSpans.AddRange(match.MatchedSpans);
+
+        using var allPatternMatches = TemporaryArray<PatternMatch>.Empty;
+        allPatternMatches.AddRange(containerMatches);
+        allPatternMatches.AddRange(nameMatches);
+
+        // If we were not given a Document instance, then we're finding matches in cached data
+        // and thus could be 'stale'.
+        return new RoslynNavigateToItem(
+            isStale: document == null,
+            documentKey,
+            additionalMatchingProjects,
+            declaredSymbolInfo,
+            kind,
+            matchKind,
+            isCaseSensitive,
+            matchedSpans.ToImmutableAndClear(),
+            allPatternMatches.ToImmutableAndClear());
+    }
+
+    private static ImmutableArray<ProjectId> GetAdditionalProjectsWithMatch(
+        Document? document,
+        DeclaredSymbolInfo declaredSymbolInfo,
+        ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices)
+    {
+        if (document == null || linkedIndices is null || linkedIndices.Count == 0)
+            return [];
+
+        using var result = TemporaryArray<ProjectId>.Empty;
+
+        foreach (var (index, projectId) in linkedIndices)
         {
-            var matchKind = GetNavigateToMatchKind(nameMatches);
+            // See if the index for the other file also contains this same info.  If so, merge the results so the
+            // user only sees them as a single hit in the UI.
+            if (index.DeclaredSymbolInfoSet.Contains(declaredSymbolInfo))
+                result.Add(projectId);
+        }
 
-            // A match is considered to be case sensitive if all its constituent pattern matches are
-            // case sensitive. 
-            var isCaseSensitive = nameMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
-            var kind = GetItemKind(declaredSymbolInfo);
-            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
+        return result.ToImmutableAndClear();
+    }
 
-            var matchedSpans = ArrayBuilder<TextSpan>.GetInstance();
+    private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
+    {
+        switch (declaredSymbolInfo.Kind)
+        {
+            case DeclaredSymbolInfoKind.Class:
+            case DeclaredSymbolInfoKind.Record:
+                return NavigateToItemKind.Class;
+            case DeclaredSymbolInfoKind.RecordStruct:
+                return NavigateToItemKind.Structure;
+            case DeclaredSymbolInfoKind.Constant:
+                return NavigateToItemKind.Constant;
+            case DeclaredSymbolInfoKind.Delegate:
+                return NavigateToItemKind.Delegate;
+            case DeclaredSymbolInfoKind.Enum:
+                return NavigateToItemKind.Enum;
+            case DeclaredSymbolInfoKind.EnumMember:
+                return NavigateToItemKind.EnumItem;
+            case DeclaredSymbolInfoKind.Event:
+                return NavigateToItemKind.Event;
+            case DeclaredSymbolInfoKind.Field:
+                return NavigateToItemKind.Field;
+            case DeclaredSymbolInfoKind.Interface:
+                return NavigateToItemKind.Interface;
+            case DeclaredSymbolInfoKind.Constructor:
+            case DeclaredSymbolInfoKind.ExtensionMethod:
+            case DeclaredSymbolInfoKind.Method:
+                return NavigateToItemKind.Method;
+            case DeclaredSymbolInfoKind.Module:
+                return NavigateToItemKind.Module;
+            case DeclaredSymbolInfoKind.Indexer:
+            case DeclaredSymbolInfoKind.Property:
+                return NavigateToItemKind.Property;
+            case DeclaredSymbolInfoKind.Struct:
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider having a separate NavigateToItemKind category for unions
+            case DeclaredSymbolInfoKind.Union:
+                return NavigateToItemKind.Structure;
+            case DeclaredSymbolInfoKind.Operator:
+                return NavigateToItemKind.OtherSymbol;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(declaredSymbolInfo.Kind);
+        }
+    }
+
+    private static NavigateToMatchKind GetNavigateToMatchKind(in TemporaryArray<PatternMatch> nameMatches)
+    {
+        // work backwards through the match kinds.  That way our result is as bad as our worst match part.  For
+        // example, say the user searches for `Console.Write` and we find `Console.Write` (exact, exact), and
+        // `Console.WriteLine` (exact, prefix).  We don't want the latter hit to be considered an `exact` match, and
+        // thus as good as `Console.Write`.
+
+        for (var i = s_kindPairs.Length - 1; i >= 0; i--)
+        {
+            var (roslynKind, vsKind) = s_kindPairs[i];
             foreach (var match in nameMatches)
             {
-                matchedSpans.AddRange(match.MatchedSpans);
-            }
-
-            return new SearchResult(
-                document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                matchedSpans.ToImmutableAndFree());
-        }
-
-        private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
-        {
-            switch (declaredSymbolInfo.Kind)
-            {
-                case DeclaredSymbolInfoKind.Class:
-                    return NavigateToItemKind.Class;
-                case DeclaredSymbolInfoKind.Constant:
-                    return NavigateToItemKind.Constant;
-                case DeclaredSymbolInfoKind.Delegate:
-                    return NavigateToItemKind.Delegate;
-                case DeclaredSymbolInfoKind.Enum:
-                    return NavigateToItemKind.Enum;
-                case DeclaredSymbolInfoKind.EnumMember:
-                    return NavigateToItemKind.EnumItem;
-                case DeclaredSymbolInfoKind.Event:
-                    return NavigateToItemKind.Event;
-                case DeclaredSymbolInfoKind.Field:
-                    return NavigateToItemKind.Field;
-                case DeclaredSymbolInfoKind.Interface:
-                    return NavigateToItemKind.Interface;
-                case DeclaredSymbolInfoKind.Constructor:
-                case DeclaredSymbolInfoKind.ExtensionMethod:
-                case DeclaredSymbolInfoKind.Method:
-                    return NavigateToItemKind.Method;
-                case DeclaredSymbolInfoKind.Module:
-                    return NavigateToItemKind.Module;
-                case DeclaredSymbolInfoKind.Indexer:
-                case DeclaredSymbolInfoKind.Property:
-                    return NavigateToItemKind.Property;
-                case DeclaredSymbolInfoKind.Struct:
-                    return NavigateToItemKind.Structure;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(declaredSymbolInfo.Kind);
+                if (match.Kind == roslynKind)
+                    return vsKind;
             }
         }
 
-        private static NavigateToMatchKind GetNavigateToMatchKind(ArrayBuilder<PatternMatch> nameMatches)
+        return NavigateToMatchKind.Regular;
+    }
+
+    private readonly struct DeclaredSymbolInfoKindSet
+    {
+        private readonly ImmutableArray<bool> _lookupTable;
+
+        public DeclaredSymbolInfoKindSet(IEnumerable<string> navigateToItemKinds)
         {
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Exact))
+            // The 'Contains' method implementation assumes that the DeclaredSymbolInfoKind type is unsigned.
+            Debug.Assert(Enum.GetUnderlyingType(typeof(DeclaredSymbolInfoKind)) == typeof(byte));
+
+            var lookupTable = new bool[Enum.GetValues<DeclaredSymbolInfoKind>().Length];
+            foreach (var navigateToItemKind in navigateToItemKinds)
             {
-                return NavigateToMatchKind.Exact;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Prefix))
-            {
-                return NavigateToMatchKind.Prefix;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Substring))
-            {
-                return NavigateToMatchKind.Substring;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseExact))
-            {
-                return NavigateToMatchKind.CamelCaseExact;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCasePrefix))
-            {
-                return NavigateToMatchKind.CamelCasePrefix;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseNonContiguousPrefix))
-            {
-                return NavigateToMatchKind.CamelCaseNonContiguousPrefix;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseSubstring))
-            {
-                return NavigateToMatchKind.CamelCaseSubstring;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseNonContiguousSubstring))
-            {
-                return NavigateToMatchKind.CamelCaseNonContiguousSubstring;
-            }
-
-            return NavigateToMatchKind.Regular;
-        }
-
-        private readonly struct DeclaredSymbolInfoKindSet
-        {
-            private readonly ImmutableArray<bool> _lookupTable;
-
-            public DeclaredSymbolInfoKindSet(IEnumerable<string> navigateToItemKinds)
-            {
-                // The 'Contains' method implementation assumes that the DeclaredSymbolInfoKind type is unsigned.
-                Debug.Assert(Enum.GetUnderlyingType(typeof(DeclaredSymbolInfoKind)) == typeof(byte));
-
-                var lookupTable = new bool[Enum.GetValues(typeof(DeclaredSymbolInfoKind)).Length];
-                foreach (var navigateToItemKind in navigateToItemKinds)
+                switch (navigateToItemKind)
                 {
-                    switch (navigateToItemKind)
-                    {
-                        case NavigateToItemKind.Class:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
-                            break;
+                    case NavigateToItemKind.Class:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.Record] = true;
+                        break;
+                    case NavigateToItemKind.Constant:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
+                        break;
 
-                        case NavigateToItemKind.Constant:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
-                            break;
+                    case NavigateToItemKind.Delegate:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Delegate] = true;
+                        break;
 
-                        case NavigateToItemKind.Delegate:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Delegate] = true;
-                            break;
+                    case NavigateToItemKind.Enum:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Enum] = true;
+                        break;
 
-                        case NavigateToItemKind.Enum:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Enum] = true;
-                            break;
+                    case NavigateToItemKind.EnumItem:
+                        lookupTable[(int)DeclaredSymbolInfoKind.EnumMember] = true;
+                        break;
 
-                        case NavigateToItemKind.EnumItem:
-                            lookupTable[(int)DeclaredSymbolInfoKind.EnumMember] = true;
-                            break;
+                    case NavigateToItemKind.Event:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Event] = true;
+                        break;
 
-                        case NavigateToItemKind.Event:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Event] = true;
-                            break;
+                    case NavigateToItemKind.Field:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Field] = true;
+                        break;
 
-                        case NavigateToItemKind.Field:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Field] = true;
-                            break;
+                    case NavigateToItemKind.Interface:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Interface] = true;
+                        break;
 
-                        case NavigateToItemKind.Interface:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Interface] = true;
-                            break;
+                    case NavigateToItemKind.Method:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Constructor] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.ExtensionMethod] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.Method] = true;
+                        break;
 
-                        case NavigateToItemKind.Method:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Constructor] = true;
-                            lookupTable[(int)DeclaredSymbolInfoKind.ExtensionMethod] = true;
-                            lookupTable[(int)DeclaredSymbolInfoKind.Method] = true;
-                            break;
+                    case NavigateToItemKind.Module:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Module] = true;
+                        break;
 
-                        case NavigateToItemKind.Module:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Module] = true;
-                            break;
+                    case NavigateToItemKind.Property:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Indexer] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.Property] = true;
+                        break;
 
-                        case NavigateToItemKind.Property:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Indexer] = true;
-                            lookupTable[(int)DeclaredSymbolInfoKind.Property] = true;
-                            break;
+                    case NavigateToItemKind.Structure:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.RecordStruct] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.Union] = true;
+                        break;
 
-                        case NavigateToItemKind.Structure:
-                            lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
-                            break;
-
-                        default:
-                            // Not a recognized symbol info kind
-                            break;
-                    }
+                    default:
+                        // Not a recognized symbol info kind
+                        break;
                 }
-
-                _lookupTable = ImmutableArray.CreateRange(lookupTable);
             }
 
-            public bool Contains(DeclaredSymbolInfoKind item)
-            {
-                return (int)item < _lookupTable.Length
-                    && _lookupTable[(int)item];
-            }
+            _lookupTable = [.. lookupTable];
+        }
+
+        public bool Contains(DeclaredSymbolInfoKind item)
+        {
+            return (int)item < _lookupTable.Length
+                && _lookupTable[(int)item];
         }
     }
 }

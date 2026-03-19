@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -39,13 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private readonly PENamespaceSymbol _globalNamespace;
 
+#nullable enable
+
         /// <summary>
         /// Cache the symbol for well-known type System.Type because we use it frequently
         /// (for attributes).
         /// </summary>
-        private NamedTypeSymbol _lazySystemTypeSymbol;
-        private NamedTypeSymbol _lazyEventRegistrationTokenSymbol;
-        private NamedTypeSymbol _lazyEventRegistrationTokenTableSymbol;
+        private NamedTypeSymbol? _lazySystemTypeSymbol;
+        private NamedTypeSymbol? _lazyEventRegistrationTokenSymbol;
+        private NamedTypeSymbol? _lazyEventRegistrationTokenTableSymbol;
+
+#nullable disable
 
         /// <summary>
         /// The same value as ConcurrentDictionary.DEFAULT_CAPACITY
@@ -100,6 +106,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
+        internal enum RefSafetyRulesAttributeVersion
+        {
+            Uninitialized = 0,
+            NoAttribute,
+            Version11,
+            UnrecognizedAttribute,
+        }
+
+        private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
+
+        internal enum MemorySafetyRulesAttributeVersion
+        {
+            Uninitialized = 0,
+            NoAttribute,
+            Updated, // https://github.com/dotnet/roslyn/issues/82546: rename to Version15 (or whatever the value ends up being)
+            UnrecognizedAttribute,
+        }
+
+        private MemorySafetyRulesAttributeVersion _lazyMemorySafetyRulesAttributeVersion;
+
+#nullable enable
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+#nullable disable
+
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
         {
@@ -136,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -277,118 +309,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
-        internal void LoadCustomAttributesFilterCompilerAttributes(EntityHandle token,
-            ref ImmutableArray<CSharpAttributeData> customAttributes,
-            out bool foundExtension,
-            out bool foundReadOnly)
+        public bool TryGetNonEmptyCustomAttributes(EntityHandle handle, out CustomAttributeHandleCollection attributes)
         {
-            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out foundExtension, out foundReadOnly);
-            ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
-        }
-
-        internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
-            ref ImmutableArray<CSharpAttributeData> customAttributes)
-        {
-            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out _, out _);
-            ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
-        }
-
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
-            out CustomAttributeHandle filteredOutAttribute1,
-            AttributeDescription filterOut1)
-        {
-            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default);
-        }
-
-        /// <summary>
-        /// Returns attributes with up-to four filters applied. For each filter, the last application of the
-        /// attribute will be tracked and returned.
-        /// </summary>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
-            out CustomAttributeHandle filteredOutAttribute1,
-            AttributeDescription filterOut1,
-            out CustomAttributeHandle filteredOutAttribute2,
-            AttributeDescription filterOut2,
-            out CustomAttributeHandle filteredOutAttribute3,
-            AttributeDescription filterOut3,
-            out CustomAttributeHandle filteredOutAttribute4,
-            AttributeDescription filterOut4)
-        {
-            filteredOutAttribute1 = default;
-            filteredOutAttribute2 = default;
-            filteredOutAttribute3 = default;
-            filteredOutAttribute4 = default;
-            ArrayBuilder<CSharpAttributeData> customAttributesBuilder = null;
-
             try
             {
-                foreach (var customAttributeHandle in _module.GetCustomAttributesOrThrow(token))
-                {
-                    // It is important to capture the last application of the attribute that we run into,
-                    // it makes a difference for default and constant values.
-
-                    if (matchesFilter(customAttributeHandle, filterOut1))
-                    {
-                        filteredOutAttribute1 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut2))
-                    {
-                        filteredOutAttribute2 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut3))
-                    {
-                        filteredOutAttribute3 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut4))
-                    {
-                        filteredOutAttribute4 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (customAttributesBuilder == null)
-                    {
-                        customAttributesBuilder = ArrayBuilder<CSharpAttributeData>.GetInstance();
-                    }
-
-                    customAttributesBuilder.Add(new PEAttributeData(this, customAttributeHandle));
-                }
+                attributes = Module.MetadataReader.GetCustomAttributes(handle);
+                return attributes.Count != 0;
             }
             catch (BadImageFormatException)
-            { }
-
-            if (customAttributesBuilder != null)
             {
-                return customAttributesBuilder.ToImmutableAndFree();
+                attributes = default;
+                return false;
             }
-
-            return ImmutableArray<CSharpAttributeData>.Empty;
-
-            bool matchesFilter(CustomAttributeHandle handle, AttributeDescription filter)
-                => filter.Signatures != null && Module.GetTargetAttributeSignatureIndex(handle, filter) != -1;
         }
+
+        public bool AttributeMatchesFilter(CustomAttributeHandle handle, AttributeDescription filter)
+            => filter.Signatures != null && Module.GetTargetAttributeSignatureIndex(handle, filter) != -1;
 
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token)
         {
-            // Do not filter anything and therefore ignore the out results
-            return GetCustomAttributesForToken(token, out _, default);
-        }
+            if (!TryGetNonEmptyCustomAttributes(token, out var customAttributeHandles))
+                return [];
 
-        /// <summary>
-        /// Get the custom attributes, but filter out any ParamArrayAttributes.
-        /// </summary>
-        /// <param name="token">The parameter token handle.</param>
-        /// <param name="paramArrayAttribute">Set to a ParamArrayAttribute</param>
-        /// CustomAttributeHandle if any are found. Nil token otherwise.
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
-            out CustomAttributeHandle paramArrayAttribute)
-        {
-            return GetCustomAttributesForToken(token, out paramArrayAttribute, AttributeDescription.ParamArrayAttribute);
+            return customAttributeHandles.SelectAsArray(static (handle, @this) => (CSharpAttributeData)new PEAttributeData(@this, handle), this);
         }
 
         internal bool HasAnyCustomAttributes(EntityHandle token)
@@ -417,30 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return null;
         }
 
-        /// <summary>
-        /// Filters extension attributes from the attribute results.
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
-        /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
-        {
-            var result = GetCustomAttributesForToken(
-                token,
-                filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
-                filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
-                filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
-                filterOut2: AttributeDescription.IsReadOnlyAttribute,
-                filteredOutAttribute3: out _, filterOut3: default,
-                filteredOutAttribute4: out _, filterOut4: default);
-
-            foundExtension = !extensionAttribute.IsNil;
-            foundReadOnly = !isReadOnlyAttribute.IsNil;
-            return result;
-        }
-
         internal void OnNewTypeDeclarationsLoaded(
-            Dictionary<string, ImmutableArray<PENamedTypeSymbol>> typesDict)
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> typesDict)
         {
             bool keepLookingForDeclaredCorTypes = (_ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes);
 
@@ -448,6 +369,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 foreach (var type in types)
                 {
+                    if (type.IsExtension)
+                    {
+                        // This symbol represents an extension block, not the marker type itself.  
+                        continue;
+                    }
+
                     bool added;
                     added = TypeHandleToTypeMap.TryAdd(type.Handle, type);
                     Debug.Assert(added);
@@ -509,11 +436,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+#nullable enable
+
         internal NamedTypeSymbol EventRegistrationToken
         {
             get
             {
-                if ((object)_lazyEventRegistrationTokenSymbol == null)
+                if ((object?)_lazyEventRegistrationTokenSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazyEventRegistrationTokenSymbol,
                                                 GetTypeSymbolForWellKnownType(
@@ -530,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazyEventRegistrationTokenTableSymbol == null)
+                if ((object?)_lazyEventRegistrationTokenTableSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazyEventRegistrationTokenTableSymbol,
                                                 GetTypeSymbolForWellKnownType(
@@ -547,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazySystemTypeSymbol == null)
+                if ((object?)_lazySystemTypeSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazySystemTypeSymbol,
                                                 GetTypeSymbolForWellKnownType(WellKnownType.System_Type),
@@ -562,23 +491,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
             // First, check this module
-            NamedTypeSymbol currentModuleResult = this.LookupTopLevelMetadataType(ref emittedName);
+            NamedTypeSymbol? currentModuleResult = this.LookupTopLevelMetadataType(ref emittedName);
+            Debug.Assert(currentModuleResult?.IsErrorType() != true);
 
-            if (IsAcceptableSystemTypeSymbol(currentModuleResult))
+            if (currentModuleResult is not null)
             {
+                Debug.Assert(isAcceptableSystemTypeSymbol(currentModuleResult));
+
                 // It doesn't matter if there's another of this type in a referenced assembly -
                 // we prefer the one in the current module.
                 return currentModuleResult;
             }
 
             // If we didn't find it in this module, check the referenced assemblies
-            NamedTypeSymbol referencedAssemblyResult = null;
+            NamedTypeSymbol? referencedAssemblyResult = null;
             foreach (AssemblySymbol assembly in this.GetReferencedAssemblySymbols())
             {
-                NamedTypeSymbol currResult = assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
-                if (IsAcceptableSystemTypeSymbol(currResult))
+                NamedTypeSymbol currResult = assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
+                if (isAcceptableSystemTypeSymbol(currResult))
                 {
-                    if ((object)referencedAssemblyResult == null)
+                    if ((object?)referencedAssemblyResult == null)
                     {
                         referencedAssemblyResult = currResult;
                     }
@@ -597,27 +529,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            if ((object)referencedAssemblyResult != null)
+            if ((object?)referencedAssemblyResult != null)
             {
-                Debug.Assert(IsAcceptableSystemTypeSymbol(referencedAssemblyResult));
+                Debug.Assert(isAcceptableSystemTypeSymbol(referencedAssemblyResult));
                 return referencedAssemblyResult;
             }
 
-            Debug.Assert((object)currentModuleResult != null);
-            return currentModuleResult;
+            return new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
+
+            static bool isAcceptableSystemTypeSymbol(NamedTypeSymbol candidate)
+            {
+                return candidate.Kind != SymbolKind.ErrorType || !(candidate is MissingMetadataTypeSymbol);
+            }
         }
 
-        private static bool IsAcceptableSystemTypeSymbol(NamedTypeSymbol candidate)
-        {
-            return candidate.Kind != SymbolKind.ErrorType || !(candidate is MissingMetadataTypeSymbol);
-        }
+#nullable disable
 
         internal override bool HasAssemblyCompilationRelaxationsAttribute
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
-                return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.CompilationRelaxationsAttribute) >= 0;
+                // This API is called only for added modules. Assembly level attributes from added modules are 
+                // copied to the resulting assembly and that is done by using CSharpAttributeData for them.
+                // Therefore, it is acceptable to implement this property by using the same CSharpAttributeData
+                // objects rather than trying to avoid creating them and going to metadata directly.
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
+                return assemblyAttributes.IndexOfAttribute(AttributeDescription.CompilationRelaxationsAttribute) >= 0;
             }
         }
 
@@ -625,8 +562,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
-                return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.RuntimeCompatibilityAttribute) >= 0;
+                // This API is called only for added modules. Assembly level attributes from added modules are 
+                // copied to the resulting assembly and that is done by using CSharpAttributeData for them.
+                // Therefore, it is acceptable to implement this property by using the same CSharpAttributeData
+                // objects rather than trying to avoid creating them and going to metadata directly.
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
+                return assemblyAttributes.IndexOfAttribute(AttributeDescription.RuntimeCompatibilityAttribute) >= 0;
             }
         }
 
@@ -635,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 // not used by the compiler
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -644,25 +585,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        internal NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
-        {
-            NamedTypeSymbol result;
-            PENamespaceSymbol scope = (PENamespaceSymbol)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+#nullable enable
 
-            if ((object)scope == null)
+        internal NamedTypeSymbol LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
+        {
+            NamedTypeSymbol? result;
+            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegmentsMemory);
+
+            if ((object?)scope == null)
             {
                 // We failed to locate the namespace
-                isNoPiaLocalType = false;
-                result = new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
+                result = null;
             }
             else
             {
-                result = scope.LookupMetadataType(ref emittedName, out isNoPiaLocalType);
-                Debug.Assert((object)result != null);
+                result = scope.LookupMetadataType(ref emittedName);
+                Debug.Assert(result?.IsErrorType() != true);
+
+                if (result is null)
+                {
+                    result = scope.UnifyIfNoPiaLocalType(ref emittedName);
+                    if (result is not null)
+                    {
+                        isNoPiaLocalType = true;
+                        return result;
+                    }
+                }
             }
 
-            return result;
+            isNoPiaLocalType = false;
+            return result ?? new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
         }
+
+#nullable disable
 
         /// <summary>
         /// Returns a tuple of the assemblies this module forwards the given type to.
@@ -693,6 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return (firstSymbol, secondSymbol);
         }
 
+#nullable enable
+
         internal IEnumerable<NamedTypeSymbol> GetForwardedTypes()
         {
             foreach (KeyValuePair<string, (int FirstIndex, int SecondIndex)> forwarder in Module.GetForwardedTypes())
@@ -712,11 +669,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
-                    yield return firstSymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
+                    yield return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref name, visitedAssemblies: null);
                 }
             }
         }
 
+#nullable disable
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
 
         internal bool ShouldDecodeNullableAttributes(Symbol symbol)
@@ -752,6 +710,94 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return false;
+        }
+
+#nullable enable
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
+        {
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.EmptyErrorInfo)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, this, Token, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(this)),
+                    CSDiagnosticInfo.EmptyErrorInfo);
+            }
+
+            return _lazyCachedCompilerFeatureRequiredDiagnosticInfo ?? (_assemblySymbol as PEAssemblySymbol)?.GetCompilerFeatureRequiredDiagnostic();
+        }
+
+        public override bool HasUnsupportedMetadata
+            => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
+
+        internal override bool UseUpdatedEscapeRules
+            => RefSafetyRulesVersion == RefSafetyRulesAttributeVersion.Version11;
+
+        internal RefSafetyRulesAttributeVersion RefSafetyRulesVersion
+        {
+            get
+            {
+                if (_lazyRefSafetyRulesAttributeVersion == RefSafetyRulesAttributeVersion.Uninitialized)
+                {
+                    _lazyRefSafetyRulesAttributeVersion = getAttributeVersion();
+                }
+                return _lazyRefSafetyRulesAttributeVersion;
+
+                RefSafetyRulesAttributeVersion getAttributeVersion()
+                {
+                    if (_module.HasRefSafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
+                    {
+                        return version == 11
+                            ? RefSafetyRulesAttributeVersion.Version11
+                            : RefSafetyRulesAttributeVersion.UnrecognizedAttribute;
+                    }
+                    return foundAttributeType
+                        ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
+                        : RefSafetyRulesAttributeVersion.NoAttribute;
+                }
+            }
+        }
+
+        internal override bool UseUpdatedMemorySafetyRules
+            => MemorySafetyRulesVersion == MemorySafetyRulesAttributeVersion.Updated;
+
+        internal MemorySafetyRulesAttributeVersion MemorySafetyRulesVersion
+        {
+            get
+            {
+                if (_lazyMemorySafetyRulesAttributeVersion == MemorySafetyRulesAttributeVersion.Uninitialized)
+                {
+                    _lazyMemorySafetyRulesAttributeVersion = getAttributeVersion();
+                }
+                return _lazyMemorySafetyRulesAttributeVersion;
+
+                MemorySafetyRulesAttributeVersion getAttributeVersion()
+                {
+                    if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
+                    {
+                        return version == CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion
+                            ? MemorySafetyRulesAttributeVersion.Updated
+                            : MemorySafetyRulesAttributeVersion.UnrecognizedAttribute;
+                    }
+
+                    return foundAttributeType
+                        ? MemorySafetyRulesAttributeVersion.UnrecognizedAttribute
+                        : MemorySafetyRulesAttributeVersion.NoAttribute;
+                }
+            }
+        }
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    var experimentalData = _module.TryDecodeExperimentalAttributeData(Token, new MetadataDecoder(this));
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
+            }
         }
     }
 }

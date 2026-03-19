@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
-using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -34,13 +32,10 @@ namespace Microsoft.CodeAnalysis.Text
                 return 0;
             }
 
-            var checksum = obj.GetChecksum();
-            var contentsHash = !checksum.IsDefault ? Hash.CombineValues(checksum) : 0;
-            var encodingHash = obj.Encoding != null ? obj.Encoding.GetHashCode() : 0;
-
-            return Hash.Combine(obj.Length,
-                Hash.Combine(contentsHash,
-                Hash.Combine(encodingHash, obj.ChecksumAlgorithm.GetHashCode())));
+            // GetContentHash returns a 16-byte, well-distributed, xx-hash-128 value.
+            // So reading the first 4 bytes as an int is always safe, and will give a good hash code back for this instance.
+            var contentHash = obj.GetContentHash();
+            return MemoryMarshal.Read<int>(contentHash.AsSpan());
         }
     }
 }

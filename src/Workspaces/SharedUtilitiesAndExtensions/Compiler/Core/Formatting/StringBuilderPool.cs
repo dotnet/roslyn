@@ -3,26 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal static class StringBuilderPool
 {
-    internal static class StringBuilderPool
+    public static StringBuilder Allocate()
+        => SharedPools.Default<StringBuilder>().AllocateAndClear();
+
+    public static void Free(StringBuilder builder)
+        => SharedPools.Default<StringBuilder>().ClearAndFree(builder);
+
+    public static string ReturnAndFree(StringBuilder builder)
     {
-        public static StringBuilder Allocate()
-        {
-            return SharedPools.Default<StringBuilder>().AllocateAndClear();
-        }
-
-        public static void Free(StringBuilder builder)
-        {
-            SharedPools.Default<StringBuilder>().ClearAndFree(builder);
-        }
-
-        public static string ReturnAndFree(StringBuilder builder)
-        {
-            SharedPools.Default<StringBuilder>().ForgetTrackedObject(builder);
-            return builder.ToString();
-        }
+        SharedPools.Default<StringBuilder>().ForgetTrackedObject(builder);
+        return builder.ToString();
     }
 }

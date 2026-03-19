@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RunTests
 {
@@ -17,6 +14,12 @@ namespace RunTests
     {
         internal static int? TryGetParentProcessId(Process p)
         {
+            // System.Management is not supported outside of Windows.
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return null;
+            }
+
             try
             {
                 ManagementObject mo = new ManagementObject("win32_process.handle='" + p.Id + "'");

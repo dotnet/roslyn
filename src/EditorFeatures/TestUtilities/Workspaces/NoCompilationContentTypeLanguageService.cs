@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+
+[ExportLanguageService(typeof(IContentTypeLanguageService), NoCompilationConstants.LanguageName, ServiceLayer.Test), Shared, PartNotDiscoverable]
+internal sealed class NoCompilationContentTypeLanguageService : IContentTypeLanguageService
 {
-    [ExportLanguageService(typeof(IContentTypeLanguageService), NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationContentTypeLanguageService : IContentTypeLanguageService
-    {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
+    private readonly IContentTypeRegistryService _contentTypeRegistry;
 
-        [ImportingConstructor]
-        public NoCompilationContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NoCompilationContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
+        => _contentTypeRegistry = contentTypeRegistry;
 
-        public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(NoCompilationConstants.LanguageName);
-        }
-    }
+    public IContentType GetDefaultContentType()
+        => _contentTypeRegistry.GetContentType(NoCompilationConstants.LanguageName);
 }

@@ -10,6 +10,7 @@ Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -39,28 +40,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return AttributeUsageInfo.Null
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Me.GetDeclaredBase(Nothing)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim baseType = DeclaringCompilation.GetSpecialType(SpecialType.System_Object)
 
             ' check that System.Object is available. 
             ' Although submission semantically doesn't have a base class we need to emit one.
-            Dim info = baseType.GetUseSiteErrorInfo()
-            If info IsNot Nothing Then
-                diagnostics.Add(info, Locations(0))
-            End If
+            Dim info = baseType.GetUseSiteInfo()
+            diagnostics.Add(info, GetFirstLocation())
 
             Return If(Me.TypeKind = TypeKind.Submission, Nothing, baseType)
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
@@ -144,7 +143,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Nothing
+            Return False
+        End Function
+
         Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
             Get
                 Return False
             End Get
@@ -168,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return NoLocation.Singleton
         End Function
 
-        Protected Overrides Sub AddDeclaredNonTypeMembers(membersBuilder As MembersAndInitializersBuilder, diagnostics As DiagnosticBag)
+        Protected Overrides Sub AddDeclaredNonTypeMembers(membersBuilder As MembersAndInitializersBuilder, diagnostics As BindingDiagnosticBag)
             For Each syntaxRef In SyntaxReferences
                 Dim node = syntaxRef.GetVisualBasicSyntax()
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents region analysis context attributes such as compilation, region, etc...
     /// </summary>
-    internal struct RegionAnalysisContext
+    internal readonly struct RegionAnalysisContext
     {
         /// <summary> Compilation to use </summary>
         public readonly CSharpCompilation Compilation;

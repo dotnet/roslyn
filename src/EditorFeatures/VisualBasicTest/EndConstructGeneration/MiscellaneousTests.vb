@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -12,25 +11,26 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class MiscellaneousTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoesNothingOnEmptyFile()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function DoesNothingOnEmptyFile() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="",
                 caret:={0, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoesNothingOnFileWithNoStatement()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function DoesNothingOnFileWithNoStatement() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="'Goo
 ",
                 caret:={0, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyLineContinuationMark()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function VerifyLineContinuationMark() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     function f(byval x as Integer,
                byref y as string) as string
@@ -39,11 +39,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     End Function
 End Class",
                 caret:={3, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyImplicitLineContinuation()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function VerifyImplicitLineContinuation() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     function f() as string
         While 1 +
@@ -51,11 +51,11 @@ End Class",
     End Function
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifyNestedDo()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifyNestedDo() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
         function f() as string
             for i = 1 to 10",
@@ -66,11 +66,11 @@ End Class",
 
             Next",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifyMultilinesChar()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifyMultilinesChar() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     sub s
         do :do
@@ -87,11 +87,11 @@ End Class",
     End sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifyInlineComments()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifyInlineComments() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     sub s
         If true then 'here
@@ -106,29 +106,28 @@ End Class",
     End sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNotAppliedWithJunkAtEndOfLine()
+        <WpfFact>
+        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine() As Task
             ' Try this without a newline at the end of the file
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C End Class",
                 caret:={0, "Class C".Length})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNotAppliedWithJunkAtEndOfLine2()
+        <WpfFact>
+        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine2() As Task
             ' Try this with a newline at the end of the file
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C End Class
 ",
                 caret:={0, "Class C".Length})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(539727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
-        Public Sub DeletesSelectedText()
-            Using workspace = TestWorkspace.CreateVisualBasic("Interface IGoo ~~")
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
+        Public Async Function DeletesSelectedText() As Task
+            Using workspace = EditorTestWorkspace.CreateVisualBasic("Interface IGoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 
@@ -143,10 +142,11 @@ End Class",
                     workspace.GetService(Of IEditorOperationsFactoryService),
                     workspace.GetService(Of IEditorOptionsFactoryService))
 
-                Assert.True(endConstructService.TryDoEndConstructForEnterKey(textView, textView.TextSnapshot.TextBuffer, CancellationToken.None))
+                Assert.True(Await endConstructService.TryDoEndConstructForEnterKeyAsync(
+                            textView, textView.TextSnapshot.TextBuffer, CancellationToken.None))
 
                 Assert.Equal("End Interface", textView.TextSnapshot.Lines.Last().GetText())
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -2,219 +2,163 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
+
+[Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
-    public class InitializerExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
-    {
-        public InitializerExpressionSignatureHelpProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
+    internal override Type GetSignatureHelpProviderType()
+        => typeof(InitializerExpressionSignatureHelpProvider);
 
-        internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-            => new InitializerExpressionSignatureHelpProvider();
+    [Fact]
+    public Task WithSingleParamAddMethods()
+        => TestAsync("""
+            using System.Collections.Generic;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task WithSingleParamAddMethods()
-        {
-            var markup = @"
-using System.Collections.Generic;
+            class C
+            {
+                void Goo()
+                {
+                    new List<int> { { $$
+                }
+            }
+            """, [new("void List<int>.Add(int item)", currentParameterIndex: 0)]);
 
-class C
-{
-    void Goo()
-    {
-        new List<int> { { $$
-    }
-}";
+    [Fact]
+    public Task ForMultiParamAddMethods()
+        => TestAsync("""
+            using System.Collections.Generic;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void List<int>.Add(int item)", currentParameterIndex: 0));
+            class C
+            {
+                void Goo()
+                {
+                    new Dictionary<int, string> { { $$
+                }
+            }
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
 
-            await TestAsync(markup, expectedOrderedItems);
-        }
+    [Fact]
+    public Task ForSecondParam()
+        => TestAsync("""
+            using System.Collections.Generic;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task ForMultiParamAddMethods()
-        {
-            var markup = @"
-using System.Collections.Generic;
+            class C
+            {
+                void Goo()
+                {
+                    new Dictionary<int, string> { { 0, $$
+                }
+            }
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 1)]);
 
-class C
-{
-    void Goo()
-    {
-        new Dictionary<int, string> { { $$
-    }
-}";
+    [Fact]
+    public Task ForNestedCollectionInitializer()
+        => TestAsync("""
+            using System.Collections.Generic;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0));
+            class Bar
+            {
+                public Dictionary<int, string> D;
+            }
 
-            await TestAsync(markup, expectedOrderedItems);
-        }
+            class C
+            {
+                void Goo()
+                {
+                    new Bar { D = { { $$
+                }
+            }
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task ForSecondParam()
-        {
-            var markup = @"
-using System.Collections.Generic;
+    [Fact]
+    public Task WithoutClosingBraces()
+        => TestAsync("""
+            using System.Collections.Generic;
 
-class C
-{
-    void Goo()
-    {
-        new Dictionary<int, string> { { 0, $$
-    }
-}";
+            class Bar
+            {
+                public Dictionary<int, string> D;
+            }
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 1));
+            class C
+            {
+                void Goo()
+                {
+                    new Bar { D = { { $$
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
 
-            await TestAsync(markup, expectedOrderedItems);
-        }
+    [Fact]
+    public Task WithMultipleAddMethods()
+        => TestAsync("""
+            using System.Collections;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task ForNestedCollectionInitializer()
-        {
-            var markup = @"
-using System.Collections.Generic;
+            class Bar : IEnumerable
+            {
+                public void Add(int i) { }
+                public void Add(int i, string s) { }
+                public void Add(int i, string s, bool b) { }
+            }
 
-class Bar
-{
-    public Dictionary<int, string> D;
-}
+            class C
+            {
+                void Goo()
+                {
+                    new Bar { { $$
+            """, [
+            new("void Bar.Add(int i)", currentParameterIndex: 0),
+            new("void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true),
+            new("void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0)]);
 
-class C
-{
-    void Goo()
-    {
-        new Bar { D = { { $$
-    }
-}";
+    [Fact]
+    public Task DoesNotImplementIEnumerable()
+        => TestAsync("""
+            using System.Collections;
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0));
+            class Bar
+            {
+                public void Add(int i) { }
+                public void Add(int i, string s) { }
+                public void Add(int i, string s, bool b) { }
+            }
 
-            await TestAsync(markup, expectedOrderedItems);
-        }
+            class C
+            {
+                void Goo()
+                {
+                    new Bar { { $$
+            """, expectedOrderedItemsOrNull: []);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task WithoutClosingBraces()
-        {
-            var markup = @"
-using System.Collections.Generic;
+    [Fact]
+    public Task WithExtensionAddMethods()
+        => TestAsync("""
+            using System.Collections;
 
-class Bar
-{
-    public Dictionary<int, string> D;
-}
+            class Bar : IEnumerable
+            {
+            }
 
-class C
-{
-    void Goo()
-    {
-        new Bar { D = { { $$
-";
+            static class Extensions
+            {
+                public static void Add(this Bar b, int i) { }
+                public static void Add(this Bar b, int i, string s) { }
+                public static void Add(this Bar b, int i, string s, bool b) { }
+            }
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0));
-
-            await TestAsync(markup, expectedOrderedItems);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task WithMultipleAddMethods()
-        {
-            var markup = @"
-using System.Collections;
-
-class Bar : IEnumerable
-{
-    public void Add(int i) { }
-    public void Add(int i, string s) { }
-    public void Add(int i, string s, bool b) { }
-}
-
-class C
-{
-    void Goo()
-    {
-        new Bar { { $$
-";
-
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Bar.Add(int i)", currentParameterIndex: 0));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0));
-
-            await TestAsync(markup, expectedOrderedItems);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task DoesNotImplementIEnumerable()
-        {
-            var markup = @"
-using System.Collections;
-
-class Bar
-{
-    public void Add(int i) { }
-    public void Add(int i, string s) { }
-    public void Add(int i, string s, bool b) { }
-}
-
-class C
-{
-    void Goo()
-    {
-        new Bar { { $$
-";
-
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-
-            await TestAsync(markup, expectedOrderedItems);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task WithExtensionAddMethods()
-        {
-            var markup = @"
-using System.Collections;
-
-class Bar : IEnumerable
-{
-}
-
-static class Extensions
-{
-    public static void Add(this Bar b, int i) { }
-    public static void Add(this Bar b, int i, string s) { }
-    public static void Add(this Bar b, int i, string s, bool b) { }
-}
-
-class C
-{
-    void Goo()
-    {
-        new Bar { { $$
-";
-
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void Bar.Add(int i)", currentParameterIndex: 0));
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true));
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0));
-
-            await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
-        }
-    }
+            class C
+            {
+                void Goo()
+                {
+                    new Bar { { $$
+            """, [
+            new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i)", currentParameterIndex: 0),
+            new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true),
+            new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0)], sourceCodeKind: SourceCodeKind.Regular);
 }

@@ -2,90 +2,92 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
+
+using Workspace = Microsoft.CodeAnalysis.Workspace;
+
+[Export(typeof(IRefactorNotifyService))]
+internal sealed class ContainedLanguageRefactorNotifyService : IRefactorNotifyService
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    private static readonly SymbolDisplayFormat s_qualifiedDisplayFormat = new(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
-    [Export(typeof(IRefactorNotifyService))]
-    internal sealed class ContainedLanguageRefactorNotifyService : IRefactorNotifyService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ContainedLanguageRefactorNotifyService()
     {
-        private static readonly SymbolDisplayFormat s_qualifiedDisplayFormat = new SymbolDisplayFormat(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+    }
 
-        [ImportingConstructor]
-        public ContainedLanguageRefactorNotifyService()
-        {
-        }
+    public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+        => true;
 
-        public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+    public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+    {
+        if (workspace is VisualStudioWorkspaceImpl)
         {
-            return true;
-        }
-
-        public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
-        {
-            if (workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+            foreach (var documentId in changedDocumentIDs)
             {
-                foreach (var documentId in changedDocumentIDs)
+                var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+                if (containedDocument != null)
                 {
-                    var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
-                    if (containedDocument != null)
+                    var containedLanguageHost = containedDocument.ContainedLanguageHost;
+                    if (containedLanguageHost != null)
                     {
-                        var containedLanguageHost = containedDocument.ContainedLanguageHost;
-                        if (containedLanguageHost != null)
+                        var hresult = containedLanguageHost.OnRenamed(
+                            GetRenameType(symbol), symbol.ToDisplayString(s_qualifiedDisplayFormat), newName);
+                        if (hresult < 0)
                         {
-                            var hresult = containedLanguageHost.OnRenamed(
-                                GetRenameType(symbol), symbol.ToDisplayString(s_qualifiedDisplayFormat), newName);
-                            if (hresult < 0)
+                            if (throwOnFailure)
                             {
-                                if (throwOnFailure)
-                                {
-                                    Marshal.ThrowExceptionForHR(hresult);
-                                }
-                                else
-                                {
-                                    return false;
-                                }
+                                Marshal.ThrowExceptionForHR(hresult);
+                            }
+                            else
+                            {
+                                return false;
                             }
                         }
                     }
                 }
             }
-
-            return true;
         }
 
-        private ContainedLanguageRenameType GetRenameType(ISymbol symbol)
+        return true;
+    }
+
+    private static ContainedLanguageRenameType GetRenameType(ISymbol symbol)
+    {
+        if (symbol is INamespaceSymbol)
         {
-            if (symbol is INamespaceSymbol)
-            {
-                return ContainedLanguageRenameType.CLRT_NAMESPACE;
-            }
-            else if (symbol is INamedTypeSymbol && (symbol as INamedTypeSymbol).TypeKind == TypeKind.Class)
-            {
-                return ContainedLanguageRenameType.CLRT_CLASS;
-            }
-            else if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
-            {
-                return ContainedLanguageRenameType.CLRT_CLASSMEMBER;
-            }
-            else
-            {
-                return ContainedLanguageRenameType.CLRT_OTHER;
-            }
+            return ContainedLanguageRenameType.CLRT_NAMESPACE;
+        }
+        else if (symbol is INamedTypeSymbol && (symbol as INamedTypeSymbol).TypeKind == TypeKind.Class)
+        {
+            return ContainedLanguageRenameType.CLRT_CLASS;
+        }
+        else if (symbol.Kind is SymbolKind.Event or
+            SymbolKind.Field or
+            SymbolKind.Method or
+            SymbolKind.Property)
+        {
+            return ContainedLanguageRenameType.CLRT_CLASSMEMBER;
+        }
+        else
+        {
+            return ContainedLanguageRenameType.CLRT_OTHER;
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -28,7 +30,7 @@ class C
         [Fact]
         public void Syntax02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; } => 1;
@@ -47,7 +49,7 @@ class C
 interface C
 {
     int P => 1;
-}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,14): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     int P => 1;
@@ -58,7 +60,7 @@ interface C
         [Fact]
         public void Syntax04()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class C
 {
   public abstract int P => 1;
@@ -72,7 +74,7 @@ abstract class C
         [Fact]
         public void Syntax05()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
    public abstract int P => 1;
@@ -81,7 +83,7 @@ class C
     // (4,29): error CS0500: 'C.P.get' cannot declare a body because it is marked abstract
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractHasBody, "1").WithArguments("C.P.get").WithLocation(4, 29),
-    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract class 'C'
+    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract type 'C'
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "1").WithArguments("C.P.get", "C").WithLocation(4, 29));
         }
@@ -89,7 +91,7 @@ class C
         [Fact]
         public void Syntax06()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class C
 {
    abstract int P => 1;
@@ -107,7 +109,7 @@ abstract class C
         public void Syntax07()
         {
             // The '=' here parses as part of the expression body, not the property
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P => 1 = 2;
@@ -121,7 +123,7 @@ class C
         [Fact]
         public void Syntax08()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int P { get; };
@@ -134,7 +136,7 @@ interface I
         [Fact]
         public void Syntax09()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     int P => 2
@@ -147,7 +149,7 @@ class C
         [Fact]
         public void Syntax10()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int this[int i]
@@ -166,7 +168,7 @@ interface I
         [Fact]
         public void Syntax11()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int this[int i];
@@ -174,7 +176,7 @@ interface I
     // (4,20): error CS1514: { expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(4, 20),
-    // (4,20): error CS1014: A get or set accessor expected
+    // (4,20): error CS1014: A get, set or init accessor expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(4, 20),
     // (5,2): error CS1513: } expected
@@ -188,7 +190,7 @@ interface I
         [Fact]
         public void Syntax12()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int this[int i] { get; };
@@ -202,7 +204,7 @@ interface I
         public void Syntax13()
         {
             // End the property declaration at the semicolon after the accessor list
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     int P { get; set; }; => 2;
@@ -210,7 +212,7 @@ class C
     // (4,24): error CS1597: Semicolon after method or accessor block is not valid
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(4, 24),
-    // (4,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+    // (4,26): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 26));
         }
@@ -218,7 +220,7 @@ class C
         [Fact]
         public void Syntax14()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     int this[int i] => 2
@@ -231,7 +233,7 @@ class C
         [Fact]
         public void LambdaTest01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 using System;
 class C
 {
@@ -249,7 +251,7 @@ class C
     public int P => 2 * 2;
     public int this[int i, int j] => i * j * P;
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics();
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMember("C");
@@ -279,7 +281,7 @@ class C
         [Fact]
         public void Override01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class B
 {
     public virtual int P { get; set; }
@@ -293,7 +295,7 @@ class C : B
         [Fact]
         public void Override02()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class B
 {
     public int P => 10;
@@ -315,7 +317,7 @@ class C : B
         [Fact]
         public void Override03()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class B
 {
     public virtual int P => 10;
@@ -331,7 +333,7 @@ class C : B
         [Fact]
         public void VoidExpression()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public void P => System.Console.WriteLine(""goo"");
@@ -344,7 +346,7 @@ class C
         [Fact]
         public void VoidExpression2()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P => System.Console.WriteLine(""goo"");
@@ -357,7 +359,7 @@ class C
         [Fact]
         public void InterfaceImplementation01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 interface I 
 {
     int P { get; }
@@ -407,7 +409,7 @@ class C : I, J, K
         [ClrOnlyFact]
         public void Emit01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class A
 {
     protected abstract string Z { get; }
@@ -453,7 +455,7 @@ goo8
         [ClrOnlyFact]
         public void AccessorInheritsVisibility()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     private int P => 1;
@@ -476,7 +478,7 @@ class C
         [Fact]
         public void StaticIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     static int this[int i] => i;
@@ -490,11 +492,11 @@ class C
         [Fact]
         public void RefReturningExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref int P => ref field;
+    public ref int P => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -513,11 +515,11 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref readonly int P => ref field;
+    public ref readonly int P => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -540,11 +542,11 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref readonly int this[in int arg] => ref field;
+    public ref readonly int this[in int arg] => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -568,11 +570,11 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer1()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref readonly int this[in int arg] => ref field;
+    public ref readonly int this[in int arg] => ref @field;
 }");
             comp.VerifyDiagnostics();
 

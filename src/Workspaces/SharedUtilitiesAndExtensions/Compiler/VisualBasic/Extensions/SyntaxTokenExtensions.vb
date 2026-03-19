@@ -3,9 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -194,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' Determines whether the given SyntaxToken is the first token on a line
         ''' </summary>
         <Extension()>
-        Public Function IsFirstTokenOnLine(token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Public Function IsFirstTokenOnLine(token As SyntaxToken) As Boolean
             Dim previousToken = token.GetPreviousToken(includeSkipped:=True, includeDirectives:=True, includeDocumentationComments:=True)
             If previousToken.Kind = SyntaxKind.None Then
                 Return True

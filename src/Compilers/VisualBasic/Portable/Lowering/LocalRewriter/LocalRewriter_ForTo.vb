@@ -243,7 +243,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '   exit:
             ' }
 
-
             'optimization for a case where limit and initial value are constant and the first 
             'iteration is definite so we can simply drop through without initial branch
 

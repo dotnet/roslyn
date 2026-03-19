@@ -6,7 +6,6 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -202,6 +201,27 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Checks if a type is considered a "built-in integral" by CLR.
+        /// </summary>
+        public static bool IsIntegralType(this SpecialType specialType)
+        {
+            switch (specialType)
+            {
+                case SpecialType.System_Byte:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static bool IsUnsignedIntegralType(this SpecialType specialType)
         {
             switch (specialType)
@@ -248,14 +268,12 @@ namespace Microsoft.CodeAnalysis
                 case SpecialType.System_Int64:
                     return 63;
                 default:
-                    throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(specialType);
+                    throw ExceptionUtilities.UnexpectedValue(specialType);
             }
         }
 
         public static SpecialType FromRuntimeTypeOfLiteralValue(object value)
         {
-            RoslynDebug.Assert(value != null);
-
             // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
@@ -336,5 +354,40 @@ namespace Microsoft.CodeAnalysis
 
             return SpecialType.None;
         }
+
+        /// <summary>
+        /// Tells whether a different code path can be taken based on the fact, that a given type is a special type.
+        /// This method is called in places where conditions like <c>specialType != SpecialType.None</c> were previously used.
+        /// The main reason for this method to exist is to prevent such conditions, which introduce silent code changes every time a new special type is added.
+        /// This doesn't mean the checked special type range of this method cannot be modified,
+        /// but rather that each usage of this method needs to be reviewed to make sure everything works as expected in such cases
+        /// </summary>
+        public static bool CanOptimizeBehavior(this SpecialType specialType)
+            => specialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute;
+
+        /// <summary>
+        /// Convert a boxed primitive (generally of the backing type of an enum) into a ulong.
+        /// </summary>
+        internal static ulong ConvertUnderlyingValueToUInt64(this SpecialType enumUnderlyingType, object value)
+        {
+            Debug.Assert(value.GetType().IsPrimitive);
+
+            unchecked
+            {
+                return enumUnderlyingType switch
+                {
+                    SpecialType.System_SByte => (ulong)(sbyte)value,
+                    SpecialType.System_Int16 => (ulong)(short)value,
+                    SpecialType.System_Int32 => (ulong)(int)value,
+                    SpecialType.System_Int64 => (ulong)(long)value,
+                    SpecialType.System_Byte => (byte)value,
+                    SpecialType.System_UInt16 => (ushort)value,
+                    SpecialType.System_UInt32 => (uint)value,
+                    SpecialType.System_UInt64 => (ulong)value,
+                    _ => throw ExceptionUtilities.UnexpectedValue(enumUnderlyingType),
+                };
+            }
+        }
+
     }
 }

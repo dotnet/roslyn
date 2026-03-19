@@ -5,12 +5,9 @@
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -54,7 +51,6 @@ End Module
 </compilation>,
     expectedOutput:="Hello, world 135.2 42")
         End Sub
-
 
         <Fact>
         Public Sub LocalWithSimpleInitialization()
@@ -118,7 +114,6 @@ End Module
     expectedOutput:="hello")
         End Sub
 
-
         <Fact>
         Public Sub LocalAsNewArrayError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -146,7 +141,6 @@ BC30053: Arrays cannot be declared with 'New'.
                    ~~~    
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub LocalAsNewArrayError001()
@@ -198,7 +192,6 @@ BC30205: End of statement expected.
                        ~
 </expected>)
         End Sub
-
 
         <WorkItem(545766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545766")>
         <Fact>
@@ -367,7 +360,6 @@ BC30454: Expression is not a method.
 </expected>)
         End Sub
 
-
         ' related to bug 4247
         <Fact>
         Public Sub CallStatementNamespaceAsInvocationExpression()
@@ -396,8 +388,6 @@ BC30112: 'N1.N2' is a namespace and cannot be used as an expression.
 
 </expected>)
         End Sub
-
-
 
         ' related to bug 4247
         <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
@@ -428,8 +418,6 @@ BC30110: 'Integer' is a structure type and cannot be used as an expression.
                          ~~~~~~~
 </expected>)
         End Sub
-
-
 
         <Fact>
         Public Sub AssignmentStatement()
@@ -656,7 +644,6 @@ End Module
 ]]>)
         End Sub
 
-
         <Fact>
         Public Sub SingleLineIfStatement1()
             CompileAndVerify(
@@ -786,7 +773,6 @@ End Module
 </compilation>,
     expectedOutput:="Iterate 1")
         End Sub
-
 
         <Fact>
         Public Sub DoLoop4()
@@ -1230,7 +1216,6 @@ End Module
                 Diagnostic(ERRID.ERR_ArrayRankLimit, "(,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,)"))
         End Sub
 
-
         <Fact>
         Public Sub GotoIf()
             CompileAndVerify(
@@ -1582,7 +1567,6 @@ BC30393: 'Exit Try' can only appear inside a 'Try' statement.
 </expected>)
         End Sub
 
-
         <Fact()>
         Public Sub CatchNotLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1747,7 +1731,6 @@ BC31082: 'Goo' is not a local variable or parameter, and so cannot be used as a 
                           ~~~
 </expected>)
         End Sub
-
 
         <Fact()>
         Public Sub CatchDuplicate()
@@ -2114,7 +2097,6 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -2146,7 +2128,6 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -2191,7 +2172,6 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
                                 ~~~
 </expected>)
         End Sub
-
 
         <Fact()>
         Public Sub UnassignedVariableInCatchFinallyFilter()
@@ -2345,7 +2325,6 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -3739,6 +3718,81 @@ System.NotSupportedException
 Done
 ]]>)
 
+        End Sub
+
+        <WorkItem(45158, "https://github.com/dotnet/roslyn/issues/45158")>
+        <Fact>
+        Public Sub EndWithSingleLineIf()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+
+Module Module1
+    Public Sub Main()
+        If True Then End Else Console.WriteLine("Test")
+    End Sub
+End Module
+    ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            AssertTheseDiagnostics(compilation)
+        End Sub
+
+        <WorkItem(45158, "https://github.com/dotnet/roslyn/issues/45158")>
+        <Fact>
+        Public Sub EndWithSingleLineIfWithDll()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+
+Module Module1
+    Public Sub Main()
+        If True Then End Else Console.WriteLine("Test")
+    End Sub
+End Module
+    ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30615: 'End' statement cannot be used in class library projects.
+        If True Then End Else Console.WriteLine("Test")
+                     ~~~
+</expected>)
+        End Sub
+
+        <WorkItem(45158, "https://github.com/dotnet/roslyn/issues/45158")>
+        <Fact>
+        Public Sub EndWithMultiLineIf()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+
+Module Module1
+    Public Sub Main()
+        If True Then
+            End
+        Else
+            Console.WriteLine("Test")
+        End If
+    End Sub
+End Module
+    ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            AssertTheseDiagnostics(compilation)
         End Sub
 
         <WorkItem(660010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/660010")>

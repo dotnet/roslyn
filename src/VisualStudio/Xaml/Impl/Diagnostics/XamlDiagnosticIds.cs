@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics
+#nullable disable
+
+namespace Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics;
+
+internal static class XamlDiagnosticIds
 {
-    internal static class XamlDiagnosticIds
-    {
-        public const string UnnecessaryNamespacesId = "XAML1103";
-        public const string MissingNamespaceId = "XAML0002";
-    }
+    public const string UnnecessaryNamespacesId = "XAML1103";
+    public const string MissingNamespaceId = "XAML0002";
 }

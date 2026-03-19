@@ -5,13 +5,10 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Reflection.Metadata
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -165,16 +162,16 @@ Class C
         d((0, 0))
     End Sub
 End Class"
-            Dim comp = CreateEmptyCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0}, assemblyName:="corelib")
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
             comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
-BC30002: Type 'System.String' is not defined.
+BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
         Dim d As D(Of (x As Integer, y As Integer)) = Sub(o)
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
+BC31091: Import of type 'String' from assembly or module 'corelib.dll' failed.
         Dim d As D(Of (x As Integer, y As Integer)) = Sub(o)
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
@@ -204,16 +201,16 @@ End Namespace"
         Return Nothing
     End Function
 End Class"
-            Dim comp = CreateEmptyCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0}, assemblyName:="corelib")
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
             comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
-BC30002: Type 'System.String' is not defined.
+BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
     Shared Function M() As (x As Integer, y As Integer)
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
+BC31091: Import of type 'String' from assembly or module 'corelib.dll' failed.
     Shared Function M() As (x As Integer, y As Integer)
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 </expected>)
@@ -664,19 +661,19 @@ BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttr
 BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
     Public Delegate Sub Delegate1(Of T)(sender As Object, <TupleElementNames({"x"})> args As ValueTuple(Of T))
                                                            ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30662: Attribute 'TupleElementNamesAttribute' cannot be applied to 'Event1' because the attribute is not valid on this declaration type.
+BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
     <TupleElementNames({"y"})>
-     ~~~~~~~~~~~~~~~~~
+     ~~~~~~~~~~~~~~~~~~~~~~~~
 BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
     <TupleElementNames({"a", "b"})>
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+BC30455: Argument not specified for parameter 'transformNames' of 'Public Overloads Sub New(transformNames As String())'.
     Default Public ReadOnly Property Item1(<TupleElementNames> t As (a As Integer, b As Integer)) As (a As Integer, b As Integer)
                                             ~~~~~~~~~~~~~~~~~
 BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
 <TupleElementNames({"a", "b"})>
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ]]>
+]]>
 </errors>)
 
         End Sub
@@ -804,7 +801,6 @@ Public Interface I3
     Inherits I1(Of (c as Integer, d as Integer))
 End Interface
 ]]>
-
                           </file>
                       </compilation>
 

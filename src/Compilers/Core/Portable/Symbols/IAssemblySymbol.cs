@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -64,8 +63,8 @@ namespace Microsoft.CodeAnalysis
         INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName);
 
         /// <summary>
-        /// Determines if the assembly might contain extension methods.
-        /// If false, the assembly does not contain extension methods.
+        /// Determines if the assembly might contain extension members or methods.
+        /// If false, the assembly does not contain extension members or methods.
         /// </summary>
         bool MightContainExtensionMethods { get; }
 
@@ -75,6 +74,11 @@ namespace Microsoft.CodeAnalysis
         /// null is returned.
         /// </summary>
         INamedTypeSymbol? ResolveForwardedType(string fullyQualifiedMetadataName);
+
+        /// <summary>
+        /// Returns type symbols for top-level (non-nested) types forwarded by this assembly.
+        /// </summary>
+        ImmutableArray<INamedTypeSymbol> GetForwardedTypes();
 
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.

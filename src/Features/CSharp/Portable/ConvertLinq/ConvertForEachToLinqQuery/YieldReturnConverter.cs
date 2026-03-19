@@ -2,51 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
+namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery;
+
+internal sealed class YieldReturnConverter(
+    ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+    YieldStatementSyntax yieldReturnStatement,
+    YieldStatementSyntax yieldBreakStatement) : AbstractConverter(forEachInfo)
 {
-    internal sealed class YieldReturnConverter : AbstractConverter
+    private readonly YieldStatementSyntax _yieldReturnStatement = yieldReturnStatement;
+    private readonly YieldStatementSyntax _yieldBreakStatement = yieldBreakStatement;
+
+    public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
     {
-        private readonly YieldStatementSyntax _yieldReturnStatement;
-        private readonly YieldStatementSyntax _yieldBreakStatement;
+        var queryOrLinqInvocationExpression = CreateQueryExpressionOrLinqInvocation(
+           selectExpression: _yieldReturnStatement.Expression,
+           leadingTokensForSelect: [_yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword],
+           trailingTokensForSelect: _yieldBreakStatement != null
+                                    ? [_yieldReturnStatement.SemicolonToken,
+                                        _yieldBreakStatement.YieldKeyword,
+                                        _yieldBreakStatement.ReturnOrBreakKeyword,
+                                        _yieldBreakStatement.SemicolonToken]
+                                    : [_yieldReturnStatement.SemicolonToken],
+           convertToQuery: convertToQuery);
 
-        public YieldReturnConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
-            YieldStatementSyntax yieldReturnStatement,
-            YieldStatementSyntax yieldBreakStatement)
-            : base(forEachInfo)
+        editor.ReplaceNode(
+            ForEachInfo.ForEachStatement,
+            SyntaxFactory.ReturnStatement(queryOrLinqInvocationExpression).WithAdditionalAnnotations(Formatter.Annotation));
+
+        // Delete the yield break just after the loop.
+        if (_yieldBreakStatement != null)
         {
-            _yieldReturnStatement = yieldReturnStatement;
-            _yieldBreakStatement = yieldBreakStatement;
-        }
-
-        public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
-        {
-            var queryOrLinqInvocationExpression = CreateQueryExpressionOrLinqInvocation(
-               selectExpression: _yieldReturnStatement.Expression,
-               leadingTokensForSelect: new[] { _yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword },
-               trailingTokensForSelect: _yieldBreakStatement != null
-                                        ? new[] { _yieldReturnStatement.SemicolonToken,
-                                                _yieldBreakStatement.YieldKeyword,
-                                                _yieldBreakStatement.ReturnOrBreakKeyword,
-                                                _yieldBreakStatement.SemicolonToken }
-                                        : new[] { _yieldReturnStatement.SemicolonToken },
-               convertToQuery: convertToQuery);
-
-            editor.ReplaceNode(
-                ForEachInfo.ForEachStatement,
-                SyntaxFactory.ReturnStatement(queryOrLinqInvocationExpression).WithAdditionalAnnotations(Formatter.Annotation));
-
-            // Delete the yield break just after the loop.
-            if (_yieldBreakStatement != null)
-            {
-                editor.RemoveNode(_yieldBreakStatement);
-            }
+            editor.RemoveNode(_yieldBreakStatement);
         }
     }
 }

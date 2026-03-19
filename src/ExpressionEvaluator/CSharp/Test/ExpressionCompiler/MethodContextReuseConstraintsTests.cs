@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -14,26 +16,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         [Fact]
         public void AreSatisfied()
         {
-            var moduleVersionId = Guid.NewGuid();
+            var moduleId = new ModuleId(Guid.NewGuid(), "module");
             const int methodToken = 0x06000001;
             const int methodVersion = 1;
             const uint startOffset = 1;
             const uint endOffsetExclusive = 3;
 
             var constraints = new MethodContextReuseConstraints(
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion,
                 new ILSpan(startOffset, endOffsetExclusive));
 
-            Assert.True(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)startOffset));
-            Assert.True(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)endOffsetExclusive - 1));
+            Assert.True(constraints.AreSatisfied(moduleId, methodToken, methodVersion, (int)startOffset));
+            Assert.True(constraints.AreSatisfied(moduleId, methodToken, methodVersion, (int)endOffsetExclusive - 1));
 
-            Assert.False(constraints.AreSatisfied(Guid.NewGuid(), methodToken, methodVersion, (int)startOffset));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken + 1, methodVersion, (int)startOffset));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion + 1, (int)startOffset));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)startOffset - 1));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)endOffsetExclusive));
+            Assert.False(constraints.AreSatisfied(new ModuleId(Guid.NewGuid(), "module"), methodToken, methodVersion, (int)startOffset));
+            Assert.False(constraints.AreSatisfied(moduleId, methodToken + 1, methodVersion, (int)startOffset));
+            Assert.False(constraints.AreSatisfied(moduleId, methodToken, methodVersion + 1, (int)startOffset));
+            Assert.False(constraints.AreSatisfied(moduleId, methodToken, methodVersion, (int)startOffset - 1));
+            Assert.False(constraints.AreSatisfied(moduleId, methodToken, methodVersion, (int)endOffsetExclusive));
         }
 
         [Fact]

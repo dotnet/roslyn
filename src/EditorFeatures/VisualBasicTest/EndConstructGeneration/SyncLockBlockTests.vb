@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class SyncLockBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ApplyAfterSyncLockStatement()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function ApplyAfterSyncLockStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 SyncLock variable
@@ -23,11 +23,11 @@ End SyncLock
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedUsing()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function DoNotApplyForMatchedUsing() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 SyncLock variable
@@ -35,11 +35,11 @@ End SyncLock
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNestedSyncBlock()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function VerifyNestedSyncBlock() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         SyncLock x
@@ -58,26 +58,26 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function VerifyInvalidSyntax() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub S
         Using (SyncLock 1) 
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLocation()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function VerifyInvalidLocation() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Synclock 1
 End Class",
                 caret:={1, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

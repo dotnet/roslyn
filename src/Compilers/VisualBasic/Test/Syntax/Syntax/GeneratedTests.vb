@@ -2,12 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -86,6 +83,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Overrides Function GetErrorDisplayString(symbol As ISymbol) As String
             Return MessageProvider.Instance.GetErrorDisplayString(symbol)
         End Function
+
+        Public Overrides Function GetIsEnabledByDefault(code As Integer) As Boolean
+            Return True
+        End Function
+
+#If DEBUG Then
+        Friend Overrides Function ShouldAssertExpectedMessageArgumentsLength(errorCode As Integer) As Boolean
+            Return False
+        End Function
+#End If
     End Class
 
     Friend Class RedIdentityRewriter

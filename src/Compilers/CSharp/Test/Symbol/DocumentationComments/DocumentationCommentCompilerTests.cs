@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -888,7 +890,7 @@ partial class C
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
             var actualA = GetDocumentationCommentText(compA);
-            var expectedA = @"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -901,12 +903,281 @@ partial class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expectedA, actualA);
+            Assert.Equal(expected, actualA);
 
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
-            var expectedB = @"
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void PartialMethod_NoImplementation()
+        {
+            // Whole document XML does not include the member, but single symbol XML does include it
+            var source = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    partial void M();
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(tree, assemblyName: "Test");
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+
+            AssertEx.AssertLinesEqual(expected: """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, actual: GetDocumentationCommentText(comp));
+
+            AssertEx.AssertLinesEqual("""
+                <member name="M:C.M">
+                    <summary>Summary 2</summary>
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(method, processIncludes: true, cancellationToken: default));
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    /** <summary>Summary 1</summary>*/
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""M:C.M"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_DefinitionComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""M:C.M"">
+            <summary>Summary 2</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_ImplementationComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    /** <summary>Summary 1</summary>*/
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""M:C.M"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_NoComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,24): warning CS1591: Missing XML comment for publicly visible type or member 'C.M()'
+                //     public partial int M();
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "M").WithArguments("C.M()").WithLocation(4, 24)
+            };
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics(expectedDiagnostics);
+            var actualA = GetDocumentationCommentText(compA, expectedDiagnostics);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics(expectedDiagnostics);
+            var actualB = GetDocumentationCommentText(compB, expectedDiagnostics);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_Overlap()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <remarks>Remarks 1</remarks> */
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -914,12 +1185,2054 @@ partial class C
     </assembly>
     <members>
         <member name=""M:C.M"">
+            <remarks>Remarks 1</remarks> 
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_ImplComment_Invalid()
+        {
+            var source1 = @"
+partial class C
+{
+    /// <summary></a></summary>
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,20): warning CS1570: XML comment has badly formed XML -- 'End tag 'a' does not match the start tag 'summary'.'
+                //     /// <summary></a></summary>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "a").WithArguments("a", "summary").WithLocation(4, 20),
+                // (4,22): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                //     /// <summary></a></summary>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(4, 22)
+            };
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics(expectedDiagnostics);
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""M:C.M"" -->
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics(expectedDiagnostics);
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void PartialMethod_Paramref_01()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p1""/>.</summary> */
+    public partial int M(int p1) => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    public partial int M(int p2);
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (5,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
+                    //     public partial int M(int p1) => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(5, 24));
+
+                var actual = GetDocumentationCommentText(compilation);
+                var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""M:C.M(System.Int32)"">
+            <summary>Accepts <paramref name=""p1""/>.</summary> 
+        </member>
+    </members>
+</doc>
+    ".Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void PartialMethod_Paramref_02()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p2""/>.</summary> */
+    public partial int M(int p1) => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    public partial int M(int p2);
+}
+";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p2', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p2"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p2").WithArguments("p2", "C.M(int)").WithLocation(4, 42),
+                    // (5,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
+                    //     public partial int M(int p1) => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(5, 24));
+
+                var actual = GetDocumentationCommentText(compilation,
+                    // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p2', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p2"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p2").WithArguments("p2", "C.M(int)").WithLocation(4, 42));
+                var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""M:C.M(System.Int32)"">
+            <summary>Accepts <paramref name=""p2""/>.</summary> 
+        </member>
+    </members>
+</doc>
+    ".Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void PartialMethod_Paramref_03()
+        {
+            var source1 = @"
+partial class C
+{
+    public partial int M(int p1) => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p1""/>.</summary> */
+    public partial int M(int p2);
+}
+";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (4,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
+                    //     public partial int M(int p1) => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(4, 24),
+                    // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p1', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p1"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p1").WithArguments("p1", "C.M(int)").WithLocation(4, 42));
+
+                var actual = GetDocumentationCommentText(compilation,
+                    // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p1', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p1"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p1").WithArguments("p1", "C.M(int)").WithLocation(4, 42));
+                var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""M:C.M(System.Int32)"">
+            <summary>Accepts <paramref name=""p1""/>.</summary> 
+        </member>
+    </members>
+</doc>
+    ".Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void PartialMethod_Paramref_04()
+        {
+            var source1 = @"
+partial class C
+{
+    public partial int M(int p1) => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p2""/>.</summary> */
+    public partial int M(int p2);
+}
+";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (4,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
+                    //     public partial int M(int p1) => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(4, 24));
+
+                var actual = GetDocumentationCommentText(compilation);
+                var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""M:C.M(System.Int32)"">
+            <summary>Accepts <paramref name=""p2""/>.</summary> 
+        </member>
+    </members>
+</doc>
+".Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        /// <summary>Counterpart to <see cref="PartialMethod_NoImplementation"/>.</summary>
+        [Fact]
+        public void PartialProperty_NoImplementation()
+        {
+            // Whole document XML does not include the member, but single symbol XML does include it
+            var source = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int P { get; set; }
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(tree, assemblyName: "Test");
+            var property = comp.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+
+            AssertEx.AssertLinesEqual(expected: """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, actual: GetDocumentationCommentText(comp));
+
+            AssertEx.AssertLinesEqual("""
+                <member name="P:C.P">
+                    <summary>Summary 2</summary>
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(property, processIncludes: true, cancellationToken: default));
+        }
+
+        /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles"/>.</summary>
+        [Fact]
+        public void PartialProperties_MultipleFiles()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    /** <summary>Summary 1</summary>*/
+    public partial int P => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int P { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""P:C.P"">
             <summary>Summary 1</summary>
         </member>
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expectedB, actualB);
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles"/>.</summary>
+        [Fact]
+        public void PartialIndexers_MultipleFiles()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    /** <summary>Summary 1</summary>*/
+    public partial int this[int p] => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int this[int p] { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""P:C.Item(System.Int32)"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="PartialMethod_NoImplementation"/>.</summary>
+        [Fact]
+        public void PartialIndexer_NoImplementation()
+        {
+            // Whole document XML does not include the member, but single symbol XML does include it
+            var source = """
+                partial class C
+                {
+                    /// <summary>Summary 2</summary>
+                    /// <param name="p">My param</param>
+                    public partial int this[int p] { get; set; }
+                }
+                """;
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(tree, assemblyName: "Test");
+            var property = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+
+            AssertEx.AssertLinesEqual(expected: """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, actual: GetDocumentationCommentText(comp));
+
+            AssertEx.AssertLinesEqual("""
+                <member name="P:C.Item(System.Int32)">
+                    <summary>Summary 2</summary>
+                    <param name="p">My param</param>
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(property, processIncludes: true, cancellationToken: default));
+        }
+
+        /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_DefinitionComment"/>.</summary>
+        [Fact]
+        public void PartialProperties_MultipleFiles_DefinitionComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    public partial int P => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int P { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""P:C.P"">
+            <summary>Summary 2</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_ImplementationComment"/>.</summary>
+        [Fact]
+        public void PartialProperties_MultipleFiles_ImplementationComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    /** <summary>Summary 1</summary>*/
+    public partial int P => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    public partial int P { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""P:C.P"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_NoComment"/>.</summary>
+        [Fact]
+        public void PartialProperties_MultipleFiles_NoComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    public partial int P => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    public partial int P { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,24): warning CS1591: Missing XML comment for publicly visible type or member 'C.P'
+                //     public partial int P { get; }
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "P").WithArguments("C.P").WithLocation(4, 24)
+            };
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics(expectedDiagnostics);
+            var actualA = GetDocumentationCommentText(compA, expectedDiagnostics);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics(expectedDiagnostics);
+            var actualB = GetDocumentationCommentText(compB, expectedDiagnostics);
+            Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_Overlap"/>.</summary>
+        [Fact]
+        public void PartialProperties_MultipleFiles_Overlap()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <remarks>Remarks 1</remarks> */
+    public partial int P => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int P { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""P:C.P"">
+            <remarks>Remarks 1</remarks> 
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_ImplComment_Invalid"/>.</summary>
+        [Fact]
+        public void PartialProperties_MultipleFiles_ImplComment_Invalid()
+        {
+            var source1 = @"
+partial class C
+{
+    /// <summary></a></summary>
+    public partial int P => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int P { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,20): warning CS1570: XML comment has badly formed XML -- 'End tag 'a' does not match the start tag 'summary'.'
+                //     /// <summary></a></summary>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "a").WithArguments("a", "summary").WithLocation(4, 20),
+                // (4,22): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                //     /// <summary></a></summary>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(4, 22)
+            };
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics(expectedDiagnostics);
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""P:C.P"" -->
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics(expectedDiagnostics);
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="PartialMethod_Paramref_01"/>.</summary>
+        [Fact]
+        public void PartialIndexer_Paramref_01()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p1""/>.</summary> */
+    public partial int this[int p1] => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    public partial int this[int p2] { get; }
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var indexer = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                    Assert.Equal("p2", indexer.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (5,24): warning CS9256: Partial member declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    //     public partial int this[int p1] => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(5, 24));
+
+                var actual = GetDocumentationCommentText(compilation);
+                var expected = """
+                    <?xml version="1.0"?>
+                    <doc>
+                        <assembly>
+                            <name>Test</name>
+                        </assembly>
+                        <members>
+                            <member name="P:C.Item(System.Int32)">
+                                <summary>Accepts <paramref name="p1"/>.</summary> 
+                            </member>
+                        </members>
+                    </doc>
+                    """.Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        /// <summary>Counterpart to <see cref="PartialMethod_Paramref_02"/>.</summary>
+        [Fact]
+        public void PartialIndexer_Paramref_02()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p2""/>.</summary> */
+    public partial int this[int p1] => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    public partial int this[int p2] { get; }
+}
+";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var indexer = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                    Assert.Equal("p2", indexer.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (4,42): warning CS1734: XML comment on 'C.this[int]' has a paramref tag for 'p2', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p2"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p2").WithArguments("p2", "C.this[int]").WithLocation(4, 42),
+                    // (5,24): warning CS9256: Partial member declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    //     public partial int this[int p1] => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(5, 24));
+
+                var actual = GetDocumentationCommentText(compilation,
+                    // (4,42): warning CS1734: XML comment on 'C.this[int]' has a paramref tag for 'p2', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p2"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p2").WithArguments("p2", "C.this[int]").WithLocation(4, 42));
+                var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""P:C.Item(System.Int32)"">
+            <summary>Accepts <paramref name=""p2""/>.</summary> 
+        </member>
+    </members>
+</doc>
+    ".Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        /// <summary>Counterpart to <see cref="PartialMethod_Paramref_03"/>.</summary>
+        [Fact]
+        public void PartialIndexer_Paramref_03()
+        {
+            var source1 = @"
+partial class C
+{
+    public partial int this[int p1] => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p1""/>.</summary> */
+    public partial int this[int p2] { get; }
+}
+";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var indexer = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                    Assert.Equal("p2", indexer.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (4,24): warning CS9256: Partial member declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    //     public partial int this[int p1] => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(4, 24),
+                    // (4,42): warning CS1734: XML comment on 'C.this[int]' has a paramref tag for 'p1', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p1"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p1").WithArguments("p1", "C.this[int]").WithLocation(4, 42));
+
+                var actual = GetDocumentationCommentText(compilation,
+                    // (4,42): warning CS1734: XML comment on 'C.this[int]' has a paramref tag for 'p1', but there is no parameter by that name
+                    //     /** <summary>Accepts <paramref name="p1"/>.</summary> */
+                    Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p1").WithArguments("p1", "C.this[int]").WithLocation(4, 42));
+                var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""P:C.Item(System.Int32)"">
+            <summary>Accepts <paramref name=""p1""/>.</summary> 
+        </member>
+    </members>
+</doc>
+".Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        /// <summary>Counterpart to <see cref="PartialMethod_Paramref_04"/>.</summary>
+        [Fact]
+        public void PartialIndexer_Paramref_04()
+        {
+            var source1 = @"
+partial class C
+{
+    public partial int this[int p1] => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Accepts <paramref name=""p2""/>.</summary> */
+    public partial int this[int p2] { get; }
+}
+";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
+
+            // Files passed in order.
+            verify(new[] { tree1, tree2 });
+
+            // Files passed in reverse order.
+            verify(new[] { tree2, tree1 });
+
+            void verify(CSharpTestSource source)
+            {
+                var compilation = CreateCompilation(source, assemblyName: "Test");
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var indexer = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                    Assert.Equal("p2", indexer.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
+                    // (4,24): warning CS9256: Partial member declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    //     public partial int this[int p1] => 42;
+                    Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(4, 24));
+
+                var actual = GetDocumentationCommentText(compilation);
+                var expected = """
+                    <?xml version="1.0"?>
+                    <doc>
+                        <assembly>
+                            <name>Test</name>
+                        </assembly>
+                        <members>
+                            <member name="P:C.Item(System.Int32)">
+                                <summary>Accepts <paramref name="p2"/>.</summary> 
+                            </member>
+                        </members>
+                    </doc>
+                    """.Trim();
+                AssertEx.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void PartialEvent_NoImplementation()
+        {
+            var source = """
+                public partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial event System.Action E;
+                }
+                """;
+            var comp = CreateCompilation(source,
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(
+                    // (1,22): warning CS1591: Missing XML comment for publicly visible type or member 'C'
+                    // public partial class C
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithLocation(1, 22),
+                    // (4,40): error CS9275: Partial member 'C.E' must have an implementation part.
+                    //     public partial event System.Action E;
+                    Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(4, 40));
+            var e = comp.GlobalNamespace.GetMember<EventSymbol>("C.E");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, GetDocumentationCommentText(comp,
+                    // (1,22): warning CS1591: Missing XML comment for publicly visible type or member 'C'
+                    // public partial class C
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithLocation(1, 22)));
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                <member name="E:C.E">
+                    <summary>Summary 1</summary> 
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(e, processIncludes: true, cancellationToken: default));
+        }
+
+        [Fact]
+        public void PartialConstructor_NoImplementation()
+        {
+            var source = """
+                public partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial C();
+                }
+                """;
+            var comp = CreateCompilation(source,
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(
+                    // (1,22): warning CS1591: Missing XML comment for publicly visible type or member 'C'
+                    // public partial class C
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithLocation(1, 22),
+                    // (4,20): error CS9275: Partial member 'C.C()' must have an implementation part.
+                    //     public partial C();
+                    Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(4, 20));
+            var ctor = comp.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, GetDocumentationCommentText(comp,
+                    // (1,22): warning CS1591: Missing XML comment for publicly visible type or member 'C'
+                    // public partial class C
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithLocation(1, 22)));
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                <member name="M:C.#ctor">
+                    <summary>Summary 1</summary>
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(ctor, processIncludes: true, cancellationToken: default));
+        }
+
+        [Fact]
+        public void PartialEvent_MultipleFiles()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial event System.Action E;
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    /** <summary>Summary 2</summary> */
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                        <member name="E:C.E">
+                            <summary>Summary 2</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialEvent_MultipleFiles_ImplementationComment()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    public partial event System.Action E;
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    /** <summary>Summary 2</summary> */
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                        <member name="E:C.E">
+                            <summary>Summary 2</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialEvent_MultipleFiles_DefinitionComment()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial event System.Action E;
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                        <member name="E:C.E">
+                            <summary>Summary 1</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialConstructor_MultipleFiles()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial C();
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    /** <summary>Summary 2</summary> */
+                    public partial C() { }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                        <member name="M:C.#ctor">
+                            <summary>Summary 2</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialConstructor_MultipleFiles_ImplementationComment()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    public partial C();
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    /** <summary>Summary 2</summary> */
+                    public partial C() { }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                        <member name="M:C.#ctor">
+                            <summary>Summary 2</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialConstructor_MultipleFiles_DefinitionComment()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial C();
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    public partial C() { }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                        <member name="M:C.#ctor">
+                            <summary>Summary 1</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialEvent_MultipleFiles_NoComment()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    public partial event System.Action E;
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,40): warning CS1591: Missing XML comment for publicly visible type or member 'C.E'
+                //     public partial event System.Action E;
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("C.E").WithLocation(4, 40)
+            };
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedDiagnostics));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedDiagnostics));
+        }
+
+        [Fact]
+        public void PartialConstructor_MultipleFiles_NoComment()
+        {
+            var source1 = """
+                /** <summary>Summary 0</summary> */
+                public partial class C
+                {
+                    public partial C();
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    public partial C() { }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>Summary 0</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,20): warning CS1591: Missing XML comment for publicly visible type or member 'C.C()'
+                //     public partial C();
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C.C()").WithLocation(4, 20)
+            };
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedDiagnostics));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedDiagnostics));
+        }
+
+        [Fact]
+        public void PartialEvent_MultipleFiles_Overlap()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial event System.Action E;
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /** <remarks>Remarks 2</remarks> */
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="E:C.E">
+                            <remarks>Remarks 2</remarks> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialConstructor_MultipleFiles_Overlap()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /// <summary>Summary 1</summary>
+                    /// <param name="x">Param 1</param>
+                    public partial C(int x, int y);
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /// <remarks>Remarks 2</remarks>
+                    /// <param name="y">Param 2</param>
+                    public partial C(int x, int y) { }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="M:C.#ctor(System.Int32,System.Int32)">
+                            <remarks>Remarks 2</remarks>
+                            <param name="y">Param 2</param>
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (5,26): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.C(int, int)' (but other parameters do)
+                //     public partial C(int x, int y) { }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.C(int, int)").WithLocation(5, 26),
+                // (5,33): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.C(int, int)' (but other parameters do)
+                //     public partial C(int x, int y);
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.C(int, int)").WithLocation(5, 33)
+            };
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedDiagnostics));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedDiagnostics));
+        }
+
+        [Fact]
+        public void PartialEvent_MultipleFiles_InvalidImplComment()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial event System.Action E;
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /** <summary></a></summary> */
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <!-- Badly formed XML comment ignored for member "E:C.E" -->
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,20): warning CS1570: XML comment has badly formed XML -- 'End tag 'a' does not match the start tag 'summary'.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "a").WithArguments("a", "summary").WithLocation(3, 20),
+                // (3,22): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(3, 22)
+            };
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialConstructor_MultipleFiles_InvalidImplComment()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /** <summary>Summary 1</summary> */
+                    public partial C();
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /** <summary></a></summary> */
+                    public partial C() { }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <!-- Badly formed XML comment ignored for member "M:C.#ctor" -->
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,20): warning CS1570: XML comment has badly formed XML -- 'End tag 'a' does not match the start tag 'summary'.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "a").WithArguments("a", "summary").WithLocation(3, 20),
+                // (3,22): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(3, 22)
+            };
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialEvent_MultipleFiles_InvalidDefComment()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /** <summary></a></summary> */
+                    public partial event System.Action E;
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /** <summary>Summary 2</summary> */
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="E:C.E">
+                            <summary>Summary 2</summary> 
+                        </member>
+                        <!-- Badly formed XML comment ignored for member "E:C.E" -->
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,20): warning CS1570: XML comment has badly formed XML -- 'End tag 'a' does not match the start tag 'summary'.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "a").WithArguments("a", "summary").WithLocation(3, 20),
+                // (3,22): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(3, 22)
+            };
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialConstructor_MultipleFiles_InvalidDefComment()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /** <summary></a></summary> */
+                    public partial C();
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /** <summary>Summary 2</summary> */
+                    public partial C() { }
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="M:C.#ctor">
+                            <summary>Summary 2</summary> 
+                        </member>
+                        <!-- Badly formed XML comment ignored for member "M:C.#ctor" -->
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,20): warning CS1570: XML comment has badly formed XML -- 'End tag 'a' does not match the start tag 'summary'.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "a").WithArguments("a", "summary").WithLocation(3, 20),
+                // (3,22): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                //     /** <summary></a></summary> */
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(3, 22)
+            };
+
+            var comp = CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments)
+                .VerifyDiagnostics(expectedDiagnostics);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+        }
+
+        [Fact]
+        public void PartialConstructor_Paramref_01()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /** <summary>Accepts <paramref name="p1"/>.</summary> */
+                    public partial C(int p1) { }
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    public partial C(int p2);
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="M:C.#ctor(System.Int32)">
+                            <summary>Accepts <paramref name="p1"/>.</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,20): warning CS9256: Partial member declarations 'C.C(int p2)' and 'C.C(int p1)' have signature differences.
+                //     public partial C(int p1) { }
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int p2)", "C.C(int p1)").WithLocation(4, 20)
+            };
+
+            var comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            static void validate(ModuleSymbol module)
+            {
+                var ctor = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+                Assert.Equal("p2", ctor.Parameters.Single().Name);
+            }
+        }
+
+        [Fact]
+        public void PartialConstructor_Paramref_02()
+        {
+            var source1 = """
+                partial class C
+                {
+                    /** <summary>Accepts <paramref name="p2"/>.</summary> */
+                    public partial C(int p1) { }
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    public partial C(int p2);
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="M:C.#ctor(System.Int32)">
+                            <summary>Accepts <paramref name="p2"/>.</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var expectedXmlDiagnostic =
+                // (3,42): warning CS1734: XML comment on 'C.C(int)' has a paramref tag for 'p2', but there is no parameter by that name
+                //     /** <summary>Accepts <paramref name="p2"/>.</summary> */
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p2").WithArguments("p2", "C.C(int)").WithLocation(3, 42);
+
+            var expectedDiagnostics = new[]
+            {
+                expectedXmlDiagnostic,
+                // (4,20): warning CS9256: Partial member declarations 'C.C(int p2)' and 'C.C(int p1)' have signature differences.
+                //     public partial C(int p1) { }
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int p2)", "C.C(int p1)").WithLocation(4, 20)
+            };
+
+            var comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedXmlDiagnostic));
+
+            comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedXmlDiagnostic));
+
+            static void validate(ModuleSymbol module)
+            {
+                var ctor = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+                Assert.Equal("p2", ctor.Parameters.Single().Name);
+            }
+        }
+
+        [Fact]
+        public void PartialConstructor_Paramref_03()
+        {
+            var source1 = """
+                partial class C
+                {
+                    public partial C(int p1) { }
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /** <summary>Accepts <paramref name="p1"/>.</summary> */
+                    public partial C(int p2);
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="M:C.#ctor(System.Int32)">
+                            <summary>Accepts <paramref name="p1"/>.</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var expectedXmlDiagnostic =
+                // (3,42): warning CS1734: XML comment on 'C.C(int)' has a paramref tag for 'p1', but there is no parameter by that name
+                //     /** <summary>Accepts <paramref name="p1"/>.</summary> */
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p1").WithArguments("p1", "C.C(int)").WithLocation(3, 42);
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,20): warning CS9256: Partial member declarations 'C.C(int p2)' and 'C.C(int p1)' have signature differences.
+                //     public partial C(int p1) { }
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int p2)", "C.C(int p1)").WithLocation(3, 20),
+                expectedXmlDiagnostic
+            };
+
+            var comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedXmlDiagnostic));
+
+            comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp, expectedXmlDiagnostic));
+
+            static void validate(ModuleSymbol module)
+            {
+                var ctor = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+                Assert.Equal("p2", ctor.Parameters.Single().Name);
+            }
+        }
+
+        [Fact]
+        public void PartialConstructor_Paramref_04()
+        {
+            var source1 = """
+                partial class C
+                {
+                    public partial C(int p1) { }
+                }
+                """;
+            var source2 = """
+                partial class C
+                {
+                    /** <summary>Accepts <paramref name="p2"/>.</summary> */
+                    public partial C(int p2);
+                }
+                """;
+
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="M:C.#ctor(System.Int32)">
+                            <summary>Accepts <paramref name="p2"/>.</summary> 
+                        </member>
+                    </members>
+                </doc>
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,20): warning CS9256: Partial member declarations 'C.C(int p2)' and 'C.C(int p1)' have signature differences.
+                //     public partial C(int p1) { }
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int p2)", "C.C(int p1)").WithLocation(3, 20)
+            };
+
+            var comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source1, source2],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            comp = (CSharpCompilation)CompileAndVerify(CreateCompilation([source2, source1],
+                assemblyName: "Test",
+                parseOptions: TestOptions.RegularPreviewWithDocumentationComments),
+                sourceSymbolValidator: validate,
+                symbolValidator: validate)
+                .VerifyDiagnostics(expectedDiagnostics).Compilation;
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, GetDocumentationCommentText(comp));
+
+            static void validate(ModuleSymbol module)
+            {
+                var ctor = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+                Assert.Equal("p2", ctor.Parameters.Single().Name);
+            }
         }
 
         #endregion Partial methods
@@ -3487,7 +5800,7 @@ class C<T>
 /// <typeparamref name=""U"">Text</typeparamref>
 /// <typeparamref name=""V"">Text</typeparamref>
 /// {0}
-delegate void D<U, V>(U u, V v) {{ }}
+delegate void D<U, V>(U u, V v);
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
@@ -3556,7 +5869,7 @@ delegate void D<U, V>(U u, V v) {{ }}
 /// <typeparamref name=""U"">Text</typeparamref>
 /// <typeparamref name=""V"">Text</typeparamref>
 /// {0}
-delegate void D<U, V>(U u, V v) {{ }}
+delegate void D<U, V>(U u, V v);
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
@@ -6361,6 +8674,407 @@ $@"<?xml version=""1.0""?>
     </members>
 </doc>";
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_01()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Value"">Parameter of the record.</param>
+record Rec(string Value);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+        </member>
+        <member name=""P:Rec.Value"">
+            <summary>Parameter of the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_02()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Value"">Parameter of the record.
+record Rec(string Value);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""T:Rec"" -->
+        <!-- Badly formed XML comment ignored for member ""M:Rec.#ctor(System.String)"" -->
+        <!-- Badly formed XML comment ignored for member ""P:Rec.Value"" -->
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_03()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Value"">Parameter of the record.</param>
+/// <param name=""Value"">Also the value of the record.</param>
+record Rec(string Value);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,12): warning CS1571: XML comment has a duplicate param tag for 'Value'
+                // /// <param name="Value">Also the value of the record.</param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""Value""").WithArguments("Value").WithLocation(4, 12),
+                // (4,12): warning CS1571: XML comment has a duplicate param tag for 'Value'
+                // /// <param name="Value">Also the value of the record.</param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""Value""").WithArguments("Value").WithLocation(4, 12),
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+            <param name=""Value"">Also the value of the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+            <param name=""Value"">Also the value of the record.</param>
+        </member>
+        <member name=""P:Rec.Value"">
+            <summary>Parameter of the record.</summary>
+            <summary>Also the value of the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_04()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item1"">First item in the record.</param>
+/// <param name=""Item2"">Second item in the record.</param>
+record Rec(string Item1, object Item2);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25)
+);
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item1"">First item in the record.</param>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String,System.Object)"">
+            <summary>The record.</summary>
+            <param name=""Item1"">First item in the record.</param>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""P:Rec.Item1"">
+            <summary>First item in the record.</summary>
+        </member>
+        <member name=""P:Rec.Item2"">
+            <summary>Second item in the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_05()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item2"">Second item in the record.</param>
+record Rec(string Item1, object Item2);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,19): warning CS1573: Parameter 'Item1' has no matching param tag in the XML comment for 'Rec.Rec(string, object)' (but other parameters do)
+                    // record Rec(string Item1, object Item2);
+                    Diagnostic(ErrorCode.WRN_MissingParamTag, "Item1").WithArguments("Item1", "Rec.Rec(string, object)").WithLocation(4, 19),
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String,System.Object)"">
+            <summary>The record.</summary>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""P:Rec.Item2"">
+            <summary>Second item in the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_06()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item"">Item within the record.</param>
+record Rec(string Item)
+{
+    public string Item { get; init; } = Item;
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_07()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item"">Item within the record.</param1>
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""T:Rec"" -->
+        <!-- Badly formed XML comment ignored for member ""M:Rec.#ctor(System.String)"" -->
+        <!-- Badly formed XML comment ignored for member ""P:Rec.Item"" -->
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_08()
+        {
+            var source = @"
+/**
+ * <summary>The record.</summary>
+ * <param name=""Item"">Item within the record.</param>
+ * <remarks>The remarks.</remarks>
+ */
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""P:Rec.Item"">
+            <summary>Item within the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_09()
+        {
+            var source = @"
+/**
+ *<summary>The record.</summary>
+ *<param name=""Item"">Item within the record.</param>
+ *<remarks>The remarks.</remarks>
+ */
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""P:Rec.Item"">
+            <summary>Item within the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_10()
+        {
+            var source = @"
+/**
+   <summary>The record.</summary>
+   <param name=""Item"">Item within the record.</param>
+   <remarks>The remarks.</remarks>
+ */
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+
+            // Ideally, the 'P:Rec.Item' summary would have exactly the same leading indentation as the param comment it was derived from.
+            // However, it doesn't seem essential for this to match in all cases.
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+               <summary>The record.</summary>
+               <param name=""Item"">Item within the record.</param>
+               <remarks>The remarks.</remarks>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+               <summary>The record.</summary>
+               <param name=""Item"">Item within the record.</param>
+               <remarks>The remarks.</remarks>
+        </member>
+        <member name=""P:Rec.Item"">
+            <summary>Item within the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
         }
     }
 }

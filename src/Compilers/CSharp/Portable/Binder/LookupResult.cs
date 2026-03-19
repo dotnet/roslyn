@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -278,17 +280,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (Kind > result.Kind)
             {
-                // existing result is better
+                // Existing result is strictly better.  Ignore what is incoming.  
+                return;
             }
-            else if (result.Kind > Kind)
+
+            if (result.Kind > Kind)
             {
+                // Incoming result is better.  Let it win completely over anything we've built up so far.
                 this.SetFrom(result);
+                return;
             }
-            else if ((object)result.Symbol != null)
+
+            if (Kind == LookupResultKind.WrongArity && result.Kind == LookupResultKind.WrongArity)
             {
-                // Same goodness. Include all symbols
-                _symbolList.Add(result.Symbol);
+                if (isNonGenericVersusGeneric(result.Symbol, this.SingleSymbolOrDefault))
+                {
+                    // Current result is generic, and incoming is not.  We just want stick with what we currently have
+                    // as the better symbol to be referring to when generics are provided, but arity is wrong.
+                    return;
+                }
+
+                if (isNonGenericVersusGeneric(this.SingleSymbolOrDefault, result.Symbol))
+                {
+                    // Current result is non generic, but incoming is generic.  It's strictly the better symbol to be
+                    // referring to when generics are provided, but arity is wrong.
+                    this.SetFrom(result);
+                    return;
+                }
+
+                // Neither is preferred, fall through and include all symbols.
             }
+
+            // Same goodness. Include all symbols
+            _symbolList.AddIfNotNull(result.Symbol);
+
+            static bool isNonGenericVersusGeneric(Symbol firstSymbol, Symbol secondSymbol)
+                => firstSymbol.GetArity() == 0 && secondSymbol.GetArity() > 0;
         }
 
         // global pool

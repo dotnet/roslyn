@@ -2,87 +2,84 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public sealed class AsynchronousOperationBlocker : IDisposable
 {
-    public sealed class AsynchronousOperationBlocker : IDisposable
+    private readonly ManualResetEvent _waitHandle;
+    private readonly object _lockObj = new();
+    private bool _blocking;
+    private bool _disposed;
+
+    public AsynchronousOperationBlocker()
     {
-        private readonly ManualResetEvent _waitHandle;
-        private readonly object _lockObj;
-        private bool _blocking;
-        private bool _disposed;
+        _waitHandle = new ManualResetEvent(false);
+        _blocking = true;
+    }
 
-        public AsynchronousOperationBlocker()
+    public bool IsBlockingOperations
+    {
+        get
         {
-            _waitHandle = new ManualResetEvent(false);
-            _lockObj = new object();
-            _blocking = true;
+            lock (_lockObj)
+            {
+                return _blocking;
+            }
         }
 
-        public bool IsBlockingOperations
+        private set
         {
-            get
+            lock (_lockObj)
             {
-                lock (_lockObj)
+                if (_blocking == value)
                 {
-                    return _blocking;
+                    return;
                 }
-            }
 
-            private set
-            {
-                lock (_lockObj)
+                _blocking = value;
+                if (!_disposed)
                 {
-                    if (_blocking == value)
+                    if (_blocking)
                     {
-                        return;
+                        _waitHandle.Reset();
                     }
-
-                    _blocking = value;
-                    if (!_disposed)
+                    else
                     {
-                        if (_blocking)
-                        {
-                            _waitHandle.Reset();
-                        }
-                        else
-                        {
-                            _waitHandle.Set();
-                        }
+                        _waitHandle.Set();
                     }
                 }
             }
         }
+    }
 
-        public void BlockOperations()
+    public void BlockOperations()
+        => this.IsBlockingOperations = true;
+
+    public void UnblockOperations()
+        => this.IsBlockingOperations = false;
+
+    public bool WaitIfBlocked(TimeSpan timeout)
+    {
+        if (_disposed)
         {
-            this.IsBlockingOperations = true;
+            FailFast.Fail("Badness");
         }
 
-        public void UnblockOperations()
-        {
-            this.IsBlockingOperations = false;
-        }
+        return _waitHandle.WaitOne(timeout);
+    }
 
-        public bool WaitIfBlocked(TimeSpan timeout)
+    public void Dispose()
+    {
+        if (!_disposed)
         {
-            if (_disposed)
-            {
-                Environment.FailFast("Badness");
-            }
-
-            return _waitHandle.WaitOne(timeout);
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _disposed = true;
-                _waitHandle.Dispose();
-            }
+            _disposed = true;
+            _waitHandle.Dispose();
         }
     }
 }

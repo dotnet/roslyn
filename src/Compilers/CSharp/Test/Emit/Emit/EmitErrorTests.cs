@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -108,6 +110,8 @@ public class B
     }
 }
 ";
+            // ILVerify null ref
+            // Tracked by https://github.com/dotnet/roslyn/issues/58652
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
@@ -140,6 +144,8 @@ public class B
     }
 }
 ";
+            // ILVerify null ref
+            // Tracked by https://github.com/dotnet/roslyn/issues/58652
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
@@ -177,6 +183,8 @@ public class B
 }
 ";
 
+            // ILVerify null ref
+            // Tracked by https://github.com/dotnet/roslyn/issues/58652
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
@@ -303,9 +311,10 @@ public class A
         }
 
         [Fact, WorkItem(8287, "https://github.com/dotnet/roslyn/issues/8287")]
-        public void ToManyUserStrings()
+        public void TooManyUserStrings()
         {
             var builder = new System.Text.StringBuilder();
+            var expectedOutputBuilder = new System.Text.StringBuilder();
             builder.Append(@"
 public class A
 {
@@ -316,6 +325,8 @@ public class A
             {
                 builder.Append("System.Console.WriteLine(\"");
                 builder.Append((char)('A' + i), 1000000);
+                expectedOutputBuilder.Append((char)('A' + i), 1000000);
+                expectedOutputBuilder.AppendLine();
                 builder.Append("\");");
                 builder.AppendLine();
             }
@@ -325,12 +336,35 @@ public class A
 }
 ");
 
-            var compilation = CreateCompilation(builder.ToString());
+            var source = builder.ToString();
+            var expectedOutput = expectedOutputBuilder.ToString();
 
-            compilation.VerifyEmitDiagnostics(
-    // error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.
-    Diagnostic(ErrorCode.ERR_TooManyUserStrings).WithLocation(1, 1)
-                );
+            Assert.Equal("experimental-data-section-string-literals", Feature.ExperimentalDataSectionStringLiterals);
+            var expectedDiagnostics = new[]
+            {
+                // (15,26): error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.
+                // System.Console.WriteLine("J...J");
+                Diagnostic(ErrorCode.ERR_TooManyUserStrings, '"' + new string('J', 1000000) + '"').WithLocation(15, 26),
+                // (16,26): error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.
+                // System.Console.WriteLine("K...K");
+                Diagnostic(ErrorCode.ERR_TooManyUserStrings, '"' + new string('K', 1000000) + '"').WithLocation(16, 26)
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "1000000"))
+                .VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         #endregion

@@ -1,0 +1,60 @@
+# Test on Windows Desktop using Helix
+parameters:
+- name: helixQueueName
+  type: string
+- name: testRunName
+  type: string
+  default: ''
+- name: jobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
+- name: helixApiAccessToken
+  type: string
+  default: ''
+- name: poolParameters
+  type: object
+
+jobs:
+- job: ${{ parameters.jobName }}
+  pool: ${{ parameters.poolParameters }}
+  timeoutInMinutes: 120
+  steps:
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)'
+
+    - task: BatchScript@1
+      displayName: Rehydrate RunTests
+      inputs:
+        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: PowerShell@2
+      displayName: Run Unit Tests
+      inputs:
+        filePath: eng/build.ps1
+        ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps        
+        ${{ else }}:
+          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}

@@ -2,42 +2,119 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+internal sealed class SignatureChange
 {
-    internal sealed class SignatureChange
+    public readonly ParameterConfiguration OriginalConfiguration;
+    public readonly ParameterConfiguration UpdatedConfiguration;
+
+    private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = [];
+
+    public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
     {
-        public readonly ParameterConfiguration OriginalConfiguration;
-        public readonly ParameterConfiguration UpdatedConfiguration;
+        OriginalConfiguration = originalConfiguration;
+        UpdatedConfiguration = updatedConfiguration;
 
-        private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = new Dictionary<int, int?>();
+        // TODO: Could be better than O(n^2)
+        var originalParameterList = originalConfiguration.ToListOfParameters();
+        var updatedParameterList = updatedConfiguration.ToListOfParameters();
 
-        public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
+        for (var i = 0; i < originalParameterList.Length; i++)
         {
-            OriginalConfiguration = originalConfiguration;
-            UpdatedConfiguration = updatedConfiguration;
-
-            // TODO: Could be better than O(n^2)
-            var originalParameterList = originalConfiguration.ToListOfParameters();
-            var updatedParameterList = updatedConfiguration.ToListOfParameters();
-
-            for (var i = 0; i < originalParameterList.Count; i++)
+            int? index = null;
+            var parameter = originalParameterList[i];
+            if (parameter is ExistingParameter existingParameter)
             {
-                var parameter = originalParameterList[i];
-                var updatedIndex = updatedParameterList.IndexOf(parameter);
-                _originalIndexToUpdatedIndexMap.Add(i, updatedIndex != -1 ? updatedIndex : (int?)null);
+                var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
+                if (updatedIndex >= 0)
+                {
+                    index = updatedIndex;
+                }
+            }
+
+            _originalIndexToUpdatedIndexMap.Add(i, index);
+        }
+    }
+
+    public int? GetUpdatedIndex(int parameterIndex)
+    {
+        if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Length)
+        {
+            return null;
+        }
+
+        return _originalIndexToUpdatedIndexMap[parameterIndex];
+    }
+
+    internal SignatureChange WithoutAddedParameters()
+        => new(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
+
+    internal void LogTelemetry()
+    {
+        var originalListOfParameters = OriginalConfiguration.ToListOfParameters();
+        var updatedListOfParameters = UpdatedConfiguration.ToListOfParameters();
+
+        ChangeSignatureLogger.LogTransformationInformation(
+            numOriginalParameters: originalListOfParameters.Length,
+            numParametersAdded: updatedListOfParameters.Count(p => p is AddedParameter),
+            numParametersRemoved: originalListOfParameters.Count(p => !updatedListOfParameters.Contains(p)),
+            anyParametersReordered: AnyParametersReordered(originalListOfParameters, updatedListOfParameters));
+
+        foreach (var addedParameter in updatedListOfParameters.OfType<AddedParameter>())
+        {
+            if (addedParameter.IsRequired)
+            {
+                ChangeSignatureLogger.LogAddedParameterRequired();
+            }
+
+            if (addedParameter.TypeBinds)
+            {
+                ChangeSignatureLogger.LogAddedParameterTypeBinds();
+            }
+
+            if (addedParameter.CallSiteKind == CallSiteKind.Todo)
+            {
+                ChangeSignatureLogger.LogAddedParameter_ValueTODO();
+            }
+            else if (addedParameter.CallSiteKind == CallSiteKind.Omitted)
+            {
+                ChangeSignatureLogger.LogAddedParameter_ValueOmitted();
+            }
+            else
+            {
+                if (addedParameter.CallSiteKind == CallSiteKind.ValueWithName)
+                {
+                    ChangeSignatureLogger.LogAddedParameter_ValueExplicitNamed();
+                }
+                else
+                {
+                    ChangeSignatureLogger.LogAddedParameter_ValueExplicit();
+                }
+            }
+        }
+    }
+
+    private static bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
+    {
+        var originalListWithoutRemovedOrAdded = originalListOfParameters.WhereAsArray(updatedListOfParameters.Contains);
+        var updatedListWithoutRemovedOrAdded = updatedListOfParameters.WhereAsArray(originalListOfParameters.Contains);
+
+        for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
+        {
+            if (originalListWithoutRemovedOrAdded[i] != updatedListWithoutRemovedOrAdded[i])
+            {
+                return true;
             }
         }
 
-        public int? GetUpdatedIndex(int parameterIndex)
-        {
-            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Count)
-            {
-                return null;
-            }
-
-            return _originalIndexToUpdatedIndexMap[parameterIndex];
-        }
+        return false;
     }
 }

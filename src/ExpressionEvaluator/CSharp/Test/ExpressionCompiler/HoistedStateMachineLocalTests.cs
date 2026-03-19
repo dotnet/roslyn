@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -213,7 +214,7 @@ class C
 }}
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
@@ -258,12 +259,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureNothing()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "1");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
@@ -299,12 +299,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureLocal()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "x");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -354,12 +353,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "u.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -409,12 +407,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureLambdaParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "ch.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
@@ -450,12 +447,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureThis()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "t.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<<M>b__1_0>d.MoveNext");
@@ -505,12 +501,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Instance_CaptureThisAndLocal()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "x + t.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -575,12 +570,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureNothing()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "1");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
@@ -616,12 +610,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureLocal()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "x");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -671,12 +664,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "u.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -726,12 +718,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void AsyncLambda_Static_CaptureLambdaParameter()
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "ch.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
@@ -767,12 +758,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureNothing()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "1");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
@@ -814,12 +804,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureLocal()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "x");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -875,12 +864,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "u.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -936,12 +924,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureLambdaParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "ch.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
@@ -983,12 +970,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureThis()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "t.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<<M>b__1_0>d.MoveNext");
@@ -1044,12 +1030,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Instance_CaptureThisAndLocal()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "x + t.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -1120,12 +1105,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureNothing()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "1");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
@@ -1167,12 +1151,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureLocal()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "x");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -1228,12 +1211,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "u.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
@@ -1289,12 +1271,11 @@ class C
             });
         }
 
-        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         public void GenericAsyncLambda_Static_CaptureLambdaParameter()
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "ch.GetHashCode()");
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
@@ -1336,8 +1317,7 @@ class C
             });
         }
 
-        [WorkItem(1134746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")]
         public void CacheInvalidation()
         {
             var source = @"
@@ -1362,11 +1342,11 @@ class C
             WithRuntimeInstance(compilation0, runtime =>
             {
                 ImmutableArray<MetadataBlock> blocks;
-                Guid moduleVersionId;
+                ModuleId moduleId;
                 ISymUnmanagedReader symReader;
                 int methodToken;
                 int localSignatureToken;
-                GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
 
                 var appDomain = new AppDomain();
                 uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
@@ -1374,7 +1354,7 @@ class C
                     appDomain,
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
@@ -1392,7 +1372,7 @@ class C
                     appDomain,
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
@@ -1409,9 +1389,12 @@ class C
         private static string[] GetLocalNames(EvaluationContext context)
         {
             string unused;
-            var locals = new ArrayBuilder<LocalAndMethod>();
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             context.CompileGetLocals(locals, argumentsOnly: false, typeName: out unused, testData: null);
-            return locals.Select(l => l.LocalName).ToArray();
+            var result = locals.Select(l => l.LocalName).ToArray();
+
+            locals.Free();
+            return result;
         }
     }
 }

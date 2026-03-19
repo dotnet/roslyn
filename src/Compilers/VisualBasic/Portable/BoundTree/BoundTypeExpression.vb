@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundTypeExpression
+    Partial Friend Class BoundTypeExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, Nothing, Nothing, type, hasErrors)

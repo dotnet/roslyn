@@ -1,14 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias DSR;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices.ComTypes;
 using DSR::Microsoft.DiaSymReader;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -48,7 +51,7 @@ namespace Roslyn.Test.Utilities
             // The EE should never be calling ISymUnmanagedReader.GetSymAttribute.  
             // In order to account for EnC updates, it should always be calling 
             // ISymUnmanagedReader3.GetSymAttributeByVersion instead.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public int GetSymAttributeByVersion(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
@@ -241,7 +244,7 @@ namespace Roslyn.Test.Utilities
         {
             _children = children;
             _namespaces = namespaces;
-            _constants = constants ?? new ISymUnmanagedConstant[0];
+            _constants = constants ?? [];
             _startOffset = startOffset;
             _endOffset = endOffset;
         }
@@ -317,10 +320,7 @@ namespace Roslyn.Test.Utilities
         {
             if (name != null)
             {
-                var builder = ArrayBuilder<char>.GetInstance();
-                builder.AddRange(name);
-                builder.AddRange('\0');
-                _nameChars = builder.ToImmutableAndFree();
+                _nameChars = [.. name, '\0'];
             }
         }
 

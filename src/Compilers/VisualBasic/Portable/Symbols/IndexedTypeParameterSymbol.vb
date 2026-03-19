@@ -95,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' These object are unique (per index).
-        Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me Is obj
+        ' These objects are unique (per index).
+        Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Me Is other
         End Function
 
         Public Overrides Function GetHashCode() As Integer
@@ -111,6 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
             Get
                 Return False
             End Get
@@ -131,6 +137,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
                 Return ImmutableArray(Of TypeSymbol).Empty
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return False
             End Get
         End Property
 

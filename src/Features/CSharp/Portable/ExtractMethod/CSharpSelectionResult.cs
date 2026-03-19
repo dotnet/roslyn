@@ -2,219 +2,146 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal abstract partial class CSharpSelectionResult : SelectionResult
+    internal abstract partial class CSharpSelectionResult(
+        SemanticDocument document,
+        SelectionType selectionType,
+        TextSpan finalSpan)
+        : SelectionResult(
+            document, selectionType, finalSpan)
     {
         public static async Task<CSharpSelectionResult> CreateAsync(
-            OperationStatus status,
-            TextSpan originalSpan,
-            TextSpan finalSpan,
-            OptionSet options,
-            bool selectionInExpression,
             SemanticDocument document,
-            SyntaxToken firstToken,
-            SyntaxToken lastToken,
+            FinalSelectionInfo selectionInfo,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(status);
             Contract.ThrowIfNull(document);
 
-            var firstTokenAnnotation = new SyntaxAnnotation();
-            var lastTokenAnnotation = new SyntaxAnnotation();
-
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(root.AddAnnotations(
-                    new[]
-                    {
-                        Tuple.Create<SyntaxToken, SyntaxAnnotation>(firstToken, firstTokenAnnotation),
-                        Tuple.Create<SyntaxToken, SyntaxAnnotation>(lastToken, lastTokenAnnotation)
-                    })), cancellationToken).ConfigureAwait(false);
+            var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
+                root,
+                [
+                    (selectionInfo.FirstTokenInFinalSpan, s_firstTokenAnnotation),
+                    (selectionInfo.LastTokenInFinalSpan, s_lastTokenAnnotation)
+                ])), cancellationToken).ConfigureAwait(false);
 
-            if (selectionInExpression)
-            {
-                return new ExpressionResult(
-                    status, originalSpan, finalSpan, options, selectionInExpression,
-                    newDocument, firstTokenAnnotation, lastTokenAnnotation);
-            }
-            else
-            {
-                return new StatementResult(
-                    status, originalSpan, finalSpan, options, selectionInExpression,
-                    newDocument, firstTokenAnnotation, lastTokenAnnotation);
-            }
+            var selectionType = selectionInfo.GetSelectionType();
+            var finalSpan = selectionInfo.FinalSpan;
+
+            return selectionType == SelectionType.Expression
+                ? new ExpressionResult(newDocument, selectionType, finalSpan)
+                : new StatementResult(newDocument, selectionType, finalSpan);
         }
 
-        protected CSharpSelectionResult(
-            OperationStatus status,
-            TextSpan originalSpan,
-            TextSpan finalSpan,
-            OptionSet options,
-            bool selectionInExpression,
-            SemanticDocument document,
-            SyntaxAnnotation firstTokenAnnotation,
-            SyntaxAnnotation lastTokenAnnotation)
-            : base(status, originalSpan, finalSpan, options, selectionInExpression,
-                   document, firstTokenAnnotation, lastTokenAnnotation)
+        protected override OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken)
         {
+            // Nothing language specific for C#.
+            return OperationStatus.SucceededStatus;
         }
 
-        protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
+        protected override SyntaxNode GetNodeForDataFlowAnalysis()
         {
-            var current = token.Parent;
-            for (; current != null; current = current.Parent)
-            {
-                if (current is MemberDeclarationSyntax ||
-                    current is SimpleLambdaExpressionSyntax ||
-                    current is ParenthesizedLambdaExpressionSyntax ||
-                    current is AnonymousMethodExpressionSyntax ||
-                    current is LocalFunctionStatementSyntax)
-                {
-                    break;
-                }
-            }
+            var node = base.GetNodeForDataFlowAnalysis();
 
-            if (current == null || current is MemberDeclarationSyntax)
-            {
-                return false;
-            }
-
-            // make sure the selection contains the lambda
-            return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
-                   current.GetLastToken().Span.End <= lastToken.Span.End;
+            // If we're returning a value by ref we actually want to do the analysis on the underlying expression.
+            return node is RefExpressionSyntax refExpression
+                ? refExpression.Expression
+                : node;
         }
 
-        public StatementSyntax GetFirstStatement()
+        public override StatementSyntax GetFirstStatementUnderContainer()
         {
-            return GetFirstStatement<StatementSyntax>();
-        }
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
-        public StatementSyntax GetLastStatement()
-        {
-            return GetLastStatement<StatementSyntax>();
-        }
-
-        public StatementSyntax GetFirstStatementUnderContainer()
-        {
-            Contract.ThrowIfTrue(this.SelectionInExpression);
-
-            var firstToken = this.GetFirstTokenInSelection();
+            var firstToken = GetFirstTokenInSelection();
             var statement = firstToken.Parent.GetStatementUnderContainer();
             Contract.ThrowIfNull(statement);
 
             return statement;
         }
 
-        public StatementSyntax GetLastStatementUnderContainer()
+        public override StatementSyntax GetLastStatementUnderContainer()
         {
-            Contract.ThrowIfTrue(this.SelectionInExpression);
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
-            var lastToken = this.GetLastTokenInSelection();
+            var lastToken = GetLastTokenInSelection();
             var statement = lastToken.Parent.GetStatementUnderContainer();
-
-            Contract.ThrowIfNull(statement);
-            var firstStatementUnderContainer = this.GetFirstStatementUnderContainer();
-            Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent);
 
             return statement;
         }
 
         public SyntaxNode GetInnermostStatementContainer()
         {
-            Contract.ThrowIfFalse(this.SelectionInExpression);
-            var containingScope = this.GetContainingScope();
+            Contract.ThrowIfFalse(IsExtractMethodOnExpression);
+            var containingScope = GetContainingScope();
             var statements = containingScope.GetAncestorsOrThis<StatementSyntax>();
             StatementSyntax last = null;
 
             foreach (var statement in statements)
             {
                 if (statement.IsStatementContainerNode())
-                {
                     return statement;
-                }
 
                 last = statement;
             }
 
             // expression bodied member case
-            var expressionBodiedMember = this.GetContainingScopeOf<ArrowExpressionClauseSyntax>();
+            var expressionBodiedMember = GetContainingScopeOf<ArrowExpressionClauseSyntax>();
             if (expressionBodiedMember != null)
             {
                 // the class/struct declaration is the innermost statement container, since the 
                 // member does not have a block body
-                return this.GetContainingScopeOf<TypeDeclarationSyntax>();
+                return GetContainingScopeOf<TypeDeclarationSyntax>();
             }
 
             // constructor initializer case
-            var constructorInitializer = this.GetContainingScopeOf<ConstructorInitializerSyntax>();
+            var constructorInitializer = GetContainingScopeOf<ConstructorInitializerSyntax>();
             if (constructorInitializer != null)
-            {
                 return constructorInitializer.Parent;
-            }
 
             // field initializer case
-            var field = this.GetContainingScopeOf<FieldDeclarationSyntax>();
+            var field = GetContainingScopeOf<FieldDeclarationSyntax>();
             if (field != null)
-            {
                 return field.Parent;
-            }
+
+            var primaryConstructorBaseType = GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>();
+            if (primaryConstructorBaseType != null)
+                return primaryConstructorBaseType.Parent;
 
             Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement));
             Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit));
             return last.Parent.Parent;
         }
 
-        public bool ShouldPutUnsafeModifier()
+        public override bool ContainsUnsupportedExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
+            => exitPoints.Any(n => n is not (BreakStatementSyntax or ContinueStatementSyntax or ReturnStatementSyntax));
+
+        public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> exitPoints)
+            => exitPoints.OfType<ReturnStatementSyntax>().ToImmutableArray().CastArray<StatementSyntax>();
+
+        public override bool IsFinalSpanSemanticallyValidSpan(
+            ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
         {
-            var token = this.GetFirstTokenInSelection();
-            var ancestors = token.GetAncestors<SyntaxNode>();
-
-            // if enclosing type contains unsafe keyword, we don't need to put it again
-            if (ancestors.Where(a => SyntaxFacts.IsTypeDeclaration(a.Kind()))
-                         .Cast<MemberDeclarationSyntax>()
-                         .Any(m => m.GetModifiers().Any(SyntaxKind.UnsafeKeyword)))
-            {
-                return false;
-            }
-
-            return token.Parent.IsUnsafeContext();
-        }
-
-        public SyntaxKind UnderCheckedExpressionContext()
-        {
-            return UnderCheckedContext<CheckedExpressionSyntax>();
-        }
-
-        public SyntaxKind UnderCheckedStatementContext()
-        {
-            return UnderCheckedContext<CheckedStatementSyntax>();
-        }
-
-        private SyntaxKind UnderCheckedContext<T>() where T : SyntaxNode
-        {
-            var token = this.GetFirstTokenInSelection();
-            var contextNode = token.Parent.GetAncestor<T>();
-            if (contextNode == null)
-            {
-                return SyntaxKind.None;
-            }
-
-            return contextNode.Kind();
+            // Once we've gotten this far, everything is valid for us to return.  Only VB has special additional logic
+            // it needs to apply at this point.
+            return true;
         }
     }
 }

@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns a hash code for the current object.
         ''' </summary>
         Public Overrides Function GetHashCode() As Integer
-            Return If(Me.Locations.Length > 0, Me.Locations(0).GetHashCode(), Me.Name.GetHashCode())
+            Return If(Me.Locations.Length > 0, Me.GetFirstLocation().GetHashCode(), Me.Name.GetHashCode())
         End Function
 
         Friend Overrides Function Accept(Of TArg, TResult)(visitor As VisualBasicSymbolVisitor(Of TArg, TResult), a As TArg) As TResult
@@ -263,6 +263,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitAlias(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitAlias(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

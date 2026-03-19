@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal struct SyntaxListBuilder<TNode> where TNode : SyntaxNode
+    internal readonly struct SyntaxListBuilder<TNode> where TNode : SyntaxNode
     {
         private readonly SyntaxListBuilder? _builder;
 
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public SyntaxList<TNode> ToList()
         {
-            return _builder.ToList();
+            return (SyntaxList<TNode>)_builder.ToList();
         }
 
         public static implicit operator SyntaxListBuilder?(SyntaxListBuilder<TNode> builder)

@@ -2,13 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
+    <Trait(Traits.Feature, Traits.Features.Expansion)>
     Public Class ModuleNameExpansionTests
         Inherits AbstractExpansionTest
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestExpandModuleNameForSimpleName() As Task
             Dim input =
 <Workspace>
@@ -53,7 +52,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestExpandModuleNameForQualifiedNameWithMissingModuleName() As Task
             Dim input =
 <Workspace>
@@ -98,7 +97,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestExpandModuleNameForMemberAccessWithMissingModuleName() As Task
             Dim input =
 <Workspace>
@@ -143,7 +142,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestExpandAndOmitModuleNameWhenConflicting() As Task
             Dim input =
                 <Workspace>
@@ -185,7 +184,7 @@ End Namespace
             Await TestAsync(input, expected, useLastProject:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestExpandModuleNameForSimpleNameRoundtrip() As Task
             Dim input =
 <Workspace>
@@ -230,7 +229,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestExpandModuleNameForQualifiedNameWithMissingModuleNameRoundtrip() As Task
             Dim input =
 <Workspace>

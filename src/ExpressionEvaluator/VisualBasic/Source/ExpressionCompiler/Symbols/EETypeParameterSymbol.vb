@@ -4,11 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class EETypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         Private ReadOnly _container As Symbol
         Private ReadOnly _sourceTypeParameterSymbol As TypeParameterSymbol
@@ -64,6 +63,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return _sourceTypeParameterSymbol.AllowsRefLikeType
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Throw ExceptionUtilities.Unreachable
@@ -110,6 +115,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim substitution = _getTypeParameterMap()
                 Debug.Assert(substitution IsNot Nothing, "Expected substitution to have been populated.")
                 Return InternalSubstituteTypeParametersDistinct(substitution, constraintTypes)
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return _sourceTypeParameterSymbol.HasUnmanagedTypeConstraint
             End Get
         End Property
     End Class

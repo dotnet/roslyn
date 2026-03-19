@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -360,7 +364,6 @@ Diagnostic(ErrorCode.ERR_AmbigUDConv, "default(N?)").WithArguments("N.implicit o
 Diagnostic(ErrorCode.ERR_AmbigUDConv, "default(P?)").WithArguments("P.implicit operator G(P)", "P.implicit operator G(P?)", "P?", "G?")
                 );
 
-
             // More cases where the specification indicates that a conversion should be legal,
             // but the native compiler disallows it. Roslyn follows the native compiler in these cases.
 
@@ -663,7 +666,6 @@ class Z
 }
 ";
 
-
             var comp = CreateCompilation(source1 + source3);
             comp.VerifyDiagnostics();
 
@@ -776,7 +778,8 @@ class F : E
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39959")]
+        [WorkItem(39959, "https://github.com/dotnet/roslyn/issues/39959")]
         public void TestIntPtrUserDefinedConversions()
         {
             // IntPtr and UIntPtr violate the rules of user-defined conversions for 
@@ -1147,6 +1150,7 @@ unsafe class P
             // All of the cases above should pass semantic analysis:
             var comp = CreateCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
             // lifted operators, nullable conversions and unsafe code so only generate code for
@@ -1278,7 +1282,6 @@ class D<T> : C<T>
         return null;
     }
 }";
-
 
             var verifier = CompileAndVerify(source, expectedOutput: "23");
         }
@@ -1534,7 +1537,7 @@ class InArgument<T>
     public static implicit operator InArgument<T>(T t) { return default(InArgument<T>); }
 }
 
-public struct start
+public struct @start
 {
     static public void Main()
     {
@@ -1642,6 +1645,680 @@ class C<T>
                 // (9,16): error CS0030: Cannot convert type 'void' to 'C<object>'
                 //         return (C<object>) M1();
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>) M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument01()
+        {
+            var code = @"
+int? i = null;
+C c = i;
+
+class C
+{
+    public static implicit operator C(long l) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Nullable<T> where T : struct {}
+    public ref struct Int64 {}
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            comp.VerifyDiagnostics(
+                // (3,7): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
+                // C c = i;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("int?", "C").WithLocation(3, 7)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument02()
+        {
+            var code = @"
+C c = null;
+M(c);
+
+void M(long? i) => throw null;
+
+class C
+{
+    public static implicit operator int(C c) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public ref struct Int32 {}
+    public struct Nullable<T> where T : struct { public Nullable(T value) {} }
+    public struct Int64 {}
+    public struct Boolean { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+
+            // Note that no int? is being created.
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       ""int C.op_Implicit(C)""
+  IL_0006:  conv.i8
+  IL_0007:  newobj     ""long?..ctor(long)""
+  IL_000c:  call       ""void Program.<<Main>$>g__M|0_0(long?)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument03()
+        {
+            var code = @"
+int? i = null;
+C c = (C)i;
+
+class C
+{
+    public static explicit operator C(long l) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Nullable<T> where T : struct { public T Value { get => throw null; } }
+    public ref struct Int64 {}
+    public struct Boolean { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int? V_0) //i
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""int int?.Value.get""
+  IL_000f:  conv.i8
+  IL_0010:  call       ""C C.op_Explicit(long)""
+  IL_0015:  pop
+  IL_0016:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument04()
+        {
+            var code = @"
+C c = null;
+M((long?)c);
+
+void M(long? i) => throw null;
+
+class C
+{
+    public static explicit operator int(C c) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public ref struct Int32 {}
+    public struct Nullable<T> where T : struct { public Nullable(T value) {} }
+    public struct Int64 {}
+    public struct Boolean { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+
+            // Note that no int? is being created.
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       ""int C.op_Explicit(C)""
+  IL_0006:  conv.i8
+  IL_0007:  newobj     ""long?..ctor(long)""
+  IL_000c:  call       ""void Program.<<Main>$>g__M|0_0(long?)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument05()
+        {
+            var code = @"
+unsafe
+{
+    S? s = null;
+    void* f = s;
+    System.Console.WriteLine((int)f);
+}
+
+public struct S
+{
+    public static unsafe implicit operator void*(S v) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  1
+  .locals init (S? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S?""
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""bool S?.HasValue.get""
+  IL_0011:  brtrue.s   IL_0017
+  IL_0013:  ldc.i4.0
+  IL_0014:  conv.u
+  IL_0015:  br.s       IL_0023
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""S S?.GetValueOrDefault()""
+  IL_001e:  call       ""void* S.op_Implicit(S)""
+  IL_0023:  conv.i4
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument06()
+        {
+            var code = @"
+unsafe
+{
+    S? s = null;
+    void* f = (void*)s;
+    System.Console.WriteLine((int)f);
+}
+
+public struct S
+{
+    public static unsafe explicit operator void*(S v) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  1
+  .locals init (S? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S?""
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""bool S?.HasValue.get""
+  IL_0011:  brtrue.s   IL_0017
+  IL_0013:  ldc.i4.0
+  IL_0014:  conv.u
+  IL_0015:  br.s       IL_0023
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""S S?.GetValueOrDefault()""
+  IL_001e:  call       ""void* S.op_Explicit(S)""
+  IL_0023:  conv.i4
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ImplicitObjectCreation_Ambiguous()
+        {
+            var source = """
+                C c = ("a", new());
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", new());
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", new())").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ImplicitObjectCreation_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", new());
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair)
+                    {
+                        Console.WriteLine("int");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "int");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_DefaultLiteral_Ambiguous()
+        {
+            var source = """
+                C c = ("a", default);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", default);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", default)").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_NullLiteral_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", null);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair)
+                    {
+                        Console.WriteLine("string");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "string");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_NullLiteral_NoConversion()
+        {
+            var source = """
+                C c = ("a", null);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", null);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", null)").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_SwitchExpression_Ambiguous()
+        {
+            var source = """
+                C c = ("a", "b" switch { _ => default });
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", "b" switch { _ => default });
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", ""b"" switch { _ => default })").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_SwitchExpression_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", "b" switch { _ => null });
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair)
+                    {
+                        Console.WriteLine("string");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "string");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_SwitchExpression_NoConversion()
+        {
+            var source = """
+                C c = ("a", "b" switch { _ => null });
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", "b" switch { _ => null });
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", ""b"" switch { _ => null })").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_CollectionExpression_Ambiguous()
+        {
+            var source = """
+                C c = ("a", [default]);
+
+                class C
+                {
+                    public static implicit operator C((string, int[]) pair) => new C();
+                    public static implicit operator C((string, string[]) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", [default]);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", [default])").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_CollectionExpression_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                C c = ("a", [null]);
+
+                class C
+                {
+                    public static implicit operator C((string, int[]) pair) => new C();
+                    public static implicit operator C((string, string[]) pair)
+                    {
+                        Console.WriteLine("string[]");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "string[]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_CollectionExpression_NoConversion()
+        {
+            var source = """
+                C c = ("a", [null]);
+
+                class C
+                {
+                    public static implicit operator C((string, int[]) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", [null]);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", [null])").WithArguments("2", "C").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ConditionalExpression_Ambiguous()
+        {
+            var source = """
+                bool b = true;
+                C c = ("a", b ? default : throw null!);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", b ? default : throw null!);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", b ? default : throw null!)").WithArguments("2", "C").WithLocation(2, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ConditionalExpression_NotAmbiguous()
+        {
+            var source = """
+                using System;
+
+                bool b = true;
+                C c = ("a", b ? null : throw null!);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                    public static implicit operator C((string, string) pair)
+                    {
+                        Console.WriteLine("string");
+                        return new C();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "string");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Tuple_UserDefinedConversion_ConditionalExpression_NoConversion()
+        {
+            var source = """
+                bool b = true;
+                C c = ("a", b ? null : throw null!);
+
+                class C
+                {
+                    public static implicit operator C((string, int) pair) => new C();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS8135: Tuple with 2 elements cannot be converted to type 'C'.
+                // C c = ("a", b ? null : throw null!);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""a"", b ? null : throw null!)").WithArguments("2", "C").WithLocation(2, 7));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2088611")]
+        public void Repro_VsFeedback_2088611()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                public struct SpecialStruct
+                {
+                    public readonly string Value;
+                    public readonly bool Flag;
+                    public readonly Dictionary<string, string> Map;
+
+                    public SpecialStruct(string value)
+                    {
+                        this.Value = value;
+                    }
+                    public SpecialStruct(string value, bool flag)
+                    {
+                        this.Value = value;
+                        this.Flag = flag;
+                    }
+                    public SpecialStruct(string value, Dictionary<string, string> map)
+                    {
+                        Value = value;
+                        Map = map;
+                    }
+
+                    public static implicit operator SpecialStruct(string s) => new(s);
+                    public static implicit operator SpecialStruct((string, Dictionary<string, string>) tuple) => new(tuple.Item1, tuple.Item2);
+                    public static implicit operator SpecialStruct((string, bool) tuple) => new(tuple.Item1, tuple.Item2);
+                }
+
+                public class Class1
+                {
+                    Dictionary<string, SpecialStruct> specialMap = new()
+                        {
+                            { "key1", "value1" },
+                            { "key2", ("value2", true) },
+                            { "key3", ("value3", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                                {
+                                    { "subkey", "subvalue" },
+                                })
+                            },
+                        };
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (35,23): error CS8135: Tuple with 2 elements cannot be converted to type 'SpecialStruct'.
+                //             { "key3", ("value3", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, @"(""value3"", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                {
+                    { ""subkey"", ""subvalue"" },
+                })").WithArguments("2", "SpecialStruct").WithLocation(35, 23),
+                // (35,34): error CS8754: There is no target type for 'new(System.StringComparer)'
+                //             { "key3", ("value3", new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, @"new /*specific type is omitted*/ (StringComparer.OrdinalIgnoreCase)
+                {
+                    { ""subkey"", ""subvalue"" },
+                }").WithArguments("new(System.StringComparer)").WithLocation(35, 34));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81984")]
+        public void TestAmbiguousUserDefinedConversion_DuplicateErrorMessage()
+        {
+            var source = """
+                public struct S1
+                {
+                    public static implicit operator S1(S2 x) => throw null;
+                }
+
+                public struct S2
+                {
+                    public static implicit operator S1(S2 x) => throw null;
+                }
+
+                class Program
+                {
+                    static S1 Test(S2 x)
+                    {
+                        return x;
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (15,16): error CS0457: Ambiguous user defined conversions 'S2.implicit operator S1(S2)' and 'S1.implicit operator S1(S2)' when converting from 'S2' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "x").WithArguments("S2.implicit operator S1(S2)", "S1.implicit operator S1(S2)", "S2", "S1").WithLocation(15, 16)
+                );
         }
     }
 }

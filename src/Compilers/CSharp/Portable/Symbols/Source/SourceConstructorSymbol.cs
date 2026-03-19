@@ -2,51 +2,64 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceConstructorSymbol : SourceMemberMethodSymbol
+    internal sealed class SourceConstructorSymbol : SourceConstructorSymbolBase
     {
-        private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeWithAnnotations _lazyReturnType;
-        private bool _lazyIsVararg;
-        private readonly bool _isExpressionBodied;
+        private SourceConstructorSymbol? _otherPartOfPartial;
 
+#nullable disable
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConstructorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics)
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics)
         {
             var methodKind = syntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? MethodKind.StaticConstructor : MethodKind.Constructor;
-            return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, diagnostics);
+            return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceConstructorSymbol(
-            SourceMemberContainerTypeSymbol containingType,
-            Location location,
-            ConstructorDeclarationSyntax syntax,
-            MethodKind methodKind,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), ImmutableArray.Create(location))
+             SourceMemberContainerTypeSymbol containingType,
+             Location location,
+             ConstructorDeclarationSyntax syntax,
+             MethodKind methodKind,
+             bool isNullableAnalysisEnabled,
+             BindingDiagnosticBag diagnostics) :
+             base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax),
+                  MakeModifiersAndFlags(
+                      containingType, syntax, methodKind, isNullableAnalysisEnabled, syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer, location, diagnostics, out bool modifierErrors, out bool report_ERR_StaticConstructorWithAccessModifiers))
         {
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || _isExpressionBodied;
+            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
 
-            bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
+            if (report_ERR_StaticConstructorWithAccessModifiers)
+            {
+                diagnostics.Add(ErrorCode.ERR_StaticConstructorWithAccessModifiers, location, this);
+            }
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
-                // This is probably a method declaration with the type missing.
-                diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+                if (syntax.Identifier.Text == "extension")
+                {
+                    bool reported = !MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
+                    Debug.Assert(reported);
+                }
+                else
+                {
+                    // This is probably a method declaration with the type missing.
+                    diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+                }
             }
+
+            bool hasAnyBody = syntax.HasAnyBody();
 
             if (IsExtern)
             {
@@ -55,87 +68,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ExternHasConstructorInitializer, location, this);
                 }
 
-                if (hasBody)
+                if (hasAnyBody)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
                 }
             }
 
-            if (methodKind == MethodKind.StaticConstructor)
+            if (IsPartialDefinition && syntax.Initializer is { } initializer)
             {
-                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
+                diagnostics.Add(ErrorCode.ERR_PartialConstructorInitializer, initializer, this);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
+            if (methodKind == MethodKind.StaticConstructor)
             {
-                diagnostics.Add(info, location);
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
             }
+
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(methodKind, hasBody, location, diagnostics);
+                this.CheckModifiers(methodKind, hasAnyBody, location, diagnostics);
             }
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(
+            NamedTypeSymbol containingType,
+            ConstructorDeclarationSyntax syntax,
+            MethodKind methodKind,
+            bool isNullableAnalysisEnabled,
+            bool hasThisInitializer,
+            Location location,
+            BindingDiagnosticBag diagnostics,
+            out bool modifierErrors,
+            out bool report_ERR_StaticConstructorWithAccessModifiers)
         {
-            var syntax = GetSyntax();
-            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
-            ParameterListSyntax parameterList = syntax.ParameterList;
+            bool hasAnyBody = syntax.HasAnyBody();
+            DeclarationModifiers declarationModifiers = MakeModifiers(containingType, syntax, methodKind, hasAnyBody, location, diagnostics, out modifierErrors, out bool hasExplicitAccessModifier, out report_ERR_StaticConstructorWithAccessModifiers);
+            Flags flags = new Flags(
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true, hasAnyBody: hasAnyBody,
+                isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false, isVararg: syntax.IsVarArg(),
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false,
+                hasThisInitializer: hasThisInitializer, hasExplicitAccessModifier: hasExplicitAccessModifier);
 
-            // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
-            // we might still be constructing the member list of the containing type.  However, getting the binder
-            // for the parameters should be safe.
-            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
-
-            // Constraint checking for parameter and return types must be delayed until
-            // the method has been added to the containing type member list since
-            // evaluating the constraints may depend on accessing this method from
-            // the container (comparing this method to others to find overrides for
-            // instance). Constraints are checked in AfterAddingTypeMembersChecks.
-            var signatureBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
-
-            SyntaxToken arglistToken;
-            _lazyParameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, parameterList, out arglistToken,
-                allowRefOrOut: true,
-                allowThis: false,
-                addRefReadOnlyModifier: false,
-                diagnostics: diagnostics);
-
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
-
-            var location = this.Locations[0];
-            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0))
-            {
-                diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
-            }
-
-            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
-
-            if (_lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
-            }
-        }
-
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
-        {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-            var compilation = DeclaringCompilation;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
-
-            foreach (var parameter in this.Parameters)
-            {
-                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.Locations[0], diagnostics);
-            }
+            return (declarationModifiers, flags);
         }
 
         internal ConstructorDeclarationSyntax GetSyntax()
@@ -144,94 +123,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (ConstructorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        public override bool IsVararg
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyIsVararg;
-            }
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
-        public override bool IsImplicitlyDeclared
+        protected override ParameterListSyntax GetParameterList()
         {
-            get
-            {
-                return base.IsImplicitlyDeclared;
-            }
+            return GetSyntax().ParameterList;
         }
 
-        internal override int ParameterCount
+        protected override CSharpSyntaxNode GetInitializer()
         {
-            get
-            {
-                if (!_lazyParameters.IsDefault)
-                {
-                    return _lazyParameters.Length;
-                }
-
-                return GetSyntax().ParameterList.ParameterCount;
-            }
+            return GetSyntax().Initializer;
         }
 
-        public override ImmutableArray<ParameterSymbol> Parameters
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyParameters;
-            }
-        }
-
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get { return ImmutableArray<TypeParameterSymbol>.Empty; }
-        }
-
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
-
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
-
-        public override TypeWithAnnotations ReturnTypeWithAnnotations
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyReturnType;
-            }
-        }
-
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private static DeclarationModifiers MakeModifiers(
+            NamedTypeSymbol containingType, ConstructorDeclarationSyntax syntax, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics,
+            out bool modifierErrors, out bool hasExplicitAccessModifier, out bool report_ERR_StaticConstructorWithAccessModifiers)
         {
             var defaultAccess = (methodKind == MethodKind.StaticConstructor) ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            const DeclarationModifiers allowedModifiers =
+            DeclarationModifiers allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            if (methodKind == MethodKind.Constructor)
+            {
+                allowedModifiers |= DeclarationModifiers.Partial;
+            }
 
-            this.CheckUnsafeModifier(mods, diagnostics);
+            bool isInterface = containingType.IsInterface;
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface, syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessModifier);
 
+            report_ERR_StaticConstructorWithAccessModifiers = false;
             if (methodKind == MethodKind.StaticConstructor)
             {
-                if ((mods & DeclarationModifiers.AccessibilityMask) != 0)
+                // Don't report ERR_StaticConstructorWithAccessModifiers if the ctor symbol name doesn't match the containing type name.
+                // This avoids extra unnecessary errors.
+                // There will already be a diagnostic saying Method must have a return type.
+                if ((mods & DeclarationModifiers.AccessibilityMask) != 0 &&
+                    containingType.Name == syntax.Identifier.ValueText)
                 {
-                    diagnostics.Add(ErrorCode.ERR_StaticConstructorWithAccessModifiers, location, this);
                     mods = mods & ~DeclarationModifiers.AccessibilityMask;
+                    report_ERR_StaticConstructorWithAccessModifiers = true;
                     modifierErrors = true;
                 }
 
                 mods |= DeclarationModifiers.Private; // we mark static constructors private in the symbol table
 
-                if (this.ContainingType.IsInterface)
+                if (isInterface)
                 {
                     ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                                 DeclarationModifiers.Extern,
@@ -242,9 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private void CheckModifiers(MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics)
+        private void CheckModifiers(MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
-            if (!hasBody && !IsExtern)
+            if (!hasBody && !IsExtern && !IsPartial)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -256,101 +200,172 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, location);
             }
+            else if (IsPartial && !ContainingType.IsPartial())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberOnlyInPartialClass, location);
+            }
         }
 
-        public override string Name
-        {
-            get { return this.IsStatic ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName; }
-        }
-
+#nullable enable
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            return OneOrMany.Create(((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
+            // Attributes on partial constructors are owned by the definition part.
+            // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead.
+            Debug.Assert(PartialDefinitionPart is null);
+
+            if (SourcePartialImplementationPart is { } implementationPart)
+            {
+                return OneOrMany.Create(
+                    this.AttributeDeclarationSyntaxList,
+                    implementationPart.AttributeDeclarationSyntaxList);
+            }
+
+            return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
         }
 
-        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
-        {
-            // constructors can't have return type attributes
-            return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
-        }
-
-        protected override IAttributeTargetSymbol AttributeOwner
+        private SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
         {
             get
             {
-                return base.AttributeOwner;
+                if (this.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
+                {
+                    return this.GetSyntax().AttributeLists;
+                }
+
+                return default;
             }
         }
 
-        internal override bool IsExpressionBodied
+        protected override SourceMemberMethodSymbol? BoundAttributesSource => SourcePartialDefinitionPart;
+#nullable disable
+
+        internal override bool IsNullableAnalysisEnabled()
+            => flags.HasThisInitializer
+                ? flags.IsNullableAnalysisEnabled
+                : ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
+
+        protected override bool AllowRefOrOut
         {
             get
             {
-                return _isExpressionBodied;
+                return true;
             }
         }
 
-        internal override bool GenerateDebugInfo
+        protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {
-            get { return true; }
-        }
-
-        internal override int CalculateLocalSyntaxOffset(int position, SyntaxTree tree)
-        {
-            Debug.Assert(position >= 0 && tree != null);
-
-            TextSpan span;
-
-            // local/lambda/closure defined within the body of the constructor:
             ConstructorDeclarationSyntax ctorSyntax = GetSyntax();
-            if (tree == ctorSyntax.SyntaxTree)
+            if (ctorSyntax.Body?.Span.Contains(position) == true)
             {
-                if (ctorSyntax.Body?.Span.Contains(position) == true)
+                offset = position - ctorSyntax.Body.Span.Start;
+                return true;
+            }
+            else if (ctorSyntax.ExpressionBody?.Span.Contains(position) == true)
+            {
+                offset = position - ctorSyntax.ExpressionBody.Span.Start;
+                return true;
+            }
+
+            offset = -1;
+            return false;
+        }
+
+#nullable enable
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
+        {
+            SourcePartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
+            base.ForceComplete(locationOpt, filter, cancellationToken);
+        }
+
+        protected override void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
+        {
+            if (SourcePartialImplementationPart is { } implementation)
+            {
+                PartialConstructorChecks(implementation, diagnostics);
+            }
+        }
+
+        private void PartialConstructorChecks(SourceConstructorSymbol implementation, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.IsPartialDefinition);
+            Debug.Assert(!ReferenceEquals(this, implementation));
+            Debug.Assert(ReferenceEquals(this.OtherPartOfPartial, implementation));
+
+            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
+            }
+            else if (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation)
+                || !Parameters.SequenceEqual(implementation.Parameters, static (a, b) => a.Name == b.Name))
+            {
+                diagnostics.Add(ErrorCode.WRN_PartialMemberSignatureDifference, implementation.GetFirstLocation(),
+                    new FormattedSymbol(this, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                    new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+
+            if (IsUnsafe != implementation.IsUnsafe && this.CompilationAllowsUnsafe())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (this.IsParams() != implementation.IsParams())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberParamsDifference, implementation.GetFirstLocation());
+            }
+
+            if (DeclaredAccessibility != implementation.DeclaredAccessibility
+                || HasExplicitAccessModifier != implementation.HasExplicitAccessModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementation.GetFirstLocation());
+            }
+
+            Debug.Assert(this.ParameterCount == implementation.ParameterCount);
+            for (var i = 0; i < this.ParameterCount; i++)
+            {
+                // An error is only reported for a modifier difference here, regardless of whether the difference is safe or not.
+                // Presence of UnscopedRefAttribute is also not considered when checking partial signatures, because when the attribute is used, it will affect both parts the same way.
+                var definitionParameter = (SourceParameterSymbol)this.Parameters[i];
+                var implementationParameter = (SourceParameterSymbol)implementation.Parameters[i];
+                if (definitionParameter.DeclaredScope != implementationParameter.DeclaredScope)
                 {
-                    return position - ctorSyntax.Body.Span.Start;
-                }
-                else if (ctorSyntax.ExpressionBody?.Span.Contains(position) == true)
-                {
-                    return position - ctorSyntax.ExpressionBody.Span.Start;
+                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementation.GetFirstLocation(), new FormattedSymbol(implementation.Parameters[i], SymbolDisplayFormat.ShortFormat));
                 }
             }
+        }
 
-            // closure in ctor initializer lifting its parameter(s) spans the constructor declaration:
-            if (position == ctorSyntax.SpanStart)
-            {
-                // Use a constant that is distinct from any other syntax offset.
-                // -1 works since a field initializer and a constructor declaration header can't squeeze into a single character.
-                return -1;
-            }
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;
 
-            // lambdas in ctor initializer:
-            int ctorInitializerLength;
-            var ctorInitializer = ctorSyntax.Initializer;
-            if (tree == ctorInitializer?.SyntaxTree)
-            {
-                span = ctorInitializer.Span;
-                ctorInitializerLength = span.Length;
+        private bool HasAnyBody => flags.HasAnyBody;
 
-                if (span.Contains(position))
-                {
-                    return -ctorInitializerLength + (position - span.Start);
-                }
-            }
-            else
-            {
-                ctorInitializerLength = 0;
-            }
+        private bool HasExplicitAccessModifier => flags.HasExplicitAccessModifier;
 
-            // lambdas in field/property initializers:
-            int syntaxOffset;
-            var containingType = (SourceNamedTypeSymbol)this.ContainingType;
-            if (containingType.TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, this.IsStatic, ctorInitializerLength, out syntaxOffset))
-            {
-                return syntaxOffset;
-            }
+        internal bool IsPartialDefinition => IsPartial && !HasAnyBody && !HasExternModifier;
 
-            // we haven't found the constructor part that declares the variable:
-            throw ExceptionUtilities.Unreachable;
+        internal bool IsPartialImplementation => IsPartial && (HasAnyBody || HasExternModifier);
+
+        internal SourceConstructorSymbol? OtherPartOfPartial => _otherPartOfPartial;
+
+        internal SourceConstructorSymbol? SourcePartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
+
+        internal SourceConstructorSymbol? SourcePartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
+
+        public sealed override MethodSymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
+
+        public sealed override MethodSymbol? PartialImplementationPart => SourcePartialImplementationPart;
+
+        internal static void InitializePartialConstructorParts(SourceConstructorSymbol definition, SourceConstructorSymbol implementation)
+        {
+            Debug.Assert(definition.IsPartialDefinition);
+            Debug.Assert(implementation.IsPartialImplementation);
+
+            Debug.Assert(definition._otherPartOfPartial is not { } alreadySetImplPart || ReferenceEquals(alreadySetImplPart, implementation));
+            Debug.Assert(implementation._otherPartOfPartial is not { } alreadySetDefPart || ReferenceEquals(alreadySetDefPart, definition));
+
+            definition._otherPartOfPartial = implementation;
+            implementation._otherPartOfPartial = definition;
+
+            Debug.Assert(ReferenceEquals(definition._otherPartOfPartial, implementation));
+            Debug.Assert(ReferenceEquals(implementation._otherPartOfPartial, definition));
         }
     }
 }

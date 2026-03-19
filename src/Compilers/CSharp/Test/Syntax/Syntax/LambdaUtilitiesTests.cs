@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -37,7 +40,7 @@ class C
             Assert.NotNull(span);
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }, new[] { SystemCoreRef });
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
 

@@ -3,21 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
-{
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
-    internal class CSharpRemoveUnnecessaryImportsCodeFixProvider : AbstractRemoveUnnecessaryImportsCodeFixProvider
-    {
-        [ImportingConstructor]
-        public CSharpRemoveUnnecessaryImportsCodeFixProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 
-        protected override string GetTitle()
-            => CSharpCodeFixesResources.Remove_Unnecessary_Usings;
-    }
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
+[ExtensionOrder(Before = PredefinedCodeFixProviderNames.FileHeader)]
+[ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConvertToProgramMain)]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpRemoveUnnecessaryImportsCodeFixProvider() : AbstractRemoveUnnecessaryImportsCodeFixProvider
+{
+    protected override string GetTitle()
+        => CSharpCodeFixesResources.Remove_unnecessary_usings;
+
+    protected override ISyntaxFormatting GetSyntaxFormatting()
+        => CSharpSyntaxFormatting.Instance;
 }

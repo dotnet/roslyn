@@ -2,15 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class NullableAnnotationSimplificationTests
         Inherits AbstractSimplificationTests
 
 #Region "CSharp tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharpLeaveAnnotationIfValidAndEnabled() As Task
             Dim input =
 <Workspace>
@@ -46,7 +45,7 @@ class C
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharpRemoveAnnotationIfDisabled() As Task
             Dim input =
 <Workspace>
@@ -82,7 +81,7 @@ class C
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharpRemoveAnnotationLeavesTrivia() As Task
             Dim input =
 <Workspace>
@@ -118,7 +117,7 @@ class C
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharpLeaveAnnotationIfStructType() As Task
             Dim input =
 <Workspace>
@@ -154,7 +153,7 @@ class C
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharpLeaveAnnotationIfUnconstrainedGeneric() As Task
             ' Putting a ? on a unconstrained generic is illegal, but for now we're going to be cautious and not remove any ?s on unconstrained generics.
             ' If we need extra smarts to clean these up it's not hard, but there's no reason to do it until we have a reason.

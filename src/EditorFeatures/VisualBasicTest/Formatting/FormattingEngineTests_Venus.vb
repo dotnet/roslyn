@@ -3,13 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class FormattingEngineTests_Venus
         Inherits VisualBasicFormatterTestBase
 
+        Public Sub New(output As ITestOutputHelper)
+            MyBase.New(output)
+        End Sub
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function SimpleOneLineNugget() As Threading.Tasks.Task
+        Public Async Function SimpleOneLineNugget() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -38,8 +43,8 @@ End Module</Code>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
-        <WorkItem(530138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530138")>
-        Public Async Function SimpleScriptBlock() As Threading.Tasks.Task
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530138")>
+        Public Async Function SimpleScriptBlock() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -70,7 +75,7 @@ End Module</Code>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function SimpleMultiLineNugget() As Threading.Tasks.Task
+        Public Async Function SimpleMultiLineNugget() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -106,9 +111,9 @@ End Module</Code>
             Await AssertFormatWithBaseIndentAfterReplacingLfToCrLfAsync(code.Value, expected.Value, baseIndentation:=7)
         End Function
 
-        <WorkItem(576526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576526")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576526")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function SimpleQueryWithinNugget() As Threading.Tasks.Task
+        Public Async Function SimpleQueryWithinNugget() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -146,7 +151,7 @@ End Module</Code>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function SingleLineFunctionLambdaInNugget() As Threading.Tasks.Task
+        Public Async Function SingleLineFunctionLambdaInNugget() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -181,7 +186,7 @@ End Module</Code>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function MultiLineFunctionLambdaInNugget() As Threading.Tasks.Task
+        Public Async Function MultiLineFunctionLambdaInNugget() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -239,9 +244,9 @@ End Module</Code>
         ''' Then asserts that the formatting on that span results in text that we'd expect.
         ''' </summary>
         ''' <remarks>The rule has to be set up for each set of spans, currently we test just one</remarks>
-        Private Async Function AssertFormatWithBaseIndentAfterReplacingLfToCrLfAsync(content As String,
+        Private Shared Async Function AssertFormatWithBaseIndentAfterReplacingLfToCrLfAsync(content As String,
                                                                      expected As String,
-                                                                     baseIndentation As Integer) As Threading.Tasks.Task
+                                                                     baseIndentation As Integer) As Task
 
             ' do this since xml value put only vbLf
             content = content.Replace(vbLf, vbCrLf)

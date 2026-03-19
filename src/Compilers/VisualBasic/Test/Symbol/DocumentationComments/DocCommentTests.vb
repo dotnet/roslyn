@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
+Imports System.Text
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports System.Xml.Linq
-Imports System.Text
-Imports System.IO
-Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests
@@ -41,7 +42,7 @@ End Class
             Using (new EnsureEnglishUICulture())
 
                 Dim comp = CreateCompilationWithMscorlib40(sources)
-                Dim diags = New DiagnosticBag()
+                Dim diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim badStream = New BrokenStream()
                 badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
 
@@ -52,7 +53,7 @@ End Class
                     diagnostics:=diags,
                     cancellationToken:=Nothing)
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
@@ -6708,7 +6709,6 @@ End Class
                                     SymbolKind.Method),
                                "Function System.Object.GetHashCode() As System.Int32")
 
-
             ' c.n1.n2.t.C
             names = FindNodesOfTypeFromText(Of NameSyntax)(tree, "C")
             Assert.Equal(1, names.Length)
@@ -6718,7 +6718,6 @@ End Class
                                                  DirectCast(names(0), ExpressionSyntax),
                                                  "C(Of T).N1.N2.T.C")
             Assert.Equal(1, symbols.Length)
-
 
             ' "t"
             names = FindNodesOfTypeFromText(Of NameSyntax)(tree, "t")
@@ -8346,13 +8345,13 @@ End Class
             CompileCheckDiagnosticsAndXmlDocument(FormatSourceXml(xmlSource, xmlFile),
     <error>
         <![CDATA[
+BC42306: XML comment tag 'returns' is not permitted on a 'WithEvents variable' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'class' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'delegate sub' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'enum' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'event' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'sub' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'variable' language element.
-BC42306: XML comment tag 'returns' is not permitted on a 'WithEvents variable' language element.
 BC42313: XML comment tag 'returns' is not permitted on a 'WriteOnly' Property.
 BC42315: XML comment tag 'returns' is not permitted on a 'declare sub' language element.
 ]]>
@@ -8504,8 +8503,8 @@ End Class
         <![CDATA[
 BC42306: XML comment tag 'value' is not permitted on a 'class' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'declare' language element.
-BC42306: XML comment tag 'value' is not permitted on a 'delegate' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'delegate sub' language element.
+BC42306: XML comment tag 'value' is not permitted on a 'delegate' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'enum' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'event' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'function' language element.
@@ -8785,8 +8784,8 @@ BC42306: XML comment tag 'typeparam' is not permitted on a 'property' language e
 BC42306: XML comment tag 'typeparam' is not permitted on a 'variable' language element.
 BC42306: XML comment tag 'typeparamref' is not permitted on a 'module' language element.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'declare' statement.
-BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'delegate' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'delegate sub' statement.
+BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'delegate' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'function' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'interface' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'structure' statement.
@@ -10925,7 +10924,6 @@ End Class
     </file>
 </compilation>)
 
-
             Dim xmlDoc = If(Not invalidChars,
 <xml>
     <![CDATA[
@@ -11423,7 +11421,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
@@ -11451,7 +11448,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
@@ -11489,7 +11485,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim lib1Ref = CreateCompilationWithMscorlib40(lib1Source).EmitToImageReference()
             Dim lib2Ref = CreateCompilationWithMscorlib40(lib2Source).EmitToImageReference()
@@ -11531,7 +11526,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
@@ -11567,7 +11561,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
@@ -11595,7 +11588,6 @@ Delegate Sub D(Of T)(p As T)
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -12138,8 +12130,8 @@ xmlDoc)
                     If preferred Is Nothing Then
                         ensureEnglishUICulture = False
                     Else
-                        saveUICulture = Threading.Thread.CurrentThread.CurrentUICulture
-                        Threading.Thread.CurrentThread.CurrentUICulture = preferred
+                        saveUICulture = Thread.CurrentThread.CurrentUICulture
+                        Thread.CurrentThread.CurrentUICulture = preferred
                     End If
                 End If
 
@@ -12147,7 +12139,7 @@ xmlDoc)
                     diagnostics = compilation.GetDiagnostics(CompilationStage.Compile).ToArray()
                 Finally
                     If ensureEnglishUICulture Then
-                        Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+                        Thread.CurrentThread.CurrentUICulture = saveUICulture
                     End If
                 End Try
 
@@ -12179,8 +12171,8 @@ xmlDoc)
                         If preferred Is Nothing Then
                             ensureEnglishUICulture = False
                         Else
-                            saveUICulture = Threading.Thread.CurrentThread.CurrentUICulture
-                            Threading.Thread.CurrentThread.CurrentUICulture = preferred
+                            saveUICulture = Thread.CurrentThread.CurrentUICulture
+                            Thread.CurrentThread.CurrentUICulture = preferred
                         End If
                     End If
 
@@ -12188,7 +12180,7 @@ xmlDoc)
                         emitResult = compilation.Emit(output, xmlDocumentationStream:=xml)
                     Finally
                         If ensureEnglishUICulture Then
-                            Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+                            Thread.CurrentThread.CurrentUICulture = saveUICulture
                         End If
                     End Try
 
@@ -12440,7 +12432,6 @@ End Class
                 sources,
                 options:=TestOptions.ReleaseDll)
 
-
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -12530,7 +12521,7 @@ End Class
             Using (New EnsureEnglishUICulture())
 
                 Dim comp = CreateCompilationWithMscorlib40(sources, parseOptions:=s_optionsDiagnoseDocComments)
-                Dim diags = DiagnosticBag.GetInstance()
+                Dim diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
@@ -12540,14 +12531,14 @@ End Class
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
@@ -12558,9 +12549,9 @@ BC42312: XML documentation comments must precede member or type declarations.
                     filterTree:=comp.SyntaxTrees(0),
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
 
-                Assert.Empty(diags.ToReadOnlyAndFree())
+                Assert.Empty(diags.ToReadOnlyAndFree().Diagnostics)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
@@ -12570,14 +12561,14 @@ BC42312: XML documentation comments must precede member or type declarations.
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(1))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> b.vb
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
@@ -12587,7 +12578,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     cancellationToken:=Nothing,
                     filterTree:=Nothing)
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb
@@ -12597,7 +12588,7 @@ BC42312: XML documentation comments must precede member or type declarations.
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
@@ -12608,7 +12599,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     filterTree:=Nothing,
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb

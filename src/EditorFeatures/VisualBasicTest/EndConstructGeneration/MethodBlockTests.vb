@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class MethodBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterSimpleSubDeclarationWithTrailingComment()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestApplyAfterSimpleSubDeclarationWithTrailingComment() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
   Sub goo() 'Extra Comment
 End Class",
@@ -19,11 +19,11 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterConstructorDeclaration()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestApplyAfterConstructorDeclaration() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
   Sub New()
 End Class",
@@ -34,11 +34,11 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterConstructorDeclarationForDesignerGeneratedClass()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestApplyAfterConstructorDeclarationForDesignerGeneratedClass() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>
 Class c1
     Sub New()
@@ -62,11 +62,11 @@ Class c1
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterConstructorDeclarationWithTrailingComment()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestApplyAfterConstructorDeclarationWithTrailingComment() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
   Sub New() 'Extra Comment
 End Class",
@@ -77,11 +77,11 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterSimpleFunctionDeclarationWithTrailingComment()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestApplyAfterSimpleFunctionDeclarationWithTrailingComment() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
   Function goo() As Integer 'Extra Comment
 End Class",
@@ -92,20 +92,20 @@ End Class",
   End Function
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoNotApplyForInterfaceFunction()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function DoNotApplyForInterfaceFunction() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Interface IGoo
 Function Goo() as Integer
 End Interface",
                  caret:={1, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifySubInAModule()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifySubInAModule() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Module C
 Public Sub s
 End Module",
@@ -116,11 +116,11 @@ Public Sub s
 End Sub
 End Module",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifySubWithParameters()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifySubWithParameters() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Module C
     Private Sub s1(byval x as Integer, Optional y as Integer = 5)
 End Module",
@@ -131,11 +131,11 @@ End Module",
     End Sub
 End Module",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifyFuncWithParameters()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifyFuncWithParameters() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Module C
     Public function f(byval x as Integer,
                       byref y as string) as string
@@ -148,11 +148,11 @@ End Module",
     End function
 End Module",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifyFuncNamedWithKeyWord()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifyFuncNamedWithKeyWord() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     private funCtion f1(Optional x as integer = 5) as [if]
 End Class",
@@ -163,11 +163,11 @@ End Class",
     End funCtion
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifySharedOperator()
-            VerifyStatementEndConstructApplied(
+        <WpfFact>
+        Public Async Function TestVerifySharedOperator() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Public Shared Operator +(ByVal a As bar, ByVal b As bar) As bar
 End Class",
@@ -178,41 +178,38 @@ End Class",
     End Operator
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyRecommit()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function VerifyRecommit() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Protected friend sub S
     End sub
 End Class",
                 caret:={1, -1})
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLocation01()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact>
+        Public Async Function VerifyInvalidLocation01() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub S
         Sub P
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
-        <WorkItem(528961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestVerifyInvalidLocation02()
-            VerifyStatementEndConstructApplied(
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
+        Public Async Function TestVerifyInvalidLocation02() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Sub S",
                 beforeCaret:={0, -1},
                 after:="Sub S
 
 End Sub",
                 afterCaret:={1, -1})
-        End Sub
-
-
+        End Function
     End Class
 End Namespace

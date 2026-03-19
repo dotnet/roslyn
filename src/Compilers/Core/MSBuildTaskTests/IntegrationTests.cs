@@ -2,93 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public class IntegrationTests : TestBase
+    public sealed class IntegrationTests(ITestOutputHelper output) : IntegrationTestBase(output)
     {
-        private static readonly string? s_msbuildDirectory;
-
-        static IntegrationTests()
-        {
-            s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
-        }
-
-        private readonly string _msbuildExecutable;
-        private readonly TempDirectory _tempDirectory;
-        private readonly List<Process> _existingServerList = new List<Process>();
-        private readonly string _buildTaskDll;
-
-        public IntegrationTests()
-        {
-            if (s_msbuildDirectory == null)
-            {
-                throw new InvalidOperationException("Could not locate MSBuild");
-            }
-
-            _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
-            _tempDirectory = Temp.CreateDirectory();
-            _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
-            _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
-        }
-
-        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>>? vars)
-        {
-            vars = vars ?? new KeyValuePair<string, string>[] { };
-            if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
-            {
-                var list = vars.ToList();
-                list.Add(new KeyValuePair<string, string>(
-                    "RoslynCommandLineLogFile",
-                    typeof(IntegrationTests).Assembly.Location + ".client-server.log"));
-                return list;
-            }
-            return vars;
-        }
-
-        private ProcessResult RunCommandLineCompiler(
-            string compilerPath,
-            string arguments,
-            string currentDirectory,
-            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
-        {
-            return ProcessUtilities.Run(
-                compilerPath,
-                arguments,
-                currentDirectory,
-                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
-        }
-
-        private ProcessResult RunCommandLineCompiler(
-            string compilerPath,
-            string arguments,
-            TempDirectory currentDirectory,
-            IEnumerable<KeyValuePair<string, string>> filesInDirectory,
-            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
-        {
-            foreach (var pair in filesInDirectory)
-            {
-                TempFile file = currentDirectory.CreateFile(pair.Key);
-                file.WriteAllText(pair.Value);
-            }
-
-            return RunCommandLineCompiler(
-                compilerPath,
-                arguments,
-                currentDirectory.Path,
-                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
-        }
-
         private DisposableFile GetResultFile(TempDirectory directory, string resultFileName)
         {
             return new DisposableFile(Path.Combine(directory.Path, resultFileName));
@@ -99,30 +23,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             return ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
         }
 
-        private static void VerifyResult(ProcessResult result)
-        {
-            Assert.Equal("", result.Output);
-            Assert.Equal("", result.Errors);
-            Assert.Equal(0, result.ExitCode);
-        }
-
-        private void VerifyResultAndOutput(ProcessResult result, TempDirectory path, string expectedOutput)
-        {
-            using (var resultFile = GetResultFile(path, "hello.exe"))
-            {
-                VerifyResult(result);
-
-                var runningResult = RunCompilerOutput(resultFile);
-                Assert.Equal(expectedOutput, runningResult.Output);
-            }
-        }
-
         // A dictionary with name and contents of all the files we want to create for the SimpleMSBuild test.
         private Dictionary<string, string> SimpleMsBuildFiles => new Dictionary<string, string> {
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+\u0023 Visual Studio 2010
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloProj"", ""HelloProj.csproj"", ""{7F4CCBA2-1184-468A-BF3D-30792E4E8003}""
 EndProject
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
@@ -405,6 +311,8 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
+            if (_msbuildExecutable == null) return;
+
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
@@ -428,7 +336,7 @@ End Class
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+\u0023 Visual Studio 2010
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
 EndProject
 Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") = ""VBLib"", ""VBLib.vbproj"", ""{F21C894B-28E5-4212-8AF7-C8E0E5455737}""
@@ -604,10 +512,12 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
         public void ReportAnalyzerMSBuild()
         {
+            if (_msbuildExecutable == null) return;
+
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
-                { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
+                { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location)! } });
 
             Assert.True(result.ExitCode != 0);
             Assert.Contains("/reportanalyzer", result.Output);
@@ -616,11 +526,13 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
+            if (_msbuildExecutable == null) return;
+
             var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
             var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2005
+\u0023 Visual Studio 2005
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(goo)'^(Application1"", ""Console;!@(goo)'^(Application1\Cons.ole;!@(goo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
 EndProject
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Class;!@(goo)'^(Library1"", ""Class;!@(goo)'^(Library1\Class;!@(goo)'^(Library1.csproj"", ""{0B4B78CC-C752-43C2-BE9A-319D20216129}""

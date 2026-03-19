@@ -2,9 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -553,8 +553,6 @@ IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0]
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ParamsArrayArgumentInNormalForm()
@@ -873,7 +871,7 @@ BC30587: Named argument cannot match a ParamArray parameter.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub Error_NamedArgumenNotExist()
+        Public Sub Error_NamedArgumentNotExist()
             Dim source = <![CDATA[
 Class P
     Sub M1()

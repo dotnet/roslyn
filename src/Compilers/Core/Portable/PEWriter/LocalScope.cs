@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -14,7 +12,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// A range of CLR IL operations that comprise a lexical scope.
     /// </summary>
-    internal struct LocalScope
+    internal readonly struct LocalScope
     {
         /// <summary>
         /// The offset of the first operation in the scope.

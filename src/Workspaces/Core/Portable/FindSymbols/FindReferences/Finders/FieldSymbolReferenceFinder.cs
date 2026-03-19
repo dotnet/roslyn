@@ -2,57 +2,55 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class FieldSymbolReferenceFinder : AbstractReferenceFinder<IFieldSymbol>
 {
-    internal class FieldSymbolReferenceFinder : AbstractReferenceFinder<IFieldSymbol>
+    protected override bool CanFind(IFieldSymbol symbol)
+        => true;
+
+    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        IFieldSymbol symbol,
+        Solution solution,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override bool CanFind(IFieldSymbol symbol)
-        {
-            return true;
-        }
+        return symbol.AssociatedSymbol != null
+            ? new(ImmutableArray.Create(symbol.AssociatedSymbol))
+            : new(ImmutableArray<ISymbol>.Empty);
+    }
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IFieldSymbol> symbolAndProjectId,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            var symbol = symbolAndProjectId.Symbol;
-            if (symbol.AssociatedSymbol != null)
-            {
-                return Task.FromResult(
-                    ImmutableArray.Create(symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol)));
-            }
-            else
-            {
-                return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
-            }
-        }
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        IFieldSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+    }
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IFieldSymbol symbol,
-            Project project,
-            IImmutableSet<Document> documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
-        }
-
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IFieldSymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
-        }
+    protected override void FindReferencesInDocument<TData>(
+        IFieldSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        FindReferencesInDocumentUsingSymbolName(
+            symbol, state, processResult, processResultData, cancellationToken);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
     }
 }

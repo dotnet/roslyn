@@ -2,71 +2,71 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static partial class TypeSyntaxExtensions
 {
-    internal static partial class TypeSyntaxExtensions
+    public static bool IsPotentialTypeName([NotNullWhen(true)] this TypeSyntax? typeSyntax, SemanticModel? semanticModelOpt, CancellationToken cancellationToken)
     {
-        public static bool IsPotentialTypeName(this TypeSyntax typeSyntax, SemanticModel semanticModelOpt, CancellationToken cancellationToken)
+        if (typeSyntax == null)
         {
-            if (typeSyntax == null)
-            {
-                return false;
-            }
-
-            if (typeSyntax is PredefinedTypeSyntax ||
-                typeSyntax is ArrayTypeSyntax ||
-                typeSyntax is GenericNameSyntax ||
-                typeSyntax is PointerTypeSyntax ||
-                typeSyntax is NullableTypeSyntax)
-            {
-                return true;
-            }
-
-            if (semanticModelOpt == null)
-            {
-                return false;
-            }
-
-            if (!(typeSyntax is NameSyntax nameSyntax))
-            {
-                return false;
-            }
-
-            var nameToken = nameSyntax.GetNameToken();
-
-            var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: true, cancellationToken);
-            var firstSymbol = symbols.FirstOrDefault();
-
-            var typeSymbol = firstSymbol != null && firstSymbol.Kind == SymbolKind.Alias
-                ? (firstSymbol as IAliasSymbol).Target
-                : firstSymbol as ITypeSymbol;
-
-            return typeSymbol != null
-                && !typeSymbol.IsErrorType();
+            return false;
         }
 
-        public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
+        if (typeSyntax is PredefinedTypeSyntax or
+            ArrayTypeSyntax or
+            GenericNameSyntax or
+            PointerTypeSyntax or
+            NullableTypeSyntax)
         {
-            var returnType = method.ReturnType;
+            return true;
+        }
 
-            if (method.ReturnsByRef)
-            {
-                return returnType.GenerateRefTypeSyntax();
-            }
-            else if (method.ReturnsByRefReadonly)
-            {
-                return returnType.GenerateRefReadOnlyTypeSyntax();
-            }
-            else
-            {
-                return returnType.GenerateTypeSyntax();
-            }
+        if (semanticModelOpt == null)
+        {
+            return false;
+        }
+
+        if (typeSyntax is not NameSyntax nameSyntax)
+        {
+            return false;
+        }
+
+        var nameToken = nameSyntax.GetNameToken();
+
+        var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
+        var firstSymbol = symbols.FirstOrDefault();
+
+        var typeSymbol = firstSymbol is IAliasSymbol aliasSymbol
+            ? aliasSymbol.Target
+            : firstSymbol as ITypeSymbol;
+
+        return typeSymbol != null
+            && !typeSymbol.IsErrorType();
+    }
+
+    public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
+    {
+        var returnType = method.ReturnType;
+
+        if (method.ReturnsByRef)
+        {
+            return returnType.GenerateRefTypeSyntax(allowVar: false);
+        }
+        else if (method.ReturnsByRefReadonly)
+        {
+            return returnType.GenerateRefReadOnlyTypeSyntax(allowVar: false);
+        }
+        else
+        {
+            return returnType.GenerateTypeSyntax(allowVar: false);
         }
     }
 }

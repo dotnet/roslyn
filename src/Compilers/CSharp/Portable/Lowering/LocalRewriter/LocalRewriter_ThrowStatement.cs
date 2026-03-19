@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = (BoundStatement)base.VisitThrowStatement(node)!;
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = _instrumenter.InstrumentThrowStatement(node, result);
+                result = Instrumenter.InstrumentThrowStatement(node, result);
             }
 
             return result;

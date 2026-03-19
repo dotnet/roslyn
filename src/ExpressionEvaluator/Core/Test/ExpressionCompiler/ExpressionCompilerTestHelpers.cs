@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-extern alias PDB;
+#nullable disable
 
+extern alias PDB;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,10 +29,10 @@ using Microsoft.DiaSymReader;
 using Microsoft.Metadata.Tools;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using PDB::Roslyn.Test.PdbUtilities;
+using PDB::Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using PDB::Roslyn.Test.Utilities;
-using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return result;
         }
 
-        static internal CompileResult CompileExpression(
+        internal static CompileResult CompileExpression(
             this EvaluationContextBase evaluationContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         /// <returns>
         /// Result containing generated assembly, type and method names, and any format specifiers.
         /// </returns>
-        static internal CompileResult CompileExpression(
+        internal static CompileResult CompileExpression(
             this EvaluationContextBase evaluationContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
@@ -239,19 +240,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return result;
         }
 
-        internal static CompileResult CompileExpressionWithRetry(
+        internal static bool CompileExpressionWithRetry(
             ImmutableArray<MetadataBlock> metadataBlocks,
             EvaluationContextBase context,
             ExpressionCompiler.CompileDelegate<CompileResult> compile,
             DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
+            out CompileResult compileResult,
             out string errorMessage)
         {
-            return ExpressionCompiler.CompileWithRetry(
+            return ExpressionCompiler.TryCompileWithRetry(
                 metadataBlocks,
                 DebuggerDiagnosticFormatter.Instance,
                 (blocks, useReferencedModulesOnly) => context,
                 compile,
                 getMetaDataBytesPtr,
+                out compileResult,
                 out errorMessage);
         }
 
@@ -264,7 +267,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             out string errorMessage,
             out CompilationTestData testData)
         {
-            var r = ExpressionCompiler.CompileWithRetry(
+            ExpressionCompiler.TryCompileWithRetry(
                 metadataBlocks,
                 DebuggerDiagnosticFormatter.Instance,
                 createContext,
@@ -282,12 +285,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                     return new CompileExpressionResult(compileResult, td);
                 },
                 getMetaDataBytesPtr,
+                out var r,
                 out errorMessage);
             testData = r.TestData;
             return r.CompileResult;
         }
 
-        private struct CompileExpressionResult
+        private readonly struct CompileExpressionResult
         {
             internal readonly CompileResult CompileResult;
             internal readonly CompilationTestData TestData;
@@ -372,8 +376,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             int methodToken,
             string qualifiedName,
             string expectedIL,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             var parts = qualifiedName.Split('.');
             if (parts.Length != 2)
@@ -497,29 +501,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return ModuleInstance.Create(peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
         }
 
-        internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.ReadAssemblyIdentityOrThrow();
-            }
-        }
-
-        internal static Guid GetModuleVersionId(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.GetModuleVersionIdOrThrow();
-            }
-        }
-
-        private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
-        {
-            // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadata();
-            return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
-        }
-
         internal static void VerifyLocal<TMethodSymbol>(
             this CompilationTestData testData,
             string typeName,
@@ -552,7 +533,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                     expectedValueSourceLine: expectedValueSourceLine);
             }
 
-            Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
+            Assert.Equal(((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
         }
 
         internal static void VerifyResolutionRequests(EEMetadataReferenceResolver resolver, (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)
@@ -568,19 +549,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             actual.Free();
             expected.Free();
 
-            void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
+            static void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
             {
                 builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1.GetDisplayName(), y.Item1.GetDisplayName()));
             }
 #endif
         }
 
-        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, Guid[] moduleVersionIds)
+        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, ModuleId[] moduleIds)
             where TAssemblyContext : struct
         {
             var actualIds = metadataContext.AssemblyContexts.Keys.Select(key => key.ModuleVersionId.ToString()).ToArray();
             Array.Sort(actualIds);
-            var expectedIds = moduleVersionIds.Select(mvid => mvid.ToString()).ToArray();
+            var expectedIds = moduleIds.Select(mvid => mvid.Id.ToString()).ToArray();
             Array.Sort(expectedIds);
             AssertEx.Equal(expectedIds, actualIds);
         }
@@ -595,7 +576,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 return new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { importStrings }).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder([importStrings]).Build() },
                 }.ToImmutableDictionary());
             }
         }
@@ -780,13 +761,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             var parameters = signature.Substring(parameterListStart + 1, signature.Length - parameterListStart - 2);
             var methodName = signature.Substring(0, parameterListStart);
-            parameterTypeNames = (parameters.Length == 0) ?
-                new string[0] :
-                parameters.Split(',');
+            parameterTypeNames = (parameters.Length == 0)
+                ? new string[0]
+                : parameters.Split(',');
             return methodName;
         }
 
-        internal unsafe static ModuleMetadata ToModuleMetadata(this PEMemoryBlock metadata, bool ignoreAssemblyRefs)
+        internal static unsafe ModuleMetadata ToModuleMetadata(this PEMemoryBlock metadata, bool ignoreAssemblyRefs)
         {
             return ModuleMetadata.CreateFromMetadata(
                 (IntPtr)metadata.Pointer,
@@ -795,7 +776,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 ignoreAssemblyRefs: ignoreAssemblyRefs);
         }
 
-        internal unsafe static MetadataReader ToMetadataReader(this PEMemoryBlock metadata)
+        internal static unsafe MetadataReader ToMetadataReader(this PEMemoryBlock metadata)
         {
             return new MetadataReader(metadata.Pointer, metadata.Length, MetadataReaderOptions.None);
         }
@@ -838,7 +819,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         comp.MessageProvider,
                         () => peStream,
                         () => pdbStream,
-                        null, null,
+                        nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         metadataOnly: true,
                         isDeterministic: false,
                         emitTestCoverageData: false,

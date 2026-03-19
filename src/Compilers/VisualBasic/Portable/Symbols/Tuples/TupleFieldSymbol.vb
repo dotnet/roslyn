@@ -97,10 +97,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me._underlyingField.GetAttributes()
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Dim useSiteDiagnostic As DiagnosticInfo = MyBase.GetUseSiteErrorInfo
-            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, Me._underlyingField.GetUseSiteErrorInfo())
-            Return useSiteDiagnostic
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MyBase.GetUseSiteInfo
+            MyBase.MergeUseSiteInfo(useSiteInfo, Me._underlyingField.GetUseSiteInfo())
+            Return useSiteInfo
         End Function
 
         Public Overrides Function GetHashCode() As Integer
@@ -116,6 +116,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _tupleElementIndex = other._tupleElementIndex AndAlso
                 TypeSymbol.Equals(_containingTuple, other._containingTuple, TypeCompareKind.ConsiderEverything)
         End Function
+
+        Public NotOverridable Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return _underlyingField.IsRequired
+            End Get
+        End Property
     End Class
 
     ''' <summary>
@@ -233,13 +239,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._cannotUse = cannotUse
         End Sub
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If _cannotUse Then
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, _name,
-                                              New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3))
+                Return New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, _name,
+                                                                                 New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3)))
             End If
 
-            Return MyBase.GetUseSiteErrorInfo()
+            Return MyBase.GetUseSiteInfo()
         End Function
 
         Public Overrides ReadOnly Property Name As String

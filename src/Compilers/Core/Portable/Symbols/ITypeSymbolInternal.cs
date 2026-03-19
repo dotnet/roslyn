@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Symbols
 {
     internal interface ITypeSymbolInternal : INamespaceOrTypeSymbolInternal
@@ -16,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// Returns <see cref="Microsoft.CodeAnalysis.SpecialType.None"/> if the type is not special.
         /// </summary>
         SpecialType SpecialType { get; }
+
+        ExtendedSpecialType ExtendedSpecialType { get; }
 
         /// <summary>
         /// True if this type is known to be a reference type. It is never the case that

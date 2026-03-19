@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     <Flags()>
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         [Call] = &H4 ' Result is not needed and we are not going to assign to the member. Cannot be combined with [Get] or [Set]
     End Enum
 
-    Friend Partial Class BoundLateMemberAccess
+    Partial Friend Class BoundLateMemberAccess
         ''' <summary>
         ''' Updates property access kind. To clear the access kind,
         ''' 'newAccessKind' should be Unknown. Otherwise, the current

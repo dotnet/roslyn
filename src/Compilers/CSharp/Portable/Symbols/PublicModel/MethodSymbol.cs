@@ -2,9 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Threading;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -14,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         private readonly Symbols.MethodSymbol _underlying;
         private ITypeSymbol _lazyReturnType;
         private ImmutableArray<ITypeSymbol> _lazyTypeArguments;
+        private ImmutableArray<IParameterSymbol> _lazyParameters;
         private ITypeSymbol _lazyReceiverType;
 
         public MethodSymbol(Symbols.MethodSymbol underlying)
@@ -63,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                         return MethodKind.StaticConstructor;
                     case MethodKind.LocalFunction:
                         return MethodKind.LocalFunction;
+                    case MethodKind.FunctionPointerSignature:
+                        return MethodKind.FunctionPointerSignature;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_underlying.MethodKind);
                 }
@@ -94,13 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                if (_lazyTypeArguments.IsDefault)
-                {
-
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeArguments, _underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(), default);
-                }
-
-                return _lazyTypeArguments;
+                return InterlockedOperations.Initialize(
+                    ref _lazyTypeArguments,
+                    static underlying => underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(),
+                    _underlying);
             }
         }
 
@@ -119,7 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return _underlying.Parameters.GetPublicSymbols();
+                return InterlockedOperations.Initialize(
+                    ref _lazyParameters,
+                    static underlying => underlying.Parameters.GetPublicSymbols(),
+                    _underlying);
             }
         }
 
@@ -136,6 +144,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             get
             {
                 return _underlying.IsEffectivelyReadOnly;
+            }
+        }
+
+        bool IMethodSymbol.IsInitOnly
+        {
+            get
+            {
+                return _underlying.IsInitOnly;
             }
         }
 
@@ -185,12 +201,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 GetPublicSymbol();
         }
 
-        IMethodSymbol IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
+#nullable enable
+        IMethodSymbol? IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
         {
             return _underlying.ReduceExtensionMethod(
                 receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType)), compilation: null).
                 GetPublicSymbol();
         }
+
+        IMethodSymbol? IMethodSymbol.ReduceExtensionMember(ITypeSymbol receiverType)
+        {
+            if (_underlying.IsExtensionBlockMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
+            {
+                var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
+                return (IMethodSymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
+            }
+
+            return null;
+        }
+#nullable disable
 
         ImmutableArray<IMethodSymbol> IMethodSymbol.ExplicitInterfaceImplementations
         {
@@ -253,6 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return _underlying.GetReturnTypeAttributes().Cast<CSharpAttributeData, AttributeData>();
         }
 
+        SignatureCallingConvention IMethodSymbol.CallingConvention => _underlying.CallingConvention.ToSignatureConvention();
+
+        ImmutableArray<INamedTypeSymbol> IMethodSymbol.UnmanagedCallingConventionTypes => _underlying.UnmanagedCallingConventionTypes.SelectAsArray(t => t.GetPublicSymbol());
+
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] typeArguments)
         {
             return _underlying.Construct(ConstructTypeArguments(typeArguments)).GetPublicSymbol();
@@ -279,6 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IMethodSymbol.IsPartialDefinition => _underlying.IsDefinition && _underlying.IsPartialDefinition();
+
         INamedTypeSymbol IMethodSymbol.AssociatedAnonymousDelegate
         {
             get
@@ -290,6 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         int IMethodSymbol.Arity => _underlying.Arity;
 
         bool IMethodSymbol.IsExtensionMethod => _underlying.IsExtensionMethod;
+
+        System.Reflection.MethodImplAttributes IMethodSymbol.MethodImplementationFlags => _underlying.ImplementationAttributes;
 
         bool IMethodSymbol.IsVararg => _underlying.IsVararg;
 
@@ -305,7 +342,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IMethodSymbol.IsConditional => _underlying.IsConditional;
 
+        bool IMethodSymbol.IsIterator => _underlying.IsIterator;
+
         DllImportData IMethodSymbol.GetDllImportData() => _underlying.GetDllImportData();
+
+#nullable enable
+        IMethodSymbol? IMethodSymbol.AssociatedExtensionImplementation
+        {
+            get
+            {
+                if (!_underlying.IsExtensionBlockMember())
+                {
+                    return null;
+                }
+
+                var implDefinition = _underlying.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod();
+                if (implDefinition is null)
+                {
+                    return null;
+                }
+
+                var enclosing = _underlying.ContainingType.ContainingType;
+                var implementation = implDefinition.AsMember(enclosing);
+                if (implementation.Arity != 0)
+                {
+                    var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(implementation.Arity);
+                    typeArguments.AddRange(_underlying.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                    typeArguments.AddRange(_underlying.TypeArgumentsWithAnnotations);
+                    implementation = implementation.Construct(typeArguments.ToImmutableAndFree());
+                }
+
+                return implementation.GetPublicSymbol();
+            }
+        }
+#nullable disable
 
         #region ISymbol Members
 
@@ -317,6 +387,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitMethod(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitMethod(this, argument);
         }
 
         #endregion

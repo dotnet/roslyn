@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -287,7 +289,7 @@ class C
 
         private static ImmutableArray<BoundInitializer> BindInitializersWithoutDiagnostics(SourceNamedTypeSymbol typeSymbol, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
         {
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             ImportChain unused;
             var boundInitializers = ArrayBuilder<BoundInitializer>.GetInstance();
             Binder.BindRegularCSharpFieldInitializers(
@@ -296,7 +298,7 @@ class C
                 boundInitializers,
                 diagnostics,
                 firstDebugImports: out unused);
-            diagnostics.Verify();
+            diagnostics.DiagnosticBag.Verify();
             diagnostics.Free();
             return boundInitializers.ToImmutableAndFree();
         }

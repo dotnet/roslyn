@@ -2,21 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Linq;
-using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.BuildTasks;
-using Xunit;
-using Moq;
 using System.IO;
+using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public sealed class CscTests
+    public sealed class CscTests : TestBase
     {
+        public ITestOutputHelper TestOutputHelper { get; }
+
+        public CscTests(ITestOutputHelper testOutputHelper)
+        {
+            TestOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void SingleSource()
         {
@@ -204,6 +208,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             test(",a;b ");
             test(";a;;b;");
             test(",a,,b,");
+        }
+
+        [Fact]
+        public void FeaturesInterceptors()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreview()
+        {
+            var csc = new Csc();
+            csc.InterceptorsPreviewNamespaces = "NS1.NS2;NS3.NS4";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewBoth()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.InterceptorsPreviewNamespaces = "NS5.NS6;NS7.NS8";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4;NS5.NS6;NS7.NS8" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -435,13 +467,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = "";
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
         }
 
@@ -452,15 +484,38 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
-            // StartsWith because it can be csc.exe or csc.dll
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            Assert.Equal("", csc.GenerateCommandLineContents());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            Assert.Equal("", csc.GenerateCommandLineContents());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
+        }
+
+        /// <summary>
+        /// Setting ToolExe to "csc.exe" should use the built-in compiler regardless of apphost being used or not.
+        /// </summary>
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
+        public void BuiltInToolExe(bool useAppHost, bool setToolExe)
+        {
+            var csc = new Csc();
+            csc.UseAppHost_TestOnly = useAppHost;
+            if (setToolExe)
+            {
+                csc.ToolExe = $"csc{PlatformInformation.ExeExtension}";
+            }
+            if (useAppHost)
+            {
+                AssertEx.Equal(csc.PathToBuiltInTool, csc.GeneratePathToTool());
+                AssertEx.Equal("", csc.GenerateCommandLineContents());
+            }
+            else
+            {
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), csc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(csc.PathToBuiltInTool, ""), csc.GenerateCommandLineContents());
+            }
         }
 
         [Fact]
@@ -474,12 +529,209 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs", "subdir\\test.cs");
             csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
-            Assert.Equal(@"/out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.cs subdir\test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal($@"/out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.cs subdir{Path.DirectorySeparatorChar}test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
             Assert.Equal(@"/out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SkipAnalyzers = true;
+            Assert.Equal("/out:test.exe /skipanalyzers+ test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SkipAnalyzers = false;
+            Assert.Equal("/out:test.exe /skipanalyzers- test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
+        public void UnexpectedExceptionLogsMessage()
+        {
+            var engine = new MockEngine();
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+            };
+
+            csc.ExecuteTool(@"q:\path\csc.exe", "", "", new TestableCompilerServerLogger()
+            {
+                LogFunc = delegate { throw new Exception(""); }
+            });
+            Assert.False(string.IsNullOrEmpty(engine.Log));
+        }
+
+        [Fact]
+        public void ReportIVTsSwitch()
+        {
+            var csc = new Csc();
+            csc.ReportIVTs = true;
+            AssertEx.Equal("/reportivts", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void CommandLineArgs1()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.exe", "test.cs");
+        }
+
+        [Fact]
+        public void CommandLineArgs2()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs", "blah.cs"),
+                TargetType = "library"
+            };
+
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/71571")]
+        public void ReferenceForms()
+        {
+            parse(@"util.dll", null, @"/reference:util.dll");
+            parse(@"util.dll", "global", @"/reference:util.dll");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"""util.dll""", "global", @"/reference:""\""util.dll\""""");
+            parse(@"c:\a=util.dll", null, @"/reference:""c:\a=util.dll""");
+            parse(@"c:\a=util.dll", "global", @"/reference:""c:\a=util.dll""");
+            parse(@"""c:\a=util.dll""", "global", @"/reference:""\""c:\a=util.dll\""""");
+            parse(@"a=util.dll", null, @"/reference:""a=util.dll""");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"c:\a=util.dll", "lib", @"/reference:lib=c:\a=util.dll");
+            parse(@"util.dll", null, @"/link:util.dll", true);
+            parse(@"util.dll", "global", @"/link:util.dll", true);
+            parse(@"util.dll", "lib", @"/link:lib=util.dll", true);
+            parseMultiple(@"util.dll", "global,a", @"/reference:util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"util.dll", "b,a", @"/reference:b=util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "global,c", @"/reference:""c:\a=b\util.dll""", @"/reference:c=c:\a=b\util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "x,z", @"/reference:x=c:\a=b\util.dll", @"/reference:z=c:\a=b\util.dll");
+
+            void parse(string refText, string? alias, string expectedArg, bool embedInteropTypes = false) =>
+                parseCore(refText, alias, embedInteropTypes, [expectedArg]);
+
+            void parseMultiple(string refText, string? alias, params string[] expectedArgs) =>
+                parseCore(refText, alias, embedInteropTypes: false, expectedArgs);
+
+            void parseCore(string refText, string? alias, bool embedInteropTypes, string[] expectedArgs)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias: alias, embedInteropTypes)],
+                };
+
+                TaskTestUtil.AssertCommandLine(csc, engine, [.. expectedArgs, "/out:test.dll", "/target:library", "test.cs"]);
+            }
+        }
+
+        [Fact]
+        public void ReferenceErrors()
+        {
+            parseRef(@"util.dll", "a=b");
+            parseRef(@"util.dll", "a b");
+            parseRef(@"util.dll", "a;b");
+            parseRef(@"util.dll", @"a""b");
+
+            void parseRef(string refText, string alias)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias)]
+                };
+
+                Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+        public void StdLib()
+        {
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            AssertEx.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void SourceFileInRootDirectoryOnUnix()
+        {
+            // On Unix, a source file path starting with "/" without another "/" 
+            // should be prefixed with "./" to avoid being misinterpreted as a command-line switch
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.cs", responseFileContents);
+            Assert.DoesNotContain(" /Program.cs", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void MultipleSourceFilesWithRootDirectoryOnUnix()
+        {
+            // Test multiple files where some are in root and some are not
+            // Also test that /dir/file.cs is NOT transformed (has second '/')
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.cs", "src/Test.cs", "/App.cs", "/dir/File.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.cs", responseFileContents);
+            Assert.Contains("/./App.cs", responseFileContents);
+            Assert.Contains(" src/Test.cs", responseFileContents);
+            // /dir/File.cs should NOT be transformed (contains second '/')
+            Assert.Contains(" /dir/File.cs", responseFileContents);
+            Assert.DoesNotContain("/./dir/File.cs", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void SourceFilePathsOnWindows()
+        {
+            // On Windows, paths should not be transformed even if they start with "/"
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs", "/test.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains(" test.cs", responseFileContents);
+            // On Windows, /test.cs should NOT be transformed
+            Assert.Contains(" /test.cs", responseFileContents);
+            Assert.DoesNotContain("/./test.cs", responseFileContents);
         }
     }
 }

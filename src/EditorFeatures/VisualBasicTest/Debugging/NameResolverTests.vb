@@ -3,26 +3,23 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
     Public Class NameResolverTests
 
-        Private Function TestAsync(text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
+        Private Shared Function TestAsync(text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
             Return TestWithRootNamespaceAsync(Nothing, text, searchText, expectedNames)
         End Function
 
-        Private Async Function TestWithRootNamespaceAsync(rootNamespace As String, text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
+        Private Shared Async Function TestWithRootNamespaceAsync(rootNamespace As String, text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
             Dim compilationOptions = If(rootNamespace Is Nothing, Nothing, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:=rootNamespace))
 
-            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, compilationOptions, Nothing, text)
+            Using workspace = EditorTestWorkspace.Create(LanguageNames.VisualBasic, compilationOptions, Nothing, text)
                 Dim nameResolver = New BreakpointResolver(workspace.CurrentSolution, searchText)
                 Dim results = Await nameResolver.DoAsync(CancellationToken.None)
 
@@ -30,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestSimpleNameInClass() As Task
             Dim text =
 <text>
@@ -50,7 +47,7 @@ end class</text>.Value
             Await TestAsync(text, "Goo(Integer)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestSimpleNameInNamespace() As Tasks.Task
             Dim text =
 <text>
@@ -75,7 +72,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Goo(a)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestSimpleNameInGenericClassNamespace() As Tasks.Task
             Dim text =
 <text>
@@ -101,7 +98,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Goo(a)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestGenericNameInClassNamespace() As Task
             Dim text =
 <text>
@@ -132,7 +129,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Goo(of T)(a)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestOverloadsInSingleClass() As Task
             Dim text =
 <text>
@@ -157,7 +154,7 @@ end class
             Await TestAsync(text, "Goo(i)", "C.Goo(Integer)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestMethodsInMultipleClasses() As Task
             Dim text =
 <text>
@@ -188,7 +185,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Goo(i)", "N1.C.Goo(Integer)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestMethodsWithDifferentArityInMultipleClasses() As Task
             Dim text =
 <text>
@@ -223,7 +220,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Goo(of T)(i)", "N1.C.Goo(Of T)(Integer)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestOverloadsWithMultipleParametersInSingleClass() As Task
             Dim text =
 <text>
@@ -256,7 +253,7 @@ end class</text>.Value
             Await TestAsync(text, "Goo(i, s, c)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestProperties() As Task
             Dim text =
 <text>
@@ -298,7 +295,7 @@ End Class</text>.Value
             Await TestAsync(text, "property5(j, i)", "C.Property5(Integer, String)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestNegativeTests() As Task
             Dim text =
 <text>
@@ -342,7 +339,7 @@ End Class</text>.Value
             Await TestAsync(text, "")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestInstanceConstructors() As Task
             Dim text =
 <text>
@@ -383,7 +380,7 @@ End Class</text>.Value
             Await TestAsync(text, "C.C()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestStaticConstructors() As Task
             Dim text =
 <text>
@@ -408,7 +405,7 @@ end class</text>.Value
             Await TestAsync(text, "C.cctor()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestAllConstructors() As Task
             Dim text =
 <text>
@@ -434,7 +431,7 @@ end class</text>.Value
             Await TestAsync(text, "C.C()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestPartialMethods() As Task
             Dim text =
 <text>
@@ -466,7 +463,7 @@ End Class</text>.Value
             Await TestAsync(text, "M3(y)", "C.M3(Integer)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestLeadingAndTrailingText() As Task
             Dim text =
 <text>
@@ -481,7 +478,7 @@ End Class</text>.Value
             Await TestAsync(text, "Goo() ' comment", "C.Goo()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestEscapedKeywords() As Task
             Dim text =
                 <text>
@@ -503,7 +500,7 @@ End Class</text>.Value
             Await TestAsync(text, "False", "[for].False()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestGlobalQualifiedNames() As Task
             Dim text =
 <text>
@@ -518,7 +515,7 @@ End Class</text>.Value
             Await TestAsync(text, "C.Goo(Global.C)", "C.Goo(C)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestRootNamespaces() As Task
             Dim text =
 <text>
@@ -541,7 +538,7 @@ End Namespace</text>.Value
             Await TestWithRootNamespaceAsync("Root", text, "Root.Goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestNestedTypesAndNamespaces() As Task
             Dim text =
 <text>
@@ -585,7 +582,7 @@ End Namespace</text>.Value
             Await TestAsync(text, "N5.C.Goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact>
         Public Async Function TestInterfaces() As Task
             Dim text =
 <text>

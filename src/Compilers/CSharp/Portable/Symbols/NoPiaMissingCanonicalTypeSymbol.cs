@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -24,16 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly AssemblySymbol _embeddingAssembly;
         private readonly string _fullTypeName;
-        private readonly string _guid;
-        private readonly string _scope;
-        private readonly string _identifier;
+        private readonly string? _guid;
+        private readonly string? _scope;
+        private readonly string? _identifier;
 
         public NoPiaMissingCanonicalTypeSymbol(
             AssemblySymbol embeddingAssembly,
             string fullTypeName,
-            string guid,
-            string scope,
-            string identifier,
+            string? guid,
+            string? scope,
+            string? identifier,
             TupleExtraData? tupleData = null)
             : base(tupleData)
         {
@@ -75,7 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public string Guid
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+
+        public string? Guid
         {
             get
             {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public string Scope
+        public string? Scope
         {
             get
             {
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public string Identifier
+        public string? Identifier
         {
             get
             {
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             return ReferenceEquals(this, t2);
         }

@@ -2,130 +2,143 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseObjectInitializer
-{
-    internal abstract class AbstractUseObjectInitializerCodeFixProvider<
-        TSyntaxKind,
+namespace Microsoft.CodeAnalysis.UseObjectInitializer;
+
+internal abstract class AbstractUseObjectInitializerCodeFixProvider<
+    TSyntaxKind,
+    TExpressionSyntax,
+    TStatementSyntax,
+    TObjectCreationExpressionSyntax,
+    TMemberAccessExpressionSyntax,
+    TAssignmentStatementSyntax,
+    TLocalDeclarationStatementSyntax,
+    TVariableDeclaratorSyntax,
+    TAnalyzer>
+    : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
+    where TSyntaxKind : struct
+    where TExpressionSyntax : SyntaxNode
+    where TStatementSyntax : SyntaxNode
+    where TObjectCreationExpressionSyntax : TExpressionSyntax
+    where TMemberAccessExpressionSyntax : TExpressionSyntax
+    where TAssignmentStatementSyntax : TStatementSyntax
+    where TLocalDeclarationStatementSyntax : TStatementSyntax
+    where TVariableDeclaratorSyntax : SyntaxNode
+    where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
-        TVariableDeclaratorSyntax>
-        : SyntaxEditorBasedCodeFixProvider
-        where TSyntaxKind : struct
-        where TExpressionSyntax : SyntaxNode
-        where TStatementSyntax : SyntaxNode
-        where TObjectCreationExpressionSyntax : TExpressionSyntax
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : TStatementSyntax
-        where TVariableDeclaratorSyntax : SyntaxNode
+        TLocalDeclarationStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TAnalyzer>, new()
+{
+    protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
+        => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
+
+    protected abstract TAnalyzer GetAnalyzer();
+
+    protected abstract ISyntaxKinds SyntaxKinds { get; }
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
+
+    protected abstract SyntaxTrivia Whitespace(string text);
+
+    protected abstract TStatementSyntax GetNewStatement(
+        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, SyntaxFormattingOptions options,
+        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
+
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.UseObjectInitializerDiagnosticId];
+
+    protected override async Task FixAsync(
+        Document document,
+        SyntaxEditor editor,
+        TObjectCreationExpressionSyntax objectCreation,
+        ImmutableDictionary<string, string?> properties,
+        CancellationToken cancellationToken)
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+        using var analyzer = GetAnalyzer();
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+        var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, cancellationToken);
+        if (matches.IsDefaultOrEmpty)
+            return;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-            return Task.CompletedTask;
-        }
+        var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+        Contract.ThrowIfNull(statement);
 
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            // Fix-All for this feature is somewhat complicated.  As Object-Initializers 
-            // could be arbitrarily nested, we have to make sure that any edits we make
-            // to one Object-Initializer are seen by any higher ones.  In order to do this
-            // we actually process each object-creation-node, one at a time, rewriting
-            // the tree for each node.  In order to do this effectively, we use the '.TrackNodes'
-            // feature to keep track of all the object creation nodes as we make edits to
-            // the tree.  If we didn't do this, then we wouldn't be able to find the 
-            // second object-creation-node after we make the edit for the first one.
-            var workspace = document.Project.Solution.Workspace;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+        var firstToken = objectCreation.GetFirstToken();
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var originalRoot = editor.OriginalRoot;
-            var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
-            foreach (var diagnostic in diagnostics)
+        var newStatement = GetNewStatement(statement, objectCreation, formattingOptions, matches).WithAdditionalAnnotations(Formatter.Annotation);
+
+        editor.ReplaceNode(statement, newStatement);
+        foreach (var match in matches)
+            editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+    }
+
+    protected TExpressionSyntax Indent(TExpressionSyntax expression, SyntaxFormattingOptions options)
+    {
+        var endOfLineKind = this.SyntaxKinds.EndOfLineTrivia;
+        var whitespaceTriviaKind = this.SyntaxKinds.WhitespaceTrivia;
+        return expression.ReplaceTokens(
+            expression.DescendantTokens(),
+            (currentToken, _) =>
             {
-                var objectCreation = (TObjectCreationExpressionSyntax)originalRoot.FindNode(
-                    diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                originalObjectCreationNodes.Push(objectCreation);
-            }
-
-            // We're going to be continually editing this tree.  Track all the nodes we
-            // care about so we can find them across each edit.
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            while (originalObjectCreationNodes.Count > 0)
-            {
-                var originalObjectCreation = originalObjectCreationNodes.Pop();
-                var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
-
-                var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
-
-                if (matches == null || matches.Value.Length == 0)
+                if (currentToken.LeadingTrivia is [.., var whitespace1] &&
+                    whitespace1.RawKind == whitespaceTriviaKind)
                 {
-                    continue;
+                    // This is a token on its own line.  With whitespace at the start of the line.
+                    var leadingTrivia = currentToken.LeadingTrivia.Replace(
+                        whitespace1,
+                        IncreaseIndent(whitespace1, options));
+
+                    currentToken = currentToken.WithLeadingTrivia(leadingTrivia);
                 }
 
-                var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
-                    .WithAdditionalAnnotations(Formatter.Annotation);
-
-                var subEditor = new SyntaxEditor(currentRoot, workspace);
-
-                subEditor.ReplaceNode(statement, newStatement);
-                foreach (var match in matches)
+                if (currentToken.TrailingTrivia is [.., var endOfLine, var whitespace2] &&
+                    endOfLine.RawKind == endOfLineKind &&
+                    whitespace2.RawKind == whitespaceTriviaKind)
                 {
-                    subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                    // This is a VB line continuation case (`_`), with indentation before the next token
+                    var trailingTrivia = currentToken.TrailingTrivia.Replace(
+                        whitespace2,
+                        IncreaseIndent(whitespace2, options));
+
+                    currentToken = currentToken.WithTrailingTrivia(trailingTrivia);
                 }
 
-                document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
-                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            }
+                return currentToken;
+            });
+    }
 
-            editor.ReplaceNode(editor.OriginalRoot, currentRoot);
-        }
+    private SyntaxTrivia IncreaseIndent(SyntaxTrivia whitespaceTrivia, SyntaxFormattingOptions options)
+    {
+        // Convert the existing whitespace to determine which column it corresponds to in spaces.  
+        var existingWhitespace = whitespaceTrivia.ToString();
+        var spaceCount = existingWhitespace.ConvertTabToSpace(
+            options.TabSize,
+            initialColumn: 0,
+            endPosition: existingWhitespace.Length);
 
-        protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
+        // Then add the desired indentation spaces to it.
+        var desiredSpaceCount = spaceCount + options.IndentationSize;
 
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument)
-            {
-            }
-        }
+        // Now convert back to a string with the appropriate tab/space configuration.
+        var desiredWhitespace = desiredSpaceCount.CreateIndentationString(options.UseTabs, options.TabSize);
+        return Whitespace(desiredWhitespace);
     }
 }

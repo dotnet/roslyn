@@ -10,8 +10,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -19,25 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class MethodToStateMachineRewriter : MethodToClassRewriter
     {
         internal readonly MethodSymbol OriginalMethod;
-
-        /// <summary>
-        /// True if we need to generate the code to do the bookkeeping so we can "finalize" the state machine
-        /// by executing code from its current state through the enclosing finally blocks.  This is true for
-        /// iterators and false for async.
-        /// </summary>
-        private readonly bool _useFinalizerBookkeeping;
-
-        /// <summary>
-        /// Generate return statements from the state machine method body.
-        /// </summary>
-        protected abstract BoundStatement GenerateReturn(bool finished);
-
-        /// <summary>
-        /// Signal the transition from `try`/`catch` blocks to the `finally` block.
-        /// </summary>
-        protected virtual void CloseTryCatchBlocks()
-        {
-        }
 
         protected readonly SyntheticBoundNodeFactory F;
 
@@ -55,59 +36,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly LocalSymbol cachedState;
 
         /// <summary>
-        /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this" 
+        /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this"
         /// is semantically immutable.
         /// It would be hard for such caching to happen at JIT level (since JIT does not know that it never changes).
         /// NOTE: this field is null when we are not caching "this" which happens when
         ///       - not optimizing
         ///       - method is not capturing "this" at all
-        ///       - containing type is a struct 
-        ///       (we could cache "this" as a ref local for struct containers, 
-        ///       but such caching would not save as much indirection and could actually 
+        ///       - containing type is a struct
+        ///       (we could cache "this" as a ref local for struct containers,
+        ///       but such caching would not save as much indirection and could actually
         ///       be done at JIT level, possibly more efficiently)
         /// </summary>
-        protected readonly LocalSymbol cachedThis;
+        protected readonly LocalSymbol? cachedThis;
 
-        private int _nextState;
+        protected readonly FieldSymbol? instanceIdField;
+
+        /// <summary>
+        /// Allocates resumable states, i.e. states that resume execution of the state machine after await expression or yield return.
+        /// </summary>
+        private readonly ResumableStateMachineStateAllocator _resumableStateAllocator;
 
         /// <summary>
         /// For each distinct label, the set of states that need to be dispatched to that label.
         /// Note that there is a dispatch occurring at every try-finally statement, so this
         /// variable takes on a new set of values inside each try block.
         /// </summary>
-        private Dictionary<LabelSymbol, List<int>> _dispatches = new Dictionary<LabelSymbol, List<int>>();
-
-        /// <summary>
-        /// A try block might have no state (transitions) within it, in which case it does not need
-        /// to have a state to represent finalization.  This flag tells us whether the current try
-        /// block that we are within has a finalizer state.  Initially true as we have the (trivial)
-        /// finalizer state of -1 at the top level.  Not used if !this.useFinalizerBookkeeping.
-        /// </summary>
-        private bool _hasFinalizerState = true;
-
-        /// <summary>
-        /// If hasFinalizerState is true, this is the state for finalization from anywhere in this
-        /// try block.  Initially set to -1, representing the no-op finalization required at the top
-        /// level.  Not used if !this.useFinalizerBookkeeping.
-        /// </summary>
-        private int _currentFinalizerState = -1;
+        private Dictionary<LabelSymbol, List<StateMachineState>> _dispatches = new Dictionary<LabelSymbol, List<StateMachineState>>();
 
         /// <summary>
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,
         /// so that members of this set may be allocated to locals when the locals come into scope.
         /// </summary>
-        private Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>> _lazyAvailableReusableHoistedFields;
+        private Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>? _lazyAvailableReusableHoistedFields;
+
+        /// <summary>
+        /// We collect all the hoisted fields for locals, so that we can clear them so the GC can collect references.
+        /// </summary>
+        private readonly ArrayBuilder<FieldSymbol> _fieldsForCleanup;
 
         /// <summary>
         /// Fields allocated for temporary variables are given unique names distinguished by a number at the end.
         /// This counter ensures they are unique within a given translated method.
         /// </summary>
         private int _nextHoistedFieldId = 1;
-
-        /// <summary>
-        /// Used to enumerate the instance fields of a struct.
-        /// </summary>
-        private readonly EmptyStructTypeCache _emptyStructTypeCache = EmptyStructTypeCache.CreateNeverEmpty();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
@@ -117,33 +88,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals;
         private int _nextFreeHoistedLocalSlot;
 
+        /// <summary>
+        /// EnC support: the rewriter stores debug info for each await/yield in this builder.
+        /// </summary>
+        private readonly ArrayBuilder<StateMachineStateDebugInfo> _stateDebugInfoBuilder;
+
+        // Instrumentation related bound nodes:
+        protected BoundBlockInstrumentation? instrumentation;
+
+        private readonly RefInitializationHoister<StateMachineFieldSymbol, BoundFieldAccess> _refInitializationHoister;
+
         // new:
         public MethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
+            FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
-            VariableSlotAllocator slotAllocatorOpt,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
+            VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics,
-            bool useFinalizerBookkeeping)
+            BindingDiagnosticBag diagnostics)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
             Debug.Assert(F != null);
             Debug.Assert(originalMethod != null);
             Debug.Assert(state != null);
             Debug.Assert(nonReusableLocalProxies != null);
+            Debug.Assert(!nonReusableFieldsForCleanup.IsDefault);
             Debug.Assert(diagnostics != null);
             Debug.Assert(hoistedVariables != null);
             Debug.Assert(nextFreeHoistedLocalSlot >= 0);
 
             this.F = F;
             this.stateField = state;
+            this.instanceIdField = instanceIdField;
             this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), syntax: F.Syntax, kind: SynthesizedLocalKind.StateMachineCachedState);
-            _useFinalizerBookkeeping = useFinalizerBookkeeping;
-            _hasFinalizerState = useFinalizerBookkeeping;
             this.OriginalMethod = originalMethod;
             _hoistedVariables = hoistedVariables;
             _synthesizedLocalOrdinals = synthesizedLocalOrdinals;
@@ -154,18 +137,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.proxies.Add(proxy.Key, proxy.Value);
             }
 
+            _fieldsForCleanup = new ArrayBuilder<FieldSymbol>(nonReusableFieldsForCleanup.Length);
+            _fieldsForCleanup.AddRange(nonReusableFieldsForCleanup);
+
             // create cache local for reference type "this" in Release
             var thisParameter = originalMethod.ThisParameter;
-            CapturedSymbolReplacement thisProxy;
-            if ((object)thisParameter != null &&
+            CapturedSymbolReplacement? thisProxy;
+            if (thisParameter is not null &&
                 thisParameter.Type.IsReferenceType &&
                 proxies.TryGetValue(thisParameter, out thisProxy) &&
                 F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
-                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
+                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
+                Debug.Assert(thisProxyReplacement.Type is not null);
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
+
+            _stateDebugInfoBuilder = stateMachineStateDebugInfoBuilder;
+
+            // Use the first state number that is not used by any previous version of the state machine
+            // for the first added state that doesn't match any states of the previous state machine.
+            // Note the initial states of the previous and the current state machine are always the same.
+            // Note the previous state machine might not have any non-initial states.
+            _resumableStateAllocator = new ResumableStateMachineStateAllocator(
+                slotAllocatorOpt,
+                firstState: FirstIncreasingResumableState,
+                increasing: true);
+
+            _refInitializationHoister = new RefInitializationHoister<StateMachineFieldSymbol, BoundFieldAccess>(F, OriginalMethod, TypeMap);
         }
+#nullable disable
+
+        protected abstract StateMachineState FirstIncreasingResumableState { get; }
+        protected abstract HotReloadExceptionCode EncMissingStateErrorCode { get; }
+
+        /// <summary>
+        /// Generate return statements from the state machine method body.
+        /// </summary>
+        protected abstract BoundStatement GenerateReturn(bool finished);
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -205,40 +214,69 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.Syntax = oldSyntax;
             return result;
         }
+#nullable enable
+        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
+            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, awaitId, out state, out resumeLabel);
 
-        protected void AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            stateNumber = _nextState++;
-
-            if (_useFinalizerBookkeeping && !_hasFinalizerState)
-            {
-                _currentFinalizerState = _nextState++;
-                _hasFinalizerState = true;
-            }
-
+            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax, awaitId);
+            AddStateDebugInfo(awaitOrYieldReturnSyntax, awaitId, stateNumber);
             AddState(stateNumber, out resumeLabel);
         }
 
-        protected void AddState(int stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
-            if (_dispatches == null)
-            {
-                _dispatches = new Dictionary<LabelSymbol, List<int>>();
-            }
+            RoslynDebug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
+
+            int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
+            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));
+        }
+
+        protected void AddState(StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
+        {
+            _dispatches ??= new Dictionary<LabelSymbol, List<StateMachineState>>();
 
             resumeLabel = F.GenerateLabel("stateMachine");
-            var states = new List<int>();
-            states.Add(stateNumber);
-            _dispatches.Add(resumeLabel, states);
+            _dispatches.Add(resumeLabel, new List<StateMachineState> { stateNumber });
         }
 
-        protected BoundStatement Dispatch()
+        /// <summary>
+        /// Generates code that switches over states and jumps to the target labels listed in <see cref="_dispatches"/>.
+        /// </summary>
+        /// <param name="isOutermost">
+        /// If this is the outermost state dispatch switching over all states of the state machine - i.e. not state dispatch generated for a try-block.
+        /// </param>
+        protected BoundStatement Dispatch(bool isOutermost)
         {
-            return F.Switch(F.Local(cachedState),
-                    (from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key))).ToImmutableArray()
-                    );
+            var sections = from kv in _dispatches
+                           orderby kv.Value[0]
+                           select F.SwitchSection(kv.Value.SelectAsArray(state => (int)state), F.Goto(kv.Key));
+
+            var result = F.Switch(F.Local(cachedState), sections.ToImmutableArray());
+
+            // Suspension states that were generated for any previous generation of the state machine
+            // but are not present in the current version (awaits/yields have been deleted) need to be dispatched to a throw expression.
+            // When an instance of previous version of the state machine is suspended in a state that does not exist anymore
+            // in the current version dispatch that state to a throw expression. We do not know for sure where to resume in the new version of the method.
+            // Guessing would likely result in unexpected behavior. Resuming in an incorrect point might result in an execution of code that
+            // has already been executed or skipping code that initializes some user state.
+            if (isOutermost)
+            {
+                var missingStateDispatch = GenerateMissingStateDispatch();
+                if (missingStateDispatch != null)
+                {
+                    result = F.Block(result, missingStateDispatch);
+                }
+            }
+
+            return result;
         }
 
+        protected virtual BoundStatement? GenerateMissingStateDispatch()
+            => _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), EncMissingStateErrorCode);
+
+#nullable disable
 #if DEBUG
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -278,7 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                 if (local.RefKind != RefKind.None)
                 {
-                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
+                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                                 (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
                     continue;
                 }
 
@@ -290,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     proxies.Add(local, proxy);
                 }
 
-                // We need to produce hoisted local scope debug information for user locals as well as 
-                // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
+                // We need to produce hoisted local scope debug information for user locals as well as
+                // lambda display classes, since Dev12 EE uses them to determine which variables are displayed
                 // in Locals window.
                 if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
@@ -306,9 +345,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var translatedStatement = wrapped();
-            var variableCleanup = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
+            var variableCleanup = ArrayBuilder<BoundExpression>.GetInstance();
 
-            // produce cleanup code for all fields of locals defined by this block 
+            // produce cleanup code for all fields of locals defined by this block
             // as well as all proxies allocated by VisitAssignmentOperator within this block:
             foreach (var local in locals)
             {
@@ -330,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    foreach (var field in ((CapturedToExpressionSymbolReplacement)proxy).HoistedFields)
+                    foreach (var field in ((CapturedToExpressionSymbolReplacement<StateMachineFieldSymbol>)proxy).HoistedSymbols)
                     {
                         AddVariableCleanup(variableCleanup, field);
 
@@ -392,36 +431,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
+        /// <summary>
+        /// Clear fields allocated to temporaries when the underlying variable goes out of scope, so
+        /// that they do not cause unnecessary object retention.
+        /// </summary>
+        private void AddVariableCleanup(ArrayBuilder<BoundExpression> cleanup, FieldSymbol field)
         {
-            if (MightContainReferences(field.Type))
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+            bool isManaged = field.Type.IsManagedType(ref useSiteInfo);
+            F.Diagnostics.Add(field.GetFirstLocationOrNone(), useSiteInfo);
+            if (isManaged)
             {
                 cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
             }
         }
 
-        /// <summary>
-        /// Might the given type be, or contain, managed references?  This is used to determine which
-        /// fields allocated to temporaries should be cleared when the underlying variable goes out of scope, so
-        /// that they do not cause unnecessary object retention.
-        /// </summary>
-        private bool MightContainReferences(TypeSymbol type)
+#nullable enable
+        protected BoundBlock GenerateAllHoistedLocalsCleanup()
         {
-            if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter) return true; // type parameter or reference type
-            if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
-            if (type.SpecialType == SpecialType.System_TypedReference) return true;
-            if (type.SpecialType != SpecialType.None) return false; // int, etc
-            if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
-            foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
+            var variableCleanup = ArrayBuilder<BoundExpression>.GetInstance();
+
+            foreach (FieldSymbol fieldSymbol in _fieldsForCleanup)
             {
-                if (MightContainReferences(f.Type)) return true;
+                AddVariableCleanup(variableCleanup, fieldSymbol);
             }
-            return false;
+
+            var result = F.Block(variableCleanup.SelectAsArray((e, f) => (BoundStatement)f.ExpressionStatement(e), F));
+
+            variableCleanup.Free();
+
+            return result;
         }
 
-        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
+        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol? local = null)
         {
-            ArrayBuilder<StateMachineFieldSymbol> fields;
+            ArrayBuilder<StateMachineFieldSymbol>? fields;
             if (_lazyAvailableReusableHoistedFields != null && _lazyAvailableReusableHoistedFields.TryGetValue(type, out fields) && fields.Count > 0)
             {
                 var field = fields.Last();
@@ -433,14 +477,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             reused = false;
             var slotIndex = _nextHoistedFieldId++;
 
+            StateMachineFieldSymbol createdField;
             if (local?.SynthesizedKind == SynthesizedLocalKind.UserDefined)
             {
                 string fieldName = GeneratedNames.MakeHoistedLocalFieldName(SynthesizedLocalKind.UserDefined, slotIndex, local.Name);
-                return F.StateMachineField(type, fieldName, SynthesizedLocalKind.UserDefined, slotIndex);
+                createdField = F.StateMachineField(type, fieldName, SynthesizedLocalKind.UserDefined, slotIndex);
+            }
+            else
+            {
+                createdField = F.StateMachineField(type, GeneratedNames.ReusableHoistedLocalFieldName(slotIndex));
             }
 
-            return F.StateMachineField(type, GeneratedNames.ReusableHoistedLocalFieldName(slotIndex));
+            _fieldsForCleanup.Add(createdField);
+            return createdField;
         }
+#nullable disable
 
         private void FreeReusableHoistedField(StateMachineFieldSymbol field)
         {
@@ -458,200 +509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             fields.Add(field);
         }
 
-        private BoundExpression HoistRefInitialization(SynthesizedLocal local, BoundAssignmentOperator node)
-        {
-            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
-            Debug.Assert(local.SyntaxOpt != null);
-            Debug.Assert(this.OriginalMethod.IsAsync);
-
-            var right = (BoundExpression)Visit(node.Right);
-
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-            bool needsSacrificialEvaluation = false;
-            var hoistedFields = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
-
-            AwaitExpressionSyntax awaitSyntaxOpt;
-            int syntaxOffset;
-            if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
-            {
-                awaitSyntaxOpt = (AwaitExpressionSyntax)local.GetDeclaratorSyntax();
-                syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
-            }
-            else
-            {
-                // These are only used to calculate debug id for ref-spilled variables, 
-                // no need to do so in release build.
-                awaitSyntaxOpt = null;
-                syntaxOffset = -1;
-            }
-
-            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, local.RefKind, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
-
-            proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
-
-            if (needsSacrificialEvaluation)
-            {
-                var type = TypeMap.SubstituteType(local.Type).Type;
-                var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
-                Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
-                return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
-            }
-
-            if (sideEffects.Count == 0)
-            {
-                sideEffects.Free();
-                return null;
-            }
-
-            var last = sideEffects.Last();
-            sideEffects.RemoveLast();
-            return F.Sequence(ImmutableArray<LocalSymbol>.Empty, sideEffects.ToImmutableAndFree(), last);
-        }
-
-        private BoundExpression HoistExpression(
-            BoundExpression expr,
-            AwaitExpressionSyntax awaitSyntaxOpt,
-            int syntaxOffset,
-            RefKind refKind,
-            ArrayBuilder<BoundExpression> sideEffects,
-            ArrayBuilder<StateMachineFieldSymbol> hoistedFields,
-            ref bool needsSacrificialEvaluation)
-        {
-            switch (expr.Kind)
-            {
-                case BoundKind.ArrayAccess:
-                    {
-                        var array = (BoundArrayAccess)expr;
-                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
-                        var indices = ArrayBuilder<BoundExpression>.GetInstance();
-                        foreach (var index in array.Indices)
-                        {
-                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
-                        }
-
-                        needsSacrificialEvaluation = true; // need to force array index out of bounds exceptions
-                        return array.Update(expression, indices.ToImmutableAndFree(), array.Type);
-                    }
-
-                case BoundKind.FieldAccess:
-                    {
-                        var field = (BoundFieldAccess)expr;
-                        if (field.FieldSymbol.IsStatic)
-                        {
-                            // the address of a static field, and the value of a readonly static field, is stable
-                            if (refKind != RefKind.None || field.FieldSymbol.IsReadOnly) return expr;
-                            goto default;
-                        }
-
-                        if (refKind == RefKind.None)
-                        {
-                            goto default;
-                        }
-
-                        var isFieldOfStruct = !field.FieldSymbol.ContainingType.IsReferenceType;
-
-                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset,
-                            isFieldOfStruct ? refKind : RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
-                        if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
-                        {
-                            needsSacrificialEvaluation = true; // need the null check in field receiver
-                        }
-
-                        return F.Field(receiver, field.FieldSymbol);
-                    }
-
-                case BoundKind.ThisReference:
-                case BoundKind.BaseReference:
-                case BoundKind.DefaultExpression:
-                    return expr;
-
-                case BoundKind.Call:
-                    var call = (BoundCall)expr;
-                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
-                    //
-                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
-                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
-                    if (refKind != RefKind.None && refKind != RefKind.In)
-                    {
-                        Debug.Assert(call.Method.RefKind != RefKind.None);
-                        F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
-                    }
-                    // method call is not referentially transparent, we can only spill the result value.
-                    refKind = RefKind.None;
-                    goto default;
-
-                case BoundKind.ConditionalOperator:
-                    var conditional = (BoundConditionalOperator)expr;
-                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
-                    //
-                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
-                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
-                    if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
-                    {
-                        Debug.Assert(conditional.IsRef);
-                        F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
-                    }
-                    // conditional expr is not referentially transparent, we can only spill the result value.
-                    refKind = RefKind.None;
-                    goto default;
-
-                default:
-                    if (expr.ConstantValue != null)
-                    {
-                        return expr;
-                    }
-
-                    if (refKind != RefKind.None)
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(expr.Kind);
-                    }
-
-                    TypeSymbol fieldType = expr.Type;
-                    StateMachineFieldSymbol hoistedField;
-                    if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
-                    {
-                        const SynthesizedLocalKind kind = SynthesizedLocalKind.AwaitByRefSpill;
-
-                        Debug.Assert(awaitSyntaxOpt != null);
-
-                        int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(kind, syntaxOffset);
-                        var id = new LocalDebugId(syntaxOffset, ordinal);
-
-                        // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
-                        // However, it may happen that the type changes, in which case we need to allocate a new slot.
-                        int slotIndex;
-                        if (slotAllocatorOpt == null ||
-                            !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
-                                awaitSyntaxOpt,
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics),
-                                kind,
-                                id,
-                                Diagnostics,
-                                out slotIndex))
-                        {
-                            slotIndex = _nextFreeHoistedLocalSlot++;
-                        }
-
-                        string fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
-                        hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);
-                    }
-                    else
-                    {
-                        hoistedField = GetOrAllocateReusableHoistedField(fieldType, reused: out _);
-                    }
-
-                    hoistedFields.Add(hoistedField);
-
-                    var replacement = F.Field(F.This(), hoistedField);
-                    sideEffects.Add(F.AssignmentExpression(replacement, expr));
-                    return replacement;
-            }
-        }
-
         #region Visitors
 
         public override BoundNode Visit(BoundNode node)
@@ -666,8 +523,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            return PossibleIteratorScope(node.Locals, () => (BoundStatement)base.VisitBlock(node));
+            if (node.Instrumentation != null)
+            {
+                // Stash away the instrumentation node, it will be used when generating MoveNext method.
+                instrumentation = (BoundBlockInstrumentation)Visit(node.Instrumentation);
+            }
+
+            return PossibleIteratorScope(node.Locals, () => VisitBlock(node, removeInstrumentation: true));
         }
+
+        public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+            => F.Field(F.This(), instanceIdField);
 
         public override BoundNode VisitScope(BoundScope node)
         {
@@ -733,12 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
-            throw ExceptionUtilities.Unreachable; // for statements have been lowered away by now
+            throw ExceptionUtilities.Unreachable(); // for statements have been lowered away by now
         }
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            throw ExceptionUtilities.Unreachable; // using statements have been lowered away by now
+            throw ExceptionUtilities.Unreachable(); // using statements have been lowered away by now
         }
 
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
@@ -775,12 +641,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. Ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
+            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (leftLocal.SynthesizedKind == SynthesizedLocalKind.ForEachArray && leftLocal.Type.HasInlineArrayAttribute(out _) && leftLocal.Type.TryGetInlineArrayElementField() is object));
             Debug.Assert(node.IsRef);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
             // So we assign the proxy before translating the assignment.
-            return HoistRefInitialization((SynthesizedLocal)leftLocal, node);
+            var visitedRight = (BoundExpression)Visit(node.Right);
+            return _refInitializationHoister.HoistRefInitialization(
+                leftLocal,
+                visitedRight,
+                proxies,
+                createHoistedSymbol,
+                createHoistedAccess,
+                this,
+                isRuntimeAsync: false);
+
+            static StateMachineFieldSymbol createHoistedSymbol(TypeSymbol type, MethodToStateMachineRewriter @this, LocalSymbol assignedLocal)
+            {
+                StateMachineFieldSymbol hoistedSymbol;
+
+                // https://github.com/dotnet/roslyn/issues/79793 - consider whether runtime async will need some of this work for enc
+                if (@this.F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    const SynthesizedLocalKind kind = SynthesizedLocalKind.AwaitByRefSpill;
+                    SyntaxNode awaitSyntax = assignedLocal.GetDeclaratorSyntax();
+#pragma warning disable format
+                    Debug.Assert(assignedLocal.SynthesizedKind switch
+                                 {
+                                     SynthesizedLocalKind.Spill => awaitSyntax.IsKind(SyntaxKind.AwaitExpression) || awaitSyntax.IsKind(SyntaxKind.SwitchExpression),
+                                     SynthesizedLocalKind.ForEachArray => awaitSyntax is CommonForEachStatementSyntax,
+                                     _ => false
+                                 });
+#pragma warning restore format
+                    int syntaxOffset = @this.OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntax), awaitSyntax.SyntaxTree);
+
+                    Debug.Assert(awaitSyntax != null);
+
+                    int ordinal = @this._synthesizedLocalOrdinals.AssignLocalOrdinal(kind, syntaxOffset);
+                    var id = new LocalDebugId(syntaxOffset, ordinal);
+
+                    // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
+                    // However, it may happen that the type changes, in which case we need to allocate a new slot.
+                    int slotIndex;
+                    if (@this.slotAllocator == null ||
+                        !@this.slotAllocator.TryGetPreviousHoistedLocalSlotIndex(
+                            awaitSyntax,
+                            @this.F.ModuleBuilderOpt.Translate(type, awaitSyntax, @this.Diagnostics.DiagnosticBag),
+                            kind,
+                            id,
+                            @this.Diagnostics.DiagnosticBag,
+                            out slotIndex))
+                    {
+                        slotIndex = @this._nextFreeHoistedLocalSlot++;
+                    }
+
+                    string fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
+                    hoistedSymbol = @this.F.StateMachineField(type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);
+                    @this._fieldsForCleanup.Add(hoistedSymbol);
+                }
+                else
+                {
+                    hoistedSymbol = @this.GetOrAllocateReusableHoistedField(type, out _);
+                }
+
+                return hoistedSymbol;
+            }
+
+            static BoundFieldAccess createHoistedAccess(StateMachineFieldSymbol fieldSymbol, MethodToStateMachineRewriter @this)
+                => @this.F.Field(@this.F.This(), fieldSymbol);
         }
 
         /// <summary>
@@ -800,63 +729,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var oldDispatches = _dispatches;
-            var oldFinalizerState = _currentFinalizerState;
-            var oldHasFinalizerState = _hasFinalizerState;
 
             _dispatches = null;
-            _currentFinalizerState = -1;
-            _hasFinalizerState = false;
 
             BoundBlock tryBlock = F.Block((BoundStatement)this.Visit(node.TryBlock));
             GeneratedLabelSymbol dispatchLabel = null;
             if (_dispatches != null)
             {
                 dispatchLabel = F.GenerateLabel("tryDispatch");
-                if (_hasFinalizerState)
-                {
-                    // cause the current finalizer state to arrive here and then "return false"
-                    var finalizer = F.GenerateLabel("finalizer");
-                    _dispatches.Add(finalizer, new List<int>() { _currentFinalizerState });
-                    var skipFinalizer = F.GenerateLabel("skipFinalizer");
-                    tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
-                        Dispatch(),
-                        F.Goto(skipFinalizer),
-                        F.Label(finalizer), // code for the finalizer here
-                        GenerateSetBothStates(StateMachineStates.NotStartedStateMachine),
-                        GenerateReturn(false),
-                        F.Label(skipFinalizer),
-                        tryBlock);
-                }
-                else
-                {
-                    tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
-                        Dispatch(),
-                        tryBlock);
-                }
 
-                if (oldDispatches == null)
-                {
-                    Debug.Assert(!oldHasFinalizerState);
-                    oldDispatches = new Dictionary<LabelSymbol, List<int>>();
-                }
+                tryBlock = F.Block(
+                    F.HiddenSequencePoint(),
+                    Dispatch(isOutermost: false),
+                    tryBlock);
 
-                oldDispatches.Add(dispatchLabel, new List<int>(from kv in _dispatches.Values from n in kv orderby n select n));
+                oldDispatches ??= new Dictionary<LabelSymbol, List<StateMachineState>>();
+                oldDispatches.Add(dispatchLabel, new List<StateMachineState>(from kv in _dispatches.Values from n in kv orderby n select n));
             }
 
-            _hasFinalizerState = oldHasFinalizerState;
-            _currentFinalizerState = oldFinalizerState;
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
 
-            CloseTryCatchBlocks();
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(
                     condition: ShouldEnterFinallyBlock(),
-                    thenClause: (BoundBlock)this.Visit(node.FinallyBlockOpt)
+                    thenClause: VisitFinally(node.FinallyBlockOpt)
                 ),
                 F.HiddenSequencePoint());
 
@@ -873,15 +772,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        protected virtual BoundBlock VisitFinally(BoundBlock finallyBlock)
+        {
+            return (BoundBlock)this.Visit(finallyBlock);
+        }
+
         protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()
         {
-            return F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineStates.FirstUnusedState));
+            return F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineState.FirstUnusedState));
         }
 
         /// <summary>
         /// Set the state field and the cached state
         /// </summary>
-        protected BoundExpressionStatement GenerateSetBothStates(int stateNumber)
+        protected BoundExpressionStatement GenerateSetBothStates(StateMachineState stateNumber)
         {
             // this.state = cachedState = stateNumber;
             return F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(stateNumber)));
@@ -893,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)this.cachedThis != null)
             {
                 CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
-                var fetchThis = proxy.Replacement(F.Syntax, frameType => F.This());
+                var fetchThis = proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
                 return F.Assignment(F.Local(this.cachedThis), fetchThis);
             }
 
@@ -921,15 +825,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //TODO: It seems we may capture more than needed here.
 
-                // TODO: Why don't we drop "this" while lowering if method is static? 
-                //       Actually, considering that method group expression does not evaluate to a particular value 
+                // TODO: Why don't we drop "this" while lowering if method is static?
+                //       Actually, considering that method group expression does not evaluate to a particular value
                 //       why do we have it in the lowered tree at all?
                 return node.Update(VisitType(node.Type));
             }
             else
             {
                 Debug.Assert(proxy != null);
-                return proxy.Replacement(F.Syntax, frameType => F.This());
+                return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
             }
         }
 
@@ -945,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
             Debug.Assert(proxy != null);
-            return proxy.Replacement(F.Syntax, frameType => F.This());
+            return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
         }
 
         #endregion

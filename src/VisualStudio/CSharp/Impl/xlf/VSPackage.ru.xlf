@@ -33,13 +33,16 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
 Enable full solution analysis;
 Perform editor feature analysis in external process;
 Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
 Using directives;
 Place system directives first when sorting usings;
 Separate using directive groups;
@@ -50,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -78,54 +84,77 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">показывать диагностику для закрытых файлов;
-выделить регулярные выражения цветом; 
-выделить связанные компоненты под курсором; 
-сообщать о недопустимых регулярных выражениях;
- включить полный анализ решения;
-выполнить анализ функций редактора во внешнем процессе;
-включить переход к декомпилированным источникам;
-директивы using;
-располагать директивы system первыми при сортировке using;
-разделять группы директив using;
-предлагать директивы using для типов в базовых сборках;
-предлагать директивы using для типов в пакетах NuGet;
-выделение;
-выделять ссылки на символ под курсором;
-выделить связанные ключевые слова под курсором;
-структурирование;
-включать режим редактирования структуры при открытии файлов;
-показывать разделители строк процедур;
-показывать структуру для конструкций уровня объявления;
-показывать структуру для конструкций уровня кода;
-показывать структуру для комментариев и областей препроцессора;
-сворачивать области при сворачивании в определения;
-исчезание;
-скрывать неиспользуемые директивы using;
-скрывать недостижимый код;
-направляющие для структуры блоков;
-показывать направляющие для конструкций уровня объявления;
-показывать направляющие для конструкций уровня кода;
-справка по редактору;
-создавать комментарии XML-документации для ///;
-вставлять * в начале новой строки при написании комментариев /* */;
-показывать предпросмотр для отслеживания переименований;
-разделять строковые литералы при нажатии клавиши ВВОД;
-сообщать о недопустимых заполнителях в вызовах string.Format;
-извлечение метода;
-не помещать ссылку или вывод в настраиваемую структуру;
-реализовать интерфейс или абстрактный класс;
-при вставке свойств, методов и событий помещать их;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Подчеркивать переназначенные переменные;
+Показывать встроенные подсказки;
+Показывать диагностику для закрытых файлов;
+Выделять регулярные выражения цветом;
+Выделять родственные компоненты под курсором;
+Сообщать о недопустимых регулярных выражениях;
+Включить полный анализ решения;
+Выполнять анализ функций редактора во внешнем процессе;
+Включить переход к декомпилированным источникам;
+Всегда использовать серверы символов по умолчанию для навигации;
+Директивы using;
+Располагать директивы system первыми при сортировке директив using;
+Разделять группы директив using;
+Предлагать директивы using для типов в базовых сборках;
+Предлагать директивы using для типов в пакетах NuGet;
+Выделение;
+Выделять ссылки на символ под курсором;
+Выделять связанные ключевые слова под курсором;
+Структурирование;
+Переходить в режим редактирования структуры при открытии файлов;
+Сворачивать #regions при открытии файлов;
+Сворачивать директивы using при открытии файлов;
+Сворачивать реализации метаданных при открытии файлов;
+Показывать разделители строк процедур;
+Показывать структуру для конструкций уровня объявления;
+Показывать структуру для конструкций уровня кода;
+Показывать структуру для комментариев и областей препроцессора;
+Сворачивать области при сворачивании в определения;
+Показывать бледным цветом;
+Показывать неиспользуемые директивы using бледным цветом;
+Показывать недостижимый код бледным цветом;
+Направляющие для структуры блоков;
+Показывать направляющие для конструкций уровня объявления;
+Показывать направляющие для конструкций уровня кода;
+Справка по редактору;
+Генерировать комментарии XML-документации для ///;
+Вставлять * в начале новой строки при написании комментариев типа /* */;
+Показывать предварительный просмотр для отслеживания переименований;
+Разделять строковые литералы при нажатии клавиши ВВОД;
+Сообщать о недопустимых заполнителях в вызовах string.Format;
+Извлечение метода;
+Не помещать ref и out в пользовательские структуры;
+Реализовать интерфейс или абстрактный класс;
+При вставке свойств, методов и событий помещать их;
 вместе с другими элементами того же типа;
 в конец;
-при создании свойства;
+При создании свойства;
 предпочитать свойства, создающие исключения;
-предпочитать автосвойства;
+предпочитать автоматические свойства;
 регулярное выражение;
 регулярное выражение;
-использовать расширенные цвета;</target>
+Выделять регулярные выражения цветом;
+Выделять связанные компоненты под курсором;
+Сообщать о недопустимых регулярных выражениях;
+JSON;
+Выделять строки JSON цветом;
+Сообщать о недопустимых строках JSON;
+Находить и предлагать функции редактора для строк JSON;
+Использовать расширенный набор цветов;
+Цветовая схема редактора;
+Поле наследования;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -269,37 +298,6 @@ Insert space before and after binary operators;</source>
         <target state="translated">Изменение параметров форматирования для переноса по словам; оставить блок в одной строке; оставить запросы и объявления членов в той же строке</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Highlight matching portions of completion list items;
-Show completion item filters;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Изменить параметры списка завершения;Предварительно выбрать наиболее часто используемый член; Списки завершения;
-Показывать список завершения после ввода символа;
-Показывать список завершения после удаления символа;
-Выделять совпадающие части элементов списка завершения;
-Показывать фильтры элементов завершения;
-Поведение фрагментов кода;
-Никогда не включать фрагменты кода;
-Всегда включать фрагменты кода;
-Включать фрагменты кода, когда после идентификатора указывается ?-Tab;
-Поведение при нажатии клавиши ВВОД;
-Никогда не добавлять новую строку при нажатии клавиши ВВОД;
-Добавлять новую строку при нажатии клавиши ВВОД только в конце полностью введенного слова;
-Всегда добавлять новую строку при нажатии клавиши ВВОД;
-Показывать варианты имен;</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">Форматирование</target>
@@ -375,14 +373,34 @@ Show name suggestions;</source>
         <target state="translated">Компоненты C#, используемые в интегрированной среде разработки. В зависимости от типа и настроек проекта могут использоваться различные версии компилятора.</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">Пустой файл скрипта C#.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Всегда добавлять новую строку при нажатии клавиши ВВОД</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Скрипт Visual C#</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Всегда включать фрагменты кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default">
+        <source>Default</source>
+        <target state="translated">По умолчанию</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when Tab is typed after an identifier</source>
+        <target state="translated">Включать фрагменты кода, когда после идентификатора нажата клавиша TAB</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Никогда не добавлять новую строку при нажатии клавиши ВВОД</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Никогда не включать фрагменты кода</target>
         <note />
       </trans-unit>
     </body>

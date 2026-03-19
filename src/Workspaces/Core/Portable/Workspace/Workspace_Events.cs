@@ -3,218 +3,197 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public abstract partial class Workspace
 {
-    public abstract partial class Workspace
+    private readonly WorkspaceEventMap _eventMap = new();
+
+    internal enum WorkspaceEventType
     {
-        private readonly EventMap _eventMap = new EventMap();
+        DocumentActiveContextChanged,
+        DocumentClosed,
+        DocumentOpened,
+        TextDocumentClosed,
+        TextDocumentOpened,
+        WorkspaceChange,
+        WorkspaceChangedImmediate,
+        WorkspaceFailed,
+    }
 
-        private const string WorkspaceChangeEventName = "WorkspaceChanged";
-        private const string WorkspaceFailedEventName = "WorkspaceFailed";
-        private const string DocumentOpenedEventName = "DocumentOpened";
-        private const string DocumentClosedEventName = "DocumentClosed";
-        private const string DocumentActiveContextChangedName = "DocumentActiveContextChanged";
+    private IWorkspaceEventListenerService? _workspaceEventListenerService;
 
-        /// <summary>
-        /// An event raised whenever the current solution is changed.
-        /// </summary>
-        public event EventHandler<WorkspaceChangeEventArgs> WorkspaceChanged
+    #region Event Registration
+
+    /// <summary>
+    /// Registers a handler that is fired whenever the current solution is changed.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterWorkspaceChangedHandler(Action<WorkspaceChangeEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.WorkspaceChange, handler, options);
+
+    /// <summary>
+    /// Registers a handler that is fired *immediately* whenever the current solution is changed.
+    /// Handlers should be written to be very fast. Always called from the thread changing the workspace,
+    /// regardless of the preferences indicated by the passed in options. This thread my vary depending
+    /// on the workspace.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterWorkspaceChangedImmediateHandler(Action<WorkspaceChangeEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.WorkspaceChangedImmediate, handler, options);
+
+    /// <summary>
+    /// Registers a handler that is fired whenever the workspace or part of its solution model
+    /// fails to access a file or other external resource.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterWorkspaceFailedHandler(Action<WorkspaceDiagnosticEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.WorkspaceFailed, handler, options);
+
+    /// <summary>
+    /// Registers a handler that is fired when a <see cref="Document"/> is opened in the editor.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterDocumentOpenedHandler(Action<DocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.DocumentOpened, handler, options);
+
+    /// <summary>
+    /// Registers a handler that is fired when a <see cref="Document"/> is closed in the editor.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterDocumentClosedHandler(Action<DocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.DocumentClosed, handler, options);
+
+    /// <summary>
+    /// Registers a handler that is fired when any <see cref="TextDocument"/> is opened in the editor.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterTextDocumentOpenedHandler(Action<TextDocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.TextDocumentOpened, handler, options);
+
+    /// <summary>
+    /// Registers a handler that is fired when any <see cref="TextDocument"/> is closed in the editor.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterTextDocumentClosedHandler(Action<TextDocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.TextDocumentClosed, handler, options);
+
+    /// <summary>
+    /// Registers a handler that is fired when the active context document associated with a buffer 
+    /// changes.
+    /// </summary>
+    public WorkspaceEventRegistration RegisterDocumentActiveContextChangedHandler(Action<DocumentActiveContextChangedEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceEventType.DocumentActiveContextChanged, handler, options);
+
+    private WorkspaceEventRegistration RegisterHandler<TEventArgs>(WorkspaceEventType eventType, Action<TEventArgs> handler, WorkspaceEventOptions? options = null)
+        where TEventArgs : EventArgs
+    {
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => handler((TEventArgs)args), options ?? WorkspaceEventOptions.DefaultOptions);
+
+        return _eventMap.AddEventHandler(eventType, handlerAndOptions);
+    }
+
+    #endregion
+
+    protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
+    {
+        if (newSolution == null)
+            throw new ArgumentNullException(nameof(newSolution));
+
+        if (oldSolution == newSolution)
+            return Task.CompletedTask;
+
+        if (projectId == null && documentId != null)
+            projectId = documentId.ProjectId;
+
+        WorkspaceChangeEventArgs? args = null;
+
+        var immediateHandlerSet = GetEventHandlers(WorkspaceEventType.WorkspaceChangedImmediate);
+        if (immediateHandlerSet.HasHandlers)
         {
-            add
-            {
-                _eventMap.AddEventHandler(WorkspaceChangeEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(WorkspaceChangeEventName, value);
-            }
+            args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+            immediateHandlerSet.RaiseEvent(args, shouldRaiseEvent: static option => true);
         }
 
-        protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId projectId = null, DocumentId documentId = null)
+        var handlerSet = GetEventHandlers(WorkspaceEventType.WorkspaceChange);
+        if (handlerSet.HasHandlers)
         {
-            if (newSolution == null)
-            {
-                throw new ArgumentNullException(nameof(newSolution));
-            }
-
-            if (oldSolution == newSolution)
-            {
-                return Task.CompletedTask;
-            }
-
-            if (projectId == null && documentId != null)
-            {
-                projectId = documentId.ProjectId;
-            }
-
-            var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
-            if (ev.HasHandlers)
-            {
-                return this.ScheduleTask(() =>
-                {
-                    using (Logger.LogBlock(FunctionId.Workspace_Events, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
-                    {
-                        var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                        ev.RaiseEvent(handler => handler(this, args));
-                    }
-                }, WorkspaceChangeEventName);
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
+            args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+            return this.ScheduleTask(args, handlerSet);
         }
 
-        /// <summary>
-        /// An event raised whenever the workspace or part of its solution model
-        /// fails to access a file or other external resource.
-        /// </summary>
-        public event EventHandler<WorkspaceDiagnosticEventArgs> WorkspaceFailed
-        {
-            add
-            {
-                _eventMap.AddEventHandler(WorkspaceFailedEventName, value);
-            }
+        return Task.CompletedTask;
+    }
 
-            remove
-            {
-                _eventMap.RemoveEventHandler(WorkspaceFailedEventName, value);
-            }
+    protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
+    {
+        var handlerSet = GetEventHandlers(WorkspaceEventType.WorkspaceFailed);
+        if (handlerSet.HasHandlers)
+        {
+            var args = new WorkspaceDiagnosticEventArgs(diagnostic);
+            handlerSet.RaiseEvent(args, shouldRaiseEvent: static option => true);
+        }
+    }
+
+    protected Task RaiseDocumentOpenedEventAsync(Document document)
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), WorkspaceEventType.DocumentOpened);
+
+    protected Task RaiseTextDocumentOpenedEventAsync(TextDocument document)
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), WorkspaceEventType.TextDocumentOpened);
+
+    private Task RaiseTextDocumentOpenedOrClosedEventAsync<TDocument, TDocumentEventArgs>(
+        TDocument document,
+        TDocumentEventArgs args,
+        WorkspaceEventType eventType)
+        where TDocument : TextDocument
+        where TDocumentEventArgs : EventArgs
+    {
+        var handlerSet = GetEventHandlers(eventType);
+        if (handlerSet.HasHandlers && document != null)
+            return this.ScheduleTask(args, handlerSet);
+
+        return Task.CompletedTask;
+    }
+
+    protected Task RaiseDocumentClosedEventAsync(Document document)
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), WorkspaceEventType.DocumentClosed);
+
+    protected Task RaiseTextDocumentClosedEventAsync(TextDocument document)
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), WorkspaceEventType.TextDocumentClosed);
+
+    [Obsolete("This member is obsolete. Use the RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer, DocumentId, DocumentId) overload instead.", error: true)]
+    protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
+        => throw new NotImplementedException();
+
+    protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
+    {
+        if (sourceTextContainer == null || oldActiveContextDocumentId == null || newActiveContextDocumentId == null)
+            return Task.CompletedTask;
+
+        var handlerSet = GetEventHandlers(WorkspaceEventType.DocumentActiveContextChanged);
+        if (handlerSet.HasHandlers)
+        {
+            // Capture the current solution snapshot (inside the _serializationLock of OnDocumentContextUpdated)
+            var currentSolution = this.CurrentSolution;
+            var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
+
+            return this.ScheduleTask(args, handlerSet);
         }
 
-        protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
-        {
-            var ev = GetEventHandlers<WorkspaceDiagnosticEventArgs>(WorkspaceFailedEventName);
-            if (ev.HasHandlers)
-            {
-                var args = new WorkspaceDiagnosticEventArgs(diagnostic);
-                ev.RaiseEvent(handler => handler(this, args));
-            }
-        }
+        return Task.CompletedTask;
+    }
 
-        /// <summary>
-        /// An event that is fired when a documents is opened in the editor.
-        /// </summary>
-        public event EventHandler<DocumentEventArgs> DocumentOpened
-        {
-            add
-            {
-                _eventMap.AddEventHandler(DocumentOpenedEventName, value);
-            }
+    private EventHandlerSet GetEventHandlers(WorkspaceEventType eventType)
+    {
+        // this will register features that want to listen to workspace events
+        // lazily first time workspace event is actually fired
+        EnsureEventListeners();
+        return _eventMap.GetEventHandlerSet(eventType);
+    }
 
-            remove
-            {
-                _eventMap.RemoveEventHandler(DocumentOpenedEventName, value);
-            }
-        }
+    private protected void EnsureEventListeners()
+    {
+        // Cache this service so it doesn't need to be retrieved from MEF during disposal.
+        _workspaceEventListenerService ??= this.Services.GetService<IWorkspaceEventListenerService>();
 
-        protected Task RaiseDocumentOpenedEventAsync(Document document)
-        {
-            var ev = GetEventHandlers<DocumentEventArgs>(DocumentOpenedEventName);
-            if (ev.HasHandlers && document != null)
-            {
-                return this.ScheduleTask(() =>
-                {
-                    var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, DocumentOpenedEventName);
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
-        }
-
-        /// <summary>
-        /// An event that is fired when a document is closed in the editor.
-        /// </summary>
-        public event EventHandler<DocumentEventArgs> DocumentClosed
-        {
-            add
-            {
-                _eventMap.AddEventHandler(DocumentClosedEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(DocumentClosedEventName, value);
-            }
-        }
-
-        protected Task RaiseDocumentClosedEventAsync(Document document)
-        {
-            var ev = GetEventHandlers<DocumentEventArgs>(DocumentClosedEventName);
-            if (ev.HasHandlers && document != null)
-            {
-                return this.ScheduleTask(() =>
-                {
-                    var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, DocumentClosedEventName);
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
-        }
-
-        /// <summary>
-        /// An event that is fired when the active context document associated with a buffer 
-        /// changes.
-        /// </summary>
-        public event EventHandler<DocumentActiveContextChangedEventArgs> DocumentActiveContextChanged
-        {
-            add
-            {
-                _eventMap.AddEventHandler(DocumentActiveContextChangedName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(DocumentActiveContextChangedName, value);
-            }
-        }
-
-        [Obsolete("This member is obsolete. Use the RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer, DocumentId, DocumentId) overload instead.", error: true)]
-        protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
-        {
-            var ev = GetEventHandlers<DocumentActiveContextChangedEventArgs>(DocumentActiveContextChangedName);
-            if (ev.HasHandlers && sourceTextContainer != null && oldActiveContextDocumentId != null && newActiveContextDocumentId != null)
-            {
-                // Capture the current solution snapshot (inside the _serializationLock of OnDocumentContextUpdated)
-                var currentSolution = this.CurrentSolution;
-
-                return this.ScheduleTask(() =>
-                {
-                    var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, "Workspace.WorkspaceChanged");
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
-        }
-
-        private EventMap.EventHandlerSet<EventHandler<T>> GetEventHandlers<T>(string eventName) where T : EventArgs
-        {
-            // this will register features that want to listen to workspace events
-            // lazily first time workspace event is actually fired
-            this.Services.GetService<IWorkspaceEventListenerService>()?.EnsureListeners();
-            return _eventMap.GetEventHandlers<EventHandler<T>>(eventName);
-        }
+        _workspaceEventListenerService?.EnsureListeners();
     }
 }

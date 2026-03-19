@@ -1,0 +1,65 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+    
+    <!--
+      Prevent the generation of binding redirects as they are not respected by 
+      MSBuild. At the moment it's on by default due to arcade settings that we
+      need to override here
+
+      https://github.com/dotnet/arcade/issues/9305
+     -->
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <AssemblyVersion />
+    <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn>
+
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ConsoleUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\ReflectionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\RoslynString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CanonicalError.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLineBuilderExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CopyRefAssembly.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Csc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Csi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMSBuildEditorConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IAnalyzerConfigFilesHostObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICompilerOptionsHostObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICscHostObject5.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InteractiveCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IVbcHostObject6.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ManagedCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ManagedToolTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MapSourceRoots.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MvidReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ShowMessageForImplicitlySkipAnalyzers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskCompilerServerLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateBootstrap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)ErrorString.resx" GenerateSource="true" />
+    <Content Include="$(MSBuildThisFileDirectory)Microsoft.*.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <BuildAction>None</BuildAction>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <PackagePath>contentFiles\any\any</PackagePath>
+    </Content>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.targets" />
+</Project>

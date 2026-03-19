@@ -2,31 +2,31 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer.VisualBasicUseObjectInitializerDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer.VisualBasicUseObjectInitializerCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObjectInitializer
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
     Public Class UseObjectInitializerTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicUseObjectInitializerDiagnosticAnalyzer(),
-                    New VisualBasicUseObjectInitializerCodeFixProvider())
+        Private Shared Async Function TestMissingInRegularAndScriptAsync(testCode As String) As Task
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = testCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestOnVariableDeclarator() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = [||]New C()
-        c.i = 1
+        Dim c = [|New|] C()
+        [|c|].i = 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -34,21 +34,24 @@ Class C
             .i = 1
         }
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestOnVariableDeclarator2() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
-        Dim c As [||]New C()
-        c.i = 1
+        Dim c As [|New|] C()
+        [|c|].i = 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -56,22 +59,25 @@ Class C
             .i = 1
         }
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestOnAssignmentExpression() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
         Dim c as C = Nothing
-        c = [||]New C()
-        c.i = 1
+        c = [|New|] C()
+        [|c|].i = 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -80,22 +86,25 @@ Class C
             .i = 1
         }
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestStopOnDuplicateMember() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = [||]New C()
-        c.i = 1
+        Dim c = [|New|] C()
+        [|c|].i = 1
         c.i = 2
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -104,25 +113,28 @@ Class C
         }
         c.i = 2
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestComplexInitializer() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
         Dim array As C()
 
-        array(0) = [||]New C()
-        array(0).i = 1
-        array(0).j = 2
+        array(0) = [|New|] C()
+        [|array(0)|].i = 1
+        [|array(0)|].j = 2
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -134,23 +146,26 @@ Class C
             .j = 2
         }
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestNotOnCompoundAssignment() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [||]New C()
-        c.i = 1
+        Dim c = [|New|] C()
+        [|c|].i = 1
         c.j += 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -160,89 +175,145 @@ Class C
         }
         c.j += 1
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
-        Public Async Function TestMissingWithExistingInitializer() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")>
+        Public Async Function TestWithExistingInitializer() As Task
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [||]New C() With {
+        Dim c = [|New|] C() With {
             .i = 1
         }
-        c.j = 1
+        [|c|].j = 1
     End Sub
-End Class")
+End Class"
+            Dim fixedCode = "
+Class C
+    Dim i As Integer
+    Dim j As Integer
+    Sub M()
+        Dim c = New C With {
+            .i = 1,
+            .j = 1
+        }
+    End Sub
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")>
+        Public Async Function TestWithExistingInitializerNotIfAlreadyInitialized() As Task
+            Dim testCode = "
+Class C
+    Dim i As Integer
+    Dim j As Integer
+    Sub M()
+        Dim c = [|New|] C() With {
+            .i = 1
+        }
+        [|c|].j = 1
+        c.i = 2
+    End Sub
+End Class"
+            Dim fixedCode = "
+Class C
+    Dim i As Integer
+    Dim j As Integer
+    Sub M()
+        Dim c = New C With {
+            .i = 1,
+            .j = 1
+        }
+        c.i = 2
+    End Sub
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15012")>
         Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
+imports system.diagnostics
+
 Class C
     Sub M()
-        With New String()
-            Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
+        With New String(Nothing)
+            Dim x As ProcessStartInfo = New ProcessStartInfo()
             x.Arguments = .Length.ToString()
         End With
     End Sub
 End Class")
         End Function
 
-        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15012")>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
-            Await TestInRegularAndScriptAsync(
-"                            
+            Dim testCode = "
+imports system.diagnostics
+
 Class C
     Sub M()
-        Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
-        x.Arguments = Sub()
-                         With New String()
+        Dim x As ProcessStartInfo = [|New|] ProcessStartInfo()
+        [|x|].Arguments = {|BC30491:Sub()
+                         With New String(Nothing)
                             Dim a = .Length.ToString()
                          End With
-                      End Sub()
+                      End Sub()|}
     End Sub
-End Class",
-"                            
+End Class"
+            Dim fixedCode = "
+imports system.diagnostics
+
 Class C
     Sub M()
         Dim x As ProcessStartInfo = New ProcessStartInfo With {
-            .Arguments = Sub()
-                             With New String()
+            .Arguments = {|BC30491:Sub()
+                             With New String(Nothing)
                                  Dim a = .Length.ToString()
                              End With
-                         End Sub()
+                         End Sub()|}
         }
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestFixAllInDocument() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
         Dim array As C()
 
-        array(0) = {|FixAllInDocument:New|} C()
-        array(0).i = 1
-        array(0).j = 2
+        array(0) = [|New|] C()
+        [|array(0)|].i = 1
+        [|array(0)|].j = 2
 
-        array(1) = New C()
-        array(1).i = 3
-        array(1).j = 4
+        array(1) = [|New|] C()
+        [|array(1)|].i = 3
+        [|array(1)|].j = 4
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -259,23 +330,26 @@ Class C
             .j = 4
         }
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestTrivia1() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [||]New C()
-        c.i = 1 ' Goo
-        c.j = 2 ' Bar
+        Dim c = [|New|] C()
+        [|c|].i = 1 ' Goo
+        [|c|].j = 2 ' Bar
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -285,81 +359,123 @@ Class C
             .j = 2 ' Bar
             }
     End Sub
-End Class")
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia2() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
-    Sub M()
-        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+    Sub M(Reader as String)
+        Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
-        XmlAppConfigReader.WhitespaceHandling = WhitespaceHandling.All
+        [|XmlAppConfigReader|].x = 0
+        [|XmlAppConfigReader|].y = 1
     End Sub
-End Class",
+End Class
+
+class XmlTextReader
+    public sub new(reader as string)
+    end sub
+
+    public x as integer
+    public y as integer
+end class
 "
+            Dim fixedCode = "
 Class C
-    Sub M()
+    Sub M(Reader as String)
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
         Dim XmlAppConfigReader As New XmlTextReader(Reader) With {
-            .DtdProcessing = DtdProcessing.Prohibit,
-            .WhitespaceHandling = WhitespaceHandling.All
+            .x = 0,
+            .y = 1
         }
     End Sub
-End Class")
+End Class
+
+class XmlTextReader
+    public sub new(reader as string)
+    end sub
+
+    public x as integer
+    public y as integer
+end class
+"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia3() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
-    Sub M()
-        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+    Sub M(Reader as String)
+        Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
+        [|XmlAppConfigReader|].x = 0
 
         ' Bar
-        XmlAppConfigReader.WhitespaceHandling = WhitespaceHandling.All
+        [|XmlAppConfigReader|].y = 1
     End Sub
-End Class",
+End Class
+
+class XmlTextReader
+    public sub new(reader as string)
+    end sub
+
+    public x as integer
+    public y as integer
+end class
 "
+            Dim fixedCode = "
 Class C
-    Sub M()
+    Sub M(Reader as String)
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
         ' Bar
         Dim XmlAppConfigReader As New XmlTextReader(Reader) With {
-            .DtdProcessing = DtdProcessing.Prohibit,
-            .WhitespaceHandling = WhitespaceHandling.All
+            .x = 0,
+            .y = 1
         }
     End Sub
-End Class")
+End Class
+
+class XmlTextReader
+    public sub new(reader as string)
+    end sub
+
+    public x as integer
+    public y as integer
+end class
+"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
         Public Async Function TestSharedMember() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim x As Integer
     Shared y As Integer
 
     Sub M()
-        Dim z = [||]New C()
-        z.x = 1
+        Dim z = [|New|] C()
+        [|z|].x = 1
         z.y = 2
     End Sub
 End Class
-",
 "
+            Dim fixedCode = "
 Class C
     Dim x As Integer
     Shared y As Integer
@@ -371,17 +487,20 @@ Class C
         z.y = 2
     End Sub
 End Class
-")
+"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Goo
+        Dim c As IExample = New Goo
         c.Name = String.Empty
     End Sub
 End Class
@@ -400,14 +519,13 @@ End Class
 ")
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Goo
+        Dim c As IExample = New Goo
         c.Name = String.Empty
         c.LastName = String.Empty
     End Sub
@@ -427,15 +545,13 @@ End Class
 ")
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers3() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Goo
-        c.LastName = String.Empty
+        Dim c As IExample = [|New|] Goo
+        [|c|].LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class
@@ -451,8 +567,8 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property LastName As String Implements IExample.LastName
 End Class
-",
 "
+            Dim fixedCode = "
 class C
     Sub Bar()
         Dim c As IExample = New Goo With {
@@ -473,18 +589,20 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property LastName As String Implements IExample.LastName
 End Class
-")
+"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers4() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Goo
-        c.LastName = String.Empty
+        Dim c As IExample = [|New|] Goo
+        [|c|].LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class
@@ -500,8 +618,8 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property MyLastName As String Implements IExample.LastName
 End Class
-",
 "
+            Dim fixedCode = "
 class C
     Sub Bar()
         Dim c As IExample = New Goo With {
@@ -522,7 +640,91 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property MyLastName As String Implements IExample.LastName
 End Class
-")
+"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")>
+        Public Async Function TestIndentationOfMultiLineExpressions1() As Task
+            Dim testCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = [|New|] C()
+        [|c|].S = i _
+            .ToString() _
+            .ToString()
+        [|c|].T = i.
+            ToString().
+            ToString()
+    End Sub
+End Class"
+            Dim fixedCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = New C With {
+            .S = i _
+                .ToString() _
+                .ToString(),
+            .T = i.
+                ToString().
+                ToString()
+        }
+    End Sub
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")>
+        Public Async Function TestIndentationOfMultiLineExpressions2() As Task
+            Dim testCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = [|New|] C()
+        [|c|].S = 
+            i _
+              .ToString() _
+              .ToString()
+        [|c|].T = 
+            i.ToString().
+              ToString()
+    End Sub
+End Class"
+            Dim fixedCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = New C With {
+            .S =
+                i _
+                  .ToString() _
+                  .ToString(),
+            .T =
+                i.ToString().
+                  ToString()
+        }
+    End Sub
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
         End Function
     End Class
 End Namespace

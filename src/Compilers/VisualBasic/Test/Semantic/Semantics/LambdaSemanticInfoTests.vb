@@ -2,13 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -48,7 +47,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -80,7 +78,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda3()
@@ -116,7 +113,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -148,7 +144,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda5()
@@ -225,7 +220,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda7()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -261,7 +255,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda8()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -296,7 +289,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda9()
@@ -336,7 +328,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda10()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -371,7 +362,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda11()
@@ -412,7 +402,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub Lambda12()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -452,7 +441,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub Lambda13()
@@ -1034,7 +1022,7 @@ Namespace ThenIncludeIntellisenseBug
     End Module
 End Namespace"
     ]]></file>
-</compilation>, references:={SystemCoreRef})
+</compilation>, references:={Net40.References.SystemCore})
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)

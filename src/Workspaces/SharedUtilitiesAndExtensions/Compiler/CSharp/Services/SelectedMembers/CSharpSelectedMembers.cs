@@ -2,35 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
+
+internal sealed class CSharpSelectedMembers : AbstractSelectedMembers<
+    MemberDeclarationSyntax,
+    FieldDeclarationSyntax,
+    PropertyDeclarationSyntax,
+    TypeDeclarationSyntax,
+    VariableDeclaratorSyntax>
 {
-    internal class CSharpSelectedMembers : AbstractSelectedMembers<
-        MemberDeclarationSyntax,
-        FieldDeclarationSyntax,
-        PropertyDeclarationSyntax,
-        TypeDeclarationSyntax,
-        VariableDeclaratorSyntax>
+    public static readonly CSharpSelectedMembers Instance = new();
+
+    private CSharpSelectedMembers()
     {
-        public static readonly CSharpSelectedMembers Instance = new CSharpSelectedMembers();
-
-        private CSharpSelectedMembers()
-        {
-        }
-
-        protected override IEnumerable<VariableDeclaratorSyntax> GetAllDeclarators(FieldDeclarationSyntax field)
-            => field.Declaration.Variables;
-
-        protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax containingType)
-            => containingType.Members;
-
-        protected override SyntaxToken GetPropertyIdentifier(PropertyDeclarationSyntax declarator)
-            => declarator.Identifier;
-
-        protected override SyntaxToken GetVariableIdentifier(VariableDeclaratorSyntax declarator)
-            => declarator.Identifier;
     }
+
+    protected override ImmutableArray<(SyntaxNode declarator, SyntaxToken identifier)> GetDeclaratorsAndIdentifiers(MemberDeclarationSyntax member)
+    {
+        return member switch
+        {
+            FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.SelectAsArray(
+                v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
+            EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.SelectAsArray(
+                v => (declaration: (SyntaxNode)v, identifier: v.Identifier)),
+            _ => [(declaration: (SyntaxNode)member, identifier: member.GetNameToken())],
+        };
+    }
+
+    protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax containingType)
+        => containingType.Members;
 }

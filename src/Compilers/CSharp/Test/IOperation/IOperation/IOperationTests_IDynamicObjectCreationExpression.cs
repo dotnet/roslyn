@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -9,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IDynamicObjectCreationExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -19,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 class C
 {
     public C(int i)
+    {
+    }
+    public C(long i)
     {
     }
 
@@ -163,6 +168,10 @@ class C
     {
         j = 0;
     }
+    public C(ref object i, out int j, long c)
+    {
+        j = 0;
+    }
 
     void M(object d, dynamic e)
     {
@@ -200,6 +209,9 @@ class C
     public int X;
 
     public C(char c)
+    {
+    }
+    public C(long c)
     {
     }
 
@@ -297,7 +309,10 @@ class C
         /*<bind>*/new C(delegate { }, y)/*</bind>*/;
     }
 
-    public C(Action a, Action y)
+    public C(Action a, int y)
+    {
+    }
+    public C(Action a, long y)
     {
     }
 }
@@ -352,7 +367,7 @@ IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid) (Syntax: 'new C(d)
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'C.C(int, int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'j' of 'C.C(int, int)'
                 //         var x = /*<bind>*/new C(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("j", "C.C(int, int)").WithLocation(14, 31)
             };
@@ -368,6 +383,7 @@ IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid) (Syntax: 'new C(d)
 class C1
 {
     C1(int i) { }
+    C1(long i) { }
     /*<bind>*/void M(C1 c1, dynamic d)
     {
         c1 = new C1(d);
@@ -413,6 +429,7 @@ Block[B2] - Exit
 class C1
 {
     C1(int i) { }
+    C1(long i) { }
     /*<bind>*/void M(C1 c1, dynamic d, bool b)
     {
         c1 = new C1(d) { I1 = 1, I2 = b ? 2 : 3 };
@@ -534,6 +551,7 @@ using System.Collections.Generic;
 class C1 : IEnumerable<int>
 {
     C1(int i) { }
+    C1(long i) { }
     /*<bind>*/void M(C1 c1, dynamic d, bool b)
     {
         c1 = new C1(d) { 1, b ? 2 : 3 };
@@ -646,7 +664,6 @@ Block[B7] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
-
 
     }
 }

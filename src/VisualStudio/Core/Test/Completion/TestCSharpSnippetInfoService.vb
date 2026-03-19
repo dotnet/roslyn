@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
-    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.CSharp), [Shared]>
+    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.CSharp, ServiceLayer.Test), [Shared], PartNotDiscoverable>
     Friend Class TestCSharpSnippetInfoService
         Inherits CSharpSnippetInfoService
 

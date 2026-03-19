@@ -7,44 +7,38 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class TypeVarKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.TypeVarKeyword)
 {
-    internal class TypeVarKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public TypeVarKeywordRecommender()
-            : base(SyntaxKind.TypeVarKeyword)
-        {
-        }
+        var token = context.TargetToken;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        if (token.Kind() == SyntaxKind.OpenBracketToken &&
+            token.Parent.IsKind(SyntaxKind.AttributeList))
         {
-            var token = context.TargetToken;
+            var typeParameters = token.GetAncestor<TypeParameterListSyntax>();
+            var type = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
 
-            if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.IsKind(SyntaxKind.AttributeList))
+            if (type != null && type.TypeParameterList == typeParameters)
             {
-                var typeParameters = token.GetAncestor<TypeParameterListSyntax>();
-                var type = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
-
-                if (type != null && type.TypeParameterList == typeParameters)
-                {
-                    return true;
-                }
-
-                var @delegate = typeParameters.GetAncestorOrThis<DelegateDeclarationSyntax>();
-                if (@delegate != null && @delegate.TypeParameterList == typeParameters)
-                {
-                    return true;
-                }
-
-                var method = typeParameters.GetAncestorOrThis<MethodDeclarationSyntax>();
-                if (method != null && method.TypeParameterList == typeParameters)
-                {
-                    return true;
-                }
+                return true;
             }
 
-            return false;
+            var @delegate = typeParameters.GetAncestorOrThis<DelegateDeclarationSyntax>();
+            if (@delegate != null && @delegate.TypeParameterList == typeParameters)
+            {
+                return true;
+            }
+
+            var method = typeParameters.GetAncestorOrThis<MethodDeclarationSyntax>();
+            if (method != null && method.TypeParameterList == typeParameters)
+            {
+                return true;
+            }
         }
+
+        return false;
     }
 }

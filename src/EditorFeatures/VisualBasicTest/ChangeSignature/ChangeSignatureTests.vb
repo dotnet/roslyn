@@ -3,14 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
+    <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingWhitespace() As Task
             Dim markup = "
 class C
@@ -23,8 +22,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingTrivia1() As Task
             Dim markup = "
 class C
@@ -37,8 +35,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingTrivia2() As Task
             Dim markup = "
 class C
@@ -51,8 +48,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingAttributes1() As Task
             Dim markup = "
 class C
@@ -65,8 +61,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingAttributes2() As Task
             Dim markup = "
 class C

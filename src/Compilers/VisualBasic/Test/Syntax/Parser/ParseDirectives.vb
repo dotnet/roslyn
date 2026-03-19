@@ -2,8 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -174,7 +176,6 @@ End Module
 
         ]]>)
     End Sub
-
 
     <WorkItem(679758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679758")>
     <Fact>
@@ -1280,7 +1281,6 @@ End Module]]>,
             ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
-
     <WorkItem(538483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538483")>
     <Fact>
     Public Sub ParseDirectiveWithStatementOnLine()
@@ -1402,7 +1402,6 @@ End Module
                  <error id="30012"/>
              </errors>)
     End Sub
-
 
     <WorkItem(9710, "DevDiv_Projects/Roslyn")>
     <WorkItem(542447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542447")>
@@ -1576,7 +1575,7 @@ BC30059: Constant expression is required.
     <Fact>
     Public Sub ParseProjConstsCaseInsensitivity()
 
-        Dim psymbols = ImmutableArray.Create({Roslyn.Utilities.KeyValuePairUtil.Create("Blah", CObj(False)), Roslyn.Utilities.KeyValuePairUtil.Create("blah", CObj(True))})
+        Dim psymbols = ImmutableArray.Create({KeyValuePair.Create("Blah", CObj(False)), KeyValuePair.Create("blah", CObj(True))})
 
         Dim options As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(psymbols)
 
@@ -2535,7 +2534,6 @@ End Module]]>,
         Assert.True(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
-
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation6()

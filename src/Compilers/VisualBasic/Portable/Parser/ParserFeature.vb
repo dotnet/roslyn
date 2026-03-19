@@ -40,6 +40,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         PrivateProtected
         UnconstrainedTypeParameterInConditional
         CommentsAfterLineContinuation
+        InitOnlySettersUsage
+        UnmanagedConstraint
+        OverloadResolutionPriority
     End Enum
 
     Friend Module FeatureExtensions
@@ -101,6 +104,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.UnconstrainedTypeParameterInConditional,
                     Feature.CommentsAfterLineContinuation
                     Return LanguageVersion.VisualBasic16
+
+                Case Feature.InitOnlySettersUsage
+                    Return LanguageVersion.VisualBasic16_9
+
+                Case Feature.UnmanagedConstraint,
+                     Feature.OverloadResolutionPriority
+                    Return LanguageVersion.VisualBasic17_13
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -173,6 +183,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_UnconstrainedTypeParameterInConditional
                 Case Feature.CommentsAfterLineContinuation
                     Return ERRID.FEATURE_CommentsAfterLineContinuation
+                Case Feature.InitOnlySettersUsage
+                    Return ERRID.FEATURE_InitOnlySettersUsage
+                Case Feature.UnmanagedConstraint
+                    Return ERRID.FEATURE_UnmanagedConstraint
+                Case Feature.OverloadResolutionPriority
+                    Return ERRID.FEATURE_OverloadResolutionPriority
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

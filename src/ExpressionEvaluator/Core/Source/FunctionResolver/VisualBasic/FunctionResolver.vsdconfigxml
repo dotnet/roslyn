@@ -29,6 +29,7 @@
             <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
             <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
+          <Interface Name="IDkmMetaDataPointerInvalidatedNotification"/>
           <Interface Name="IDkmModuleInstanceLoadNotification"/>
           <Interface Name="IDkmModuleInstanceUnloadNotification"/>
           <Interface Name="IDkmModuleModifiedNotification"/>

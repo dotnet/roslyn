@@ -2,33 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal enum ProjectAnalysisSummary
 {
-    internal enum ProjectAnalysisSummary
-    {
-        /// <summary>
-        /// Project hasn't been changed.
-        /// </summary>
-        NoChanges,
+    /// <summary>
+    /// Project hasn't been changed.
+    /// </summary>
+    NoChanges,
 
-        /// <summary>
-        /// Project contains syntactic and/or semantic errors.
-        /// </summary>
-        CompilationErrors,
+    /// <summary>
+    /// Project contains rude edits or a document whose analysis is blocked due to syntax error or rude edit in parse options.
+    /// </summary>
+    InvalidChanges,
 
-        /// <summary>
-        /// Project contains rude edits.
-        /// </summary>
-        RudeEdits,
+    /// <summary>
+    /// The project only changed in comments, whitespaces, etc. that don't require compilation.
+    /// </summary>
+    ValidInsignificantChanges,
 
-        /// <summary>
-        /// The project only changed in comments, whitespaces, etc. that don't require compilation.
-        /// </summary>
-        ValidInsignificantChanges,
-
-        /// <summary>
-        /// The project contains valid changes that require application of a delta.
-        /// </summary>
-        ValidChanges
-    }
+    /// <summary>
+    /// The project contains valid changes that require application of a delta.
+    /// </summary>
+    ValidChanges
 }

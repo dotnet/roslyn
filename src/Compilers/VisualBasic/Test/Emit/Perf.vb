@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class Perf : Inherits BasicTestBase
@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         Public Sub Test()
             ' This test ensures that our perf benchmark code compiles without problems.
             ' Benchmark code can be found in the following file under the 
-            ' "CompilerTestResources" project that is part of Roslyn.sln -
+            ' "CompilerTestResources" project that is part of Roslyn.slnx -
             '      $/Roslyn/Main/Open/Compilers/Test/Resources/Core/PerfTests/VBPerfTest.vb
 
             ' You can also use VS's "Navigate To" feature to find the above file easily -
@@ -22,14 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
             ' So if the test fails we should fix the product bug that is causing the failure
             ' as opposed to 'fixing' the test by updating the benchmark code.
 
-
             ' If you absolutely need to change the benchmark code - PLEASE SHOOT A MAIL TO SHYAM (GNAMBOO)
             ' so that he can apply the same changes to the copy of this benchmark code that is used in the perf test.
             CompileAndVerify(<compilation>
                                  <file name="VBPerfTest.vb">
                                      <%= TestResources.PerfTests.VBPerfTest %>
                                  </file>
-                             </compilation>, references:={SystemCoreRef}).VerifyDiagnostics()
+                             </compilation>, references:={Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

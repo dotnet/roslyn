@@ -2,29 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+[NonCopyable]
+internal readonly struct BlockStructureContext(SyntaxTree syntaxTree, BlockStructureOptions options, CancellationToken cancellationToken) : IDisposable
 {
-    internal class BlockStructureContext
+    // We keep our own ObjectPool of ArrayBuilders as we want to use ArrayBuilders for their ability to efficiently create ImmutableArrays, but don't
+    // want the maximum capacity the default pool uses for dropping items from the pool.
+    private static readonly ObjectPool<ArrayBuilder<BlockSpan>> _blockSpanArrayBuilderPool = new(() => []);
+
+    public readonly ArrayBuilder<BlockSpan> Spans = _blockSpanArrayBuilderPool.Allocate();
+
+    public readonly SyntaxTree SyntaxTree = syntaxTree;
+    public readonly BlockStructureOptions Options = options;
+    public readonly CancellationToken CancellationToken = cancellationToken;
+
+    public void Dispose()
     {
-        private readonly ImmutableArray<BlockSpan>.Builder _spans = ImmutableArray.CreateBuilder<BlockSpan>();
-
-        public Document Document { get; }
-        public CancellationToken CancellationToken { get; }
-
-        internal ImmutableArray<BlockSpan> Spans => _spans.ToImmutable();
-
-        public BlockStructureContext(Document document, CancellationToken cancellationToken)
-        {
-            Document = document;
-            CancellationToken = cancellationToken;
-        }
-
-        public void AddBlockSpan(BlockSpan span)
-        {
-            _spans.Add(span);
-        }
+        // Do not call Free on the builder as we are not using the default pool
+        Spans.Clear();
+        _blockSpanArrayBuilderPool.Free(Spans);
     }
 }

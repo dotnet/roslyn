@@ -3,9 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Host.Mef
 
@@ -15,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
         Implements ILanguageDebugInfoService
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
             Return LocationInfoGetter.GetInfoAsync(document, position, cancellationToken)
         End Function
 
-        Public Function GetDataTipInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of DebugDataTipInfo) Implements ILanguageDebugInfoService.GetDataTipInfoAsync
-            Return DataTipInfoGetter.GetInfoAsync(document, position, cancellationToken)
+        Public Function GetDataTipInfoAsync(document As Document, position As Integer, includeKind As Boolean, cancellationToken As CancellationToken) As Task(Of DebugDataTipInfo) Implements ILanguageDebugInfoService.GetDataTipInfoAsync
+            Return DataTipInfoGetter.GetInfoAsync(document, position, includeKind, cancellationToken)
         End Function
     End Class
 End Namespace

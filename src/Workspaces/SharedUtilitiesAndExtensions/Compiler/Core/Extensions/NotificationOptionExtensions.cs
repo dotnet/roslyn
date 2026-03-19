@@ -4,15 +4,10 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
-namespace Microsoft.CodeAnalysis.CodeStyle
-#endif
+namespace Microsoft.CodeAnalysis.CodeStyle;
+
+internal static class NotificationOptionExtensions
 {
-    internal static class NotificationOptionExtensions
-    {
-        public static string ToEditorConfigString(this NotificationOption notificationOption)
-            => notificationOption.Severity.ToEditorConfigString();
-    }
+    public static string ToEditorConfigString(this NotificationOption2 notificationOption)
+        => notificationOption.Severity.ToEditorConfigString();
 }

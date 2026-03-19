@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -17,9 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
     // having identical hash value.
     using HashBucket = List<KeyValuePair<ConstantValue, object>>;
 
-    internal struct SwitchStringJumpTableEmitter
+    internal readonly struct SwitchStringJumpTableEmitter
     {
         private readonly ILBuilder _builder;
+
+        /// <summary>
+        /// Associated syntax for diagnostic reporting.
+        /// </summary>
+        private readonly SyntaxNode _syntax;
 
         /// <summary>
         /// Switch key for the jump table
@@ -67,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal SwitchStringJumpTableEmitter(
             ILBuilder builder,
+            SyntaxNode syntax,
             LocalOrParameter key,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
@@ -78,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             RoslynDebug.Assert(emitStringCondBranchDelegate != null);
 
             _builder = builder;
+            _syntax = syntax;
             _key = key;
             _caseLabels = caseLabels;
             _fallThroughLabel = fallThroughLabel;
@@ -150,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Emit conditional jumps to hash buckets by using an integral switch jump table based on keyHash.
             var hashBucketJumpTableEmitter = new SwitchIntegralJumpTableEmitter(
                 builder: _builder,
+                _syntax,
                 caseLabels: jumpTableLabels,
                 fallThroughLabel: _fallThroughLabel,
                 keyTypeCode: Cci.PrimitiveTypeCode.UInt32,
@@ -210,12 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return stringHashMap;
         }
 
-        internal static bool ShouldGenerateHashTableSwitch(CommonPEModuleBuilder module, int labelsCount)
-        {
-            return module.SupportsPrivateImplClass && ShouldGenerateHashTableSwitch(labelsCount);
-        }
-
-        private static bool ShouldGenerateHashTableSwitch(int labelsCount)
+        internal static bool ShouldGenerateHashTableSwitch(int labelsCount)
         {
             // Heuristic used by Dev10 compiler for emitting string switch:
             //  Generate hash table based string switch jump table

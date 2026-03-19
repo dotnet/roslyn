@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -103,7 +104,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (_divisors == null)
             {
-                return new[] { index };
+                // _divisors is null if dimension is 1, but
+                // _lowerBounds need not necessarily be so.
+                Debug.Assert(_lowerBounds == null || _lowerBounds.Count == 1);
+                int lowerBound = _lowerBounds != null && _lowerBounds.Count == 1 ? _lowerBounds[0] : 0;
+                return [lowerBound + index];
             }
 
             var n = _divisors.Count;

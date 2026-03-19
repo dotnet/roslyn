@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="container">Containing type to check. Should be an original definition.</param>
         ''' <param name="diagnostics">Place diagnostics here.</param>
-        Public Shared Sub CheckHidingAndOverridingForType(container As SourceMemberContainerTypeSymbol, diagnostics As DiagnosticBag)
+        Public Shared Sub CheckHidingAndOverridingForType(container As SourceMemberContainerTypeSymbol, diagnostics As BindingDiagnosticBag)
             Debug.Assert(container.IsDefinition) ' Don't do this on constructed types
 
             Select Case container.TypeKind
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="container">Containing type to check. Should be an original definition.</param>
         ''' <param name="diagnostics">Place diagnostics here.</param>
         ''' <remarks></remarks>
-        Private Shared Sub CheckMembersAgainstBaseType(container As SourceMemberContainerTypeSymbol, diagnostics As DiagnosticBag)
+        Private Shared Sub CheckMembersAgainstBaseType(container As SourceMemberContainerTypeSymbol, diagnostics As BindingDiagnosticBag)
             For Each member In container.GetMembers()
                 If CanOverrideOrHide(member) Then
                     Select Case member.Kind
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     OverrideHidingHelper(Of MethodSymbol).CheckOverrideMember(methodMember, methodMember.OverriddenMembers, diagnostics)
                                 ElseIf methodMember.IsNotOverridable Then
                                     'Method is not marked as Overrides but is marked as Not Overridable
-                                    diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_NotOverridableRequiresOverrides), methodMember.Locations(0)))
+                                    diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_NotOverridableRequiresOverrides), methodMember.GetFirstLocation()))
                                 End If
                             End If
                         Case SymbolKind.Property
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             If propMember.IsOverrides Then
                                 OverrideHidingHelper(Of PropertySymbol).CheckOverrideMember(propMember, propMember.OverriddenMembers, diagnostics)
                             ElseIf propMember.IsNotOverridable Then
-                                diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_NotOverridableRequiresOverrides), propMember.Locations(0)))
+                                diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_NotOverridableRequiresOverrides), propMember.GetFirstLocation()))
                             End If
                     End Select
 
@@ -178,13 +178,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If "container" is a MustInherit inheriting from a MustInherit, make sure that no MustOverride members
         ''' have been shadowed.
         ''' </summary>
-        Private Shared Sub CheckAllAbstractsAreOverriddenAndNotHidden(container As NamedTypeSymbol, diagnostics As DiagnosticBag)
+        Private Shared Sub CheckAllAbstractsAreOverriddenAndNotHidden(container As NamedTypeSymbol, diagnostics As BindingDiagnosticBag)
 
             ' Check that a non-MustInherit class doesn't have any MustOverride members
             If Not (container.IsMustInherit OrElse container.IsNotInheritable) Then
                 For Each member In container.GetMembers()
                     If member.IsMustOverride Then
-                        diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_MustOverridesInClass1, container.Name), container.Locations(0)))
+                        diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_MustOverridesInClass1, container.Name), container.GetFirstLocation()))
                         Exit For
                     End If
                 Next
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                                             member,
                                                                                             CustomSymbolDisplayFormatter.QualifiedName(member.ContainingType),
                                                                                             CustomSymbolDisplayFormatter.ShortErrorName(container)),
-                                                    container.Locations(0)))
+                                                    container.GetFirstLocation()))
                                 Else
                                     diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMustOverride, member.ContainingType, member))
                                 End If
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_BaseOnlyClassesMustBeExplicit2,
                                                                    CustomSymbolDisplayFormatter.ShortErrorName(container),
                                                                    New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree())),
-                                                       container.Locations(0)))
+                                                       container.GetFirstLocation()))
                         Else
                             diagnosticInfos.Free()
                         End If
@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Protected Shared Sub CheckShadowing(container As SourceMemberContainerTypeSymbol,
                                             member As Symbol,
-                                            diagnostics As DiagnosticBag)
+                                            diagnostics As BindingDiagnosticBag)
             Dim memberIsOverloads = member.IsOverloads()
             Dim warnForHiddenMember As Boolean = Not member.ShadowsExplicitly
 
@@ -345,13 +345,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                     member As Symbol,
                                                     memberIsOverloads As Boolean,
                                                     baseType As NamedTypeSymbol,
-                                                    diagnostics As DiagnosticBag,
+                                                    diagnostics As BindingDiagnosticBag,
                                                     ByRef warnForHiddenMember As Boolean)
             Debug.Assert(container.IsDefinition)
 
             If warnForHiddenMember Then
                 For Each hiddenMember In baseType.GetMembers(member.Name)
-                    If AccessCheck.IsSymbolAccessible(hiddenMember, container, Nothing, useSiteDiagnostics:=Nothing) AndAlso
+                    If AccessCheck.IsSymbolAccessible(hiddenMember, container, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) AndAlso
                        (Not memberIsOverloads OrElse
                         hiddenMember.Kind <> member.Kind OrElse
                         hiddenMember.IsWithEventsProperty OrElse
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Report diagnostic for one member shadowing another, but no Shadows modifier was present.
         Private Shared Sub ReportShadowingDiagnostic(hidingMember As Symbol,
                                                      hiddenMember As Symbol,
-                                                     diagnostics As DiagnosticBag)
+                                                     diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(Not (hidingMember.IsAccessor() AndAlso hiddenMember.IsAccessor))
 
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                            AssociatedSymbolName(associatedhiddenSymbol),
                                            hiddenMember.ContainingType.GetKindText(),
                                            CustomSymbolDisplayFormatter.ShortErrorName(hiddenMember.ContainingType)),
-                               hidingMember.Locations(0)))
+                               hidingMember.GetFirstLocation()))
                     End If
 
                     Return
@@ -421,14 +421,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                            hidingMember.GetKindText(), hidingMember.Name,
                                                            associatedhiddenSymbol.GetKindText(), AssociatedSymbolName(associatedhiddenSymbol), hiddenMember.ContainingType.GetKindText(),
                                                            CustomSymbolDisplayFormatter.ShortErrorName(hiddenMember.ContainingType)),
-                                               hidingMember.Locations(0)))
+                                               hidingMember.GetFirstLocation()))
             ElseIf associatedhidingSymbol IsNot Nothing Then
                 ' implicitly defined member hiding explicitly defined member
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_SynthMemberShadowsMember5,
                                                            associatedhidingSymbol.GetKindText(), AssociatedSymbolName(associatedhidingSymbol),
                                                            hidingMember.Name, hiddenMember.ContainingType.GetKindText(),
                                                            CustomSymbolDisplayFormatter.ShortErrorName(hiddenMember.ContainingType)),
-                                               associatedhidingSymbol.Locations(0)))
+                                               associatedhidingSymbol.GetFirstLocation()))
             ElseIf hidingMember.Kind = hiddenMember.Kind AndAlso
                 (hidingMember.Kind = SymbolKind.Property OrElse hidingMember.Kind = SymbolKind.Method) AndAlso
                 Not (hiddenMember.IsWithEventsProperty OrElse hidingMember.IsWithEventsProperty) Then
@@ -444,14 +444,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(id,
                                                            hidingMember.GetKindText(), hidingMember.Name, hiddenMember.ContainingType.GetKindText(),
                                                            CustomSymbolDisplayFormatter.ShortErrorName(hiddenMember.ContainingType)),
-                                               hidingMember.Locations(0)))
+                                               hidingMember.GetFirstLocation()))
             Else
                 ' all other hiding scenarios.
-                Debug.Assert(hidingMember.Locations(0).IsInSource)
+                Debug.Assert(hidingMember.GetFirstLocation().IsInSource)
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_OverrideType5,
                                                            hidingMember.GetKindText(), hidingMember.Name, hiddenMember.GetKindText(), hiddenMember.ContainingType.GetKindText(),
                                                            CustomSymbolDisplayFormatter.ShortErrorName(hiddenMember.ContainingType)),
-                                               hidingMember.Locations(0)))
+                                               hidingMember.GetFirstLocation()))
             End If
 
         End Sub
@@ -465,8 +465,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Report diagnostic for a member shadowing a MustOverride.
         Private Shared Sub ReportShadowingMustOverrideError(hidingMember As Symbol,
                                                             hiddenMember As Symbol,
-                                                            diagnostics As DiagnosticBag)
-            Debug.Assert(hidingMember.Locations(0).IsInSource)
+                                                            diagnostics As BindingDiagnosticBag)
+            Debug.Assert(hidingMember.GetFirstLocation().IsInSource)
 
             If hidingMember.IsAccessor() Then
                 ' accessor hiding non-accessorTODO
@@ -476,11 +476,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                       associatedHidingSymbol.GetKindText(), associatedHidingSymbol.Name,
                                                                       hiddenMember.ContainingType.GetKindText(),
                                                                       CustomSymbolDisplayFormatter.ShortErrorName(hiddenMember.ContainingType)),
-                                               hidingMember.Locations(0)))
+                                               hidingMember.GetFirstLocation()))
             Else
                 ' Basic hiding case
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_CantShadowAMustOverride1, hidingMember),
-                                               hidingMember.Locations(0)))
+                                               hidingMember.GetFirstLocation()))
             End If
         End Sub
 
@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' If a method had an virtual inaccessible override, then an explicit override in metadata is needed
+        ''' If a method had a virtual inaccessible override, then an explicit override in metadata is needed
         ''' to make it really override what it intends to override, and "skip" the inaccessible virtual
         ''' method.
         ''' </summary>
@@ -558,18 +558,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return False
         End Function
-
-        Private Shared Function RequiresExplicitOverride([event] As EventSymbol) As Boolean
-            If [event].OverriddenEvent IsNot Nothing Then
-                For Each inaccessibleOverride In [event].OverriddenOrHiddenMembers.InaccessibleMembers
-                    If inaccessibleOverride.IsOverridable OrElse inaccessibleOverride.IsMustOverride OrElse inaccessibleOverride.IsOverrides Then
-                        Return True
-                    End If
-                Next
-            End If
-
-            Return False
-        End Function
     End Class
 
     ''' <summary>
@@ -581,7 +569,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way.
         ' It is not ReadOnly because it is initialized by a Shared Sub New of another instance of this class.
+#Disable Warning IDE0044 ' Add readonly modifier - Adding readonly generates compile error in the constructor. - see https://github.com/dotnet/roslyn/issues/47197
         Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
+#Enable Warning IDE0044 ' Add readonly modifier
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()
@@ -752,7 +742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         )
             ' Use original definition for accessibility check, because substitutions can cause
             ' reductions in accessibility that aren't appropriate (see bug #12038 for example).
-            Dim accessible = AccessCheck.IsSymbolAccessible(sym.OriginalDefinition, overridingContainingType.OriginalDefinition, Nothing, useSiteDiagnostics:=Nothing)
+            Dim accessible = AccessCheck.IsSymbolAccessible(sym.OriginalDefinition, overridingContainingType.OriginalDefinition, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
             If sym.Kind = overridingSym.Kind AndAlso
                 CanOverrideOrHide(sym) Then
@@ -841,7 +831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' overridden members are passed in.
         Friend Shared Sub CheckOverrideMember(member As TSymbol,
                                               overriddenMembersResult As OverriddenMembersResult(Of TSymbol),
-                                              diagnostics As DiagnosticBag)
+                                              diagnostics As BindingDiagnosticBag)
             Debug.Assert(overriddenMembersResult IsNot Nothing)
 
             Dim memberIsShadows As Boolean = member.ShadowsExplicitly
@@ -860,7 +850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_CannotOverrideInAccessibleMember, member, overriddenMembersResult.InaccessibleMembers(0), diagnostics)
                 Else
                     diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_OverrideNotNeeded3, member.GetKindText(), member.Name),
-                                                   member.Locations(0)))
+                                                   member.GetFirstLocation()))
                 End If
             ElseIf overriddenMembers.Length > 1 Then
                 ' Multiple members we could be overriding. Create a single error message that lists them all.
@@ -874,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                            overriddenMembers(0),
                                                            CustomSymbolDisplayFormatter.ShortErrorName(overriddenMembers(0).ContainingType),
                                                            New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree())),
-                                               member.Locations(0)))
+                                               member.GetFirstLocation()))
             Else
                 ' overriding exactly one member.
                 Dim overriddenMember As TSymbol = overriddenMembers(0)
@@ -893,6 +883,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_InvalidOverrideDueToReturn2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverridingPropertyKind2, member, overriddenMember, diagnostics)
+                ElseIf (comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 Then
+                    ReportBadOverriding(ERRID.ERR_OverridingInitOnlyProperty, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverrideWithArrayVsParamArray2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -914,16 +906,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             ' We can't do that, so issue an error.
                             diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_InAccessibleOverridingMethod5,
                                                                                   member, member.ContainingType, overriddenMember, overriddenMember.ContainingType, inaccessibleMember.ContainingType),
-                                                            member.Locations(0)))
+                                                            member.GetFirstLocation()))
 
                         End If
 
                     Next
 
-                    Dim useSiteErrorInfo = overriddenMember.GetUseSiteErrorInfo()
-                    If useSiteErrorInfo IsNot Nothing Then
-                        diagnostics.Add(New VBDiagnostic(useSiteErrorInfo, member.Locations(0)))
-                    ElseIf member.Kind = SymbolKind.Property Then
+                    Dim useSiteInfo = overriddenMember.GetUseSiteInfo()
+                    If Not diagnostics.Add(useSiteInfo, member.GetFirstLocation()) AndAlso
+                       member.Kind = SymbolKind.Property Then
+
                         ' No overriding errors found in member. If its a property, its accessors might have issues.
                         Dim overridingProperty As PropertySymbol = DirectCast(DirectCast(member, Symbol), PropertySymbol)
                         Dim overriddenProperty As PropertySymbol = DirectCast(DirectCast(overriddenMember, Symbol), PropertySymbol)
@@ -944,7 +936,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Const significantDifferences As SymbolComparisonResults = SymbolComparisonResults.AllMismatches And
                                                                       Not SymbolComparisonResults.MismatchesForConflictingMethods
-
 
             Dim nonConflicting As ArrayBuilder(Of TSymbol) = ArrayBuilder(Of TSymbol).GetInstance()
 
@@ -980,18 +971,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             nonConflicting.Free()
         End Sub
 
-
         ' Check an accessor with respect to its overridden accessor and report any diagnostics
         Friend Shared Sub CheckOverridePropertyAccessor(overridingAccessor As MethodSymbol,
                                                         overriddenAccessor As MethodSymbol,
-                                                        diagnostics As DiagnosticBag)
+                                                        diagnostics As BindingDiagnosticBag)
             ' CONSIDER: it is possible for an accessor to have a use site error even when the property
             ' does not but, in general, we have not been handling cases where property and accessor
             ' signatures are mismatched (e.g. different modopts).
             If overridingAccessor IsNot Nothing AndAlso overriddenAccessor IsNot Nothing Then
                 ' Use original definition for accessibility check, because substitutions can cause
                 ' reductions in accessibility that aren't appropriate (see bug #12038 for example).
-                If Not AccessCheck.IsSymbolAccessible(overriddenAccessor.OriginalDefinition, overridingAccessor.ContainingType, Nothing, useSiteDiagnostics:=Nothing) Then
+                If Not AccessCheck.IsSymbolAccessible(overriddenAccessor.OriginalDefinition, overridingAccessor.ContainingType, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                     ReportBadOverriding(ERRID.ERR_CannotOverrideInAccessibleMember, overridingAccessor, overriddenAccessor, diagnostics)
                 Else
                     Dim errorId As ERRID
@@ -1000,6 +990,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ReportBadOverriding(errorId, overridingAccessor, overriddenAccessor, diagnostics)
                     End If
                 End If
+
+                diagnostics.Add(overriddenAccessor.GetUseSiteInfo(), overridingAccessor.GetFirstLocation())
             End If
         End Sub
 
@@ -1007,9 +999,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Sub ReportBadOverriding(id As ERRID,
                                                overridingMember As Symbol,
                                                overriddenMember As Symbol,
-                                               diagnostics As DiagnosticBag)
-            diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(id, overridingMember, overriddenMember),
-                                            overridingMember.Locations(0)))
+                                               diagnostics As BindingDiagnosticBag)
+            diagnostics.Add(New VBDiagnostic(New BadSymbolDiagnostic(overriddenMember, id, overridingMember, overriddenMember),
+                                            overridingMember.GetFirstLocation()))
         End Sub
 
         ' Are the declared accessibility of the two symbols consistent? If not, return the error code to use.
@@ -1022,7 +1014,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return overridden.DeclaredAccessibility = overriding.DeclaredAccessibility
             End If
         End Function
-
 
     End Class
 End Namespace

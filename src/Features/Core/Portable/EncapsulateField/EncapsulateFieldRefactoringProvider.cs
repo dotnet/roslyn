@@ -3,27 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.EncapsulateField
-{
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeRefactoringProviderNames.EncapsulateField), Shared]
-    internal class EncapsulateFieldRefactoringProvider : CodeRefactoringProvider
-    {
-        [ImportingConstructor]
-        public EncapsulateFieldRefactoringProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.EncapsulateField;
 
-        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var (document, textSpan, cancellationToken) = context;
-            var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
-            var actions = await service.GetEncapsulateFieldCodeActionsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
-        }
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.EncapsulateField), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class EncapsulateFieldRefactoringProvider() : CodeRefactoringProvider
+{
+    public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+    {
+        var (document, textSpan, cancellationToken) = context;
+        var service = document.GetRequiredLanguageService<IEncapsulateFieldService>();
+
+        var actions = await service.GetEncapsulateFieldCodeActionsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        context.RegisterRefactorings(actions);
     }
 }

@@ -4,18 +4,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeLens;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.ServiceHub.Client;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
@@ -23,279 +23,291 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using StreamJsonRpc;
+using IAsyncCodeLensDataPoint = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPoint;
+using IAsyncCodeLensDataPointProvider = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPointProvider;
 
-namespace Microsoft.VisualStudio.LanguageServices.CodeLens
+namespace Microsoft.VisualStudio.LanguageServices.CodeLens;
+
+[Export(typeof(IAsyncCodeLensDataPointProvider))]
+[Name(Id)]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[ContentType(ContentTypeNames.VisualBasicContentType)]
+[LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.CSharp_VisualBasic_References))]
+[Priority(200)]
+[OptionUserModifiable(userModifiable: false)]
+[DetailsTemplateName("references")]
+internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvider, IDisposable
 {
-    [Export(typeof(IAsyncCodeLensDataPointProvider))]
-    [Name(Id)]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [LocalizedName(typeof(CodeLensVSResources), "CSharp_VisualBasic_References")]
-    [Priority(200)]
-    [OptionUserModifiable(userModifiable: false)]
-    [DetailsTemplateName("references")]
-    internal class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvider
+    // TODO: do we need to localize this?
+    private const string Id = "CSVBReferences";
+
+    // this is lazy to get around circular MEF dependency issue
+    private readonly Lazy<ICodeLensCallbackService> _lazyCodeLensCallbackService;
+
+    // Map of project GUID -> data points
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private Task? _pollingTask;
+    private readonly Dictionary<Guid, (string version, HashSet<DataPoint> dataPoints)> _dataPoints = [];
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ReferenceCodeLensProvider(Lazy<ICodeLensCallbackService> codeLensCallbackService)
     {
-        // TODO: do we need to localize this?
-        private const string Id = "CSVBReferences";
+        // use lazy to break circular MEF dependency issue
+        _lazyCodeLensCallbackService = codeLensCallbackService;
+    }
 
-        // these string are never exposed to users but internally used to identify 
-        // each provider/servicehub connections and etc
-        private const string HubClientId = "ManagedLanguage.IDE.CodeLensOOP";
-        private const string RoslynCodeAnalysis = "roslynCodeAnalysis";
+    public void Dispose()
+    {
+        _cancellationTokenSource.Cancel();
+    }
 
-        private readonly HubClient _client;
-
-        // this is lazy to get around circular MEF dependency issue
-        private Lazy<ICodeLensCallbackService> _lazyCodeLensCallbackService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ReferenceCodeLensProvider(Lazy<ICodeLensCallbackService> codeLensCallbackService)
+    public Task<bool> CanCreateDataPointAsync(
+        CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+    {
+        if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
         {
-            _client = new HubClient(HubClientId);
-
-            // use lazy to break circular MEF dependency issue
-            _lazyCodeLensCallbackService = codeLensCallbackService;
+            // we allow all reference points. 
+            // engine will call this for all points our roslyn code lens (reference) tagger tagged.
+            return SpecializedTasks.True;
         }
 
-        public Task<bool> CanCreateDataPointAsync(
-            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+        return SpecializedTasks.False;
+    }
+
+    public Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
+        CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+    {
+        var dataPoint = new DataPoint(
+            this,
+            _lazyCodeLensCallbackService.Value,
+            descriptor);
+
+        AddDataPoint(dataPoint);
+        return Task.FromResult<IAsyncCodeLensDataPoint>(dataPoint);
+    }
+
+    // The current CodeLens OOP design does not allow us to register an event handler for WorkspaceChanged events
+    // which occur in devenv.exe. We instead poll for changes to the projects, and invalidate data points when
+    // changes are detected.
+    //
+    // This behavior is expected to change when CodeLens is rewritten using LSP.
+    private async Task PollForUpdatesAsync()
+    {
+        while (true)
         {
-            if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
+            await Task.Delay(TimeSpan.FromSeconds(1.5), _cancellationTokenSource.Token).ConfigureAwait(false);
+
+            ImmutableArray<Guid> keys;
+            lock (_dataPoints)
             {
-                // we allow all reference points. 
-                // engine will call this for all points our roslyn code lens (reference) tagger tagged.
-                return SpecializedTasks.True;
+                keys = [.. _dataPoints.Keys];
             }
 
-            return SpecializedTasks.False;
-        }
-
-        public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
-            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
-        {
-            var dataPoint = new DataPoint(
+            var projectVersions = await _lazyCodeLensCallbackService.Value.InvokeAsync<ImmutableDictionary<Guid, string>>(
                 this,
-                _lazyCodeLensCallbackService.Value,
-                descriptor,
-                await GetConnectionAsync(cancellationToken).ConfigureAwait(false));
+                "GetProjectVersionsAsync",
+                [keys],
+                _cancellationTokenSource.Token).ConfigureAwait(false);
 
-            await dataPoint.TrackChangesAsync(cancellationToken).ConfigureAwait(false);
-
-            return dataPoint;
-        }
-
-        private async Task<Stream> GetConnectionAsync(CancellationToken cancellationToken)
-        {
-            // any exception from this will be caught by codelens engine and saved to log file and ignored.
-            // this follows existing code lens behavior and user experience on failure is owned by codelens engine
-            var hostGroupId = await _lazyCodeLensCallbackService.Value.InvokeAsync<string>(
-                this, nameof(ICodeLensContext.GetHostGroupIdAsync), arguments: null, cancellationToken).ConfigureAwait(false);
-
-            var hostGroup = new HostGroup(hostGroupId);
-            var serviceDescriptor = new ServiceDescriptor(RoslynCodeAnalysis) { HostGroup = hostGroup };
-
-            return await _client.RequestServiceAsync(serviceDescriptor, cancellationToken).ConfigureAwait(false);
-        }
-
-        private class DataPoint : IAsyncCodeLensDataPoint, IDisposable
-        {
-            private static readonly List<CodeLensDetailHeaderDescriptor> s_header = new List<CodeLensDetailHeaderDescriptor>()
+            lock (_dataPoints)
             {
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.FilePath },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.LineNumber },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ColumnNumber },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceText },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceStart },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceEnd },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceLongDescription },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceImageId },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference2 },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference1 },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference1 },
-                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference2 },
-            };
-
-            private readonly ReferenceCodeLensProvider _owner;
-            private readonly RemoteEndPoint _endPoint;
-            private readonly ICodeLensCallbackService _callbackService;
-
-            public DataPoint(
-                ReferenceCodeLensProvider owner,
-                ICodeLensCallbackService callbackService,
-                CodeLensDescriptor descriptor,
-                Stream stream)
-            {
-                _owner = owner;
-                _callbackService = callbackService;
-
-                Descriptor = descriptor;
-
-                _endPoint = new RemoteEndPoint(stream, owner._client.Logger, new RoslynCallbackTarget(Invalidate));
-                _endPoint.StartListening();
-            }
-
-            public void Dispose()
-            {
-                _endPoint.Dispose();
-            }
-
-            public event AsyncEventHandler InvalidatedAsync;
-
-            public CodeLensDescriptor Descriptor { get; }
-
-            public async Task<CodeLensDataPointDescriptor> GetDataAsync(CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
-            {
-                var codeElementKind = GetCodeElementKindsString(Descriptor.Kind);
-
-                // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
-                // raw data from Roslyn OOP such as razor find all reference results
-                var referenceCount = await _callbackService.InvokeAsync<ReferenceCount>(
-                    _owner,
-                    nameof(ICodeLensContext.GetReferenceCountAsync),
-                    new object[] { Descriptor, descriptorContext },
-                    cancellationToken).ConfigureAwait(false);
-                if (referenceCount == null)
+                foreach (var (projectGuid, newVersion) in projectVersions)
                 {
-                    return null;
-                }
-
-                var referenceCountString = $"{referenceCount.Count}{(referenceCount.IsCapped ? "+" : string.Empty)}";
-                return new CodeLensDataPointDescriptor()
-                {
-                    Description = referenceCount.Count == 1
-                        ? string.Format(CodeLensVSResources._0_reference, referenceCountString)
-                        : string.Format(CodeLensVSResources._0_references, referenceCountString),
-                    IntValue = referenceCount.Count,
-                    TooltipText = string.Format(CodeLensVSResources.This_0_has_1_references, codeElementKind, referenceCountString),
-                    ImageId = null
-                };
-
-                string GetCodeElementKindsString(CodeElementKinds kind)
-                {
-                    switch (kind)
+                    if (_dataPoints.TryGetValue(projectGuid, out var oldVersionedPoints)
+                        && newVersion != oldVersionedPoints.version)
                     {
-                        case CodeElementKinds.Method:
-                            return CodeLensVSResources.method;
-                        case CodeElementKinds.Type:
-                            return CodeLensVSResources.type;
-                        case CodeElementKinds.Property:
-                            return CodeLensVSResources.property;
-                        default:
-                            // code lens engine will catch and ignore exception
-                            // basically not showing data point
-                            throw new NotSupportedException(nameof(kind));
+                        foreach (var dataPoint in oldVersionedPoints.dataPoints)
+                            dataPoint.Invalidate();
+
+                        _dataPoints[projectGuid] = (newVersion, oldVersionedPoints.dataPoints);
                     }
                 }
             }
+        }
+    }
 
-            public async Task<CodeLensDetailsDescriptor> GetDetailsAsync(CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+    private void AddDataPoint(DataPoint dataPoint)
+    {
+        lock (_dataPoints)
+        {
+            var versionedPoints = _dataPoints.GetOrAdd(dataPoint.Descriptor.ProjectGuid, _ => (version: VersionStamp.Default.ToString(), dataPoints: []));
+            versionedPoints.dataPoints.Add(dataPoint);
+
+            _pollingTask ??= Task.Run(PollForUpdatesAsync).ReportNonFatalErrorAsync();
+        }
+    }
+
+    private void RemoveDataPoint(DataPoint dataPoint)
+    {
+        lock (_dataPoints)
+        {
+            if (_dataPoints.TryGetValue(dataPoint.Descriptor.ProjectGuid, out var points)
+                && points.dataPoints.Remove(dataPoint)
+                && points.dataPoints.Count == 0)
             {
-                // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
-                // raw data from Roslyn OOP such as razor find all reference results
-                var referenceLocationDescriptors = await _callbackService.InvokeAsync<IEnumerable<ReferenceLocationDescriptor>>(
-                    _owner,
-                    nameof(ICodeLensContext.FindReferenceLocationsAsync),
-                    new object[] { Descriptor, descriptorContext },
-                    cancellationToken).ConfigureAwait(false);
+                _dataPoints.Remove(dataPoint.Descriptor.ProjectGuid);
+            }
+        }
+    }
 
+    private sealed class DataPoint : IAsyncCodeLensDataPoint, IDisposable
+    {
+        private static readonly List<CodeLensDetailHeaderDescriptor> s_header =
+        [
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.FilePath },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.LineNumber },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ColumnNumber },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceText },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceStart },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceEnd },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceLongDescription },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceImageId },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference2 },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference1 },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference1 },
+            new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference2 },
+        ];
 
-                var details = new CodeLensDetailsDescriptor
+        private readonly ReferenceCodeLensProvider _owner;
+        private readonly ICodeLensCallbackService _callbackService;
+
+        private ReferenceCount? _calculatedReferenceCount;
+
+        public DataPoint(
+            ReferenceCodeLensProvider owner,
+            ICodeLensCallbackService callbackService,
+            CodeLensDescriptor descriptor)
+        {
+            _owner = owner;
+            _callbackService = callbackService;
+
+            Descriptor = descriptor;
+        }
+
+        public void Dispose()
+        {
+            _owner.RemoveDataPoint(this);
+        }
+
+        public event AsyncEventHandler? InvalidatedAsync;
+
+        public CodeLensDescriptor Descriptor { get; }
+
+        public async Task<CodeLensDataPointDescriptor?> GetDataAsync(CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+        {
+            var codeElementKind = GetCodeElementKindsString(Descriptor.Kind);
+
+            // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
+            // raw data from Roslyn OOP such as razor find all reference results
+            var referenceCountOpt = await _callbackService.InvokeAsync<ReferenceCount?>(
+                _owner,
+                "GetReferenceCountAsync",
+                [Descriptor, descriptorContext, _calculatedReferenceCount],
+                cancellationToken).ConfigureAwait(false);
+
+            if (!referenceCountOpt.HasValue)
+            {
+                return null;
+            }
+
+            var referenceCount = referenceCountOpt.Value;
+
+            return new CodeLensDataPointDescriptor()
+            {
+                Description = referenceCount.GetDescription(),
+                IntValue = referenceCount.Count,
+                TooltipText = referenceCount.GetToolTip(codeElementKind),
+                ImageId = null
+            };
+
+            static string GetCodeElementKindsString(CodeElementKinds kind)
+            {
+                switch (kind)
                 {
-                    Headers = s_header,
-                    Entries = referenceLocationDescriptors.Select(referenceLocationDescriptor =>
-                    {
-                        ImageId imageId = default;
-                        if (referenceLocationDescriptor.Glyph.HasValue)
-                        {
-                            var moniker = referenceLocationDescriptor.Glyph.Value.GetImageMoniker();
-                            imageId = new ImageId(moniker.Guid, moniker.Id);
-                        }
+                    case CodeElementKinds.Method:
+                        return FeaturesResources.method;
+                    case CodeElementKinds.Type:
+                        return FeaturesResources.type;
+                    case CodeElementKinds.Property:
+                        return FeaturesResources.property_;
+                    default:
+                        // code lens engine will catch and ignore exception
+                        // basically not showing data point
+                        throw new NotSupportedException(nameof(kind));
+                }
+            }
+        }
 
-                        return new CodeLensDetailEntryDescriptor()
-                        {
-                            // use default since reference codelens don't require special behaviors
-                            NavigationCommand = null,
-                            NavigationCommandArgs = null,
-                            Tooltip = null,
-                            Fields = new List<CodeLensDetailEntryField>()
-                            {
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.FilePath },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ColumnNumber.ToString() },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceLineText },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceStart.ToString() },
-                                new CodeLensDetailEntryField() { Text = (referenceLocationDescriptor.ReferenceStart + referenceLocationDescriptor.ReferenceLength).ToString() },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LongDescription },
-                                new CodeLensDetailEntryField() { ImageId = imageId },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText2 },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText1 },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText1 },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText2 }
-                            },
-                        };
-                    }).ToList(),
+        public async Task<CodeLensDetailsDescriptor> GetDetailsAsync(CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+        {
+            // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
+            // raw data from Roslyn OOP such as razor find all reference results
+            var referenceLocationDescriptors = await _callbackService.InvokeAsync<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?>(
+                _owner,
+                "FindReferenceLocationsAsync",
+                [Descriptor, descriptorContext],
+                cancellationToken).ConfigureAwait(false);
 
-                    // use default behavior
-                    PaneNavigationCommands = null
+            // Keep track of the exact reference count
+            if (referenceLocationDescriptors.HasValue)
+            {
+                var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, IsCapped: false, Version: referenceLocationDescriptors.Value.projectVersion);
+                if (newCount != _calculatedReferenceCount)
+                {
+                    _calculatedReferenceCount = newCount;
+                    await InvalidatedAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+                }
+            }
+
+            var entries = referenceLocationDescriptors?.references.Select(referenceLocationDescriptor =>
+            {
+                ImageId imageId = default;
+                if (referenceLocationDescriptor.Glyph.HasValue)
+                {
+                    var imageData = referenceLocationDescriptor.Glyph.Value.GetVsImageData();
+                    imageId = new ImageId(imageData.guid, imageData.id);
+                }
+
+                return new CodeLensDetailEntryDescriptor()
+                {
+                    // use default since reference codelens don't require special behaviors
+                    NavigationCommand = null,
+                    NavigationCommandArgs = null,
+                    Tooltip = null,
+                    Fields =
+                    [
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.FilePath },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ColumnNumber.ToString() },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceLineText },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceStart.ToString() },
+                        new CodeLensDetailEntryField() { Text = (referenceLocationDescriptor.ReferenceStart + referenceLocationDescriptor.ReferenceLength).ToString() },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LongDescription },
+                        new CodeLensDetailEntryField() { ImageId = imageId },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText2 },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText1 },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText1 },
+                        new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText2 }
+                    ],
                 };
+            }).ToList();
 
-                return details;
-            }
-
-            private void Invalidate()
+            return new CodeLensDetailsDescriptor
             {
-                // fire and forget
-                // this get called from roslyn remote host
-                InvalidatedAsync?.InvokeAsync(this, EventArgs.Empty);
-            }
+                Headers = s_header,
+                Entries = entries ?? SpecializedCollections.EmptyList<CodeLensDetailEntryDescriptor>(),
 
-            public async Task TrackChangesAsync(CancellationToken cancellationToken)
-            {
-                var guids = await _callbackService.InvokeAsync<List<Guid>>(
-                    _owner,
-                    nameof(ICodeLensContext.GetDocumentId),
-                    new object[] { Descriptor.ProjectGuid, Descriptor.FilePath },
-                    cancellationToken).ConfigureAwait(false);
-                if (guids == null)
-                {
-                    return;
-                }
+                // use default behavior
+                PaneNavigationCommands = null
+            };
+        }
 
-                var documentId = DocumentId.CreateFromSerialized(
-                    ProjectId.CreateFromSerialized(guids[0], Descriptor.ProjectGuid.ToString()),
-                    guids[1],
-                    Descriptor.FilePath);
-                if (documentId == null)
-                {
-                    return;
-                }
-
-                // this asks Roslyn OOP to start track workspace changes and call back Invalidate on this type when there is one.
-                // each data point owns 1 connection which is alive while data point is alive. and all communication is done through
-                // that connection
-                await _endPoint.InvokeAsync(
-                    nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync),
-                    new object[] { documentId },
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            private class RoslynCallbackTarget : IRemoteCodeLensDataPoint
-            {
-                private readonly Action _invalidate;
-
-                public RoslynCallbackTarget(Action invalidate)
-                {
-                    _invalidate = invalidate;
-                }
-
-                public void Invalidate()
-                {
-                    _invalidate();
-                }
-            }
+        internal void Invalidate()
+        {
+            // fire and forget
+            // this get called from roslyn remote host
+            InvalidatedAsync?.InvokeAsync(this, EventArgs.Empty);
         }
     }
 }

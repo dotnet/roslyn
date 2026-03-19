@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -59,6 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Assembly's custom attributes
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+
+#nullable enable
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+#nullable disable
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
@@ -113,22 +123,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override int MetadataToken
+        {
+            get
+            {
+                return MetadataTokens.GetToken(_assembly.Handle);
+            }
+        }
+
+        internal override bool HasImportedFromTypeLibAttribute
+            => PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, out _);
+
+        internal override bool HasPrimaryInteropAssemblyAttribute
+            => PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, out _, out _);
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                if (this.MightContainExtensionMethods)
-                {
-                    this.PrimaryModule.LoadCustomAttributesFilterExtensions(_assembly.Handle,
-                        ref _lazyCustomAttributes);
-                }
-                else
-                {
-                    this.PrimaryModule.LoadCustomAttributes(_assembly.Handle,
-                        ref _lazyCustomAttributes);
-                }
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadAndFilterAttributes());
             }
+
             return _lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes()
+            {
+                var containingModule = this.PrimaryModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_assembly.Handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                var mightContainExtensions = this.MightContainExtensions;
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (mightContainExtensions && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         /// <summary>
@@ -150,7 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            return this.PrimaryModule.GetForwardedTypes();
+        }
+
+#nullable enable
+
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             // Check if it is a forwarded type.
             (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = LookupAssembliesForForwardedMetadataType(ref emittedName);
@@ -171,12 +215,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 else
                 {
                     visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                    return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                    return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies);
                 }
             }
 
             return null;
         }
+
+#nullable disable
 
         internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
         {
@@ -213,13 +259,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
+            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: true);
             return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
         }
 
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
             return Assembly.GetInternalsVisibleToPublicKeys(simpleName);
+        }
+
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return Assembly.GetInternalsVisibleToAssemblyNames();
         }
 
         internal DocumentationProvider DocumentationProvider
@@ -238,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
@@ -264,5 +315,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         public override AssemblyMetadata GetMetadata() => _assembly.GetNonDisposableMetadata();
+
+#nullable enable
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
+        {
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.EmptyErrorInfo)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, PrimaryModule, this.Assembly.Handle, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(PrimaryModule)),
+                    CSDiagnosticInfo.EmptyErrorInfo);
+            }
+
+            return _lazyCachedCompilerFeatureRequiredDiagnosticInfo;
+        }
+
+        public override bool HasUnsupportedMetadata
+            => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    var experimentalData = PrimaryModule.Module.TryDecodeExperimentalAttributeData(Assembly.Handle, new MetadataDecoder(PrimaryModule));
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
+            }
+        }
     }
 }

@@ -2,38 +2,179 @@
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
   "version": "2.0.0",
+  "windows": {
+    "options": {
+        "shell": {
+            "executable": "cmd.exe",
+            "args": [
+                "/d", "/c"
+            ]
+        }
+    }
+  },
   "tasks": [
     {
         "label": "build",
-        "command": "./build.cmd",
+        "command": "./build.sh",
         "type": "shell",
         "args": [
         ],
+        "windows": {
+          "command": "${workspaceFolder}/build.cmd",
+        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
     {
-        "label": "build skip analyzers",
-        "command": "./build.cmd",
-        "type": "shell",
-        "args": [
-          "-skipAnalyzers"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
-        "label": "build csc skip analyzers",
+        "label": "build csc",
         "command": "dotnet",
         "type": "shell",
         "args": [
           "msbuild",
-          "-p:UseRoslynAnalyzers=false",
+          "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
-          "src/Compilers/CSharp/csc/csc.csproj"
+          "-tl:off",
+          "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+        "label": "build Compilers.slnf",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Compilers.slnf"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Roslyn.slnx",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Roslyn.slnx"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Roslyn.slnx with analyzers",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=true",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Roslyn.slnx"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build current project",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "pwsh",
+          "-noprofile",
+          "${workspaceFolder}/scripts/vscode-build.ps1",
+          "-filePath",
+          "${file}",
+          "-msbuildEngine",
+          "dotnet"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build toolset",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "build",
+          "-p:InnerTargets=CopyFilesForDebugging",
+          "-p:GenerateFullPaths=true",
+          "${workspaceFolder}/src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "msbuild current project",
+        "type": "shell",
+        "command": "echo 'Task not supported on this OS'",
+        "windows": {
+          "command": "powershell",
+          "args": [
+            "${workspaceFolder}/scripts/vscode-build.ps1",
+            "-filePath",
+            "${file}",
+            "-msbuildEngine",
+            "vs"
+          ],
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "generate compiler code",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "run",
+          "--file",
+          "${workspaceFolder}/eng/generate-compiler-code.cs"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "update xlf files",
+        "command": "./build.sh",
+        "type": "shell",
+        "windows": {
+          "command": "${workspaceFolder}/build.cmd"
+        },
+        "options": {
+          "env": { "UpdateXlfOnBuild": "true" }
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+      "label": "build language server",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "-c",
+        "Debug",
+        "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "launch vscode with language server",
+      "command": "${execPath}",
+      "type": "process",
+      "options": {
+        "env": {
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net10.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+        }
+      },
+      "dependsOn": [ "build language server" ]
     }
   ]
 }

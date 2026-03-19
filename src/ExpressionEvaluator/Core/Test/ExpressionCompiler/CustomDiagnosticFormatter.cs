@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class CustomDiagnosticFormatter : DiagnosticFormatter
     {
-        internal new static readonly CustomDiagnosticFormatter Instance = new CustomDiagnosticFormatter();
+        internal static new readonly CustomDiagnosticFormatter Instance = new CustomDiagnosticFormatter();
 
         public override string Format(Diagnostic diagnostic, IFormatProvider formatter = null)
         {

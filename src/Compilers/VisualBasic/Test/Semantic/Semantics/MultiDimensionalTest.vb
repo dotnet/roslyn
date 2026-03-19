@@ -3,11 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports VB = Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class MultiDimensionalTest
@@ -384,7 +382,7 @@ VerifyDiagnostics(
 
 #End Region
 
-        Private Shared s_arraysOfRank1IlSource As String =
+        Private Shared ReadOnly s_arraysOfRank1IlSource As String =
         <![CDATA[
 .class public auto ansi beforefieldinit Test
        extends [mscorlib]System.Object
@@ -465,7 +463,6 @@ VerifyDiagnostics(
 } // end of class Test
 ]]>.Value
 
-
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_GetElement()
@@ -503,7 +500,6 @@ Test1
 }
 ]]>)
         End Sub
-
 
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
@@ -774,7 +770,6 @@ BC30311: Value of type 'IList(Of Double)' cannot be converted to 'Double(*)'.
 } // end of class Test
 ]]>.Value
 
-
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -955,7 +950,6 @@ System.Double
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_TypeArgumentInference03()
-
 
             Dim ilSource As String =
             <![CDATA[

@@ -5,150 +5,125 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ImplementInterface;
+using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
+[ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
+[ExtensionOrder(After = nameof(UnnamedSymbolCompletionProvider))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : AbstractMemberInsertingCompletionProvider
 {
-    [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
-    [Shared]
-    internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
+    internal override string Language => LanguageNames.CSharp;
+
+    public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+        => text[characterPosition] == '.';
+
+    public override ImmutableHashSet<char> TriggerCharacters { get; } = ['.'];
+
+    protected override async Task<ISymbol> GenerateMemberAsync(
+        Document document,
+        CompletionItem completionItem,
+        Compilation compilation,
+        ISymbol member,
+        INamedTypeSymbol containingType,
+        CancellationToken cancellationToken)
     {
-        private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
-            new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeParameters,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeName |
-                    SymbolDisplayParameterOptions.IncludeType |
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+        var implementInterfaceService = document.GetRequiredLanguageService<IImplementInterfaceService>();
 
-        [ImportingConstructor]
-        public ExplicitInterfaceMemberCompletionProvider()
+        var position = SymbolCompletionItem.GetContextPosition(completionItem);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(position);
+        var typeDeclaration = token.GetRequiredAncestor<BaseTypeDeclarationSyntax>();
+
+        var info = new ImplementInterfaceInfo
         {
-        }
+            ClassOrStructType = containingType,
+            ContextNode = typeDeclaration,
+        };
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        var options = await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        // Implement this member explicitly in the implementing type, and return the resultant member to actually
+        // generate into the right declaration location.
+        var members = implementInterfaceService.ImplementInterfaceMember(
+            document, info, options, new() { Explicitly = true }, compilation, member);
+        return members.Single();
+    }
+
+    protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        // Common implementation with override and partial completion providers
+        var tokenSpanEnd = MemberInsertionCompletionItem.GetTokenSpanEnd(completionItem);
+        return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
+    }
+
+    protected override SyntaxNode GetSyntax(SyntaxToken token)
+    {
+        var ancestor = token.Parent;
+        while (ancestor is not null)
         {
-            return text[characterPosition] == '.';
-        }
-
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
-
-        public override async Task ProvideCompletionsAsync(CompletionContext context)
-        {
-            try
+            var kind = ancestor.Kind();
+            switch (kind)
             {
-                var document = context.Document;
-                var position = context.Position;
-                var options = context.Options;
-                var cancellationToken = context.CancellationToken;
-
-                var span = new TextSpan(position, length: 0);
-                var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-                var syntaxTree = semanticModel.SyntaxTree;
-
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-
-                if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
-                    semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
-                {
-                    return;
-                }
-
-                var targetToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                            .GetPreviousTokenIfTouchingWord(position);
-
-                if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken))
-                {
-                    return;
-                }
-
-                var node = targetToken.Parent;
-
-                if (node.Kind() != SyntaxKind.ExplicitInterfaceSpecifier)
-                {
-                    return;
-                }
-
-                // Bind the interface name which is to the left of the dot
-                var name = ((ExplicitInterfaceSpecifierSyntax)node).Name;
-
-                var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;
-                if (symbol?.TypeKind != TypeKind.Interface)
-                {
-                    return;
-                }
-
-                var members = symbol.GetMembers();
-
-                // We're going to create a entry for each one, including the signature
-                var namePosition = name.SpanStart;
-
-                var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var member in members)
-                {
-                    if (member.IsAccessor() || member.Kind == SymbolKind.NamedType || !(member.IsAbstract || member.IsVirtual) ||
-                        !semanticModel.IsAccessible(node.SpanStart, member))
-                    {
-                        continue;
-                    }
-
-                    var displayText = member.ToMinimalDisplayString(
-                        semanticModel, namePosition, s_signatureDisplayFormat);
-                    var insertionText = displayText;
-
-                    var item = SymbolCompletionItem.CreateWithSymbolId(
-                        displayText,
-                        displayTextSuffix: "",
-                        insertionText: insertionText,
-                        symbols: ImmutableArray.Create(member),
-                        contextPosition: position,
-                        rules: CompletionItemRules.Default);
-                    item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
-
-                    context.AddItem(item);
-                }
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-            {
-                // nop
-            }
-        }
-
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-
-        public override Task<TextChange?> GetTextChangeAsync(
-            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            if (ch == '(')
-            {
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var insertionText))
-                {
-                    return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
-                }
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                    return ancestor;
             }
 
-            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
+            ancestor = ancestor.Parent;
+        }
+
+        throw ExceptionUtilities.UnexpectedValue(token);
+    }
+
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
+    {
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(caretTarget);
+    }
+
+    public override async Task ProvideCompletionsAsync(CompletionContext context)
+    {
+        var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
+        var items = await state.GetItemsAsync().ConfigureAwait(false);
+
+        if (!items.IsDefaultOrEmpty)
+        {
+            context.IsExclusive = true;
+            context.AddItems(items);
         }
     }
+
+    private static (string text, string suffix) SplitMemberName(string memberString)
+    {
+        for (var i = 0; i < memberString.Length; i++)
+        {
+            if (memberString[i] is '(' or '[' or '<')
+                return (memberString[0..i], memberString[i..]);
+        }
+
+        return (memberString, "");
+    }
+
+    internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 }

@@ -2,57 +2,60 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Classification
+namespace Microsoft.CodeAnalysis.CSharp.Classification;
+
+[ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Export, Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSyntaxClassificationServiceFactory() : ILanguageServiceFactory
 {
-    internal class CSharpSyntaxClassificationService : AbstractSyntaxClassificationService
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => new CSharpSyntaxClassificationService(languageServices.LanguageServices.SolutionServices);
+
+    private sealed class CSharpSyntaxClassificationService(SolutionServices solutionServices)
+        : AbstractSyntaxClassificationService
     {
-        private readonly ImmutableArray<ISyntaxClassifier> s_defaultSyntaxClassifiers;
-
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public CSharpSyntaxClassificationService(HostLanguageServices languageServices)
-        {
-            var syntaxClassifiers = ImmutableArray<ISyntaxClassifier>.Empty;
-            var embeddedLanguagesProvider = languageServices.GetService<IEmbeddedLanguagesProvider>();
-            if (embeddedLanguagesProvider != null)
-            {
-                syntaxClassifiers = syntaxClassifiers.Add(new EmbeddedLanguagesClassifier(embeddedLanguagesProvider));
-            }
-
-            s_defaultSyntaxClassifiers = syntaxClassifiers.AddRange(
-                new ISyntaxClassifier[]
-                {
-                    new NameSyntaxClassifier(),
-                    new OperatorOverloadSyntaxClassifier(),
-                    new SyntaxTokenClassifier(),
-                    new UsingDirectiveSyntaxClassifier(),
-                    new DiscardSyntaxClassifier()
-                });
-        }
+        private readonly ImmutableArray<ISyntaxClassifier> _defaultClassifiers =
+            [
+                new NameSyntaxClassifier(),
+                new OperatorOverloadSyntaxClassifier(),
+                new SyntaxTokenClassifier(),
+                new UsingDirectiveSyntaxClassifier(),
+                new DiscardSyntaxClassifier(),
+                new FunctionPointerUnmanagedCallingConventionClassifier(),
+                new DocCommentCodeBlockClassifier(solutionServices),
+            ];
 
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
-            => s_defaultSyntaxClassifiers;
+            => _defaultClassifiers;
 
-        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
             => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
-        public override void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-            => Worker.CollectClassifiedSpans(syntaxTree.GetRoot(cancellationToken), textSpan, result, cancellationToken);
+        public override void AddSyntacticClassifications(SyntaxNode root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            foreach (var textSpan in textSpans)
+            {
+                Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
+            }
+        }
 
         public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
             => ClassificationHelpers.AdjustStaleClassification(rawText, classifiedSpan);
+
+        public override string? GetSyntacticClassificationForIdentifier(SyntaxToken identifier)
+            => ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier);
     }
 }

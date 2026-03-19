@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
+#nullable disable
+
 using Roslyn.Utilities;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IsMetadataVirtualIgnoringInterfaceImplementationChanges.  This also has the advantage of making
             // this method safe to call before declaration diagnostics have been computed.
             if ((object)method == null || method.Name != WellKnownMemberNames.DestructorName ||
-                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
             {
                 return false;
             }
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // At this point, we know method originated with a DestructorDeclarationSyntax in source,
                 // so it can't have the "new" modifier.
                 // First is fine, since there should only be one, since there are no parameters.
-                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(out _);
                 skipFirstMethodKindCheck = false;
             }
 
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Specifically, methods, properties, and types cannot hide constructors, destructors,
         /// operators, conversions, or accessors.
         /// </summary>
-        public static bool CanBeHiddenByMemberKind(this MethodSymbol hiddenMethod, SymbolKind hidingMemberKind)
+        public static bool CanBeHiddenByMember(this MethodSymbol hiddenMethod, Symbol hidingMember)
         {
             Debug.Assert((object)hiddenMethod != null);
 
@@ -103,18 +102,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            switch (hidingMemberKind)
+            switch (hidingMember.Kind)
             {
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                 case SymbolKind.Method:
                 case SymbolKind.Property:
-                    return CanBeHiddenByMethodPropertyOrType(hiddenMethod);
+                    return CanBeHiddenByMethodPropertyOrType(hiddenMethod, hidingMember);
                 case SymbolKind.Field:
                 case SymbolKind.Event: // Events are not covered by CSemanticChecker::FindSymHiddenByMethPropAgg.
                     return true;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(hidingMemberKind);
+                    throw ExceptionUtilities.UnexpectedValue(hidingMember.Kind);
             }
         }
 
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Some kinds of methods are never considered hidden by methods, properties, or types
         /// (constructors, destructors, operators, conversions, and accessors).
         /// </summary>
-        private static bool CanBeHiddenByMethodPropertyOrType(MethodSymbol method)
+        private static bool CanBeHiddenByMethodPropertyOrType(MethodSymbol method, Symbol hidingMember)
         {
             switch (method.MethodKind)
             {
@@ -130,9 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.Destructor:
                 case MethodKind.Constructor:
                 case MethodKind.StaticConstructor:
-                case MethodKind.UserDefinedOperator:
                 case MethodKind.Conversion:
                     return false;
+                case MethodKind.UserDefinedOperator:
+                    return !method.IsStatic && hidingMember is MethodSymbol { IsStatic: false, MethodKind: MethodKind.UserDefinedOperator };
+
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
                 case MethodKind.PropertyGet:
@@ -143,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
@@ -152,21 +154,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a task.
+        /// Returns whether this method is async and returns a task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType.IsNonGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 0 }
+                && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a generic task.
+        /// Returns whether this method is async and returns a generic task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType.IsGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 1 }
+                && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsGenericTaskType(compilation));
         }
 
         /// <summary>
@@ -189,16 +193,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
+            if (method is SynthesizedSimpleProgramEntryPointSymbol synthesized)
+            {
+                return (CSharpSyntaxNode)synthesized.ReturnTypeSyntax;
+            }
+
             method = method.PartialDefinitionPart ?? method;
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
-                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
+                SyntaxNode node = reference.GetSyntax();
+                if (node is MethodDeclarationSyntax methodDeclaration)
                 {
                     return methodDeclaration.ReturnType;
+                }
+                else if (node is LocalFunctionStatementSyntax statement)
+                {
+                    return statement.ReturnType;
                 }
             }
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
+        }
+
+        internal static bool IsValidUnscopedRefAttributeTarget(this MethodSymbol method)
+        {
+            return !method.IsStatic &&
+                method.ContainingType is NamedTypeSymbol containingType &&
+                (containingType.IsStructType() == true || (containingType.IsInterface && method.IsImplementable())) &&
+                method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.UserDefinedOperator) &&
+                !method.IsInitOnly;
+        }
+
+        internal static bool HasUnscopedRefAttributeOnMethodOrProperty(this MethodSymbol? method)
+        {
+            if (method is null)
+            {
+                return false;
+            }
+            return method.HasUnscopedRefAttribute ||
+                method.AssociatedSymbol is PropertySymbol { HasUnscopedRefAttribute: true };
         }
     }
 }

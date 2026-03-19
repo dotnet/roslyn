@@ -2,95 +2,98 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+#pragma warning disable RS0030 // Do not used banned APIs: PerLanguageOption<T>
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
-namespace Microsoft.CodeAnalysis.Options
-#endif
+namespace Microsoft.CodeAnalysis.Options;
+
+/// <inheritdoc cref="PerLanguageOption2{T}"/>
+public class PerLanguageOption<T> : IPublicOption
 {
-    /// <summary>
-    /// Marker interface for <see cref="PerLanguageOption{T}"/>
-    /// </summary>
-    internal interface IPerLanguageOption : IOptionWithGroup
+    private readonly OptionDefinition _optionDefinition;
+
+    public string Feature { get; }
+    public string Name { get; }
+
+    /// <inheritdoc cref="OptionDefinition.Type"/>
+    public Type Type => _optionDefinition.Type;
+
+    /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
+    public T DefaultValue => (T)_optionDefinition.DefaultValue!;
+
+    public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
+
+    public PerLanguageOption(string feature, string name, T defaultValue)
+        : this(feature ?? throw new ArgumentNullException(nameof(feature)),
+               OptionGroup.Default,
+               name ?? throw new ArgumentNullException(nameof(name)),
+               defaultValue,
+               storageLocations: [],
+               storageMapping: null,
+               isEditorConfigOption: false)
     {
     }
 
-    /// <summary>
-    /// An option that can be specified once per language.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IPerLanguageOption
+    public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        : this(feature ?? throw new ArgumentNullException(nameof(feature)),
+               OptionGroup.Default,
+               name ?? throw new ArgumentNullException(nameof(name)),
+               defaultValue,
+               [.. PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations))],
+               storageMapping: null,
+               isEditorConfigOption: false)
     {
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
-        public string Feature { get; }
+        // should not be used internally to create options
+        Debug.Assert(storageLocations.All(l => l is not IEditorConfigValueSerializer));
+    }
 
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
-        internal OptionGroup Group { get; }
+    private PerLanguageOption(
+        string feature,
+        OptionGroup group,
+        string name,
+        T defaultValue,
+        ImmutableArray<OptionStorageLocation> storageLocations,
+        OptionStorageMapping? storageMapping,
+        bool isEditorConfigOption)
+        : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, storageMapping, isEditorConfigOption), feature, name, storageLocations)
+    {
+    }
 
-        /// <summary>
-        /// The name of the option.
-        /// </summary>
-        public string Name { get; }
+    internal PerLanguageOption(OptionDefinition optionDefinition, string feature, string name, ImmutableArray<OptionStorageLocation> storageLocations)
+    {
+        Feature = feature;
+        Name = name;
+        _optionDefinition = optionDefinition;
+        StorageLocations = storageLocations;
+    }
 
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public Type Type => typeof(T);
+    OptionDefinition IOption2.Definition => _optionDefinition;
 
-        /// <summary>
-        /// The default option value.
-        /// </summary>
-        public T DefaultValue { get; }
+    object? IOption.DefaultValue => this.DefaultValue;
 
-        public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
+    IPublicOption? IOption2.PublicOption => null;
 
-        public PerLanguageOption(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
+    bool IOption.IsPerLanguage => true;
+
+    bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
+
+    public override string ToString() => this.PublicOptionDefinitionToString();
+
+    public override int GetHashCode() => _optionDefinition.GetHashCode();
+
+    public override bool Equals(object? obj) => Equals(obj as IOption2);
+
+    private bool Equals(IOption2? other)
+    {
+        if (ReferenceEquals(this, other))
         {
+            return true;
         }
 
-        public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
-        {
-        }
-
-        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-        {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
-
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.StorageLocations = storageLocations.ToImmutableArray();
-        }
-
-        object? IOption.DefaultValue => this.DefaultValue;
-
-        bool IOption.IsPerLanguage => true;
-
-        OptionGroup IOptionWithGroup.Group => this.Group;
-
-        public override string ToString()
-        {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
-        }
+        return other is not null && this.PublicOptionDefinitionEquals(other);
     }
 }

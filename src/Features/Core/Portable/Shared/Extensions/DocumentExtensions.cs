@@ -5,109 +5,114 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editing;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static class DocumentExtensions
 {
-    internal static class DocumentExtensions
+    public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+        where TNode : SyntaxNode
     {
-        public static bool ShouldHideAdvancedMembers(this Document document)
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        return document.ReplaceNode(root, oldNode, newNode);
+    }
+
+    public static Document ReplaceNodeSynchronously<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+        where TNode : SyntaxNode
+    {
+        var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+        return document.ReplaceNode(root, oldNode, newNode);
+    }
+
+    public static Document ReplaceNode<TNode>(this Document document, SyntaxNode root, TNode oldNode, TNode newNode)
+        where TNode : SyntaxNode
+    {
+        Debug.Assert(document.GetRequiredSyntaxRootSynchronously(CancellationToken.None) == root);
+        var newRoot = root.ReplaceNode(oldNode, newNode);
+        return document.WithSyntaxRoot(newRoot);
+    }
+
+    public static async Task<Document> ReplaceNodesAsync(this Document document,
+        IEnumerable<SyntaxNode> nodes,
+        Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
+        CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var newRoot = root.ReplaceNodes(nodes, computeReplacementNode);
+        return document.WithSyntaxRoot(newRoot);
+    }
+
+    public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
+        this Document document,
+        IEqualityComparer<T> comparer,
+        Func<Document, Task<ImmutableArray<T>>> getItemsWorker)
+    {
+        var totalItems = new HashSet<T>(comparer);
+
+        var values = await getItemsWorker(document).ConfigureAwait(false);
+        totalItems.AddRange(values.NullToEmpty());
+
+        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
         {
-            // Since we don't actually have a way to configure this per-document, we can fetch from the core workspace
-            return document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+            values = await getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)).ConfigureAwait(false);
+            totalItems.AddRange(values.NullToEmpty());
         }
 
-        public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode
+        return [.. totalItems];
+    }
+
+    public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
+        this Document document,
+        Func<Document, CancellationToken, Task<bool>> contextChecker,
+        CancellationToken cancellationToken)
+    {
+        if (await contextChecker(document, cancellationToken).ConfigureAwait(false))
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode(oldNode, newNode);
-            return document.WithSyntaxRoot(newRoot);
+            return true;
         }
 
-        public static async Task<Document> ReplaceNodesAsync(this Document document,
-            IEnumerable<SyntaxNode> nodes,
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
-            CancellationToken cancellationToken)
+        var solution = document.Project.Solution;
+        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNodes(nodes, computeReplacementNode);
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        public static async Task<IEnumerable<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
-            this Document document,
-            IEqualityComparer<T> comparer,
-            Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker,
-            CancellationToken cancellationToken)
-        {
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
-            var itemsForCurrentContext = await getItemsWorker(document, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<T>();
-            if (!linkedDocumentIds.Any())
-            {
-                return itemsForCurrentContext;
-            }
-
-            var totalItems = itemsForCurrentContext.ToSet(comparer);
-            foreach (var linkedDocumentId in linkedDocumentIds)
-            {
-                var linkedDocument = document.Project.Solution.GetDocument(linkedDocumentId);
-                var items = await getItemsWorker(linkedDocument, cancellationToken).ConfigureAwait(false);
-                if (items != null)
-                {
-                    totalItems.AddRange(items);
-                }
-            }
-
-            return totalItems;
-        }
-
-        public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
-            this Document document,
-            Func<Document, CancellationToken, Task<bool>> contextChecker,
-            CancellationToken cancellationToken)
-        {
-            if (await contextChecker(document, cancellationToken).ConfigureAwait(false))
+            var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
+            if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
             {
                 return true;
             }
-
-            var solution = document.Project.Solution;
-            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
-            {
-                var linkedDocument = solution.GetDocument(linkedDocumentId);
-                if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
-        /// <summary>
-        /// Get the user-specified naming rules, then add standard default naming rules (if provided). The standard 
-        /// naming rules (fallback rules) are added at the end so they will only be used if the user hasn't specified 
-        /// a preference.
-        /// </summary>
-        internal static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(this Document document,
-            ImmutableArray<NamingRule> defaultRules, CancellationToken cancellationToken)
+        return false;
+    }
+
+    public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, CancellationToken cancellationToken)
+    {
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var rule in rules)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(NamingStyleOptions.NamingPreferences);
-            var rules = namingStyleOptions.CreateRules().NamingRules;
-
-            if (defaultRules.Length > 0)
-            {
-                rules = rules.AddRange(defaultRules);
-            }
-
-            return rules;
+            if (rule.SymbolSpecification.AppliesTo(symbol))
+                return rule;
         }
+
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    public static async Task<NamingRule> GetApplicableNamingRuleAsync(
+        this Document document, SymbolKindOrTypeKind kind, Modifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
+    {
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var rule in rules)
+        {
+            if (rule.SymbolSpecification.AppliesTo(kind, modifiers, accessibility))
+                return rule;
+        }
+
+        throw ExceptionUtilities.Unreachable();
     }
 }

@@ -2,19 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+namespace Microsoft.CodeAnalysis.Classification;
 
-namespace Microsoft.CodeAnalysis.Classification
+internal readonly struct ClassifiedText(string classificationType, string text)
 {
-    internal struct ClassifiedText
-    {
-        public string ClassificationType { get; }
-        public string Text { get; }
-
-        public ClassifiedText(string classificationType, string text)
-        {
-            ClassificationType = classificationType;
-            Text = text;
-        }
-    }
+    public string ClassificationType { get; } = classificationType;
+    public string Text { get; } = text;
 }

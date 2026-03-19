@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { throw new NotImplementedException(); }
         }
 
+        internal override TypeConversions TypeConversions
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override ImmutableArray<ModuleSymbol> Modules
         {
             get { return ImmutableArray.Create<ModuleSymbol>(); }
@@ -43,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return ImmutableArray.Create<Location>(); }
         }
 
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
             throw new NotImplementedException();
         }
@@ -62,6 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             get { return false; }
         }
+
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
@@ -83,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             throw new NotImplementedException();
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            throw new NotImplementedException();
+        }
+
         public override ICollection<string> TypeNames
         {
             get
@@ -99,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get { return true; }
         }
@@ -110,5 +126,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         public override AssemblyMetadata GetMetadata() => null;
+
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            throw new NotImplementedException();
+        }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
     }
 }

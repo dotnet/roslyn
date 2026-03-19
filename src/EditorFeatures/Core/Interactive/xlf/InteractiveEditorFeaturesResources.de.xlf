@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="de" original="../InteractiveEditorFeaturesResources.resx">
+    <body>
+      <trans-unit id="Building_Project">
+        <source>Building Project</source>
+        <target state="translated">Projekt wird erstellt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copying_selection_to_Interactive_Window">
+        <source>Copying selection to Interactive Window.</source>
+        <target state="translated">Die Auswahl wird in Interactive-Fenster kopiert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Executing_selection_in_Interactive_Window">
+        <source>Executing selection in Interactive Window.</source>
+        <target state="translated">Die Auswahl wird im Interactive-Fenster ausgeführt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive_host_process_platform">
+        <source>Interactive host process platform</source>
+        <target state="translated">Interaktive Hostprozessplattform</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Print_a_list_of_referenced_assemblies">
+        <source>Print a list of referenced assemblies.</source>
+        <target state="translated">Gibt eine Liste der Assemblys aus, auf die verwiesen wird.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
+        <source>The references command is not supported in this Interactive Window implementation.</source>
+        <target state="translated">Der Befehl "references" wird in dieser Implementierung von Interactive-Fenster nicht unterstützt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">
+        <source>Reset the execution environment to the initial state, keep history.</source>
+        <target state="translated">Setzt die Ausführungsumgebung in den ursprünglichen Zustand zurück. Der Verlauf wird beibehalten.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
+        <source>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</source>
+        <target state="translated">Setzt auf eine saubere Umgebung zurück (nur Verweis auf "mscorlib") und führt das Initialisierungsskript nicht aus.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resetting_execution_engine">
+        <source>Resetting execution engine.</source>
+        <target state="translated">Das Ausführungsmodul wird zurückgesetzt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resetting_Interactive">
+        <source>Resetting Interactive</source>
+        <target state="translated">Interactives Element wird zurückgesetzt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
+        <source>The CurrentWindow property may only be assigned once.</source>
+        <target state="translated">Die Eigenschaft "CurrentWindow" kann nur ein Mal zugewiesen werden.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

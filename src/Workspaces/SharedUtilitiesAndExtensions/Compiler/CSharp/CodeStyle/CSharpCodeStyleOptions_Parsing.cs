@@ -3,134 +3,141 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle
-#else
-namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
-#endif
+internal static partial class CSharpCodeStyleOptions
 {
-    internal static partial class CSharpCodeStyleOptions
+    public static CodeStyleOption2<ExpressionBodyPreference> ParseExpressionBodyPreference(
+        string optionString, CodeStyleOption2<ExpressionBodyPreference> @default)
     {
-        public static CodeStyleOption<ExpressionBodyPreference> ParseExpressionBodyPreference(
-            string optionString, CodeStyleOption<ExpressionBodyPreference> @default)
+        // optionString must be similar to true:error or when_on_single_line:suggestion.
+        if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(optionString,
+                @default.Notification, out var value, out var notification))
         {
-            // optionString must be similar to true:error or when_on_single_line:suggestion.
-            if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(optionString,
-                    out var value, out var notificationOpt))
+            if (bool.TryParse(value, out var boolValue))
             {
-                // A notification value must be provided.
-                if (notificationOpt != null)
-                {
-                    if (bool.TryParse(value, out var boolValue))
-                    {
-                        return boolValue
-                            ? new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, notificationOpt)
-                            : new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, notificationOpt);
-                    }
-
-                    if (value == "when_on_single_line")
-                    {
-                        return new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, notificationOpt);
-                    }
-                }
+                return boolValue
+                    ? new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, notification)
+                    : new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, notification);
             }
 
-            return @default;
+            if (value == "when_on_single_line")
+            {
+                return new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, notification);
+            }
         }
 
-        private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption<ExpressionBodyPreference> value)
+        return @default;
+    }
+
+    private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption2<ExpressionBodyPreference> value, CodeStyleOption2<ExpressionBodyPreference> defaultValue)
+    {
+        var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
+        return value.Value switch
         {
-            var notificationString = value.Notification.ToEditorConfigString();
-            return value.Value switch
+            ExpressionBodyPreference.Never => $"false{notificationString}",
+            ExpressionBodyPreference.WhenPossible => $"true{notificationString}",
+            ExpressionBodyPreference.WhenOnSingleLine => $"when_on_single_line{notificationString}",
+            _ => throw new NotSupportedException(),
+        };
+    }
+
+    public static CodeStyleOption2<AddImportPlacement> ParseUsingDirectivesPlacement(
+        string optionString, CodeStyleOption2<AddImportPlacement> @default)
+    {
+        if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
+                optionString, @default.Notification, out var value, out var notification))
+        {
+            return value switch
             {
-                ExpressionBodyPreference.Never => $"false:{notificationString}",
-                ExpressionBodyPreference.WhenPossible => $"true:{notificationString}",
-                ExpressionBodyPreference.WhenOnSingleLine => $"when_on_single_line:{notificationString}",
+                "inside_namespace" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, notification),
+                "outside_namespace" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, notification),
+                "outside_namespace_ignoring_aliases" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespaceIgnoringAliases, notification),
                 _ => throw new NotSupportedException(),
             };
         }
 
-        public static CodeStyleOption<AddImportPlacement> ParseUsingDirectivesPlacement(
-            string optionString, CodeStyleOption<AddImportPlacement> @default)
-        {
-            // optionString must be similar to outside_namespace:error or inside_namespace:suggestion.
-            if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
-                optionString, out var value, out var notificationOpt))
-            {
-                // A notification value must be provided.
-                if (notificationOpt != null)
-                {
-                    return value switch
-                    {
-                        "inside_namespace" => new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, notificationOpt),
-                        "outside_namespace" => new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, notificationOpt),
-                        _ => throw new NotSupportedException(),
-                    };
-                }
-            }
+        return @default;
+    }
 
-            return @default;
-        }
-
-        public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption<AddImportPlacement> value)
+    public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption2<AddImportPlacement> value, CodeStyleOption2<AddImportPlacement> defaultValue)
+    {
+        var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
+        return value.Value switch
         {
-            var notificationString = value.Notification.ToEditorConfigString();
-            return value.Value switch
+            AddImportPlacement.InsideNamespace => $"inside_namespace{notificationString}",
+            AddImportPlacement.OutsideNamespace => $"outside_namespace{notificationString}",
+            AddImportPlacement.OutsideNamespaceIgnoringAliases => $"outside_namespace_ignoring_aliases{notificationString}",
+            _ => throw new NotSupportedException(),
+        };
+    }
+
+    public static CodeStyleOption2<NamespaceDeclarationPreference> ParseNamespaceDeclaration(
+        string optionString, CodeStyleOption2<NamespaceDeclarationPreference> @default)
+    {
+        if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
+                optionString, @default.Notification, out var value, out var notification))
+        {
+            return value switch
             {
-                AddImportPlacement.InsideNamespace => $"inside_namespace:{notificationString}",
-                AddImportPlacement.OutsideNamespace => $"outside_namespace:{notificationString}",
-                _ => throw new NotSupportedException(),
+                "block_scoped" => new(NamespaceDeclarationPreference.BlockScoped, notification),
+                "file_scoped" => new(NamespaceDeclarationPreference.FileScoped, notification),
+                _ => throw new NotSupportedException(string.Format(CSharpCompilerExtensionsResources.EditorConfig_option_0_contains_unrecognized_value_1, "csharp_style_namespace_declarations", value)),
             };
         }
 
-        private static CodeStyleOption<PreferBracesPreference> ParsePreferBracesPreference(
-            string optionString,
-            CodeStyleOption<PreferBracesPreference> defaultValue)
-        {
-            if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
-                optionString,
-                out var value,
-                out var notificationOption))
-            {
-                if (notificationOption != null)
-                {
-                    if (bool.TryParse(value, out var boolValue))
-                    {
-                        return boolValue
-                            ? new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.Always, notificationOption)
-                            : new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.None, notificationOption);
-                    }
-                }
+        return @default;
+    }
 
-                if (value == "when_multiline")
-                {
-                    return new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.WhenMultiline, notificationOption);
-                }
+    public static string GetNamespaceDeclarationEditorConfigString(CodeStyleOption2<NamespaceDeclarationPreference> value, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue)
+    {
+        var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
+        return value.Value switch
+        {
+            NamespaceDeclarationPreference.BlockScoped => $"block_scoped{notificationString}",
+            NamespaceDeclarationPreference.FileScoped => $"file_scoped{notificationString}",
+            _ => throw new NotSupportedException(),
+        };
+    }
+
+    private static CodeStyleOption2<PreferBracesPreference> ParsePreferBracesPreference(
+        string optionString,
+        CodeStyleOption2<PreferBracesPreference> defaultValue)
+    {
+        if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
+            optionString,
+            defaultValue.Notification,
+            out var value,
+            out var notificationOption))
+        {
+            if (bool.TryParse(value, out var boolValue))
+            {
+                return boolValue
+                    ? new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.Always, notificationOption)
+                    : new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.None, notificationOption);
             }
 
-            return defaultValue;
+            if (value == "when_multiline")
+            {
+                return new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.WhenMultiline, notificationOption);
+            }
         }
 
-        private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption<PreferBracesPreference> value)
+        return defaultValue;
+    }
+
+    private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption2<PreferBracesPreference> value, CodeStyleOption2<PreferBracesPreference> defaultValue)
+    {
+        var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
+        return value.Value switch
         {
-            var notificationString = value.Notification.ToEditorConfigString();
-            return value.Value switch
-            {
-                PreferBracesPreference.None => $"false:{notificationString}",
-                PreferBracesPreference.WhenMultiline => $"when_multiline:{notificationString}",
-                PreferBracesPreference.Always => $"true:{notificationString}",
-                _ => throw ExceptionUtilities.Unreachable,
-            };
-        }
+            PreferBracesPreference.None => $"false{notificationString}",
+            PreferBracesPreference.WhenMultiline => $"when_multiline{notificationString}",
+            PreferBracesPreference.Always => $"true{notificationString}",
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
     }
 }

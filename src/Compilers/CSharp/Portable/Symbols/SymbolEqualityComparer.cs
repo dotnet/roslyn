@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -24,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly EqualityComparer<Symbol> ObliviousNullableModifierMatchesAny = new SymbolEqualityComparer(TypeCompareKind.ObliviousNullableModifierMatchesAny);
 
+        internal static readonly EqualityComparer<Symbol> AllIgnoreOptions = new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions);
+
         internal static readonly EqualityComparer<Symbol> AllIgnoreOptionsPlusNullableWithUnknownMatchesAny =
                                                                   new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
@@ -34,6 +39,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SymbolEqualityComparer(TypeCompareKind comparison)
         {
             _comparison = comparison;
+        }
+
+        internal static EqualityComparer<Symbol> Create(TypeCompareKind comparison)
+        {
+            switch (comparison)
+            {
+                case TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes:
+                    return IgnoringDynamicTupleNamesAndNullability;
+                case TypeCompareKind.ConsiderEverything:
+                    return ConsiderEverything;
+                case TypeCompareKind.AllIgnoreOptionsPlusNullableWithObliviousMatchesAny:
+                    return AllIgnoreOptionsPlusNullableWithUnknownMatchesAny;
+                case TypeCompareKind.CLRSignatureCompareOptions:
+                    return CLRSignature;
+                default:
+                    Debug.Assert(false, "Consider optimizing as above when we need to handle a new type comparison kind.");
+                    return new SymbolEqualityComparer(comparison);
+            }
         }
 
         public override int GetHashCode(Symbol obj)

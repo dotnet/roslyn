@@ -3,24 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class AttributeSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New AttributeSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(AttributeSignatureHelpProvider)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -48,8 +42,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -77,8 +71,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAdvanced() As Task
 
             Dim markup = <Text><![CDATA[
@@ -115,8 +109,8 @@ End Class
                                     hideAdvancedMembers:=False)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateMixed() As Task
 
             Dim markup = <Text><![CDATA[
@@ -152,7 +146,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickInt() As Task
 
             Dim markup = <Text><![CDATA[
@@ -181,7 +175,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickString() As Task
 
             Dim markup = <Text><![CDATA[
@@ -251,8 +245,8 @@ End Class
             Await VerifyCurrentParameterNameAsync(markupWithPosition:=markup, expectedParameterName:="y")
         End Function
 
-        <WorkItem(1094379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094379")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094379")>
         Public Async Function TestAttributeSigHelpWithNoArgumentList() As Task
             Dim markup = "
 Imports System

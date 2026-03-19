@@ -2,32 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+internal abstract class ChangeSignatureAnalyzedContext
 {
-    internal sealed class ChangeSignatureAnalyzedContext
-    {
-        public readonly bool CanChangeSignature;
-        public readonly Project Project;
-        public readonly ISymbol Symbol;
-        public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
-        public readonly ParameterConfiguration ParameterConfiguration;
+}
 
-        public Solution Solution => Project.Solution;
+internal sealed class ChangeSignatureAnalysisSucceededContext(
+    SemanticDocument document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration) : ChangeSignatureAnalyzedContext
+{
+    public readonly SemanticDocument Document = document;
+    public readonly ISymbol Symbol = symbol;
+    public readonly ParameterConfiguration ParameterConfiguration = parameterConfiguration;
+    public readonly int PositionForTypeBinding = positionForTypeBinding;
 
-        public ChangeSignatureAnalyzedContext(
-            Project project, ISymbol symbol, ParameterConfiguration parameterConfiguration)
-        {
-            CanChangeSignature = true;
-            Project = project;
-            Symbol = symbol;
-            ParameterConfiguration = parameterConfiguration;
-            CannotChangeSignatureReason = CannotChangeSignatureReason.None;
-        }
+    public Solution Solution => Document.Project.Solution;
+}
 
-        public ChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
-        {
-            CanChangeSignature = false;
-            CannotChangeSignatureReason = reason;
-        }
-    }
+internal sealed class CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind reason) : ChangeSignatureAnalyzedContext
+{
+    public readonly ChangeSignatureFailureKind CannotChangeSignatureReason = reason;
 }

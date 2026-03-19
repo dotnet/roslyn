@@ -4,22 +4,14 @@
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal abstract class RQParameter(RQType type)
 {
-    internal abstract class RQParameter
-    {
-        public readonly RQType Type;
-        public RQParameter(RQType type)
-        {
-            System.Diagnostics.Debug.Assert(type != null);
-            Type = type;
-        }
+    public readonly RQType Type = type;
 
-        public SimpleTreeNode ToSimpleTree()
-        {
-            return new SimpleGroupNode(RQNameStrings.Param, CreateSimpleTreeForType());
-        }
+    public SimpleTreeNode ToSimpleTree()
+        => new SimpleGroupNode(RQNameStrings.Param, CreateSimpleTreeForType());
 
-        public abstract SimpleTreeNode CreateSimpleTreeForType();
-    }
+    public abstract SimpleTreeNode CreateSimpleTreeForType();
 }

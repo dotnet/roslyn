@@ -2,17 +2,18 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
+Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class XmlCommentHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
-        Friend Overrides Function CreateHighlighter() As IHighlighter
-            Return New XmlCommentHighlighter()
+        Friend Overrides Function GetHighlighterType() As Type
+            Return GetType(XmlCommentHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample3_1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -29,7 +30,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample3_2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -46,7 +47,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestXmlLiteralSample3_3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C

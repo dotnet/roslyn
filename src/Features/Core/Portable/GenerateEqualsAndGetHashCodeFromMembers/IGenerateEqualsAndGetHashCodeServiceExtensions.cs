@@ -6,13 +6,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
+namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
+
+internal static class IGenerateEqualsAndGetHashCodeServiceExtensions
 {
-    internal static class IGenerateEqualsAndGetHashCodeServiceExtensions
-    {
-        public static Task<IMethodSymbol> GenerateEqualsMethodAsync(
-            this IGenerateEqualsAndGetHashCodeService service, Document document, INamedTypeSymbol namedType,
-            ImmutableArray<ISymbol> members, CancellationToken cancellationToken)
-            => service.GenerateEqualsMethodAsync(document, namedType, members, localNameOpt: null, cancellationToken);
-    }
+    public static Task<IMethodSymbol> GenerateEqualsMethodAsync(
+        this IGenerateEqualsAndGetHashCodeService service, Document document, INamedTypeSymbol namedType,
+        ImmutableArray<ISymbol> members, CancellationToken cancellationToken)
+        => service.GenerateEqualsMethodAsync(document, namedType, members, localNameOpt: null, cancellationToken);
 }

@@ -3,19 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.Utilities
-Imports ERRID = Microsoft.CodeAnalysis.VisualBasic.ERRID
 
 Public Class PreprocessorEETests
 
     Private Function ParseExpression(text As XElement) As ExpressionSyntax
         Return ParseExpression(text.Value)
     End Function
-
 
     Private Function ParseExpressionAsRhs(text As String, Optional expectsErrors As Boolean = False) As ExpressionSyntax
         Dim modText =
@@ -36,7 +31,6 @@ Public Class PreprocessorEETests
         Dim expr = VisualBasic.SyntaxFactory.ParseExpression(text)
         Return DirectCast(expr.Green, ExpressionSyntax)
     End Function
-
 
     <Fact>
     Public Sub CCExpressionsSimpleBoolLiterals()
@@ -94,7 +88,6 @@ Public Class PreprocessorEETests
         Assert.Equal(42, res.ValueAsObject)
 
     End Sub
-
 
     <Fact>
     Public Sub CCExpressionsSimpleIntegralLiterals()
@@ -186,7 +179,6 @@ Public Class PreprocessorEETests
         Assert.Equal(True, cond.IsBooleanTrue)
 
     End Sub
-
 
     <Fact>
     Public Sub CCExpressionsSimpleNames()
@@ -284,7 +276,6 @@ Public Class PreprocessorEETests
 #End If
 
     End Sub
-
 
     <WorkItem(888316, "DevDiv/Personal")>
     <Fact>

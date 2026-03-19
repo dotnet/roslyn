@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,23 +19,25 @@ namespace Microsoft.CodeAnalysis
     {
         internal static byte[] CalculateRsaSignature(IEnumerable<Blob> content, RSAParameters privateKey)
         {
-            var hash = CalculateSha1(content);
+            var hash = calculateSha1(content);
 
             using (var rsa = RSA.Create())
             {
                 rsa.ImportParameters(privateKey);
+                // CodeQL [SM02196] ECMA-335 requires us to use SHA-1 and there is no alternative.
                 var signature = rsa.SignHash(hash, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
                 Array.Reverse(signature);
                 return signature;
             }
-        }
 
-        internal static byte[] CalculateSha1(IEnumerable<Blob> content)
-        {
-            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            static byte[] calculateSha1(IEnumerable<Blob> content)
             {
-                hash.AppendData(content);
-                return hash.GetHashAndReset();
+                // CodeQL [SM02196] ECMA-335 requires us to use SHA-1 and there is no alternative.
+                using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+                {
+                    hash.AppendData(content);
+                    return hash.GetHashAndReset();
+                }
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
 
             if (keySize == 0 && privateKey.HasValue)
             {
-                keySize = privateKey.Value.Modulus.Length;
+                keySize = privateKey.Value.Modulus!.Length;
             }
 
             if (keySize == 0)

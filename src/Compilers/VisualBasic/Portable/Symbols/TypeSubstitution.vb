@@ -477,7 +477,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return currentParent
         End Function
 
-
         Private Shared ReadOnly s_withoutModifiers As Func(Of TypeSymbol, TypeWithModifiers) = Function(arg) New TypeWithModifiers(arg)
 
         Public Shared Function Create(
@@ -554,7 +553,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.Append("}"c)
         End Sub
 
-
         Private Sub New(targetGenericDefinition As Symbol, pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)), parent As TypeSubstitution)
             Debug.Assert(Not pairs.IsDefault)
             Debug.Assert(pairs.All(Function(p) p.Key IsNot Nothing))
@@ -577,7 +575,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _targetGenericDefinition = targetGenericDefinition
         End Sub
 
-
         ''' <summary>
         ''' Create substitution to handle alpha-renaming of type parameters. 
         ''' It maps type parameter definition to corresponding alpha-renamed type parameter.
@@ -585,7 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="alphaRenamedTypeParameters">Alpha-renamed type parameters.</param>
         Public Shared Function CreateForAlphaRename(
             parent As TypeSubstitution,
-            alphaRenamedTypeParameters As ImmutableArray(Of TypeParameterSymbol)
+            alphaRenamedTypeParameters As ImmutableArray(Of SubstitutedTypeParameterSymbol)
         ) As TypeSubstitution
             Debug.Assert(parent IsNot Nothing)
             Debug.Assert(Not alphaRenamedTypeParameters.IsEmpty)
@@ -609,14 +606,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim pairs(typeParametersDefinitions.Length - 1) As KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)
 
             For i As Integer = 0 To typeParametersDefinitions.Length - 1 Step 1
-                Debug.Assert(Not alphaRenamedTypeParameters(i).Equals(typeParametersDefinitions(i)))
+                Debug.Assert(Not TypeOf typeParametersDefinitions(i) Is SubstitutedTypeParameterSymbol)
                 Debug.Assert(alphaRenamedTypeParameters(i).OriginalDefinition Is typeParametersDefinitions(i))
                 pairs(i) = New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(typeParametersDefinitions(i), New TypeWithModifiers(alphaRenamedTypeParameters(i)))
             Next
 
             Return Concat(parent, memberDefinition, pairs.AsImmutableOrNull())
         End Function
-
 
         ''' <summary>
         ''' Create TypeSubstitution that can be used to substitute method's type parameters
@@ -688,7 +684,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(countOfMeaningfulPairs = pairs.Length)
             Return New TypeSubstitution(targetMethod, pairs.AsImmutableOrNull(), Nothing)
         End Function
-
 
         ''' <summary>
         ''' Adjust substitution for construction.
@@ -799,7 +794,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return pairsHaveChanged
         End Function
-
 
         ''' <summary>
         ''' Create substitution for targetGenericDefinition based on its type 

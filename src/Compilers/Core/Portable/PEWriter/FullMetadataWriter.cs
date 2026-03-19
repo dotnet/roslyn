@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -28,13 +26,13 @@ namespace Microsoft.Cci
 
         private readonly Dictionary<ITypeDefinition, int> _fieldDefIndex;
         private readonly Dictionary<ITypeDefinition, int> _methodDefIndex;
-        private readonly Dictionary<IMethodDefinition, int> _parameterListIndex;
+        private readonly SegmentedDictionary<IMethodDefinition, int> _parameterListIndex;
 
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
-        private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
+        private readonly TypeReferenceIndex _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
         private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
 
@@ -99,15 +97,15 @@ namespace Microsoft.Cci
             _parameterDefs = new DefinitionIndex<IParameterDefinition>(numMethods);
             _genericParameters = new DefinitionIndex<IGenericParameter>(0);
 
-            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
-            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
-            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods);
+            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
+            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
+            _parameterListIndex = new SegmentedDictionary<IMethodDefinition, int>(numMethods, ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
             _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this));
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
-            _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
+            _typeRefIndex = new TypeReferenceIndex(this);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
             _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this);
         }
@@ -331,14 +329,6 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
-        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
         protected override void PopulateEventMapTableRows()
         {
             ITypeDefinition? lastParent = null;
@@ -435,16 +425,16 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct DefinitionIndex<T> where T : IReference
+        private readonly struct DefinitionIndex<T> where T : class, IReference
         {
             // IReference to RowId
-            private readonly Dictionary<T, int> _index;
-            private readonly List<T> _rows;
+            private readonly SegmentedDictionary<T, int> _index;
+            private readonly SegmentedList<T> _rows;
 
             public DefinitionIndex(int capacity)
             {
-                _index = new Dictionary<T, int>(capacity);
-                _rows = new List<T>(capacity);
+                _index = new SegmentedDictionary<T, int>(capacity, ReferenceEqualityComparer.Instance);
+                _rows = new SegmentedList<T>(capacity);
             }
 
             public bool TryGetValue(T item, out int rowId)

@@ -41,4 +41,4 @@ class Q : P
 }
 ```
 
-The rule implemented in the compilers is: When there are methods and non-methods found along different inheritance paths, the compilers emit a warning and drop the non-methods.
+The rule implemented in the compilers is: when there are methods and non-methods found along different inheritance paths, the compilers emit a warning and drop the non-methods.

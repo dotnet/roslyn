@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,19 +15,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// 
     /// For more explanation of Kind, Symbol, Error - see LookupResult.
     /// </summary>
-    internal struct SingleLookupResult
+    internal readonly struct SingleLookupResult
     {
         // the kind of result.
         internal readonly LookupResultKind Kind;
 
         // the symbol or null.
-        internal readonly Symbol Symbol;
+        internal readonly Symbol? Symbol;
 
         // the error of the result, if it is NonViable or Inaccessible
-        internal readonly DiagnosticInfo Error;
+        internal readonly DiagnosticInfo? Error;
 
-        internal SingleLookupResult(LookupResultKind kind, Symbol symbol, DiagnosticInfo error)
+        internal SingleLookupResult(LookupResultKind kind, Symbol? symbol, DiagnosticInfo? error)
         {
+            Debug.Assert(symbol is not null || kind == LookupResultKind.Empty);
             this.Kind = kind;
             this.Symbol = symbol;
             this.Error = error;

@@ -64,11 +64,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Function GetAttributeDeclarations() As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
+        Public Function GetAttributeDeclarations(Optional quickAttributes As QuickAttributes? = Nothing) As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
             Dim attributeSyntaxBuilder = ArrayBuilder(Of SyntaxList(Of AttributeListSyntax)).GetInstance()
 
             For Each decl In Declarations
                 If Not decl.HasAnyAttributes Then
+                    Continue For
+                End If
+
+                ' if caller is asking for particular quick attributes, don't bother going to syntax
+                ' unless the type actually could expose that attribute.
+                If quickAttributes IsNot Nothing AndAlso
+                   (decl.QuickAttributes And quickAttributes.Value) <> 0 Then
                     Continue For
                 End If
 

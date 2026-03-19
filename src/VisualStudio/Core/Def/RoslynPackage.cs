@@ -7,316 +7,205 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Logging;
-using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Versions;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
-using Microsoft.VisualStudio.LanguageServices.Experimentation;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
+using Microsoft.CodeAnalysis.Remote.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
+using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
-using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
+using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TaskStatusCenter;
-using Microsoft.VisualStudio.Telemetry;
-using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.Setup
+namespace Microsoft.VisualStudio.LanguageServices.Setup;
+
+[Guid(Guids.RoslynPackageIdString)]
+[ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
+[ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
+[ProvideService(typeof(RoslynPackageLoadService), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = true)]
+internal sealed class RoslynPackage : AbstractPackage
 {
-    [Guid(Guids.RoslynPackageIdString)]
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 17)]
-    [ProvideUIContextRule(
-        Guids.EncCapableProjectExistsInWorkspaceUIContextString,
-        name: "Managed Edit and Continue capability",
-        expression: "CS | VB",
-        termNames: new[] { "CS", "VB" },
-        termValues: new[] { Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString })]
-    internal class RoslynPackage : AbstractPackage
+    private static RoslynPackage? s_lazyInstance;
+
+    private ThreadSafeMenuCommandService? _menuCommandService;
+    private RuleSetEventHandler? _ruleSetEventHandler;
+    private SolutionEventMonitor? _solutionEventMonitor;
+
+    internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        private VisualStudioWorkspace _workspace;
-        private IComponentModel _componentModel;
-        private RuleSetEventHandler _ruleSetEventHandler;
-        private ColorSchemeApplier _colorSchemeApplier;
-        private IDisposable _solutionEventMonitor;
-
-        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        if (s_lazyInstance is null)
         {
-            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var shell = (IVsShell7?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            Assumes.Present(shell);
+            await shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
 
-            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
-            cancellationToken.ThrowIfCancellationRequested();
-            Assumes.Present(_componentModel);
-
-            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-            // the background thread then we will experience hangs like we see in this bug:
-            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
-            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-            var telemetrySession = TelemetryService.DefaultSession;
-
-            WatsonReporter.InitializeFatalErrorHandlers(telemetrySession);
-
-            // Ensure the options persisters are loaded since we have to fetch options from the shell
-            _componentModel.GetExtensions<IOptionPersister>();
-
-            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
-            _workspace.Services.GetService<IExperimentationService>();
-
-            RoslynTelemetrySetup.Initialize(this, telemetrySession);
-
-            InitializeColors();
-
-            // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
-            _solutionEventMonitor = new SolutionEventMonitor(_workspace);
-
-            TrackBulkFileOperations();
-        }
-
-        private void InitializeColors()
-        {
-            // Use VS color keys in order to support theming.
-            CodeAnalysisColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
-            CodeAnalysisColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
-            CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
-            CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
-
-            // Initialize ColorScheme support
-            _colorSchemeApplier = _componentModel.GetService<ColorSchemeApplier>();
-            _colorSchemeApplier.Initialize();
-        }
-
-        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
-
-            // we need to load it as early as possible since we can have errors from
-            // package from each language very early
-            this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>();
-            this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
-
-            this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
-            this.ComponentModel.GetService<VirtualMemoryNotificationListener>();
-
-            // The misc files workspace needs to be loaded on the UI thread.  This way it will have
-            // the appropriate task scheduler to report events on.
-            this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-
-            // Load and initialize the services detecting and adding new analyzer config documents as solution item.
-            this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>().Initialize(this);
-            this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
-
-            this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
-
-            LoadAnalyzerNodeComponents();
-
-            LoadComponentsBackgroundAsync(cancellationToken).Forget();
-        }
-
-        private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
-        {
-            await TaskScheduler.Default;
-
-            await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
-
-            // Initialize any experiments async
-            var experiments = this.ComponentModel.DefaultExportProvider.GetExportedValues<IExperiment>();
-            foreach (var experiment in experiments)
+            if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
             {
-                await experiment.InitializeAsync().ConfigureAwait(true);
-            }
-
-            // Load the designer attribute service and tell it to start watching the solution for
-            // designable files.
-            var designerAttributeService = this.ComponentModel.GetService<IVisualStudioDesignerAttributeService>();
-            designerAttributeService.Start(this.DisposalToken);
-
-            // Load the telemetry service and tell it to start watching the solution for project info.
-            var projectTelemetryService = this.ComponentModel.GetService<IVisualStudioProjectTelemetryService>();
-            projectTelemetryService.Start(this.DisposalToken);
-
-            // Load the todo comments service and tell it to start watching the solution for new comments
-            var todoCommentsService = this.ComponentModel.GetService<IVisualStudioTodoCommentsService>();
-            todoCommentsService.Start(this.DisposalToken);
-        }
-
-        private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
-        {
-            // Obtain services and QueryInterface from the main thread
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
-            var monitorSelectionService = (IVsMonitorSelection)await GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
-
-            // Switch to the background object for constructing commands
-            await TaskScheduler.Default;
-
-            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommandAsync()
-                .ConfigureAwait(true);
-
-            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommandAsync()
-                .ConfigureAwait(true);
-        }
-
-        internal IComponentModel ComponentModel
-        {
-            get
-            {
-                return _componentModel ?? throw new InvalidOperationException($"Cannot use {nameof(RoslynPackage)}.{nameof(ComponentModel)} prior to initialization.");
+                s_lazyInstance = (RoslynPackage)package;
             }
         }
 
-        protected override void Dispose(bool disposing)
+        return s_lazyInstance;
+    }
+
+    protected override void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
+    {
+        base.RegisterInitializeAsyncWork(packageInitializationTasks);
+
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+
+        return;
+
+        async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            DisposeVisualStudioServices();
+            AddService(typeof(RoslynPackageLoadService), (_, _, _) => Task.FromResult((object?)new RoslynPackageLoadService()), promote: true);
 
-            UnregisterAnalyzerTracker();
-            UnregisterRuleSetEventHandler();
+            var menuCommandService = await this.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
+            Assumes.Present(menuCommandService);
+            _menuCommandService = new ThreadSafeMenuCommandService(menuCommandService);
 
-            ReportSessionWideTelemetry();
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RemoveUnusedReferences,
+                (s, e) => ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().OnRemoveUnusedReferencesForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().OnRemoveUnusedReferencesForSelectedProjectStatus(s, e));
 
-            if (_solutionEventMonitor != null)
-            {
-                _solutionEventMonitor.Dispose();
-                _solutionEventMonitor = null;
-            }
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SyncNamespaces,
+                (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProjectStatus(s, e));
 
-            base.Dispose(disposing);
+            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.RunCodeAnalysisForSelectedProjectCommandId,
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject,
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
+
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.LogRoslynWorkspaceStructure,
+                (_, _) => ProjectSystem.Logging.RoslynWorkspaceStructureLogger.ShowSaveDialogAndLog(this));
+
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0100,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnExecute(s, e));
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0101,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnPaste(s, e));
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0102,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnClear(s, e));
+
+            await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
+            await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
+        }
+    }
+
+    private async Task ProfferServiceBrokerServicesAsync(CancellationToken cancellationToken)
+    {
+        // Proffer in-process service broker services
+        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(cancellationToken).ConfigureAwait(false);
+
+        serviceBrokerContainer.Proffer(
+            WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
+            (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+
+        // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
+        serviceBrokerContainer.Proffer(
+            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
+            (_, _, _, _) => ValueTask.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+    }
+
+    protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
+    {
+        Assumes.Present(_menuCommandService);
+
+        // we need to load it as early as possible since we can have errors from
+        // package from each language very early
+        await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+        await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+
+        await LoadAnalyzerNodeComponentsAsync(_menuCommandService, cancellationToken).ConfigureAwait(false);
+
+        // Ensure the stack trace explorer handler is created so it subscribes to broadcast messages
+        // if the "open on focus" option is enabled.
+        await ComponentModel.GetService<StackTraceExplorerCommandHandler>().EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+        // Initialize keybinding reset detector
+        await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    // Overrides for VSSDK003 fix 
+    // See https://github.com/Microsoft/VSSDK-Analyzers/blob/main/doc/VSSDK003.md
+    public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
+    {
+        if (toolWindowType == typeof(ValueTracking.ValueTrackingToolWindow).GUID)
+        {
+            return this;
         }
 
-        private void ReportSessionWideTelemetry()
+        if (toolWindowType == typeof(StackTraceExplorerToolWindow).GUID)
         {
-            PersistedVersionStampLogger.ReportTelemetry();
-            LinkedFileDiffMergingLogger.ReportTelemetry();
-            SolutionLogger.ReportTelemetry();
-            AsyncCompletionLogger.ReportTelemetry();
-            CompletionProvidersLogger.ReportTelemetry();
-            SyntacticLspLogger.ReportTelemetry();
+            return this;
         }
 
-        private void DisposeVisualStudioServices()
+        return base.GetAsyncToolWindowFactory(toolWindowType);
+    }
+
+    protected override string GetToolWindowTitle(Type toolWindowType, int id)
+            => base.GetToolWindowTitle(toolWindowType, id);
+
+    protected override Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        => Task.FromResult((object?)null);
+
+    protected override void Dispose(bool disposing)
+    {
+        UnregisterAnalyzerTracker();
+        UnregisterRuleSetEventHandler();
+
+        ReportSessionWideTelemetry();
+
+        _solutionEventMonitor?.Dispose();
+        _solutionEventMonitor = null;
+
+        base.Dispose(disposing);
+    }
+
+    private static void ReportSessionWideTelemetry()
+    {
+        AsyncCompletionLogger.ReportTelemetry();
+        InheritanceMarginLogger.ReportTelemetry();
+        FeaturesSessionTelemetry.Report();
+    }
+
+    private async Task LoadAnalyzerNodeComponentsAsync(ThreadSafeMenuCommandService menuCommandService, CancellationToken cancellationToken)
+    {
+        await this.ComponentModel.GetService<IAnalyzerNodeSetup>().InitializeAsync(this, menuCommandService, cancellationToken).ConfigureAwait(false);
+
+        _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
+        if (_ruleSetEventHandler != null)
+            await _ruleSetEventHandler.RegisterAsync(this, cancellationToken).ConfigureAwait(false);
+    }
+
+    private void UnregisterAnalyzerTracker()
+        => this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
+
+    private void UnregisterRuleSetEventHandler()
+    {
+        if (_ruleSetEventHandler != null)
         {
-            if (_workspace != null)
-            {
-                _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
-            }
-        }
-
-        private void LoadAnalyzerNodeComponents()
-        {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Initialize(this);
-
-            _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
-            if (_ruleSetEventHandler != null)
-            {
-                _ruleSetEventHandler.Register();
-            }
-        }
-
-        private void UnregisterAnalyzerTracker()
-        {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
-        }
-
-        private void UnregisterRuleSetEventHandler()
-        {
-            if (_ruleSetEventHandler != null)
-            {
-                _ruleSetEventHandler.Unregister();
-                _ruleSetEventHandler = null;
-            }
-        }
-
-        private void TrackBulkFileOperations()
-        {
-            // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
-            // such as solution crawler, pre-emptive remote host synchronization and etc. any background work users didn't
-            // explicitly asked for.
-            //
-            // this should give all resources to BulkFileOperation. we do same for things like build, 
-            // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
-            var globalNotificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
-
-            // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
-            // so we only need simple tracking.
-            var gate = new object();
-            GlobalOperationRegistration localRegistration = null;
-
-            BulkFileOperation.End += (s, a) =>
-            {
-                StopBulkFileOperationNotification();
-            };
-
-            BulkFileOperation.Begin += (s, a) =>
-            {
-                StartBulkFileOperationNotification();
-            };
-
-            void StartBulkFileOperationNotification()
-            {
-                lock (gate)
-                {
-                    // this shouldn't happen, but we are using external component
-                    // so guarding us from them
-                    if (localRegistration != null)
-                    {
-                        FatalError.ReportWithoutCrash(new InvalidOperationException("BulkFileOperation already exist"));
-                        return;
-                    }
-
-                    localRegistration = globalNotificationService.Start("BulkFileOperation");
-                }
-            }
-
-            void StopBulkFileOperationNotification()
-            {
-                lock (gate)
-                {
-                    // this can happen if BulkFileOperation was already in the middle
-                    // of running. to make things simpler, decide to not use IsInProgress
-                    // which we need to worry about race case.
-                    if (localRegistration == null)
-                    {
-                        return;
-                    }
-
-                    localRegistration.Dispose();
-                    localRegistration = null;
-                }
-            }
+            _ruleSetEventHandler.Unregister();
+            _ruleSetEventHandler = null;
         }
     }
 }

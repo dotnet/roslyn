@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -52,6 +55,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
         }
+
+#nullable enable
+        string? Cci.INamedTypeReference.AssociatedFileIdentifier
+        {
+            get
+            {
+                return null;
+            }
+        }
+#nullable disable
 
         bool Cci.ITypeReference.IsEnum
         {
@@ -168,12 +181,26 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
+        Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
         string Cci.INamedEntity.Name
         {
             get
             {
                 return s_name;
             }
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -217,6 +244,8 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return null;
             }
+
+            Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 
             string Cci.INamedEntity.Name => s_identity.Name;
         }

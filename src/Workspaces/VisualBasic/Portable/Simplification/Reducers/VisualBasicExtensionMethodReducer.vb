@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,16 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_pool As ObjectPool(Of IReductionRewriter) =
             New ObjectPool(Of IReductionRewriter)(Function() New Rewriter(s_pool))
 
+        Private Shared ReadOnly s_simplifyInvocationExpression As Func(Of InvocationExpressionSyntax, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyInvocationExpression
+
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared ReadOnly s_simplifyInvocationExpression As Func(Of InvocationExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyInvocationExpression
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
 
         Private Shared Function SimplifyInvocationExpression(
             invocationExpression As InvocationExpressionSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As VisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As InvocationExpressionSyntax
 
@@ -31,9 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             If invocationExpression.Expression?.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(invocationExpression.Expression, MemberAccessExpressionSyntax)
-                Dim targetSymbol = semanticModel.GetSymbolInfo(memberAccess.Name)
+                Dim targetSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken)
 
-                If (Not targetSymbol.Symbol Is Nothing) AndAlso targetSymbol.Symbol.Kind = SymbolKind.Method Then
+                If (targetSymbol.Symbol IsNot Nothing) AndAlso targetSymbol.Symbol.Kind = SymbolKind.Method Then
                     Dim targetMethodSymbol = DirectCast(targetSymbol.Symbol, IMethodSymbol)
                     If Not targetMethodSymbol.IsReducedExtension() Then
                         Dim argumentList = invocationExpression.ArgumentList
@@ -49,13 +52,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             Dim rewrittenArgumentList = argumentList.WithArguments(newArguments)
                             Dim candidateRewrittenNode = SyntaxFactory.InvocationExpression(newMemberAccess, rewrittenArgumentList)
 
-                            Dim oldSymbol = semanticModel.GetSymbolInfo(invocationExpression).Symbol
+                            Dim oldSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol
                             Dim newSymbol = semanticModel.GetSpeculativeSymbolInfo(
                                 invocationExpression.SpanStart,
                                 candidateRewrittenNode,
                                 SpeculativeBindingOption.BindAsExpression).Symbol
 
-                            If Not oldSymbol Is Nothing And Not newSymbol Is Nothing Then
+                            If oldSymbol IsNot Nothing And newSymbol IsNot Nothing Then
                                 If newSymbol.Kind = SymbolKind.Method And oldSymbol.Equals(DirectCast(newSymbol, IMethodSymbol).GetConstructedReducedFrom()) Then
                                     rewrittenNode = candidateRewrittenNode
                                 End If

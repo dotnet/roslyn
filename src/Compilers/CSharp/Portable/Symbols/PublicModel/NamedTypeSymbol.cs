@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -188,9 +190,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsImplicitClass => UnderlyingNamedTypeSymbol.IsImplicitClass;
 
-        bool INamedTypeSymbol.MightContainExtensionMethods => UnderlyingNamedTypeSymbol.MightContainExtensionMethods;
+        bool INamedTypeSymbol.MightContainExtensionMethods => UnderlyingNamedTypeSymbol.MightContainExtensions;
 
         bool INamedTypeSymbol.IsSerializable => UnderlyingNamedTypeSymbol.IsSerializable;
+
+        bool INamedTypeSymbol.IsFileLocal =>
+            // Internally we can treat a metadata type as being a file-local type for EE.
+            // For public API, only source types are considered file-local types.
+            UnderlyingNamedTypeSymbol.OriginalDefinition is SourceMemberContainerTypeSymbol
+                && UnderlyingNamedTypeSymbol.IsFileLocal;
+
+        INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();
+
+#nullable enable
+        bool INamedTypeSymbol.IsExtension
+        {
+            get
+            {
+                bool isExtension = UnderlyingNamedTypeSymbol.IsExtension;
+
+                Debug.Assert(!isExtension
+                    || (!string.IsNullOrEmpty(UnderlyingNamedTypeSymbol.ExtensionGroupingName) && !string.IsNullOrEmpty(UnderlyingNamedTypeSymbol.ExtensionMarkerName)));
+
+                return isExtension;
+            }
+        }
+
+        string? INamedTypeSymbol.ExtensionGroupingName => UnderlyingNamedTypeSymbol.ExtensionGroupingName;
+        string? INamedTypeSymbol.ExtensionMarkerName => UnderlyingNamedTypeSymbol.ExtensionMarkerName;
+
+        IParameterSymbol? INamedTypeSymbol.ExtensionParameter => UnderlyingNamedTypeSymbol.ExtensionParameter?.GetPublicSymbol();
+#nullable disable
 
         #region ISymbol Members
 
@@ -202,6 +232,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitNamedType(this);
+        }
+
+        protected sealed override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNamedType(this, argument);
         }
 
         #endregion

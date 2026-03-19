@@ -4,11 +4,11 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal static class UnitTestingSymbolExtensions
 {
-    internal static class UnitTestingSymbolExtensions
-    {
-        public static UnitTestingSymbolKeyWrapper GetSymbolKey(this ISymbol symbol, CancellationToken cancellationToken)
-            => new UnitTestingSymbolKeyWrapper(SymbolKeyExtensions.GetSymbolKey(symbol, cancellationToken));
-    }
+    public static string GetSymbolKeyString(this ISymbol symbol, CancellationToken cancellationToken)
+        => SymbolKey.Create(symbol, cancellationToken).ToString();
+
 }

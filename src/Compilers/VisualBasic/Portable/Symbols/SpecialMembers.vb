@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class AssemblySymbol
+    Partial Friend Class AssemblySymbol
 
         ''' <summary>
         ''' Lookup member declaration in predefined CorLib type used by this Assembly.
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     End Class
 
-    Friend Partial Class MetadataOrSourceAssemblySymbol
+    Partial Friend Class MetadataOrSourceAssemblySymbol
 
         ''' <summary>
         ''' Lazy cache of special members.
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim descriptor = SpecialMembers.GetDescriptor(member)
-                Dim type = GetDeclaredSpecialType(CType(descriptor.DeclaringTypeId, SpecialType))
+                Dim type = GetDeclaredSpecialType(descriptor.DeclaringSpecialType)
                 Dim result As Symbol = Nothing
 
                 If Not type.IsErrorType() Then

@@ -13,33 +13,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
     ''' <summary>
     ''' Represents a retargeting custom attribute
     ''' </summary>
-    Friend Class RetargetingAttributeData
-        Inherits SourceAttributeData
-        Friend Sub New(ByVal applicationNode As SyntaxReference,
+    Friend NotInheritable Class RetargetingAttributeData
+        Inherits VisualBasicAttributeData
+
+        Private ReadOnly _underlying As VisualBasicAttributeData
+        Private ReadOnly _attributeClass As NamedTypeSymbol
+        Private ReadOnly _attributeConstructor As MethodSymbol
+        Private ReadOnly _constructorArguments As ImmutableArray(Of TypedConstant)
+        Private ReadOnly _namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
+
+        Friend Sub New(ByVal underlying As VisualBasicAttributeData,
                        ByVal attributeClass As NamedTypeSymbol,
                        ByVal attributeConstructor As MethodSymbol,
                        ByVal constructorArguments As ImmutableArray(Of TypedConstant),
-                       ByVal namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)),
-                       ByVal isConditionallyOmitted As Boolean,
-                       ByVal hasErrors As Boolean)
-            MyBase.New(applicationNode, attributeClass, attributeConstructor, constructorArguments, namedArguments, isConditionallyOmitted, hasErrors)
+                       ByVal namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)))
+            Debug.Assert(TypeOf underlying Is SourceAttributeData OrElse TypeOf underlying Is SynthesizedAttributeData)
+            Debug.Assert(attributeClass IsNot Nothing OrElse underlying.HasErrors)
+
+            _underlying = underlying
+            Me._attributeClass = attributeClass
+            Me._attributeConstructor = attributeConstructor
+            Me._constructorArguments = constructorArguments.NullToEmpty()
+            Me._namedArguments = namedArguments.NullToEmpty()
         End Sub
 
-        ''' <summary>
-        ''' Gets the retargeted System.Type type symbol.
-        ''' </summary>
-        ''' <param name="targetSymbol">Target symbol on which this attribute is applied.</param>
-        ''' <returns>Retargeted System.Type type symbol.</returns>
-        Friend Overrides Function GetSystemType(ByVal targetSymbol As Symbol) As TypeSymbol
-            Dim retargetingAssembly = DirectCast(If(targetSymbol.Kind = SymbolKind.Assembly, targetSymbol, targetSymbol.ContainingAssembly), RetargetingAssemblySymbol)
-            Dim underlyingAssembly = DirectCast(retargetingAssembly.UnderlyingAssembly, SourceAssemblySymbol)
+        Public Overrides ReadOnly Property AttributeClass As NamedTypeSymbol
+            Get
+                Return _attributeClass
+            End Get
+        End Property
 
-            ' Get the System.Type from the underlying assembly's Compilation
-            Dim systemType As TypeSymbol = underlyingAssembly.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
+        Public Overrides ReadOnly Property AttributeConstructor As MethodSymbol
+            Get
+                Return _attributeConstructor
+            End Get
+        End Property
 
-            ' Retarget the type
-            Dim retargetingModule = DirectCast(retargetingAssembly.Modules(0), RetargetingModuleSymbol)
-            Return retargetingModule.RetargetingTranslator.Retarget(systemType, RetargetOptions.RetargetPrimitiveTypesByTypeCode)
+        Public Overrides ReadOnly Property ApplicationSyntaxReference As SyntaxReference
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property CommonConstructorArguments As ImmutableArray(Of TypedConstant)
+            Get
+                Return _constructorArguments
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property CommonNamedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
+            Get
+                Return _namedArguments
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsConditionallyOmitted As Boolean
+            Get
+                Return _underlying.IsConditionallyOmitted
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasErrors As Boolean
+            Get
+                Return _underlying.HasErrors OrElse _attributeConstructor Is Nothing
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                Debug.Assert(AttributeClass IsNot Nothing OrElse _underlying.HasErrors)
+
+                If _underlying.HasErrors Then
+                    Return _underlying.ErrorInfo
+                ElseIf HasErrors Then
+                    Debug.Assert(AttributeConstructor Is Nothing)
+
+                    Return If(AttributeClass.GetUseSiteInfo().DiagnosticInfo,
+                              ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, AttributeClass.MetadataName & "." & WellKnownMemberNames.InstanceConstructorName))
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+
+        Friend Overrides Function IsTargetAttribute(namespaceName As String, typeName As String, Optional ignoreCase As Boolean = False) As Boolean
+            Return _underlying.IsTargetAttribute(namespaceName, typeName, ignoreCase)
+        End Function
+
+        Friend Overrides Function GetTargetAttributeSignatureIndex(description As AttributeDescription) As Integer
+            Return _underlying.GetTargetAttributeSignatureIndex(description)
         End Function
     End Class
 End Namespace

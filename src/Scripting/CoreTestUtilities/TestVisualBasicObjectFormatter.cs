@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting;
@@ -24,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             _cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
         }
 
-        protected override BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
-            new BuilderOptions(
+        protected override BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions)
+            => new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
                 ellipsis: printOptions.Ellipsis,
                 maximumLineLength: _maximumLineLength,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
-            new CommonPrimitiveFormatterOptions(
+        protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions)
+            => new CommonPrimitiveFormatterOptions(
                 numberRadix: printOptions.NumberRadix,
                 includeCodePoints: false,
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,

@@ -2,150 +2,106 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.Text;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal sealed partial class SyntaxTreeIndex
 {
-    internal sealed partial class SyntaxTreeIndex : IObjectWritable
+    public static Task<SyntaxTreeIndex?> LoadAsync(
+        IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
     {
-        private const string PersistenceName = "<SyntaxTreeIndex>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("17");
+        return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
+    }
 
-        public readonly Checksum Checksum;
+    public override void WriteTo(ObjectWriter writer)
+    {
+        _literalInfo.WriteTo(writer);
+        _identifierInfo.WriteTo(writer);
+        _contextInfo.WriteTo(writer);
 
-        private static async Task<SyntaxTreeIndex> LoadAsync(
-            Document document, Checksum checksum, CancellationToken cancellationToken)
+        writer.WriteInt32(_aliasInfo?.Count ?? 0);
+        if (_aliasInfo != null)
         {
-            var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            try
+            foreach (var (alias, name, arity, isGlobal) in _aliasInfo)
             {
-                // attempt to load from persisted state
-                using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
-                using var stream = await storage.ReadStreamAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
-                using var reader = ObjectReader.TryGetReader(stream);
-                if (reader != null)
-                {
-                    return ReadFrom(GetStringTable(document.Project), reader, checksum);
-                }
+                writer.WriteString(alias);
+                writer.WriteString(name);
+                writer.WriteInt32(arity);
+                writer.WriteBoolean(isGlobal);
             }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
+        }
 
+        writer.WriteInt32(_interceptsLocationInfo?.Count ?? 0);
+        if (_interceptsLocationInfo is not null)
+        {
+            foreach (var (interceptsLocationData, span) in _interceptsLocationInfo)
+            {
+                writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(interceptsLocationData.ContentHash)!);
+                writer.WriteInt32(interceptsLocationData.Position);
+                writer.WriteInt32(span.Start);
+                writer.WriteInt32(span.Length);
+            }
+        }
+    }
+
+    private static SyntaxTreeIndex? ReadIndex(
+        StringTable stringTable, ObjectReader reader, Checksum? checksum)
+    {
+        var literalInfo = LiteralInfo.TryReadFrom(reader);
+        var identifierInfo = IdentifierInfo.TryReadFrom(reader);
+        var contextInfo = ContextInfo.TryReadFrom(reader);
+
+        if (literalInfo == null || identifierInfo == null || contextInfo == null)
             return null;
-        }
 
-        public static async Task<Checksum> GetChecksumAsync(
-            Document document, CancellationToken cancellationToken)
+        var aliasInfoCount = reader.ReadInt32();
+        HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo = null;
+
+        if (aliasInfoCount > 0)
         {
-            // Since we build the SyntaxTreeIndex from a SyntaxTree, we need our checksum to change
-            // any time the SyntaxTree could have changed.  Right now, that can only happen if the
-            // text of the document changes, or the ParseOptions change.  So we get the checksums
-            // for both of those, and merge them together to make the final checksum.
-            //
-            // We also want the checksum to change any time our serialization format changes.  If
-            // the format has changed, all previous versions should be invalidated.
-            var projectChecksumState = await document.Project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var parseOptionsChecksum = projectChecksumState.ParseOptions;
+            aliasInfo = [];
 
-            var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = documentChecksumState.Text;
-
-            return Checksum.Create(
-                WellKnownSynchronizationKind.SyntaxTreeIndex,
-                new[] { textChecksum, parseOptionsChecksum, SerializationFormatChecksum });
+            for (var i = 0; i < aliasInfoCount; i++)
+            {
+                aliasInfo.Add((
+                    reader.ReadRequiredString(),
+                    reader.ReadRequiredString(),
+                    reader.ReadInt32(),
+                    reader.ReadBoolean()));
+            }
         }
 
-        private async Task<bool> SaveAsync(
-            Document document, CancellationToken cancellationToken)
+        var interceptsLocationInfoCount = reader.ReadInt32();
+        Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationInfo = null;
+        if (interceptsLocationInfoCount > 0)
         {
-            var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+            interceptsLocationInfo = [];
 
-            try
+            for (var i = 0; i < interceptsLocationInfoCount; i++)
             {
-                using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
-                using var stream = SerializableBytes.CreateWritableStream();
-
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                {
-                    WriteTo(writer);
-                }
-
-                stream.Position = 0;
-                return await storage.WriteStreamAsync(document, PersistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+                interceptsLocationInfo.Add(
+                    new InterceptsLocationData(
+                        ImmutableCollectionsMarshal.AsImmutableArray(reader.ReadByteArray()),
+                        reader.ReadInt32()),
+                    new TextSpan(reader.ReadInt32(), reader.ReadInt32()));
             }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
-
-            return false;
         }
 
-        private static async Task<bool> PrecalculatedAsync(
-            Document document, Checksum checksum, CancellationToken cancellationToken)
-        {
-            var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            // check whether we already have info for this document
-            try
-            {
-                using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
-                // Check if we've already stored a checksum and it matches the checksum we 
-                // expect.  If so, we're already precalculated and don't have to recompute
-                // this index.  Otherwise if we don't have a checksum, or the checksums don't
-                // match, go ahead and recompute it.
-                var persistedChecksum = await storage.ReadChecksumAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false);
-                return persistedChecksum == checksum;
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
-
-            return false;
-        }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        public void WriteTo(ObjectWriter writer)
-        {
-            _literalInfo.WriteTo(writer);
-            _identifierInfo.WriteTo(writer);
-            _contextInfo.WriteTo(writer);
-            _declarationInfo.WriteTo(writer);
-            _extensionMethodInfo.WriteTo(writer);
-        }
-
-        private static SyntaxTreeIndex ReadFrom(
-            StringTable stringTable, ObjectReader reader, Checksum checksum)
-        {
-            var literalInfo = LiteralInfo.TryReadFrom(reader);
-            var identifierInfo = IdentifierInfo.TryReadFrom(reader);
-            var contextInfo = ContextInfo.TryReadFrom(reader);
-            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
-            var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
-
-            if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null || extensionMethodInfo == null)
-            {
-                return null;
-            }
-
-            return new SyntaxTreeIndex(
-                checksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value, extensionMethodInfo.Value);
-        }
+        return new SyntaxTreeIndex(
+            checksum,
+            literalInfo.Value,
+            identifierInfo.Value,
+            contextInfo.Value,
+            aliasInfo,
+            interceptsLocationInfo);
     }
 }

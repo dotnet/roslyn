@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -43,10 +45,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             TestProperty((old, value) => old.WithLanguageVersion(value), opt => opt.LanguageVersion, LanguageVersion.CSharp3);
             TestProperty((old, value) => old.WithDocumentationMode(value), opt => opt.DocumentationMode, DocumentationMode.None);
             TestProperty((old, value) => old.WithPreprocessorSymbols(value), opt => opt.PreprocessorSymbols, ImmutableArray.Create<string>("A", "B", "C"));
+        }
 
-            Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols(default(ImmutableArray<string>)).PreprocessorSymbols.Length);
-            Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols((IEnumerable<string>)null).PreprocessorSymbols.Length);
-            Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols((string[])null).PreprocessorSymbols.Length);
+        [Fact]
+        public void WithPreprocessorSymbols()
+        {
+            Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create("A", "B")).WithPreprocessorSymbols(default(ImmutableArray<string>)).PreprocessorSymbols.Length);
+            Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create("A", "B")).WithPreprocessorSymbols((IEnumerable<string>)null).PreprocessorSymbols.Length);
+            Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create("A", "B")).WithPreprocessorSymbols((string[])null).PreprocessorSymbols.Length);
+        }
+
+        [Fact]
+        public void WithFeatures()
+        {
+            var options1 = CSharpParseOptions.Default.WithFeatures(new Dictionary<string, string>() { { "F1", "V1" }, { "F2", "V2" } });
+            var options2 = CSharpParseOptions.Default.WithFeatures(new Dictionary<string, string>() { { "f2", "V2" }, { "F1", "V1" } });
+
+            Assert.True(options1.Equals(options2));
         }
 
         /// <summary>
@@ -61,8 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpParseOptions),
                 "Features",
+                "FileBasedProgram",
                 "Language",
                 "LanguageVersion",
+                "InterceptorsNamespaces",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols",
                 "SpecifiedLanguageVersion");

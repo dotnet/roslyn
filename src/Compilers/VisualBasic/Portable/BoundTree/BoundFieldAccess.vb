@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundFieldAccess
+    Partial Friend Class BoundFieldAccess
 
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, receiverOpt, fieldSymbol, isLValue, False, Nothing, type, hasErrors)
@@ -47,11 +47,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If constantsInProgress IsNot Nothing Then
                     result = Me.FieldSymbol.GetConstantValue(constantsInProgress)
                 Else
-                    result = Me.FieldSymbol.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                    result = Me.FieldSymbol.GetConstantValue(ConstantFieldsInProgress.Empty)
                 End If
 
 #If DEBUG Then
-                ValidateConstantValue(Me.Type, result)
+                If constantsInProgress Is Nothing OrElse
+                   constantsInProgress.IsEmpty OrElse
+                   Not constantsInProgress.AnyDependencies() Then
+                    ValidateConstantValue(Me.Type, result)
+                End If
 #End If
                 Return result
             End Get

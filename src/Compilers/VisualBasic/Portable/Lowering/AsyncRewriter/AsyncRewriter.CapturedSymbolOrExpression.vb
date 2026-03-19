@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Me.ReceiverOpt IsNot Nothing Then
                     newReceiverOpt = Me.ReceiverOpt.Materialize(rewriter, Me.Field.ContainingType.IsValueType)
                 End If
-                Return rewriter.F.Field(newReceiverOpt, Me.Field, isLValue)
+                Return rewriter.F.Field(newReceiverOpt, rewriter.VisitFieldSymbol(Me.Field), isLValue)
             End Function
         End Class
 

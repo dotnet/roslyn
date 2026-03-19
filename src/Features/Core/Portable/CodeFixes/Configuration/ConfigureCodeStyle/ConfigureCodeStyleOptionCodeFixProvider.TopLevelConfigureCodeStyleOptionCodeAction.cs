@@ -5,21 +5,20 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
-{
-    internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
-    {
-        private sealed class TopLevelConfigureCodeStyleOptionCodeAction : AbstractConfigurationActionWithNestedActions
-        {
-            public TopLevelConfigureCodeStyleOptionCodeAction(Diagnostic diagnostic, ImmutableArray<CodeAction> nestedActions)
-                : base(nestedActions, string.Format(FeaturesResources.Configure_0_code_style, diagnostic.Id))
-            {
-            }
+namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle;
 
-            public TopLevelConfigureCodeStyleOptionCodeAction(string optionName, ImmutableArray<CodeAction> nestedActions)
-                : base(nestedActions, optionName)
-            {
-            }
+internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
+{
+    private sealed class TopLevelConfigureCodeStyleOptionCodeAction : AbstractConfigurationActionWithNestedActions
+    {
+        public TopLevelConfigureCodeStyleOptionCodeAction(Diagnostic diagnostic, ImmutableArray<CodeAction> nestedActions)
+            : base(nestedActions, string.Format(FeaturesResources.Configure_0_code_style, diagnostic.Id))
+        {
+        }
+
+        public TopLevelConfigureCodeStyleOptionCodeAction(string optionName, ImmutableArray<CodeAction> nestedActions)
+            : base(nestedActions, optionName)
+        {
         }
     }
 }

@@ -2,268 +2,254 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// This represents client in client/server model.
+/// 
+/// user can create a connection to communicate with the server (remote host) through this client
+/// </summary>
+internal abstract class RemoteHostClient : IDisposable
 {
-    /// <summary>
-    /// This represents client in client/servier model.
-    /// 
-    /// user can create a connection to communicate with the server (remote host) through this client
-    /// </summary>
-    internal abstract partial class RemoteHostClient : IDisposable
+    public abstract void Dispose();
+
+    public static Task WaitForClientCreationAsync(Workspace workspace, CancellationToken cancellationToken)
     {
-        public readonly Workspace Workspace;
-        public event EventHandler<bool>? StatusChanged;
+        var service = workspace.Services.GetService<IRemoteHostClientProvider>();
+        if (service == null)
+            return Task.CompletedTask;
 
-        private readonly IRemotableDataService _remoteDataService;
+        return service.WaitForClientCreationAsync(cancellationToken);
+    }
 
-        protected RemoteHostClient(Workspace workspace)
+    public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
+    {
+        if (!RemoteSupportedLanguages.IsSupported(project.Language))
         {
-            Workspace = workspace;
-            _remoteDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
+            return SpecializedTasks.Null<RemoteHostClient>();
         }
 
-        /// <summary>
-        /// Return an unique string per client.
-        /// 
-        /// one can use this to distinguish different clients that are connected to different RemoteHosts including
-        /// cases where 2 external process finding each others
-        /// </summary>
-        public abstract string ClientId { get; }
+        return TryGetClientAsync(project.Solution.Services, cancellationToken);
+    }
 
-        /// <summary>
-        /// Create <see cref="Connection"/> for the <paramref name="serviceName"/> if possible.
-        /// otherwise, return null.
-        /// 
-        /// Creating session could fail if remote host is not available. one of example will be user killing
-        /// remote host.
-        /// </summary>
-        public abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
+    public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
+        => TryGetClientAsync(workspace.Services.SolutionServices, cancellationToken);
 
-        public abstract bool IsRemoteHost64Bit { get; }
-
-        protected abstract void OnStarted();
-
-        protected void Started()
+    public static Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
+    {
+        var service = services.GetService<IRemoteHostClientProvider>();
+        if (service == null)
         {
-            OnStarted();
-
-            OnStatusChanged(started: true);
+            return SpecializedTasks.Null<RemoteHostClient>();
         }
 
-        public virtual void Dispose()
-        {
-            OnStatusChanged(started: false);
-        }
+        return service.TryGetRemoteHostClientAsync(cancellationToken);
+    }
 
-        private void OnStatusChanged(bool started)
-        {
-            StatusChanged?.Invoke(this, started);
-        }
+    public abstract RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
+        where T : class;
 
-        public static string CreateClientId(string prefix)
-        {
-            return $"VS ({prefix}) ({Guid.NewGuid()})";
-        }
+    // no solution, no callback:
 
-        public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
-        {
-            if (!RemoteSupportedLanguages.IsSupported(project.Language))
-            {
-                return SpecializedTasks.Null<RemoteHostClient>();
-            }
+    public async ValueTask<bool> TryInvokeAsync<TService>(
+        Func<TService, CancellationToken, ValueTask> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-            return TryGetClientAsync(project.Solution.Workspace, cancellationToken);
-        }
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        Func<TService, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-        public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
-        {
-            var service = workspace.Services.GetService<IRemoteHostClientService>();
-            if (service == null)
-            {
-                return SpecializedTasks.Null<RemoteHostClient>();
-            }
+    // no solution, callback:
 
-            return service.TryGetRemoteHostClientAsync(cancellationToken);
-        }
+    public async ValueTask<bool> TryInvokeAsync<TService>(
+        Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+        object callbackTarget,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget);
+        return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-        /// <summary>
-        /// Creates <see cref="KeepAliveSession"/> for the <paramref name="serviceName"/>, otherwise returns <see langword="null"/>.
-        /// </summary>
-        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return null;
-            }
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+        object callbackTarget,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget);
+        return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-            return new KeepAliveSession(this, connection, serviceName, callbackTarget);
-        }
+    // solution, no callback:
 
-        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return false;
-            }
+    public ValueTask<bool> TryInvokeAsync<TService>(
+        Solution solution,
+        Func<TService, Checksum, CancellationToken, ValueTask> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        return TryInvokeAsync(solution.CompilationState, projectId: null, invocation, cancellationToken);
+    }
 
-            await RunRemoteAsync(connection, _remoteDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
-            return true;
-        }
+    /// <param name="projectId">If <see langword="null"/> the entire solution snapshot represented by <paramref
+    /// name="compilationState"/> will be synchronized with the OOP side.  If not <see langword="null"/> only the
+    /// project-cone represented by that id will be synchronized over.</param>
+    /// <returns></returns>
+    public async ValueTask<bool> TryInvokeAsync<TService>(
+        SolutionCompilationState compilationState,
+        ProjectId? projectId,
+        Func<TService, Checksum, CancellationToken, ValueTask> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return projectId is null
+            ? await connection.TryInvokeAsync(compilationState, invocation, cancellationToken).ConfigureAwait(false)
+            : await connection.TryInvokeAsync(compilationState, projectId, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-        public Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
-            => TryRunRemoteAsync<T>(serviceName, targetName, solution, arguments, callbackTarget, dataReader: null, cancellationToken);
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        Solution solution,
+        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
-        {
-            using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return default;
-            }
+    // project, no callback.
 
-            return await RunRemoteAsync<T>(connection, _remoteDataService, targetName, solution, arguments, dataReader, cancellationToken).ConfigureAwait(false);
-        }
+    /// <summary>
+    /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, Checksum, CancellationToken, ValueTask}, CancellationToken)"/>
+    /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+    /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+    /// the high potential cost of a full sync.
+    /// </summary>
+    public async ValueTask<bool> TryInvokeAsync<TService>(
+        Project project,
+        Func<TService, Checksum, CancellationToken, ValueTask> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-        internal static async Task RunRemoteAsync(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
-        {
-            if (solution != null)
-            {
-                using var scope = await remoteDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-                using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        SolutionCompilationState compilationState,
+        ProjectId projectId,
+        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(compilationState, projectId, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-                argumentsBuilder.Add(scope.SolutionInfo);
-                argumentsBuilder.AddRange(arguments);
+    /// <summary>
+    /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, Checksum, CancellationToken, ValueTask}, CancellationToken)"/>
+    /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+    /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+    /// the high potential cost of a full sync.
+    /// </summary>
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        Project project,
+        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-                await connection.InvokeAsync(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
-            }
-        }
+    // solution, callback:
 
-        internal static async Task<T> RunRemoteAsync<T>(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
-        {
-            if (solution != null)
-            {
-                using var scope = await remoteDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-                using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
+    public async ValueTask<bool> TryInvokeAsync<TService>(
+        Solution solution,
+        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+        object callbackTarget,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget);
+        return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-                argumentsBuilder.Add(scope.SolutionInfo);
-                argumentsBuilder.AddRange(arguments);
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        Solution solution,
+        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+        object callbackTarget,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget);
+        return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-                if (dataReader != null)
-                {
-                    return await connection.InvokeAsync(targetName, argumentsBuilder, dataReader, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    return await connection.InvokeAsync<T>(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            else if (dataReader != null)
-            {
-                return await connection.InvokeAsync(targetName, arguments, dataReader, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await connection.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
-            }
-        }
+    // project, callback:
 
-        /// <summary>
-        /// NoOpClient is used if a user killed our remote host process. Basically this client never
-        /// create a session
-        /// </summary>
-        public class NoOpClient : RemoteHostClient
-        {
-            public NoOpClient(Workspace workspace)
-                : base(workspace)
-            {
-            }
+    /// <summary>
+    /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask}, object, CancellationToken)"/>
+    /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+    /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+    /// the high potential cost of a full sync.
+    /// </summary>
+    public async ValueTask<bool> TryInvokeAsync<TService>(
+        Project project,
+        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+        object callbackTarget,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget);
+        return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-            public override string ClientId => nameof(NoOpClient);
-            public override bool IsRemoteHost64Bit => false;
+    /// <summary>
+    /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask}, object, CancellationToken)"/>
+    /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
+    /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
+    /// the high potential cost of a full sync.
+    /// </summary>
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        Project project,
+        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+        object callbackTarget,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget);
+        return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+    }
 
-            public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Null<Connection>();
-            }
+    // multiple solution, no callback:
 
-            protected override void OnStarted()
-            {
-                // do nothing
-            }
-        }
-
-        /// <summary>
-        /// This is a connection between client and server. user can use this to communicate with remote host.
-        /// 
-        /// This doesn't know anything specific to Roslyn. this is general pure connection between client and server.
-        /// </summary>
-        public abstract class Connection : IDisposable
-        {
-            private bool _disposed;
-
-            protected Connection()
-            {
-#if DEBUG
-                _creationCallStack = Environment.StackTrace;
-#endif
-                _disposed = false;
-            }
-
-            public abstract Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken);
-            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken);
-            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken);
-
-            protected virtual void DisposeImpl()
-            {
-                // do nothing
-            }
-
-            public void Dispose()
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                _disposed = true;
-
-                DisposeImpl();
-                GC.SuppressFinalize(this);
-            }
-
-#if DEBUG
-            private readonly string _creationCallStack;
-
-            ~Connection()
-            {
-                // this can happen if someone kills OOP. 
-                // when that happen, we don't want to crash VS, so this is debug only check
-                if (!Environment.HasShutdownStarted)
-                {
-                    Debug.Assert(false,
-                        $"Unless OOP process (RoslynCodeAnalysisService) is explicitly killed, this should have been disposed!\r\n {_creationCallStack}");
-                }
-            }
-#endif
-        }
+    public async ValueTask<bool> TryInvokeAsync<TService>(
+        Solution solution1,
+        Solution solution2,
+        Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(solution1, solution2, invocation, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Reports all use site errors in special or well known symbols required for anonymous types
         /// </summary>
         /// <returns>true if there was at least one error</returns>
-        public bool ReportMissingOrErroneousSymbols(DiagnosticBag diagnostics)
+        public bool ReportMissingOrErroneousSymbols(BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ReportErrorOnSpecialMember(System_Object__Equals, SpecialMember.System_Object__Equals, diagnostics, ref hasErrors);
             ReportErrorOnSpecialMember(System_Object__ToString, SpecialMember.System_Object__ToString, diagnostics, ref hasErrors);
             ReportErrorOnSpecialMember(System_Object__GetHashCode, SpecialMember.System_Object__GetHashCode, diagnostics, ref hasErrors);
-            ReportErrorOnWellKnownMember(System_String__Format_IFormatProvider, WellKnownMember.System_String__Format_IFormatProvider, diagnostics, ref hasErrors);
+            ReportErrorOnSpecialMember(System_String__Format_IFormatProvider, SpecialMember.System_String__Format_IFormatProvider, diagnostics, ref hasErrors);
 
             // optional synthesized attributes:
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
@@ -46,23 +48,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return hasErrors;
         }
 
+        public bool ReportMissingOrErroneousSymbolsForDelegates(BindingDiagnosticBag diagnostics)
+        {
+            // If we start reporting errors for non-Special types or members here,
+            // we need to call this method from ConstructAnonymousDelegateSymbol to collect dependencies. 
+
+            bool hasErrors = false;
+
+            ReportErrorOnSymbol(System_Object, diagnostics, ref hasErrors);
+            ReportErrorOnSymbol(System_IntPtr, diagnostics, ref hasErrors);
+            ReportErrorOnSymbol(System_MulticastDelegate, diagnostics, ref hasErrors);
+
+            return hasErrors;
+        }
+
         #region Error reporting implementation
 
-        private static void ReportErrorOnSymbol(Symbol symbol, DiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnSymbol(Symbol symbol, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
                 return;
             }
 
-            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
-            if (info != null)
-            {
-                hasError = Symbol.ReportUseSiteDiagnostic(info, diagnostics, NoLocation.Singleton);
-            }
+            hasError |= diagnostics.ReportUseSite(symbol, NoLocation.Singleton);
         }
 
-        private static void ReportErrorOnSpecialMember(Symbol symbol, SpecialMember member, DiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnSpecialMember(Symbol symbol, SpecialMember member, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
@@ -77,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportErrorOnWellKnownMember(Symbol symbol, WellKnownMember member, DiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnWellKnownMember(Symbol symbol, WellKnownMember member, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
@@ -122,6 +134,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Compilation.GetSpecialType(SpecialType.System_Int32); }
         }
 
+        public NamedTypeSymbol System_IntPtr
+        {
+            get { return Compilation.GetSpecialType(SpecialType.System_IntPtr); }
+        }
+
+        public NamedTypeSymbol System_MulticastDelegate
+        {
+            get { return Compilation.GetSpecialType(SpecialType.System_MulticastDelegate); }
+        }
+
         public NamedTypeSymbol System_Diagnostics_DebuggerBrowsableState
         {
             get { return Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerBrowsableState); }
@@ -159,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public MethodSymbol System_String__Format_IFormatProvider
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider) as MethodSymbol; }
+            get { return this.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Format_IFormatProvider) as MethodSymbol; }
         }
 
         #endregion

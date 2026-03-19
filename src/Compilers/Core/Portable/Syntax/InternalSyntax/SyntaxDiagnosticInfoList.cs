@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     // Avoid implementing IEnumerable so we do not get any unintentional boxing.
-    internal struct SyntaxDiagnosticInfoList
+    internal readonly struct SyntaxDiagnosticInfoList
     {
         private readonly GreenNode _node;
 

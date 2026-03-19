@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -753,7 +754,7 @@ End Select
     Public Sub ParseFileOnBinaryFile()
         ' This is doing the same thing as ParseFile, but using a MemoryStream
         ' instead of FileStream (because I don't want to write a file to disk).
-        Using data As New MemoryStream(TestResources.NetFX.v4_0_30319.mscorlib)
+        Using data As New MemoryStream(Net461.Resources.mscorlib)
             Const bug103047IsFixed = False
 
             If bug103047IsFixed Then
@@ -934,4 +935,38 @@ End Enum
         Assert.Equal(Syntax.InternalSyntax.Scanner.BadTokenCountLimit, tree.GetDiagnostics().Where(Function(d) d.Code = ERRID.ERR_IllegalChar).Count())
     End Sub
 
+    <Fact, WorkItem(48587, "https://github.com/dotnet/roslyn/issues/48587")>
+    Public Sub ParseTrailingTextAfterPropertyWithParentheses()
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="ParseTrailingTextAfterPropertyWithParentheses">
+    <file name="a.b">
+Class C
+    Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
+    Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
+    Public ReadOnly Property NumberOfResult3() UnexpectedToken ' With comment.
+    Public ReadOnly Property NumberOfResult4() UnexpectedToken _
+        As Integer ' with line continuation and comment.
+
+    Public ReadOnly Property NumberOfResult5() ' With comment - no errors.
+    Public ReadOnly Property NumberOfResult6() _
+        As Integer ' No error with line continuation.
+End Class
+    </file>
+</compilation>)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
+                                               ~~~~~~
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
+                                               ~~~~
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult3() UnexpectedToken ' With comment.
+                                               ~~~~~~~~~~~~~~~
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult4() UnexpectedToken _
+                                               ~~~~~~~~~~~~~~~
+</errors>)
+    End Sub
 End Class

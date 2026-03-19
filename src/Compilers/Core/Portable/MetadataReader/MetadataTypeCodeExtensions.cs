@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Utilities;
 using System.Reflection.Metadata;
 
@@ -126,6 +128,18 @@ namespace Microsoft.CodeAnalysis
 
         internal static SerializationTypeCode ToSerializationType(this SpecialType specialType)
         {
+            var result = ToSerializationTypeOrInvalid(specialType);
+
+            if (result == SerializationTypeCode.Invalid)
+            {
+                throw ExceptionUtilities.UnexpectedValue(specialType);
+            }
+
+            return result;
+        }
+
+        internal static SerializationTypeCode ToSerializationTypeOrInvalid(this SpecialType specialType)
+        {
             switch (specialType)
             {
                 case SpecialType.System_Boolean:
@@ -171,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                     return SerializationTypeCode.TaggedObject;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(specialType);
+                    return SerializationTypeCode.Invalid;
             }
         }
     }

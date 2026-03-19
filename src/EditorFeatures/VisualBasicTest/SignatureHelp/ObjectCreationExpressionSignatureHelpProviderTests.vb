@@ -3,8 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
@@ -12,12 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class ObjectCreationExpressionSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New ObjectCreationExpressionSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(ObjectCreationExpressionSignatureHelpProvider)
         End Function
 
 #Region "Regular tests"
@@ -39,7 +33,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickString() As Task
 
             Dim markup = <Text><![CDATA[
@@ -65,7 +59,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickInteger() As Task
 
             Dim markup = <Text><![CDATA[
@@ -156,8 +150,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(545931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545931")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545931")>
         Public Async Function TestUnsupportedParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -377,8 +371,8 @@ End Class
 #End Region
 
 #Region "EditorBrowsable tests"
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -407,8 +401,8 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableNever() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -437,8 +431,8 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -476,8 +470,8 @@ End Class
                                                        hideAdvancedMembers:=False)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableMixed() As Task
             Dim markup = <Text><![CDATA[
 Class Program

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -73,11 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         UseBaseReferenceAccessibility = 1 << 9,
 
         /// <summary>
-        /// Include extension methods.
-        /// </summary>
-        IncludeExtensionMethods = 1 << 10,
-
-        /// <summary>
         /// Consider only attribute types.
         /// </summary>
         AttributeTypeOnly = (1 << 11) | NamespacesOrTypesOnly,
@@ -98,6 +95,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are method type parameters.
         /// </summary>
         MustNotBeMethodTypeParameter = 1 << 14,
+
+        /// <summary>
+        /// Consider only symbols that are abstract or virtual.
+        /// </summary>
+        MustBeAbstractOrVirtual = 1 << 15,
+
+        /// <summary>
+        /// Do not consider symbols that are parameters.
+        /// </summary>
+        MustNotBeParameter = 1 << 16,
+
+        /// <summary>
+        /// Consider only symbols that are user-defined operators.
+        /// </summary>
+        MustBeOperator = 1 << 17,
+
+        // Available 1 << 10,
     }
 
     internal static class LookupOptionExtensions

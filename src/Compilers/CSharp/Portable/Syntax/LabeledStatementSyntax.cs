@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class LabeledStatementSyntax
     {
         public LabeledStatementSyntax Update(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
-            => Update(attributeLists: default, identifier, colonToken, statement);
+            => Update(AttributeLists, identifier, colonToken, statement);
     }
 }
 

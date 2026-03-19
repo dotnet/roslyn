@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -180,8 +181,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Dim compilation = Me.DeclaringCompilation
 
@@ -189,13 +190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
         End Sub
 
-        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedReturnTypeAttributes(attributes)
 
             Dim compilation = Me.DeclaringCompilation
             If Me.ReturnType.ContainsTupleNames() AndAlso
-                compilation.HasTupleNamesAttributes AndAlso
-                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+                compilation.HasTupleNamesAttributes Then
 
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
             End If

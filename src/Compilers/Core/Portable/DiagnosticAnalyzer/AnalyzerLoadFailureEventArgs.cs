@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -15,7 +13,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             None = 0,
             UnableToLoadAnalyzer = 1,
             UnableToCreateAnalyzer = 2,
-            NoAnalyzers = 3
+            NoAnalyzers = 3,
+            ReferencesFramework = 4,
+            ReferencesNewerCompiler = 5
         }
 
         /// <summary>
@@ -38,9 +38,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Exception? Exception { get; }
 
+        /// <summary>
+        /// If <see cref="ErrorCode"/> is <see cref="FailureErrorCode.ReferencesNewerCompiler"/>, returns the compiler version referenced by the analyzer assembly. Otherwise, returns null.
+        /// </summary>
+        public Version? ReferencedCompilerVersion { get; internal init; }
+
         public AnalyzerLoadFailureEventArgs(FailureErrorCode errorCode, string message, Exception? exceptionOpt = null, string? typeNameOpt = null)
         {
-            if (errorCode <= FailureErrorCode.None || errorCode > FailureErrorCode.NoAnalyzers)
+            if (errorCode <= FailureErrorCode.None || errorCode > FailureErrorCode.ReferencesNewerCompiler)
             {
                 throw new ArgumentOutOfRangeException(nameof(errorCode));
             }

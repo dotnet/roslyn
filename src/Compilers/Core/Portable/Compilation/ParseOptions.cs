@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,9 +32,8 @@ namespace Microsoft.CodeAnalysis
         public SourceCodeKind SpecifiedKind { get; protected set; }
 
         /// <summary>
-        /// Gets a value indicating whether the documentation comments are parsed.
+        /// Gets a value indicating whether the documentation comments are parsed and analyzed.
         /// </summary>
-        /// <value><c>true</c> if documentation comments are parsed, <c>false</c> otherwise.</value>
         public DocumentationMode DocumentationMode { get; protected set; }
 
         internal ParseOptions(SourceCodeKind kind, DocumentationMode documentationMode)
@@ -112,6 +109,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
+        // Note: use Feature entry for known feature flags.
         public ParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
         {
             return CommonWithFeatures(features);
@@ -122,9 +120,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the experimental features.
         /// </summary>
+        // Note: use Feature entry for known feature flags.
         public abstract IReadOnlyDictionary<string, string> Features
         {
             get;
+        }
+
+        internal bool HasFeature(string feature)
+        {
+            Feature.AssertValidFeature(feature);
+            return Features.TryGetValue(feature, out var value) && value is not null;
         }
 
         /// <summary>
@@ -144,7 +149,7 @@ namespace Microsoft.CodeAnalysis
             return
                 this.SpecifiedKind == other.SpecifiedKind &&
                 this.DocumentationMode == other.DocumentationMode &&
-                this.Features.SequenceEqual(other.Features) &&
+                FeaturesEqual(Features, other.Features) &&
                 (this.PreprocessorSymbolNames == null ? other.PreprocessorSymbolNames == null : this.PreprocessorSymbolNames.SequenceEqual(other.PreprocessorSymbolNames, StringComparer.Ordinal));
         }
 
@@ -157,6 +162,29 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine((int)this.DocumentationMode,
                 Hash.Combine(HashFeatures(this.Features),
                 Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));
+        }
+
+        private static bool FeaturesEqual(IReadOnlyDictionary<string, string> features, IReadOnlyDictionary<string, string> other)
+        {
+            if (ReferenceEquals(features, other))
+            {
+                return true;
+            }
+
+            if (features.Count != other.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in features)
+            {
+                if (!other.TryGetValue(key, out var otherValue) || value != otherValue)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static int HashFeatures(IReadOnlyDictionary<string, string> features)

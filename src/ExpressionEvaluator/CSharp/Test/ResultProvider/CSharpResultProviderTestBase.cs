@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -43,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         public static Assembly GetAssembly(string source)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 
         public static Assembly GetUnsafeAssembly(string source)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.UnsafeReleaseDll);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 

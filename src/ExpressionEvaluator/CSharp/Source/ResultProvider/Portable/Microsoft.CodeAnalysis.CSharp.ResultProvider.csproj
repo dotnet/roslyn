@@ -5,9 +5,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <!-- We need to support Windows OneCore, which runs Core CLR 1.0 (Windows OneCore) -->
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
@@ -33,8 +33,8 @@
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.ResultProvider.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" />
   </ItemGroup>
   <Import Project="..\CSharpResultProvider.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />

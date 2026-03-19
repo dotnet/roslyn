@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,7 +25,7 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilationWithMscorlib461(
                     new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
                     references: new[] { SystemCoreRef }),
@@ -42,7 +44,7 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilationWithMscorlib461(
                     new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
                     references: new[] { SystemCoreRef }),
@@ -60,7 +62,7 @@ Console.WriteLine(new { a = 1 }.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilationWithMscorlib461(
                     new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
                     references: new[] { SystemCoreRef }),
@@ -86,7 +88,7 @@ new CLS().M();
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib45(
+                CreateCompilationWithMscorlib461(
                     new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
                     references: new[] { SystemCoreRef }),
@@ -110,7 +112,7 @@ new CLS().M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -135,7 +137,7 @@ M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -166,7 +168,7 @@ M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -194,7 +196,7 @@ class CLS
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -491,7 +493,7 @@ public abstract class C
     await System.Threading.Tasks.Task.Delay(100);
     System.Console.Write(""complete"");
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: @"complete");
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
             Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
@@ -503,11 +505,11 @@ public abstract class C
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
-  IL_000d:  ldloc.0
-  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  stfld      ""Script <<Initialize>>d__0.<>4__this""
   IL_0018:  ldloc.0
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
@@ -552,7 +554,7 @@ public abstract class C
                 "s0.dll",
                 SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references);
-            var verifier = CompileAndVerify(s0, verify: Verification.Fails);
+            var verifier = CompileAndVerify(s0, verify: Verification.FailsPEVerify);
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
             Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
@@ -563,11 +565,11 @@ public abstract class C
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
-  IL_000d:  ldloc.0
-  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  stfld      ""Script <<Initialize>>d__0.<>4__this""
   IL_0018:  ldloc.0
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
@@ -633,7 +635,7 @@ void I1.M() {}
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -646,7 +648,7 @@ void I1.M() {}
             var s = CreateSubmission(test);
 
             s.VerifyDiagnostics(
-                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, struct or interface
+                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, record, struct or interface
                 // void I1.M() {}
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("M()").WithLocation(7, 9)
                 );

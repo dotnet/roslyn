@@ -3,26 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class LoadKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public LoadKeywordRecommender()
-            : base(SyntaxKind.LoadKeyword, isValidInPreprocessorContext: true)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override async Task<bool> IsValidContextAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var syntaxTree = context.SyntaxTree;
-            return
-                context.IsPreProcessorKeywordContext &&
-                syntaxTree.IsScript() &&
-                await syntaxTree.IsBeforeFirstTokenAsync(position, cancellationToken).ConfigureAwait(false);
-        }
+internal sealed class LoadKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.LoadKeyword, isValidInPreprocessorContext: true)
+{
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        var syntaxTree = context.SyntaxTree;
+        return
+            context.IsPreProcessorKeywordContext &&
+            syntaxTree.IsScript() &&
+            syntaxTree.IsBeforeFirstToken(position, cancellationToken);
     }
 }

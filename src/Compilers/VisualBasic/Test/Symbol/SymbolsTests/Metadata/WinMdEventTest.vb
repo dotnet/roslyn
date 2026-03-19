@@ -2,17 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Linq
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
@@ -134,7 +131,6 @@ End Class
                 </file>
             </compilation>
 
-
         Public Sub New()
             ' The following two libraries are shrunk code pulled from
             ' corresponding files in the csharp5 legacy tests
@@ -213,6 +209,7 @@ End Class
                     _eventLibRef},
                 options:=TestOptions.ReleaseModule).EmitToImageReference()
 
+            ' ILVerify: Assembly or module not found: 05ca8eb4-6571-4ba9-8736-a47aa3bc2cc7
             Dim verifier = CompileAndVerifyOnWin8Only(
                 src,
                 allReferences:={
@@ -220,7 +217,8 @@ End Class
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
                     _eventLibRef,
-                    dynamicCommonRef})
+                    dynamicCommonRef},
+                verify:=Verification.FailsILVerify)
             verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
@@ -765,7 +763,8 @@ Public Partial Class A
   IL_004b:  ret
 }
                     </output>
-            CompileAndVerify(compilation).VerifyIL("abcdef.goo", expectedIL.Value())
+            ' ILVerify: Missing method 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken Windows.UI.Xaml.Application.add_Suspending(Windows.UI.Xaml.SuspendingEventHandler)'
+            CompileAndVerify(compilation, verify:=Verification.FailsILVerify).VerifyIL("abcdef.goo", expectedIL.Value())
         End Sub
 
         <Fact()>
@@ -785,7 +784,6 @@ End Class
             options:=TestOptions.ReleaseWinMD)
             comp.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_WinRTEventWithoutDelegate, "E"))
         End Sub
-
 
         ''' <summary>
         ''' Verify that WinRT events compile into the IL that we 
@@ -1307,7 +1305,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1387,7 +1385,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1420,7 +1418,7 @@ End Namespace
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseWinMD)
             AssertTheseDeclarationDiagnostics(comp, <errors><![CDATA[
 BC31091: Import of type 'EventRegistrationTokenTable(Of )' from assembly or module 'test.winmdobj' failed.
     Event E As System.Action    

@@ -2,87 +2,81 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using Roslyn.Utilities;
 
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#endif
+namespace Microsoft.CodeAnalysis.Options;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
-namespace Microsoft.CodeAnalysis.Options
-#endif
+/// <inheritdoc cref="OptionKey2"/>
+[NonDefaultable]
+public readonly record struct OptionKey
 {
-    [NonDefaultable]
-    public readonly struct OptionKey : IEquatable<OptionKey>
+    /// <inheritdoc cref="OptionKey2.Option"/>
+    public IOption Option { get; }
+
+    /// <inheritdoc cref="OptionKey2.Language"/>
+    public string? Language { get; }
+
+    public OptionKey(IOption option, string? language = null)
     {
-        public IOption Option { get; }
-        public string? Language { get; }
-
-        public OptionKey(IOption option, string? language = null)
+        if (option is null)
         {
-            if (language != null && !option.IsPerLanguage)
-            {
-                throw new ArgumentException(WorkspacesResources.A_language_name_cannot_be_specified_for_this_option);
-            }
-            else if (language == null && option.IsPerLanguage)
-            {
-                throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
-            }
-
-            this.Option = option ?? throw new ArgumentNullException(nameof(option));
-            this.Language = language;
+            throw new ArgumentNullException(nameof(option));
         }
 
-        public override bool Equals(object? obj)
+        if (language != null && !option.IsPerLanguage)
         {
-            return obj is OptionKey key &&
-                   Equals(key);
+            throw new ArgumentException(CompilerExtensionsResources.A_language_name_cannot_be_specified_for_this_option);
         }
 
-        public bool Equals(OptionKey other)
+        if (language == null && option.IsPerLanguage)
         {
-            return Option == other.Option && Language == other.Language;
+            throw new ArgumentNullException(CompilerExtensionsResources.A_language_name_must_be_specified_for_this_option);
         }
 
-        public override int GetHashCode()
-        {
-            var hash = Option?.GetHashCode() ?? 0;
+        Option = option;
+        Language = language;
+    }
 
-            if (Language != null)
+    public bool Equals(OptionKey other)
+    {
+        return OptionEqual(Option, other.Option) && Language == other.Language;
+
+        static bool OptionEqual(IOption thisOption, IOption otherOption)
+        {
+            if (thisOption is not IOption2 thisOption2 ||
+                otherOption is not IOption2 otherOption2)
             {
-                hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
+                // Third party definition of 'IOption'.
+                return thisOption.Equals(otherOption);
             }
 
-            return hash;
+            return thisOption2.Equals(otherOption2);
         }
+    }
 
-        public override string ToString()
+    public override int GetHashCode()
+    {
+        var hash = Option?.GetHashCode() ?? 0;
+
+        if (Language != null)
         {
-            if (Option is null)
-            {
-                return "";
-            }
-
-            var languageDisplay = Option.IsPerLanguage
-                ? $"({Language}) "
-                : string.Empty;
-
-            return languageDisplay + Option.ToString();
+            hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
         }
 
-        public static bool operator ==(OptionKey left, OptionKey right)
+        return hash;
+    }
+
+    public override string ToString()
+    {
+        if (Option is null)
         {
-            return left.Equals(right);
+            return "";
         }
 
-        public static bool operator !=(OptionKey left, OptionKey right)
-        {
-            return !left.Equals(right);
-        }
+        var languageDisplay = Option.IsPerLanguage
+            ? $"({Language}) "
+            : string.Empty;
+
+        return languageDisplay + Option.ToString();
     }
 }

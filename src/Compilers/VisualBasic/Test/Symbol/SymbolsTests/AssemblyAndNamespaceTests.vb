@@ -2,16 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
-Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -187,7 +182,6 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-
     <file name="b.vb">
 Namespace A.B
 End Namespace
@@ -198,7 +192,6 @@ End Namespace
 Namespace e
 End Namespace
     </file>
-
     <file name="c.vb">
 Namespace A.b.D
 End Namespace
@@ -517,7 +510,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
+            Dim aliasedCorlib = NetFramework.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
             Dim comp = CreateEmptyCompilationWithReferences(source, {aliasedCorlib})
 
@@ -571,6 +564,18 @@ BC30560: 'Task' is ambiguous in the namespace 'System.Threading.Tasks'.
     Public T as Task
                 ~~~~
                 </expected>)
+        End Sub
+
+        <Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")>
+        Public Sub RetargetableAttributeIsRespectedInSource()
+            Dim code = <![CDATA[
+Imports System.Reflection
+<Assembly: AssemblyFlags(AssemblyNameFlags.Retargetable)>
+]]>
+
+            Dim comp = CreateCompilation(code.Value)
+            Assert.True(comp.Assembly.Identity.IsRetargetable)
+            AssertTheseEmitDiagnostics(comp)
         End Sub
 
     End Class

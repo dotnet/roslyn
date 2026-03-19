@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             If (options And LookupOptions.LabelsOnly) = LookupOptions.LabelsOnly AndAlso LabelsMap IsNot Nothing Then
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim bestLocation As Location = Nothing
                         For Each symbol In labels
                             Debug.Assert(symbol.Locations.Length = 1)
-                            Dim sourceLocation As Location = symbol.Locations(0)
+                            Dim sourceLocation As Location = symbol.GetFirstLocation()
                             If bestSymbol Is Nothing OrElse Me.Compilation.CompareSourceLocations(bestLocation, sourceLocation) > 0 Then
                                 bestSymbol = symbol
                                 bestLocation = sourceLocation

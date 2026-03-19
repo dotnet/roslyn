@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,86 +13,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-    internal static class AssemblyUtilities
+    internal static partial class AssemblyUtilities
     {
-        /// <summary>
-        /// Given a path to an assembly, identifies files in the same directory
-        /// that could satisfy the assembly's dependencies. May throw.
-        /// </summary>
-        /// <remarks>
-        /// Dependencies are identified by simply checking the name of an assembly
-        /// reference against a file name; if they match the file is considered a
-        /// dependency. Other factors, such as version, culture, public key, etc., 
-        /// are not considered, and so the returned collection may include items that
-        /// cannot in fact satisfy the original assembly's dependencies.
-        /// </remarks>
-        /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
-        /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
-        public static ImmutableArray<string> FindAssemblySet(string filePath)
-        {
-            RoslynDebug.Assert(PathUtilities.IsAbsolute(filePath));
-
-            Queue<string> workList = new Queue<string>();
-            HashSet<string> assemblySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            workList.Enqueue(filePath);
-
-            while (workList.Count > 0)
-            {
-                string assemblyPath = workList.Dequeue();
-
-                if (!assemblySet.Add(assemblyPath))
-                {
-                    continue;
-                }
-
-                var directory = Path.GetDirectoryName(assemblyPath);
-
-                using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
-                {
-                    var metadataReader = reader.GetMetadataReader();
-                    var assemblyReferenceHandles = metadataReader.AssemblyReferences;
-
-                    foreach (var handle in assemblyReferenceHandles)
-                    {
-                        var reference = metadataReader.GetAssemblyReference(handle);
-                        var referenceName = metadataReader.GetString(reference.Name);
-
-                        // Suppression is questionable because Path.GetDirectoryName returns null on root directories https://github.com/dotnet/roslyn/issues/41636
-                        string referencePath = Path.Combine(directory!, referenceName + ".dll");
-
-                        if (!assemblySet.Contains(referencePath) &&
-                            File.Exists(referencePath))
-                        {
-                            workList.Enqueue(referencePath);
-                        }
-                    }
-                }
-            }
-
-            return ImmutableArray.CreateRange(assemblySet);
-        }
-
-        /// <summary>
-        /// Given a path to an assembly, returns its MVID (Module Version ID).
-        /// May throw.
-        /// </summary>
-        /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
-        /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
-        public static Guid ReadMvid(string filePath)
-        {
-            RoslynDebug.Assert(PathUtilities.IsAbsolute(filePath));
-
-            using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                var fileMvid = metadataReader.GetGuid(mvidHandle);
-
-                return fileMvid;
-            }
-        }
-
         /// <summary>
         /// Given a path to an assembly, finds the paths to all of its satellite
         /// assemblies.
@@ -108,6 +28,7 @@ namespace Roslyn.Utilities
             var builder = ImmutableArray.CreateBuilder<string>();
 
             string? directory = Path.GetDirectoryName(filePath);
+            RoslynDebug.AssertNotNull(directory);
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
             string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
             string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";

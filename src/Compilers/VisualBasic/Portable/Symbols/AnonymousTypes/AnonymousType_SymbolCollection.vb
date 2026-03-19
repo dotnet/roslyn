@@ -16,7 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class AnonymousTypeManager
 
-        Public Function ReportMissingOrErroneousSymbols(diagnostics As DiagnosticBag, hasClass As Boolean, hasDelegate As Boolean, hasKeys As Boolean) As Boolean
+        Public Function ReportMissingOrErroneousSymbols(diagnostics As BindingDiagnosticBag, hasClass As Boolean, hasDelegate As Boolean, hasKeys As Boolean) As Boolean
+            ' If we start reporting errors for non-Special types or members here when hasClass is false,
+            ' we need to call this method from ConstructAnonymousDelegateSymbol to collect dependencies. 
+
             Debug.Assert(hasClass OrElse hasDelegate)
             Debug.Assert(Not hasKeys OrElse hasClass)
 
@@ -45,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ReportErrorOnSymbol(System_String, diagnostics, hasErrors)
 
                 ReportErrorOnSpecialMember(System_Object__ToString, SpecialMember.System_Object__ToString, diagnostics, hasErrors, vbEmbedRuntime)
-                ReportErrorOnWellKnownMember(System_String__Format_IFormatProvider, WellKnownMember.System_String__Format_IFormatProvider, diagnostics, hasErrors, vbEmbedRuntime)
+                ReportErrorOnSpecialMember(System_String__Format_IFormatProvider, SpecialMember.System_String__Format_IFormatProvider, diagnostics, hasErrors, vbEmbedRuntime)
 
                 ' Only symbols used if there are Key fields
                 If hasKeys Then
@@ -61,30 +64,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return hasErrors
         End Function
 
-        Private Shared Sub ReportErrorOnSymbol(symbol As Symbol, diagnostics As DiagnosticBag, ByRef hasError As Boolean)
+        Private Shared Sub ReportErrorOnSymbol(symbol As Symbol, diagnostics As BindingDiagnosticBag, ByRef hasError As Boolean)
             If symbol IsNot Nothing Then
-                Dim errorInfo As DiagnosticInfo = symbol.GetUseSiteErrorInfo()
-                If errorInfo IsNot Nothing Then
-                    diagnostics.Add(errorInfo, NoLocation.Singleton)
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = symbol.GetUseSiteInfo()
+                If diagnostics.Add(useSiteInfo, NoLocation.Singleton) Then
                     hasError = True
                 End If
             End If
         End Sub
 
-        Private Shared Sub ReportErrorOnWellKnownMember(symbol As Symbol, member As WellKnownMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
-            If symbol Is Nothing Then
-                Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(member)
-                Dim diagInfo = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, embedVBCore)
-                diagnostics.Add(diagInfo, NoLocation.Singleton)
-                hasError = True
-
-            Else
-                ReportErrorOnSymbol(symbol, diagnostics, hasError)
-                ReportErrorOnSymbol(symbol.ContainingType, diagnostics, hasError)
-            End If
-        End Sub
-
-        Private Shared Sub ReportErrorOnSpecialMember(symbol As Symbol, member As SpecialMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
+        Private Shared Sub ReportErrorOnSpecialMember(symbol As Symbol, member As SpecialMember, diagnostics As BindingDiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
             If symbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(member)
                 Dim diagInfo = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, embedVBCore)
@@ -99,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Checks if all special and well-known symbols required for emitting anonymous types 
         ''' provided exist, if not reports errors and returns True.
         ''' </summary>
-        Private Function CheckAndReportMissingSymbols(anonymousTypes As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol), diagnostics As DiagnosticBag) As Boolean
+        Private Function CheckAndReportMissingSymbols(anonymousTypes As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol), diagnostics As BindingDiagnosticBag) As Boolean
             Dim hasClass As Boolean = False
             Dim hasDelegate As Boolean = False
             Dim hasKeys As Boolean = False
@@ -182,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property System_String__Format_IFormatProvider As MethodSymbol
             Get
-                Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider), MethodSymbol)
+                Return DirectCast(Compilation.GetSpecialTypeMember(SpecialMember.System_String__Format_IFormatProvider), MethodSymbol)
             End Get
         End Property
 

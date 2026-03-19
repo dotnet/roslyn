@@ -2,183 +2,94 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
-using Roslyn.Utilities;
+#nullable disable
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
     internal abstract partial class MethodExtractor
     {
-        protected class AnalyzerResult
+        protected sealed class AnalyzerResult(
+            ImmutableArray<ITypeParameterSymbol> typeParametersInDeclaration,
+            ImmutableArray<ITypeParameterSymbol> typeParametersInConstraintList,
+            ImmutableArray<VariableInfo> variables,
+            ITypeSymbol returnType,
+            bool returnsByRef,
+            bool instanceMemberIsUsed,
+            bool shouldBeReadOnly,
+            ExtractMethodFlowControlInformation flowControlInformation,
+            OperationStatus status)
         {
-            private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration;
-            private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList;
-            private readonly IList<VariableInfo> _variables;
-            private readonly VariableInfo _variableToUseAsReturnValue;
-
-            public AnalyzerResult(
-                SemanticDocument document,
-                IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
-                IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
-                IList<VariableInfo> variables,
-                VariableInfo variableToUseAsReturnValue,
-                ITypeSymbol returnType,
-                bool awaitTaskReturn,
-                bool instanceMemberIsUsed,
-                bool shouldBeReadOnly,
-                bool endOfSelectionReachable,
-                OperationStatus status)
-            {
-                var semanticModel = document.SemanticModel;
-
-                UseInstanceMember = instanceMemberIsUsed;
-                ShouldBeReadOnly = shouldBeReadOnly;
-                EndOfSelectionReachable = endOfSelectionReachable;
-                AwaitTaskReturn = awaitTaskReturn;
-                SemanticDocument = document;
-                _typeParametersInDeclaration = typeParametersInDeclaration.Select(s => semanticModel.ResolveType(s)).ToList();
-                _typeParametersInConstraintList = typeParametersInConstraintList.Select(s => semanticModel.ResolveType(s)).ToList();
-                _variables = variables;
-                ReturnType = semanticModel.ResolveType(returnType);
-                _variableToUseAsReturnValue = variableToUseAsReturnValue;
-                Status = status;
-            }
-
-            public AnalyzerResult With(SemanticDocument document)
-            {
-                if (SemanticDocument == document)
-                {
-                    return this;
-                }
-
-                return new AnalyzerResult(
-                    document,
-                    _typeParametersInDeclaration,
-                    _typeParametersInConstraintList,
-                    _variables,
-                    _variableToUseAsReturnValue,
-                    ReturnType,
-                    AwaitTaskReturn,
-                    UseInstanceMember,
-                    ShouldBeReadOnly,
-                    EndOfSelectionReachable,
-                    Status);
-            }
+            public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInDeclaration { get; } = typeParametersInDeclaration;
+            public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInConstraintList { get; } = typeParametersInConstraintList;
+            public ImmutableArray<VariableInfo> VariablesToUseAsReturnValue { get; } = variables.WhereAsArray(v => v.UseAsReturnValue);
 
             /// <summary>
             /// used to determine whether static can be used
             /// </summary>
-            public bool UseInstanceMember { get; }
+            public bool UseInstanceMember { get; } = instanceMemberIsUsed;
 
             /// <summary>
             /// Indicates whether the extracted method should have a 'readonly' modifier.
             /// </summary>
-            public bool ShouldBeReadOnly { get; }
+            public bool ShouldBeReadOnly { get; } = shouldBeReadOnly;
 
             /// <summary>
-            /// used to determine whether "return" statement needs to be inserted
+            /// Information about the flow control constructs found in the selection.  For for many purposes, including
+            /// determining whether a final "return" statement needs to be inserted.
             /// </summary>
-            public bool EndOfSelectionReachable { get; }
+            public ExtractMethodFlowControlInformation FlowControlInformation { get; } = flowControlInformation;
 
             /// <summary>
-            /// document this result is based on
+            /// Initial computed return type for the extract method.  This does not include any wrapping in a type like
+            /// <see cref="Task{TResult}"/> for async methods.
             /// </summary>
-            public SemanticDocument SemanticDocument { get; }
-
-            /// <summary>
-            /// flag to show whether task return type is due to await
-            /// </summary>
-            public bool AwaitTaskReturn { get; }
-
-            /// <summary>
-            /// return type
-            /// </summary>
-            public ITypeSymbol ReturnType { get; }
+            public ITypeSymbol CoreReturnType { get; } = returnType;
+            public bool ReturnsByRef { get; } = returnsByRef;
 
             /// <summary>
             /// analyzer result operation status
             /// </summary>
-            public OperationStatus Status { get; }
+            public OperationStatus Status { get; } = status;
 
-            public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInDeclaration
-            {
-                get
-                {
-                    return new ReadOnlyCollection<ITypeParameterSymbol>(_typeParametersInDeclaration);
-                }
-            }
+            public ImmutableArray<VariableInfo> Variables { get; } = variables;
 
-            public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInConstraintList
+            public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition()
             {
-                get
-                {
-                    return new ReadOnlyCollection<ITypeParameterSymbol>(_typeParametersInConstraintList);
-                }
-            }
-
-            public bool HasVariableToUseAsReturnValue
-            {
-                get
-                {
-                    return _variableToUseAsReturnValue != null;
-                }
-            }
-
-            public VariableInfo VariableToUseAsReturnValue
-            {
-                get
-                {
-                    Contract.ThrowIfNull(_variableToUseAsReturnValue);
-                    return _variableToUseAsReturnValue;
-                }
-            }
-
-            public bool HasReturnType
-            {
-                get
-                {
-                    return ReturnType.SpecialType != SpecialType.System_Void && !AwaitTaskReturn;
-                }
+                return Variables.WhereAsArray(
+                    v => v.GetDeclarationBehavior() is DeclarationBehavior.SplitIn or DeclarationBehavior.MoveIn);
             }
 
             public IEnumerable<VariableInfo> MethodParameters
-            {
-                get
-                {
-                    return _variables.Where(v => v.UseAsParameter);
-                }
-            }
+                => Variables.Where(v => v.UseAsParameter);
 
-            public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition(CancellationToken cancellationToken)
-            {
-                return _variables
-                           .Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitIn ||
-                                       v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
-            }
+            public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition()
+                => Variables.Where(v => v.GetDeclarationBehavior() == DeclarationBehavior.MoveIn);
 
-            public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
-            {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
-            }
+            public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete()
+                => Variables.Where(v => v.GetDeclarationBehavior() is DeclarationBehavior.MoveOut);
 
-            public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSite(CancellationToken cancellationToken)
-            {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
-            }
+            public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite()
+                => Variables.Where(v => v.GetDeclarationBehavior() is DeclarationBehavior.SplitOut or DeclarationBehavior.MoveOut);
 
-            public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
+            public VariableInfo GetOutermostVariableToMoveIntoMethodDefinition()
             {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut ||
-                                                 v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.Delete);
-            }
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(out var variables);
+                variables.AddRange(this.GetVariablesToMoveIntoMethodDefinition());
+                if (variables.Count <= 0)
+                    return null;
 
-            public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite(CancellationToken cancellationToken)
-            {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitOut ||
-                                                 v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
+                return variables.Min();
             }
         }
     }

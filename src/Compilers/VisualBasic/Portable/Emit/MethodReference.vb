@@ -36,11 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return CType(m_UnderlyingMethod.Arity, UShort)
             End Get
         End Property
-        Private ReadOnly Property IMethodReferenceIsGeneric As Boolean Implements Cci.IMethodReference.IsGeneric
-            Get
-                Return m_UnderlyingMethod.IsGenericMethod
-            End Get
-        End Property
 
         Private ReadOnly Property IMethodReferenceParameterCount As UShort Implements Cci.IMethodReference.ParameterCount
             Get
@@ -91,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim returnType As TypeSymbol = m_UnderlyingMethod.ReturnType
 
-            Return moduleBeingBuilt.Translate(returnType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(returnType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Public Overridable ReadOnly Property AsGenericMethodInstanceReference As Cci.IGenericMethodInstanceReference Implements Cci.IMethodReference.AsGenericMethodInstanceReference

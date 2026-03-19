@@ -6,257 +6,292 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+/// <summary>
+/// Caches information find-references needs associated with each document.  Computed and cached so that multiple calls
+/// to find-references in a row can share the same data.
+/// </summary>
+internal sealed class FindReferenceCache
 {
-    // TODO : this can be all moved down to compiler side.
-    internal static class FindReferenceCache
+    private static readonly ConditionalWeakTable<Document, AsyncLazy<FindReferenceCache>> s_cache = new();
+
+    public static async ValueTask<FindReferenceCache> GetCacheAsync(Document document, CancellationToken cancellationToken)
     {
-        private static readonly ReaderWriterLockSlim s_gate = new ReaderWriterLockSlim();
-        private static readonly Dictionary<SemanticModel, Entry> s_cache = new Dictionary<SemanticModel, Entry>();
+        var lazy = s_cache.GetValue(document, static document => AsyncLazy.Create(ComputeCacheAsync, document));
+        return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        public static SymbolInfo GetSymbolInfo(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        static async Task<FindReferenceCache> ComputeCacheAsync(Document document, CancellationToken cancellationToken)
         {
-            var nodeCache = GetNodeCache(model);
-            if (nodeCache == null)
-            {
-                return model.GetSymbolInfo(node, cancellationToken);
-            }
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-            return nodeCache.GetOrAdd(node, n => model.GetSymbolInfo(n, cancellationToken));
+            // Find-Refs is not impacted by nullable types at all.  So get a nullable-disabled semantic model to avoid
+            // unnecessary costs while binding.
+            var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var nullableEnableSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
+            // any unicode escapes in it, then we do simple string matching to find the tokens.
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+
+            return new(document, text, model, nullableEnableSemanticModel, root, index);
+        }
+    }
+
+    public readonly Document Document;
+    public readonly SourceText Text;
+    public readonly SemanticModel SemanticModel;
+    public readonly SyntaxNode Root;
+    public readonly ISyntaxFactsService SyntaxFacts;
+    public readonly SyntaxTreeIndex SyntaxTreeIndex;
+
+    /// <summary>
+    /// Not used by FAR directly.  But we compute and cache this while processing a document so that if we call any
+    /// other services that use this semantic model, that they don't end up recreating it.
+    /// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
+    private readonly SemanticModel _nullableEnabledSemanticModel;
+#pragma warning restore IDE0052 // Remove unread private members
+
+    private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = [];
+    private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
+
+    private ImmutableHashSet<string>? _aliasNameSet;
+    private ImmutableArray<SyntaxToken> _constructorInitializerCache;
+    private ImmutableArray<SyntaxToken> _newKeywordsCache;
+    private ImmutableArray<SyntaxNode> _constructorDeclarations;
+
+    private FindReferenceCache(
+        Document document, SourceText text, SemanticModel semanticModel, SemanticModel nullableEnabledSemanticModel, SyntaxNode root, SyntaxTreeIndex syntaxTreeIndex)
+    {
+        Document = document;
+        Text = text;
+        SemanticModel = semanticModel;
+        _nullableEnabledSemanticModel = nullableEnabledSemanticModel;
+        Root = root;
+        SyntaxTreeIndex = syntaxTreeIndex;
+        SyntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        _identifierCache = new(comparer: semanticModel.Language switch
+        {
+            LanguageNames.VisualBasic => StringComparer.OrdinalIgnoreCase,
+            LanguageNames.CSharp => StringComparer.Ordinal,
+            _ => throw ExceptionUtilities.UnexpectedValue(semanticModel.Language)
+        });
+    }
+
+    public SymbolInfo GetSymbolInfo(SyntaxNode node, CancellationToken cancellationToken)
+        => _symbolInfoCache.GetOrAdd(node, static (n, arg) => arg.SemanticModel.GetSymbolInfo(n, arg.cancellationToken), (SemanticModel, cancellationToken));
+
+    public IAliasSymbol? GetAliasInfo(
+        ISemanticFactsService semanticFacts, SyntaxToken token, CancellationToken cancellationToken)
+    {
+        if (_aliasNameSet == null)
+        {
+            var set = semanticFacts.GetAliasNameSet(SemanticModel, cancellationToken);
+            Interlocked.CompareExchange(ref _aliasNameSet, set, null);
         }
 
-        public static IAliasSymbol GetAliasInfo(
-            ISemanticFactsService semanticFacts, SemanticModel model, SyntaxToken token, CancellationToken cancellationToken)
+        if (_aliasNameSet.Contains(token.ValueText))
+            return SemanticModel.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
+
+        return null;
+    }
+
+    public ImmutableArray<SyntaxToken> FindMatchingIdentifierTokens(
+        string identifier, CancellationToken cancellationToken)
+    {
+        if (identifier == "")
         {
-            if (semanticFacts == null)
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
-
-            var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
-
-            if (entry.AliasNameSet == null)
-            {
-                var set = semanticFacts.GetAliasNameSet(model, cancellationToken);
-                Interlocked.CompareExchange(ref entry.AliasNameSet, set, null);
-            }
-
-            if (entry.AliasNameSet.Contains(token.ValueText))
-            {
-                return model.GetAliasInfo(token.Parent, cancellationToken);
-            }
-
-            return null;
+            // Certain symbols don't have a name, so we return without further searching since the text-based index
+            // and lookup never terminates if searching for an empty string.
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655431
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1744118
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1820930
+            return [];
         }
 
-        public static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SemanticModel model, SyntaxNode root, SourceText sourceText,
-            string text, CancellationToken cancellationToken)
-        {
-            var normalized = syntaxFacts.IsCaseSensitive ? text : text.ToLowerInvariant();
+        if (_identifierCache.TryGetValue(identifier, out var result))
+            return result;
 
-            var entry = GetCachedEntry(model);
-            if (entry == null)
+        // If this document doesn't even contain this identifier (escaped or non-escaped) we don't have to search it at all.
+        if (!this.SyntaxTreeIndex.ProbablyContainsIdentifier(identifier))
+            return [];
+
+        // If the identifier was escaped in the file then we'll have to do a more involved search that actually
+        // walks the root and checks all identifier tokens.
+        //
+        // otherwise, we can use the text of the document to quickly find candidates and test those directly.
+        if (this.SyntaxTreeIndex.ProbablyContainsEscapedIdentifier(identifier))
+        {
+            return _identifierCache.GetOrAdd(
+                identifier,
+                identifier => FindMatchingIdentifierTokensFromTree(identifier, cancellationToken));
+        }
+
+        return _identifierCache.GetOrAdd(
+            identifier,
+            identifier => FindMatchingTokensFromText(
+                identifier,
+                static (identifier, token, @this) => @this.IsMatch(identifier, token),
+                this, cancellationToken));
+    }
+
+    private bool IsMatch(string identifier, SyntaxToken token)
+        => !token.IsMissing && this.SyntaxFacts.IsIdentifier(token) && this.SyntaxFacts.TextMatch(token.ValueText, identifier);
+
+    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromTree(
+        string identifier, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+        using var obj = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+
+        var stack = obj.Object;
+        stack.Push(this.Root);
+
+        while (stack.TryPop(out var current))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (current.AsNode(out var currentNode))
             {
-                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, normalized, cancellationToken);
+                foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
+                    stack.Push(child);
             }
-
-            return entry.IdentifierCache.GetOrAdd(normalized,
-                key => GetIdentifierOrGlobalNamespaceTokensWithText(
-                    syntaxFacts, document, version, root, sourceText, key, cancellationToken));
-        }
-
-        private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root, SourceText sourceText,
-            string text, CancellationToken cancellationToken)
-        {
-            bool candidate(SyntaxToken t) =>
-                syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
-
-            // identifier is not escaped
-            if (sourceText != null)
+            else if (current.IsToken)
             {
-                return GetTokensFromText(syntaxFacts, document, version, root, sourceText, text, candidate, cancellationToken);
-            }
-
-            // identifier is escaped
-            return root.DescendantTokens(descendIntoTrivia: true).Where(candidate).ToImmutableArray();
-        }
-
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root,
-            SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
-        {
-            return text.Length > 0
-                ? GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken)
-                : ImmutableArray<SyntaxToken>.Empty;
-        }
-
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            SyntaxNode root, List<int> positions, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
-        {
-            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
-            foreach (var index in positions)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var token = root.FindToken(index, findInsideTrivia: true);
-
-                var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
-                {
+                var token = current.AsToken();
+                if (IsMatch(identifier, token))
                     result.Add(token);
+
+                if (token.HasStructuredTrivia)
+                {
+                    // structured trivia can only be leading trivia
+                    foreach (var trivia in token.LeadingTrivia)
+                    {
+                        if (trivia.HasStructure)
+                            stack.Push(trivia.GetStructure());
+                    }
                 }
             }
-
-            return result.ToImmutable();
         }
 
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
+        return result.ToImmutableAndClear();
+    }
+
+    private ImmutableArray<SyntaxToken> FindMatchingTokensFromText<TArgs>(
+        string text, Func<string, SyntaxToken, TArgs, bool> isMatch, TArgs args, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+        var index = 0;
+        while ((index = this.Text.IndexOf(text, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
         {
-            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            var index = 0;
-            while ((index = content.IndexOf(text, index, syntaxFacts.IsCaseSensitive)) >= 0)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            var token = this.Root.FindToken(index, findInsideTrivia: true);
+            var span = token.Span;
+            if (span.Start == index && span.Length == text.Length && isMatch(text, token, args))
+                result.Add(token);
 
-                var nextIndex = index + text.Length;
-
-                var token = root.FindToken(index, findInsideTrivia: true);
-                var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
-                {
-                    result.Add(token);
-                }
-
-                nextIndex = Math.Max(nextIndex, token.SpanStart);
-                index = nextIndex;
-            }
-
-            return result.ToImmutable();
+            var nextIndex = index + text.Length;
+            nextIndex = Math.Max(nextIndex, token.SpanStart);
+            index = nextIndex;
         }
 
-        public static IEnumerable<SyntaxToken> GetConstructorInitializerTokens(
-            ISyntaxFactsService syntaxFacts, SemanticModel model, SyntaxNode root, CancellationToken cancellationToken)
+        return result.ToImmutableAndClear();
+    }
+
+    public ImmutableArray<SyntaxToken> GetConstructorInitializerTokens(CancellationToken cancellationToken)
+    {
+        // this one will only get called when we know given document contains constructor initializer.
+        // no reason to use text to check whether it exist first.
+        if (_constructorInitializerCache.IsDefault)
+            ImmutableInterlocked.InterlockedInitialize(ref _constructorInitializerCache, GetConstructorInitializerTokensWorker());
+
+        return _constructorInitializerCache;
+
+        ImmutableArray<SyntaxToken> GetConstructorInitializerTokensWorker()
         {
-            // this one will only get called when we know given document contains constructor initializer.
-            // no reason to use text to check whether it exist first.
-            var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return GetConstructorInitializerTokens(syntaxFacts, root, cancellationToken);
-            }
-
-            if (entry.ConstructorInitializerCache == null)
-            {
-                var initializers = GetConstructorInitializerTokens(syntaxFacts, root, cancellationToken);
-                Interlocked.CompareExchange(ref entry.ConstructorInitializerCache, initializers, null);
-            }
-
-            return entry.ConstructorInitializerCache;
-        }
-
-        private static List<SyntaxToken> GetConstructorInitializerTokens(
-            ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            var initializers = new List<SyntaxToken>();
-            foreach (var constructor in syntaxFacts.GetConstructors(root, cancellationToken))
+            var syntaxFacts = this.SyntaxFacts;
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var initializers);
+            foreach (var constructor in this.GetConstructorDeclarations(cancellationToken))
             {
                 foreach (var token in constructor.DescendantTokens(descendIntoTrivia: false))
                 {
-                    if (!syntaxFacts.IsThisConstructorInitializer(token) && !syntaxFacts.IsBaseConstructorInitializer(token))
-                    {
-                        continue;
-                    }
-
-                    initializers.Add(token);
+                    if (syntaxFacts.IsThisConstructorInitializer(token) || syntaxFacts.IsBaseConstructorInitializer(token))
+                        initializers.Add(token);
                 }
             }
 
-            return initializers;
+            return initializers.ToImmutableAndClear();
         }
+    }
 
-        private static ConcurrentDictionary<SyntaxNode, SymbolInfo> GetNodeCache(SemanticModel model)
+    public ImmutableArray<SyntaxNode> GetConstructorDeclarations(CancellationToken cancellationToken)
+    {
+        if (_constructorDeclarations.IsDefault)
         {
-            var entry = GetCachedEntry(model);
-            if (entry == null)
-            {
-                return null;
-            }
-
-            return entry.SymbolInfoCache;
+            ImmutableInterlocked.InterlockedInitialize(
+                ref _constructorDeclarations,
+                ComputeConstructorDeclarations(cancellationToken));
         }
+        return _constructorDeclarations;
+    }
 
-        private static Entry GetCachedEntry(SemanticModel model)
+    private ImmutableArray<SyntaxNode> ComputeConstructorDeclarations(CancellationToken cancellationToken)
+    {
+        if (this.Root is not ICompilationUnitSyntax)
+            return [];
+
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var constructors);
+        AppendConstructors(this.SyntaxFacts.GetMembersOfCompilationUnit(this.Root));
+        return constructors.ToImmutableAndClear();
+
+        void AppendConstructors(SyntaxList<SyntaxNode> members)
         {
-            using (s_gate.DisposableRead())
+            foreach (var member in members)
             {
-                if (s_cache.TryGetValue(model, out var entry))
+                cancellationToken.ThrowIfCancellationRequested();
+                if (this.SyntaxFacts.IsConstructorDeclaration(member))
                 {
-                    return entry;
+                    constructors.Add(member);
                 }
-
-                return null;
-            }
-        }
-
-        private static readonly Func<SemanticModel, Entry> s_entryCreator = _ => new Entry();
-
-        public static void Start(SemanticModel model)
-        {
-            Debug.Assert(model != null);
-
-            using (s_gate.DisposableWrite())
-            {
-                var entry = s_cache.GetOrAdd(model, s_entryCreator);
-                entry.Count++;
-            }
-        }
-
-        public static void Stop(SemanticModel model)
-        {
-            if (model == null)
-            {
-                return;
-            }
-
-            using (s_gate.DisposableWrite())
-            {
-                if (!s_cache.TryGetValue(model, out var entry))
+                else if (this.SyntaxFacts.IsBaseNamespaceDeclaration(member))
                 {
-                    return;
+                    AppendConstructors(this.SyntaxFacts.GetMembersOfBaseNamespaceDeclaration(member));
                 }
-
-                entry.Count--;
-                if (entry.Count == 0)
+                else if (this.SyntaxFacts.IsTypeDeclaration(member))
                 {
-                    s_cache.Remove(model);
+                    AppendConstructors(this.SyntaxFacts.GetMembersOfTypeDeclaration(member));
                 }
             }
         }
+    }
 
-        private class Entry
+    public ImmutableArray<SyntaxToken> GetNewKeywordTokens(CancellationToken cancellationToken)
+    {
+        if (_newKeywordsCache.IsDefault)
+            ImmutableInterlocked.InterlockedInitialize(ref _newKeywordsCache, GetNewKeywordTokensWorker());
+
+        return _newKeywordsCache;
+
+        ImmutableArray<SyntaxToken> GetNewKeywordTokensWorker()
         {
-            public int Count;
-            public ImmutableHashSet<string> AliasNameSet;
-            public List<SyntaxToken> ConstructorInitializerCache;
-
-            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>();
-            public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new ConcurrentDictionary<SyntaxNode, SymbolInfo>();
+            return this.FindMatchingTokensFromText(
+                this.SyntaxFacts.GetText(this.SyntaxFacts.SyntaxKinds.NewKeyword),
+                static (_, token, syntaxKinds) => token.RawKind == syntaxKinds.NewKeyword,
+                this.SyntaxFacts.SyntaxKinds,
+                cancellationToken);
         }
     }
 }

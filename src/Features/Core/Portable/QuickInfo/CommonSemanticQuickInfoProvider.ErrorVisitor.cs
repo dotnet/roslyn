@@ -2,103 +2,80 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo;
+
+internal abstract partial class CommonSemanticQuickInfoProvider
 {
-    internal abstract partial class CommonSemanticQuickInfoProvider
+    private sealed class ErrorVisitor : SymbolVisitor<bool>
     {
-        private class ErrorVisitor : SymbolVisitor<bool>
+        private static readonly ErrorVisitor s_instance = new();
+
+        public static bool ContainsError(ISymbol? symbol)
+            => s_instance.Visit(symbol);
+
+        public override bool DefaultVisit(ISymbol symbol)
+            => true;
+
+        public override bool VisitAlias(IAliasSymbol symbol)
+            => false;
+
+        public override bool VisitArrayType(IArrayTypeSymbol symbol)
+            => Visit(symbol.ElementType);
+
+        public override bool VisitEvent(IEventSymbol symbol)
+            => Visit(symbol.Type);
+
+        public override bool VisitField(IFieldSymbol symbol)
+            => Visit(symbol.Type);
+
+        public override bool VisitLocal(ILocalSymbol symbol)
+            => Visit(symbol.Type);
+
+        public override bool VisitMethod(IMethodSymbol symbol)
         {
-            private static readonly ErrorVisitor s_instance = new ErrorVisitor();
-
-            public static bool ContainsError(ISymbol symbol)
+            foreach (var parameter in symbol.Parameters)
             {
-                return s_instance.Visit(symbol);
-            }
-
-            public override bool DefaultVisit(ISymbol symbol)
-            {
-                return true;
-            }
-
-            public override bool VisitAlias(IAliasSymbol symbol)
-            {
-                return false;
-            }
-
-            public override bool VisitArrayType(IArrayTypeSymbol symbol)
-            {
-                return Visit(symbol.ElementType);
-            }
-
-            public override bool VisitEvent(IEventSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
-
-            public override bool VisitField(IFieldSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
-
-            public override bool VisitLocal(ILocalSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
-
-            public override bool VisitMethod(IMethodSymbol symbol)
-            {
-                foreach (var parameter in symbol.Parameters)
+                if (!Visit(parameter))
                 {
-                    if (!Visit(parameter))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
+            }
 
-                foreach (var typeParameter in symbol.TypeParameters)
+            foreach (var typeParameter in symbol.TypeParameters)
+            {
+                if (!Visit(typeParameter))
                 {
-                    if (!Visit(typeParameter))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-
-                return false;
             }
 
-            public override bool VisitNamedType(INamedTypeSymbol symbol)
-            {
-                foreach (var typeParameter in symbol.TypeArguments.Concat(symbol.TypeParameters))
-                {
-                    if (Visit(typeParameter))
-                    {
-                        return true;
-                    }
-                }
-
-                return symbol.IsErrorType();
-            }
-
-            public override bool VisitParameter(IParameterSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
-
-            public override bool VisitProperty(IPropertySymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
-
-            public override bool VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                return Visit(symbol.PointedAtType);
-            }
+            return false;
         }
+
+        public override bool VisitNamedType(INamedTypeSymbol symbol)
+        {
+            foreach (var typeParameter in symbol.TypeArguments.Concat(symbol.TypeParameters))
+            {
+                if (Visit(typeParameter))
+                {
+                    return true;
+                }
+            }
+
+            return symbol.IsErrorType();
+        }
+
+        public override bool VisitParameter(IParameterSymbol symbol)
+            => Visit(symbol.Type);
+
+        public override bool VisitProperty(IPropertySymbol symbol)
+            => Visit(symbol.Type);
+
+        public override bool VisitPointerType(IPointerTypeSymbol symbol)
+            => Visit(symbol.PointedAtType);
     }
 }

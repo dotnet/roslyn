@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
+    [CollectionBuilder(typeof(SyntaxTriviaList), methodName: "Create")]
     public readonly partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="trivias">An array of trivia.</param>
         public SyntaxTriviaList(params SyntaxTrivia[] trivias)
-            : this(default, CreateNode(trivias), 0, 0)
+            : this(default, CreateNodeFromSpan(trivias), 0, 0)
         {
         }
 
@@ -67,16 +68,32 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
+        public static SyntaxTriviaList Create(ReadOnlySpan<SyntaxTrivia> trivias)
         {
-            if (trivias == null)
-            {
-                return null;
-            }
+            if (trivias.Length == 0)
+                return default;
 
-            var builder = new SyntaxTriviaListBuilder(trivias.Length);
-            builder.Add(trivias);
-            return builder.ToList().Node;
+            return new SyntaxTriviaList(token: default, CreateNodeFromSpan(trivias), position: 0, index: 0);
+        }
+
+        private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxTrivia> trivias)
+        {
+            switch (trivias.Length)
+            {
+                // Also handles case where trivias is `null`.
+                case 0: return null;
+                case 1: return trivias[0].UnderlyingNode!;
+                case 2: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!);
+                case 3: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!, trivias[2].UnderlyingNode!);
+                default:
+                    {
+                        var copy = new ArrayElement<GreenNode>[trivias.Length];
+                        for (int i = 0, n = trivias.Length; i < n; i++)
+                            copy[i].Value = trivias[i].UnderlyingNode!;
+
+                        return Syntax.InternalSyntax.SyntaxList.List(copy);
+                    }
+            }
         }
 
         internal SyntaxToken Token { get; }
@@ -353,7 +370,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
         }
 
         /// <summary>
@@ -399,7 +416,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));

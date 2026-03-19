@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -22,10 +24,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public AttributeData? Attribute { get; }
 
-        internal SuppressionInfo(string id, AttributeData? attribute)
+        /// <summary>
+        /// If the diagnostic was suppressed by one or more programmatic suppressions by <see cref="DiagnosticSuppressor"/>(s),
+        /// then returns the corresponding <see cref="Suppression"/>s, in no specific order.
+        /// Otherwise, returns an empty array.
+        /// </summary>
+        public ImmutableArray<Suppression> ProgrammaticSuppressions { get; }
+
+        internal SuppressionInfo(string id, AttributeData? attribute, ImmutableArray<Suppression> programmaticSuppressions)
         {
+            Debug.Assert(programmaticSuppressions.All(suppression => id == suppression.SuppressedDiagnostic.Id));
             Id = id;
             Attribute = attribute;
+            ProgrammaticSuppressions = programmaticSuppressions;
         }
     }
 }

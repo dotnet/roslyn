@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override Microsoft.VisualStudio.Debugger.Metadata.ParameterInfo[] GetParameters()
         {
-            throw new NotImplementedException();
+            return [.. Constructor.GetParameters().Select(p => new ParameterInfoImpl(p))];
         }
 
         public override object Invoke(BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture)

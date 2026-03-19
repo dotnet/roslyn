@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -26,28 +29,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
-        private TypeWithAnnotations.Boxed _iteratorElementType;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
                                               SyntaxReference syntaxReference,
                                               Location location,
                                               string name,
-                                              DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, location)
+                                              DeclarationModifiers declarationModifiers,
+                                              bool isIterator)
+            : base(containingType, syntaxReference, location, isIterator,
+                   (declarationModifiers, MakeFlags(
+                                                    methodKind: MethodKind.Ordinary,
+                                                    refKind: baseMethod.RefKind,
+                                                    declarationModifiers,
+                                                    returnsVoid: baseMethod.ReturnsVoid,
+                                                    returnsVoidIsSet: true,
+                                                    isExtensionMethod: false,
+                                                    isNullableAnalysisEnabled: false,
+                                                    isVarArg: baseMethod.IsVararg,
+                                                    isExpressionBodied: false,
+                                                    isExplicitInterfaceImplementation: false,
+                                                    hasThisInitializer: false)))
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
 
             this.BaseMethod = baseMethod;
             _name = name;
-
-            this.MakeFlags(
-                methodKind: MethodKind.Ordinary,
-                declarationModifiers: declarationModifiers,
-                returnsVoid: baseMethod.ReturnsVoid,
-                isExtensionMethod: false,
-                isMetadataVirtualIgnoringModifiers: false);
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)
@@ -60,25 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeParameters = typeParameters;
         }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             // TODO: move more functionality into here, making these symbols more lazy
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            // do not generate attributes for members of compiler-generated types:
-            if (ContainingType.IsImplicitlyDeclared)
-            {
-                return;
-            }
-
-            var compilation = this.DeclaringCompilation;
-
-            AddSynthesizedAttribute(ref attributes,
-                compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -86,8 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         internal override int ParameterCount
         {
@@ -100,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_parameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _parameters, MakeParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _parameters, MakeParameters());
                 }
                 return _parameters;
             }
@@ -130,10 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal++,
                     p.RefKind,
                     p.Name,
+                    p.EffectiveScope,
+                    p.ExplicitDefaultConstantValue,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    inheritAttributes ? p as SourceComplexParameterSymbol : null));
+                    baseParameterForAttributes: inheritAttributes ? p : null,
+                    isParams: this is SynthesizedClosureMethod && p.IsParams));
             }
+
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
@@ -142,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra), ordinal++, RefKind.Ref));
                 }
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -186,16 +186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? BaseMethod.GetSecurityInformation()
                 : SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
 
-#nullable restore
-
-        public sealed override RefKind RefKind
-        {
-            get { return this.BaseMethod.RefKind; }
-        }
+#nullable disable
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
+        }
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return this.TypeMap.SubstituteCustomModifiers(this.BaseMethod.OriginalDefinition.RefCustomModifiers); }
         }
 
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;
@@ -203,11 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => BaseMethod.ReturnNotNullIfParameterNotNull;
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public sealed override bool IsVararg
-        {
-            get { return this.BaseMethod.IsVararg; }
-        }
 
         public sealed override string Name
         {
@@ -219,29 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get { return false; }
-        }
-
-        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
-        {
-            get
-            {
-                if (_iteratorElementType is null)
-                {
-                    Interlocked.CompareExchange(ref _iteratorElementType,
-                                                new TypeWithAnnotations.Boxed(TypeMap.SubstituteType(BaseMethod.IteratorElementTypeWithAnnotations.Type)),
-                                                null);
-                }
-
-                return _iteratorElementType.Value;
-            }
-            set
-            {
-                Debug.Assert(!value.IsDefault);
-                Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
-            }
-        }
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting =>
+            InheritsBaseMethodAttributes
+                ? BaseMethod.RuntimeAsyncMethodGenerationAttributeSetting
+                : ThreeState.Unknown;
     }
 }

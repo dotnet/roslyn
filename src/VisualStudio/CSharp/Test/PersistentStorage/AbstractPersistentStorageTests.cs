@@ -9,563 +9,1069 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SQLite;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Moq;
+using Microsoft.VisualStudio.LanguageServices.UnitTests;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
+namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices;
+
+[UseExportProvider]
+public abstract class AbstractPersistentStorageTests : IDisposable
 {
-    [UseExportProvider]
-    public abstract class AbstractPersistentStorageTests : IDisposable
+    public enum Size
     {
-        public enum Size
+        Small,
+        Medium,
+        Large,
+        ExtraLarge,
+    }
+
+    private const int Iterations = 20;
+
+    private const int NumThreads = 10;
+    private const string PersistentFolderPrefix = "PersistentStorageTests_";
+
+    private readonly Encoding _encoding = Encoding.UTF8;
+
+    private AbstractPersistentStorageService? _storageService;
+    private readonly DisposableDirectory _persistentFolderRoot;
+    private readonly TempDirectory _persistentFolder;
+
+    // 256k (larger than the 100k that CloudCache uses to decide when to dump to an external file).
+    // See https://dev.azure.com/devdiv/DevDiv/_git/VS.CloudCache?path=%2Fsrc%2FMicrosoft.VisualStudio.Cache%2FCacheService.cs&version=GBmain&line=35&lineEnd=36&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents
+    private const int ExtraLargeSize = 256 * 1024;
+    private const int LargeSize = (int)(SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
+    private const int MediumSize = (int)(SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength / 2);
+
+    private const string SmallData1 = "Hello ESENT";
+    private const string SmallData2 = "Goodbye ESENT";
+
+    private static readonly string MediumData1 = string.Join(",", Enumerable.Repeat(SmallData1, MediumSize / SmallData1.Length));
+    private static readonly string MediumData2 = string.Join(",", Enumerable.Repeat(SmallData2, MediumSize / SmallData2.Length));
+
+    private static readonly string LargeData1 = string.Join(",", Enumerable.Repeat(SmallData1, LargeSize / SmallData1.Length));
+    private static readonly string LargeData2 = string.Join(",", Enumerable.Repeat(SmallData2, LargeSize / SmallData2.Length));
+
+    private static readonly string ExtraLargeData1 = string.Join(",", Enumerable.Repeat(SmallData1, ExtraLargeSize / SmallData1.Length));
+    private static readonly string ExtraLargeData2 = string.Join(",", Enumerable.Repeat(SmallData2, ExtraLargeSize / SmallData2.Length));
+
+    private static readonly Checksum s_checksum1 = Checksum.Create("1");
+    private static readonly Checksum s_checksum2 = Checksum.Create("2");
+
+    static AbstractPersistentStorageTests()
+    {
+        Assert.NotEqual(s_checksum1, s_checksum2);
+
+        Assert.True(MediumData1.Length < SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
+        Assert.True(MediumData2.Length < SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
+
+        Assert.True(LargeData1.Length > SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
+        Assert.True(LargeData2.Length > SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
+    }
+
+    protected AbstractPersistentStorageTests()
+    {
+        _persistentFolderRoot = new DisposableDirectory(new TempRoot());
+        _persistentFolder = _persistentFolderRoot.CreateDirectory(PersistentFolderPrefix + Guid.NewGuid());
+
+        ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
+        ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
+    }
+
+    public void Dispose()
+    {
+        // This should cause the service to release the cached connection it maintains for the primary workspace
+        _storageService?.GetTestAccessor().Shutdown();
+        _persistentFolderRoot.Dispose();
+    }
+
+    private static string GetData1(Size size)
+        => size == Size.Small ? SmallData1 :
+           size == Size.Medium ? MediumData1 :
+           size == Size.Large ? LargeData1 : ExtraLargeData1;
+
+    private static string GetData2(Size size)
+        => size == Size.Small ? SmallData2 :
+           size == Size.Medium ? MediumData2 :
+           size == Size.Large ? LargeData2 : ExtraLargeData2;
+
+    private static Checksum? GetChecksum1(bool withChecksum)
+        => withChecksum ? s_checksum1 : null;
+
+    private static Checksum? GetChecksum2(bool withChecksum)
+        => withChecksum ? s_checksum2 : null;
+
+    [Fact]
+    public async Task TestNullFilePaths()
+    {
+        var solution = CreateOrOpenSolution(nullPaths: true);
+
+        var streamName = "stream";
+
+        var storage = await GetStorageAsync(solution);
+        var project = solution.Projects.First();
+        var document = project.Documents.First();
+        Assert.False(await storage.WriteStreamAsync(project, streamName, EncodeString("")));
+        Assert.False(await storage.WriteStreamAsync(document, streamName, EncodeString("")));
+
+        Assert.Null(await storage.ReadStreamAsync(project, streamName));
+        Assert.Null(await storage.ReadStreamAsync(document, streamName));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1436188")]
+    public async Task CacheDirectoryInPathWithSingleQuote(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        using var folderRoot = new DisposableDirectory(new TempRoot());
+        var folder = folderRoot.CreateDirectory(PersistentFolderPrefix + "'" + Guid.NewGuid());
+        var solution = CreateOrOpenSolution(folder);
+
+        var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
+        var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
+
         {
-            Small,
-            Medium,
-            Large
-        }
-
-        private const int NumThreads = 10;
-        private const string PersistentFolderPrefix = "PersistentStorageTests_";
-
-        private readonly Encoding _encoding = Encoding.UTF8;
-        internal readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
-        {
-            { PersistentStorageOptions.Enabled, true },
-        });
-
-        private AbstractPersistentStorageService _storageService;
-        private readonly string _persistentFolder;
-
-        private const int LargeSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
-        private const int MediumSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength / 2);
-
-        private const string SmallData1 = "Hello ESENT";
-        private const string SmallData2 = "Goodbye ESENT";
-
-        private static readonly string MediumData1 = string.Join(",", Enumerable.Repeat(SmallData1, MediumSize / SmallData1.Length));
-        private static readonly string MediumData2 = string.Join(",", Enumerable.Repeat(SmallData2, MediumSize / SmallData2.Length));
-
-        private static readonly string LargeData1 = string.Join(",", Enumerable.Repeat(SmallData1, LargeSize / SmallData1.Length));
-        private static readonly string LargeData2 = string.Join(",", Enumerable.Repeat(SmallData2, LargeSize / SmallData2.Length));
-
-        private static readonly Checksum s_checksum1 = Checksum.Create("1");
-        private static readonly Checksum s_checksum2 = Checksum.Create("2");
-
-        static AbstractPersistentStorageTests()
-        {
-            Assert.NotEqual(s_checksum1, s_checksum2);
-
-            Assert.True(MediumData1.Length < SQLitePersistentStorage.MaxPooledByteArrayLength);
-            Assert.True(MediumData2.Length < SQLitePersistentStorage.MaxPooledByteArrayLength);
-
-            Assert.True(LargeData1.Length > SQLitePersistentStorage.MaxPooledByteArrayLength);
-            Assert.True(LargeData2.Length > SQLitePersistentStorage.MaxPooledByteArrayLength);
-        }
-
-        protected AbstractPersistentStorageTests()
-        {
-            _persistentFolder = Path.Combine(Path.GetTempPath(), PersistentFolderPrefix + Guid.NewGuid());
-            Directory.CreateDirectory(_persistentFolder);
-
-            ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
-            ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
-        }
-
-        public void Dispose()
-        {
-            // This should cause the service to release the cached connection it maintains for the primary workspace
-            _storageService?.GetTestAccessor().Shutdown();
-
-            if (Directory.Exists(_persistentFolder))
-            {
-                Directory.Delete(_persistentFolder, true);
-            }
-        }
-
-        private string GetData1(Size size)
-            => size == Size.Small ? SmallData1 : size == Size.Medium ? MediumData1 : LargeData1;
-
-        private string GetData2(Size size)
-            => size == Size.Small ? SmallData2 : size == Size.Medium ? MediumData2 : LargeData2;
-
-        private Checksum GetChecksum1(bool withChecksum)
-            => withChecksum ? s_checksum1 : null;
-
-        private Checksum GetChecksum2(bool withChecksum)
-            => withChecksum ? s_checksum2 : null;
-
-        [Fact]
-        public async Task TestNullFilePaths()
-        {
-            var solution = CreateOrOpenSolution(nullPaths: true);
-
-            var streamName = "stream";
-
-            using var storage = GetStorage(solution);
-            var project = solution.Projects.First();
-            var document = project.Documents.First();
-            Assert.False(await storage.WriteStreamAsync(project, streamName, EncodeString("")));
-            Assert.False(await storage.WriteStreamAsync(document, streamName, EncodeString("")));
-
-            Assert.Null(await storage.ReadStreamAsync(project, streamName));
-            Assert.Null(await storage.ReadStreamAsync(document, streamName));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task PersistentService_Solution_WriteReadDifferentInstances(Size size, bool withChecksum)
-        {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
-            var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
-
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
-                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
-            }
-
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
-                Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task PersistentService_Solution_WriteReadReopenSolution(Size size, bool withChecksum)
-        {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Solution_WriteReadReopenSolution1";
-            var streamName2 = "PersistentService_Solution_WriteReadReopenSolution2";
-
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
-                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
-            }
-
-            solution = CreateOrOpenSolution();
-
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
-                Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        private async Task PersistentService_Solution_WriteReadSameInstance(Size size, bool withChecksum)
-        {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Solution_WriteReadSameInstance1";
-            var streamName2 = "PersistentService_Solution_WriteReadSameInstance2";
-
-            using var storage = GetStorage(solution);
+            var storage = await GetStorageAsync(solution, folder);
             Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
             Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
+        }
 
+        {
+            var storage = await GetStorageAsync(solution, folder);
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
             Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
         }
+    }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/22437")]
-        [CombinatorialData]
-        public async Task PersistentService_Project_WriteReadSameInstance(Size size, bool withChecksum)
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Solution_WriteReadDifferentInstances(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
+        var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
+
         {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Project_WriteReadSameInstance1";
-            var streamName2 = "PersistentService_Project_WriteReadSameInstance2";
-
-            using var storage = GetStorage(solution);
-            var project = solution.Projects.Single();
-
-            Assert.True(await storage.WriteStreamAsync(project, streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
-            Assert.True(await storage.WriteStreamAsync(project, streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
-
-            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(project, streamName1, GetChecksum1(withChecksum))));
-            Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(project, streamName2, GetChecksum2(withChecksum))));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task PersistentService_Document_WriteReadSameInstance(Size size, bool withChecksum)
-        {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Document_WriteReadSameInstance1";
-            var streamName2 = "PersistentService_Document_WriteReadSameInstance2";
-
-            using var storage = GetStorage(solution);
-            var document = solution.Projects.Single().Documents.Single();
-
-            Assert.True(await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
-            Assert.True(await storage.WriteStreamAsync(document, streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
-
-            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1, GetChecksum1(withChecksum))));
-            Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName2, GetChecksum2(withChecksum))));
-        }
-
-        [Fact]
-        public async Task PersistentService_Solution_SimultaneousWrites()
-        {
-            var solution = CreateOrOpenSolution();
-
-            var streamName1 = "PersistentService_Solution_SimultaneousWrites1";
-
-            using var storage = GetStorage(solution);
-            DoSimultaneousWrites(s => storage.WriteStreamAsync(streamName1, EncodeString(s)));
-            var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
-            Assert.True(value >= 0);
-            Assert.True(value < NumThreads);
-        }
-
-        [Fact]
-        public async Task PersistentService_Project_SimultaneousWrites()
-        {
-            var solution = CreateOrOpenSolution();
-
-            var streamName1 = "PersistentService_Project_SimultaneousWrites1";
-
-            using var storage = GetStorage(solution);
-            DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(s)));
-            var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)));
-            Assert.True(value >= 0);
-            Assert.True(value < NumThreads);
-        }
-
-        [Fact]
-        public async Task PersistentService_Document_SimultaneousWrites()
-        {
-            var solution = CreateOrOpenSolution();
-
-            var streamName1 = "PersistentService_Document_SimultaneousWrites1";
-
-            using var storage = GetStorage(solution);
-            DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(s)));
-            var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)));
-            Assert.True(value >= 0);
-            Assert.True(value < NumThreads);
-        }
-
-        private void DoSimultaneousWrites(Func<string, Task> write)
-        {
-            var barrier = new Barrier(NumThreads);
-            var countdown = new CountdownEvent(NumThreads);
-            for (var i = 0; i < NumThreads; i++)
-            {
-                ThreadPool.QueueUserWorkItem(s =>
-                {
-                    var id = (int)s;
-                    barrier.SignalAndWait();
-                    write(id + "").Wait();
-                    countdown.Signal();
-                }, i);
-            }
-
-            countdown.Wait();
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task PersistentService_Solution_SimultaneousReads(Size size, bool withChecksum)
-        {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Solution_SimultaneousReads1";
-
-            using var storage = GetStorage(solution);
+            var storage = await GetStorageAsync(solution);
             Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
-            DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))), GetData1(size));
+            Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task PersistentService_Project_SimultaneousReads(Size size, bool withChecksum)
         {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Project_SimultaneousReads1";
+            var storage = await GetStorageAsync(solution);
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
+            Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
+        }
+    }
 
-            using var storage = GetStorage(solution);
-            Assert.True(await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
-            DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Solution_WriteReadReopenSolution(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Solution_WriteReadReopenSolution1";
+        var streamName2 = "PersistentService_Solution_WriteReadReopenSolution2";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+            Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task PersistentService_Document_SimultaneousReads(Size size, bool withChecksum)
-        {
-            var solution = CreateOrOpenSolution();
-            var streamName1 = "PersistentService_Document_SimultaneousReads1";
+        solution = CreateOrOpenSolution();
 
-            using var storage = GetStorage(solution);
-            Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
-            DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
+            Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Solution_WriteReadSameInstance(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Solution_WriteReadSameInstance1";
+        var streamName2 = "PersistentService_Solution_WriteReadSameInstance2";
+
+        var storage = await GetStorageAsync(solution);
+        Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+        Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
+
+        Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
+        Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Project_WriteReadSameInstance(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Project_WriteReadSameInstance1";
+        var streamName2 = "PersistentService_Project_WriteReadSameInstance2";
+
+        var storage = await GetStorageAsync(solution);
+        var project = solution.Projects.Single();
+
+        Assert.True(await storage.WriteStreamAsync(project, streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+        Assert.True(await storage.WriteStreamAsync(project, streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
+
+        Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(project, streamName1, GetChecksum1(withChecksum))));
+        Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(project, streamName2, GetChecksum2(withChecksum))));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Document_WriteReadSameInstance(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Document_WriteReadSameInstance1";
+        var streamName2 = "PersistentService_Document_WriteReadSameInstance2";
+
+        var storage = await GetStorageAsync(solution);
+        var document = solution.Projects.Single().Documents.Single();
+
+        Assert.True(await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+        Assert.True(await storage.WriteStreamAsync(document, streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
+
+        Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1, GetChecksum1(withChecksum))));
+        Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName2, GetChecksum2(withChecksum))));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Solution_SimultaneousWrites([CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+
+        var streamName1 = "PersistentService_Solution_SimultaneousWrites1";
+
+        var storage = await GetStorageAsync(solution);
+        DoSimultaneousWrites(s => storage.WriteStreamAsync(streamName1, EncodeString(s)));
+        var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
+        Assert.True(value >= 0);
+        Assert.True(value < NumThreads);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Project_SimultaneousWrites([CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+
+        var streamName1 = "PersistentService_Project_SimultaneousWrites1";
+
+        var storage = await GetStorageAsync(solution);
+        DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(s)));
+        var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)));
+        Assert.True(value >= 0);
+        Assert.True(value < NumThreads);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Document_SimultaneousWrites([CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+
+        var streamName1 = "PersistentService_Document_SimultaneousWrites1";
+
+        var storage = await GetStorageAsync(solution);
+        DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(s)));
+        var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)));
+        Assert.True(value >= 0);
+        Assert.True(value < NumThreads);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Solution_SimultaneousReads(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Solution_SimultaneousReads1";
+
+        var storage = await GetStorageAsync(solution);
+        Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+        DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))), GetData1(size));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Project_SimultaneousReads(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Project_SimultaneousReads1";
+
+        var storage = await GetStorageAsync(solution);
+        Assert.True(await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+        DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_Document_SimultaneousReads(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_Document_SimultaneousReads1";
+
+        var storage = await GetStorageAsync(solution);
+        Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+        DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestReadChecksumReturnsNullWhenNeverWritten([CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var storage = await GetStorageAsync(solution);
+        Assert.False(await storage.ChecksumMatchesAsync("TestReadChecksumReturnsNullWhenNeverWritten", s_checksum1));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+
+        var streamName1 = "TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), s_checksum1));
         }
 
-        [Fact]
-        public async Task TestReadChecksumReturnsNullWhenNeverWritten()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageAsync(solution);
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, checksum: null)));
+        }
+    }
 
-            var streamName1 = "TestReadChecksumReturnsNullWhenNeverWritten";
+    [Theory, CombinatorialData]
+    public async Task TestCannotReadWithMismatchedChecksums(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
 
-            using var storage = GetStorage(solution);
-            Assert.Null(await storage.ReadChecksumAsync(streamName1));
+        var streamName1 = "TestCannotReadWithMismatchedChecksums";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), s_checksum1));
         }
 
-        [Fact]
-        public async Task TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageAsync(solution);
+            Assert.Null(await storage.ReadStreamAsync(streamName1, s_checksum2));
+        }
+    }
 
-            var streamName1 = "TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum";
+    [Theory, CombinatorialData]
+    public async Task TestCannotReadChecksumIfWriteDidNotIncludeChecksum(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), s_checksum1));
-            }
+        var streamName1 = "TestCannotReadChecksumIfWriteDidNotIncludeChecksum";
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, checksum: null)));
-            }
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: null));
         }
 
-        [Fact]
-        public async Task TestCannotReadWithMismatchedChecksums()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageAsync(solution);
+            Assert.False(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
+        }
+    }
 
-            var streamName1 = "TestCannotReadWithMismatchedChecksums";
+    [Theory, CombinatorialData]
+    public async Task TestReadChecksumProducesWrittenChecksum(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), s_checksum1));
-            }
+        var streamName1 = "TestReadChecksumProducesWrittenChecksum";
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Null(await storage.ReadStreamAsync(streamName1, s_checksum2));
-            }
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: s_checksum1));
         }
 
-        [Fact]
-        public async Task TestCannotReadChecksumIfWriteDidNotIncludeChecksum()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
+        }
+    }
 
-            var streamName1 = "TestCannotReadChecksumIfWriteDidNotIncludeChecksum";
+    [Theory, CombinatorialData]
+    public async Task TestReadChecksumProducesLastWrittenChecksum1(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
-            }
+        var streamName1 = "TestReadChecksumProducesLastWrittenChecksum1";
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Null(await storage.ReadChecksumAsync(streamName1));
-            }
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: s_checksum1));
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: null));
         }
 
-        [Fact]
-        public async Task TestReadChecksumProducesWrittenChecksum()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageAsync(solution);
+            Assert.False(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
+        }
+    }
 
-            var streamName1 = "TestReadChecksumProducesWrittenChecksum";
+    [Theory, CombinatorialData]
+    public async Task TestReadChecksumProducesLastWrittenChecksum2(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
-            }
+        var streamName1 = "TestReadChecksumProducesLastWrittenChecksum2";
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Equal(s_checksum1, await storage.ReadChecksumAsync(streamName1));
-            }
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: null));
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: s_checksum1));
         }
 
-        [Fact]
-        public async Task TestReadChecksumProducesLastWrittenChecksum1()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
+        }
+    }
 
-            var streamName1 = "TestReadChecksumProducesLastWrittenChecksum1";
+    [Theory, CombinatorialData]
+    public async Task TestReadChecksumProducesLastWrittenChecksum3(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
-            }
+        var streamName1 = "TestReadChecksumProducesLastWrittenChecksum3";
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Null(await storage.ReadChecksumAsync(streamName1));
-            }
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: s_checksum1));
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), checksum: s_checksum2));
         }
 
-        [Fact]
-        public async Task TestReadChecksumProducesLastWrittenChecksum2()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(streamName1, s_checksum2));
+        }
+    }
 
-            var streamName1 = "TestReadChecksumProducesLastWrittenChecksum2";
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocumentKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
-            }
+        var streamName1 = "stream";
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Equal(s_checksum1, await storage.ReadChecksumAsync(streamName1));
-            }
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
-        [Fact]
-        public async Task TestReadChecksumProducesLastWrittenChecksum3()
         {
-            var solution = CreateOrOpenSolution();
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
 
-            var streamName1 = "TestReadChecksumProducesLastWrittenChecksum3";
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocument(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum2));
-            }
+        var streamName1 = "stream";
 
-            using (var storage = GetStorage(solution))
-            {
-                Assert.Equal(s_checksum2, await storage.ReadChecksumAsync(streamName1));
-            }
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
-        private void DoSimultaneousReads(Func<Task<string>> read, string expectedValue)
         {
-            var barrier = new Barrier(NumThreads);
-            var countdown = new CountdownEvent(NumThreads);
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
 
-            var exceptions = new List<Exception>();
-            for (var i = 0; i < NumThreads; i++)
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocumentKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocument(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocumentKeyAndDocument1(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocumentKeyAndDocument2(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocumentKeyAndDocument1(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocumentKeyAndDocument2(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocumentKey_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocument_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocumentKey_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocument_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocumentKeyAndDocument1_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionReadWithDocumentKeyAndDocument2_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocumentKeyAndDocument1_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOpenWithSolutionKeyReadWithDocumentKeyAndDocument2_WriteWithSolutionKey(Size size, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var document = solution.Projects.Single().Documents.Single();
+
+        var streamName1 = "stream";
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
+        }
+
+        {
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
+            Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+
+            Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
+            Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
+        }
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1174219")]
+    public void CacheDirectoryShouldNotBeAtRoot()
+    {
+        var workspace = new AdhocWorkspace(FeaturesTestCompositions.Features.GetHostServices());
+        workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), new VersionStamp(), @"D:\git\PCLCrypto\PCLCrypto.sln"));
+
+        var configuration = workspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
+        var location = configuration.TryGetStorageLocation(SolutionKey.ToSolutionKey(workspace.CurrentSolution));
+        Assert.False(location?.StartsWith("/") ?? false);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PersistentService_ReadByteTwice(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var streamName1 = "PersistentService_ReadByteTwice";
+
+        {
+            var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+        }
+
+        {
+            var storage = await GetStorageAsync(solution);
+            using var stream = await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum));
+            Contract.ThrowIfNull(stream);
+            stream.ReadByte();
+            stream.ReadByte();
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestPersistSyntaxTreeIndex([CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var id = DocumentId.CreateNewId(solution.Projects.Single().Id);
+        solution = solution.AddDocument(id, "file.cs", "class C { void M() }", filePath: Path.Combine(_persistentFolder.Path, "file.cs"));
+
+        var document = solution.GetRequiredDocument(id);
+
+        {
+            _ = await GetStorageAsync(solution);
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, default);
+            await index.SaveAsync(document, _storageService!);
+
+            var index2 = await SyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new StringTable(), default);
+            Assert.NotNull(index2);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestPersistTopLevelSyntaxTreeIndex([CombinatorialRange(0, Iterations)] int iteration)
+    {
+        _ = iteration;
+        var solution = CreateOrOpenSolution();
+        var id = DocumentId.CreateNewId(solution.Projects.Single().Id);
+        solution = solution.AddDocument(id, "file.cs", "class C { void M() }", filePath: Path.Combine(_persistentFolder.Path, "file.cs"));
+
+        var document = solution.GetRequiredDocument(id);
+
+        {
+            _ = await GetStorageAsync(solution);
+            var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, default);
+            await index.SaveAsync(document, _storageService!);
+
+            var index2 = await TopLevelSyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new StringTable(), default);
+            Assert.NotNull(index2);
+        }
+    }
+
+    private static void DoSimultaneousReads(Func<Task<string>> read, string expectedValue)
+    {
+        var barrier = new Barrier(NumThreads);
+        var countdown = new CountdownEvent(NumThreads);
+
+        var exceptions = new List<Exception>();
+        for (var i = 0; i < NumThreads; i++)
+        {
+            Task.Run(async () =>
             {
-                Task.Run(async () =>
+                barrier.SignalAndWait();
+                try
                 {
-                    barrier.SignalAndWait();
-                    try
-                    {
-                        Assert.Equal(expectedValue, await read());
-                    }
-                    catch (Exception ex)
-                    {
-                        lock (exceptions)
-                        {
-                            exceptions.Add(ex);
-                        }
-                    }
-                    countdown.Signal();
-                });
-            }
-
-            countdown.Wait();
-
-            Assert.Equal(new List<Exception>(), exceptions);
-        }
-
-        protected Solution CreateOrOpenSolution(bool nullPaths = false)
-        {
-            var solutionFile = Path.Combine(_persistentFolder, "Solution1.sln");
-            File.WriteAllText(solutionFile, "");
-
-            var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(), solutionFile);
-
-            var workspace = new AdhocWorkspace();
-            workspace.AddSolution(info);
-
-            var solution = workspace.CurrentSolution;
-
-            var projectFile = Path.Combine(Path.GetDirectoryName(solutionFile), "Project1.csproj");
-            File.WriteAllText(projectFile, "");
-            solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp,
-                filePath: nullPaths ? null : projectFile));
-            var project = solution.Projects.Single();
-
-            var documentFile = Path.Combine(Path.GetDirectoryName(projectFile), "Document1.cs");
-            File.WriteAllText(documentFile, "");
-            solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1",
-                filePath: nullPaths ? null : documentFile));
-
-            // Apply this to the workspace so our Solution is the primary branch ID, which matches our usual behavior
-            workspace.TryApplyChanges(solution);
-
-            return workspace.CurrentSolution;
-        }
-
-        internal IChecksummedPersistentStorage GetStorage(
-            Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
-        {
-            // If we handed out one for a previous test, we need to shut that down first
-            _storageService?.GetTestAccessor().Shutdown();
-            var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder);
-
-            _storageService = GetStorageService(locationService, faultInjectorOpt);
-            var storage = _storageService.GetStorage(solution, checkBranchId: true);
-
-            // If we're injecting faults, we expect things to be strange
-            if (faultInjectorOpt == null)
-            {
-                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
-            }
-
-            return storage;
-        }
-
-        private class MockPersistentStorageLocationService : IPersistentStorageLocationService
-        {
-            private readonly SolutionId _solutionId;
-            private readonly string _storageLocation;
-
-            public MockPersistentStorageLocationService(SolutionId solutionId, string storageLocation)
-            {
-                _solutionId = solutionId;
-                _storageLocation = storageLocation;
-            }
-
-            public bool IsSupported(Workspace workspace) => true;
-
-            public string TryGetStorageLocation(Solution solution)
-                => solution.Id == _solutionId ? _storageLocation : null;
-        }
-
-        internal abstract AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector);
-
-        protected Stream EncodeString(string text)
-        {
-            var bytes = _encoding.GetBytes(text);
-            var stream = new MemoryStream(bytes);
-            return stream;
-        }
-
-        private string ReadStringToEnd(Stream stream)
-        {
-            using (stream)
-            {
-                var bytes = new byte[stream.Length];
-                var count = 0;
-                while (count < stream.Length)
+                    Assert.Equal(expectedValue, await read());
+                }
+                catch (Exception ex)
                 {
-                    count = stream.Read(bytes, count, (int)stream.Length - count);
+                    lock (exceptions)
+                    {
+                        exceptions.Add(ex);
+                    }
                 }
 
-                return _encoding.GetString(bytes);
-            }
+                countdown.Signal();
+            });
+        }
+
+        countdown.Wait();
+
+        Assert.Equal([], exceptions);
+    }
+
+    private static void DoSimultaneousWrites(Func<string, Task> write)
+    {
+        var barrier = new Barrier(NumThreads);
+        var countdown = new CountdownEvent(NumThreads);
+
+        var exceptions = new List<Exception>();
+        for (var i = 0; i < NumThreads; i++)
+        {
+            ThreadPool.QueueUserWorkItem(s =>
+            {
+                var id = (int)s;
+                barrier.SignalAndWait();
+                try
+                {
+                    write(id + "").Wait();
+                }
+                catch (Exception ex)
+                {
+                    lock (exceptions)
+                    {
+                        exceptions.Add(ex);
+                    }
+                }
+
+                countdown.Signal();
+            }, i);
+        }
+
+        countdown.Wait();
+
+        Assert.Empty(exceptions);
+    }
+
+    protected Solution CreateOrOpenSolution(TempDirectory? persistentFolder = null, bool nullPaths = false)
+    {
+        persistentFolder ??= _persistentFolder;
+        _storageService?.GetTestAccessor().Shutdown();
+        var solutionFile = persistentFolder.CreateOrOpenFile("Solution1.sln").WriteAllText("");
+
+        var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(), solutionFile.Path);
+
+        var workspace = new AdhocWorkspace(VisualStudioTestCompositions.LanguageServices.GetHostServices());
+        workspace.AddSolution(info);
+
+        var solution = workspace.CurrentSolution;
+
+        var projectFile = persistentFolder.CreateOrOpenFile("Project1.csproj").WriteAllText("");
+        solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp,
+            filePath: nullPaths ? null : projectFile.Path));
+        var project = solution.Projects.Single();
+
+        var documentFile = persistentFolder.CreateOrOpenFile("Document1.cs").WriteAllText("");
+        solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1",
+            filePath: nullPaths ? null : documentFile.Path));
+
+        // Apply this to the workspace so our Solution is the primary branch ID, which matches our usual behavior
+        workspace.TryApplyChanges(solution);
+
+        return workspace.CurrentSolution;
+    }
+
+    internal async Task<IChecksummedPersistentStorage> GetStorageAsync(
+        Solution solution,
+        TempDirectory? persistentFolder = null,
+        IPersistentStorageFaultInjector? faultInjector = null,
+        bool throwOnFailure = true)
+    {
+        // If we handed out one for a previous test, we need to shut that down first
+        persistentFolder ??= _persistentFolder;
+        _storageService?.GetTestAccessor().Shutdown();
+        var configuration = new MockPersistentStorageConfiguration(solution.Id, persistentFolder.Path, throwOnFailure);
+
+        _storageService = (AbstractPersistentStorageService)solution.Services.GetPersistentStorageService();
+        var storage = await _storageService.GetStorageAsync(
+            SolutionKey.ToSolutionKey(solution), configuration, faultInjector, CancellationToken.None);
+
+        // If we're injecting faults, we expect things to be strange
+        if (faultInjector == null)
+        {
+            Assert.NotEqual(NoOpPersistentStorage.TestAccessor.GetStorageInstance(SolutionKey.ToSolutionKey(solution)), storage);
+        }
+
+        return storage;
+    }
+
+    internal async Task<IChecksummedPersistentStorage> GetStorageFromKeyAsync(
+        SolutionServices services, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjector = null)
+    {
+        var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
+
+        _storageService = (AbstractPersistentStorageService)services.GetPersistentStorageService();
+        var storage = await _storageService.GetStorageAsync(
+            solutionKey, configuration, faultInjector, CancellationToken.None);
+
+        // If we're injecting faults, we expect things to be strange
+        if (faultInjector == null)
+        {
+            Assert.NotEqual(NoOpPersistentStorage.TestAccessor.GetStorageInstance(solutionKey), storage);
+        }
+
+        return storage;
+    }
+
+    private sealed class MockPersistentStorageConfiguration : IPersistentStorageConfiguration
+    {
+        private readonly SolutionId _solutionId;
+        private readonly string _storageLocation;
+
+        public MockPersistentStorageConfiguration(SolutionId solutionId, string storageLocation, bool throwOnFailure)
+        {
+            _solutionId = solutionId;
+            _storageLocation = storageLocation;
+            ThrowOnFailure = throwOnFailure;
+        }
+
+        public bool ThrowOnFailure { get; }
+
+        public string? TryGetStorageLocation(SolutionKey solutionKey)
+            => solutionKey.Id == _solutionId ? _storageLocation : null;
+    }
+
+    protected Stream EncodeString(string text)
+    {
+        var bytes = _encoding.GetBytes(text);
+        var stream = new MemoryStream(bytes);
+        return stream;
+    }
+
+    private string ReadStringToEnd(Stream? stream)
+    {
+        Contract.ThrowIfNull(stream);
+        using (stream)
+        {
+            using var memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            return _encoding.GetString(memoryStream.ToArray());
         }
     }
 }

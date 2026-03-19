@@ -1,13 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-extern alias DSR;
 
+#nullable disable
+
+extern alias DSR;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.Debugging;
 using DSR::Microsoft.DiaSymReader;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Roslyn.Test.PdbUtilities
 {

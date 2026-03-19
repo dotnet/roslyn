@@ -5,197 +5,179 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+internal abstract class BaseFormattingRule : AbstractFormattingRule
 {
-    internal abstract class BaseFormattingRule : AbstractFormattingRule
+    protected static void AddUnindentBlockOperation(
+        List<IndentBlockOperation> list,
+        SyntaxToken startToken,
+        SyntaxToken endToken,
+        TextSpan textSpan,
+        IndentBlockOption option = IndentBlockOption.RelativePosition)
     {
-        protected void AddUnindentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            TextSpan textSpan,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
+        if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
         {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, textSpan, indentationDelta: -1, option: option));
+            return;
         }
 
-        protected void AddUnindentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            bool includeTriviaAtEnd = false,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
+        list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, textSpan, indentationDelta: -1, option: option));
+    }
+
+    protected static void AddUnindentBlockOperation(
+        List<IndentBlockOperation> list,
+        SyntaxToken startToken,
+        SyntaxToken endToken)
+    {
+        if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
+            return;
+
+        list.Add(FormattingOperations.CreateIndentBlockOperation(
+            startToken, endToken, TextSpan.FromBounds(startToken.Span.Start, endToken.Span.End),
+            indentationDelta: -1, IndentBlockOption.RelativePosition));
+    }
+
+    protected static void AddAbsoluteZeroIndentBlockOperation(
+        List<IndentBlockOperation> list,
+        SyntaxToken startToken,
+        SyntaxToken endToken,
+        IndentBlockOption option = IndentBlockOption.AbsolutePosition)
+    {
+        if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
         {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            if (includeTriviaAtEnd)
-            {
-                list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: -1, option: option));
-            }
-            else
-            {
-                var startPosition = CommonFormattingHelpers.GetStartPositionOfSpan(startToken);
-                var endPosition = endToken.Span.End;
-
-                list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, TextSpan.FromBounds(startPosition, endPosition), indentationDelta: -1, option: option));
-            }
+            return;
         }
 
-        protected void AddAbsoluteZeroIndentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            IndentBlockOption option = IndentBlockOption.AbsolutePosition)
-        {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
+        list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: 0, option: option));
+    }
 
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: 0, option: option));
+    protected static void AddIndentBlockOperation(
+        List<IndentBlockOperation> list,
+        SyntaxToken startToken,
+        SyntaxToken endToken,
+        IndentBlockOption option = IndentBlockOption.RelativePosition)
+    {
+        if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
+        {
+            return;
         }
 
-        protected void AddIndentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
-        {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
+        list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: 1, option: option));
+    }
 
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: 1, option: option));
+    protected static void AddIndentBlockOperation(
+        List<IndentBlockOperation> list,
+        SyntaxToken startToken,
+        SyntaxToken endToken,
+        TextSpan textSpan,
+        IndentBlockOption option = IndentBlockOption.RelativePosition)
+    {
+        if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
+        {
+            return;
         }
 
-        protected void AddIndentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            TextSpan textSpan,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
-        {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
+        list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, textSpan, indentationDelta: 1, option: option));
+    }
 
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, textSpan, indentationDelta: 1, option: option));
+    protected static void AddIndentBlockOperation(
+        List<IndentBlockOperation> list,
+        SyntaxToken baseToken,
+        SyntaxToken startToken,
+        SyntaxToken endToken,
+        IndentBlockOption option = IndentBlockOption.RelativePosition)
+    {
+        list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 1, option: option));
+    }
+
+    protected static void SetAlignmentBlockOperation(
+        List<IndentBlockOperation> list,
+        SyntaxToken baseToken,
+        SyntaxToken startToken,
+        SyntaxToken endToken,
+        IndentBlockOption option = IndentBlockOption.RelativePosition)
+    {
+        list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 0, option: option));
+    }
+
+    protected static void AddSuppressWrappingIfOnSingleLineOperation(ArrayBuilder<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+        => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
+
+    protected static void AddSuppressAllOperationIfOnMultipleLine(ArrayBuilder<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+        => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
+
+    protected static void AddSuppressOperation(ArrayBuilder<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
+    {
+        if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
+        {
+            return;
         }
 
-        protected void AddIndentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken baseToken,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
+        list.Add(FormattingOperations.CreateSuppressOperation(startToken, endToken, option));
+    }
+
+    protected static void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxToken anchorToken, SyntaxToken endToken)
+    {
+        if (anchorToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
         {
-            list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 1, option: option));
+            return;
         }
 
-        protected void SetAlignmentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken baseToken,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
+        list.Add(FormattingOperations.CreateAnchorIndentationOperation(anchorToken, endToken));
+    }
+
+    protected static void AddAlignIndentationOfTokensToBaseTokenOperation(List<AlignTokensOperation> list, SyntaxNode containingNode, SyntaxToken baseNode, IEnumerable<SyntaxToken> tokens, AlignTokensOption option = AlignTokensOption.AlignIndentationOfTokensToBaseToken)
+    {
+        if (containingNode == null || tokens == null)
         {
-            list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 0, option: option));
+            return;
         }
 
-        protected void AddSuppressWrappingIfOnSingleLineOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+        list.Add(FormattingOperations.CreateAlignTokensOperation(baseNode, tokens, option));
+    }
+
+    protected static AdjustNewLinesOperation CreateAdjustNewLinesOperation(int line, AdjustNewLinesOption option)
+        => FormattingOperations.CreateAdjustNewLinesOperation(line, option);
+
+    protected static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
+        => FormattingOperations.CreateAdjustSpacesOperation(space, option);
+
+    protected static void AddBraceSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
+    {
+        var bracePair = node.GetBracePair();
+        if (!bracePair.IsValidBracketOrBracePair())
         {
-            AddSuppressOperation(list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
+            return;
         }
 
-        protected void AddSuppressAllOperationIfOnMultipleLine(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+        var firstTokenOfNode = node.GetFirstToken(includeZeroWidth: true);
+
+        if (node is MemberDeclarationSyntax memberDeclNode)
         {
-            AddSuppressOperation(list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
+            (firstTokenOfNode, _) = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
         }
 
-        protected void AddSuppressOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
+        if (node.IsLambdaBodyBlock())
         {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
+            RoslynDebug.AssertNotNull(node.Parent);
 
-            list.Add(FormattingOperations.CreateSuppressOperation(startToken, endToken, option));
+            // include lambda itself.
+            firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
+        }
+        else if (node.IsKind(SyntaxKind.PropertyPatternClause))
+        {
+            // include the pattern recursive pattern syntax and/or subpattern
+            firstTokenOfNode = firstTokenOfNode.GetPreviousToken();
         }
 
-        protected void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxToken anchorToken, SyntaxToken endToken)
-        {
-            if (anchorToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            list.Add(FormattingOperations.CreateAnchorIndentationOperation(anchorToken, endToken));
-        }
-
-        protected void AddAlignIndentationOfTokensToBaseTokenOperation(List<AlignTokensOperation> list, SyntaxNode containingNode, SyntaxToken baseNode, IEnumerable<SyntaxToken> tokens, AlignTokensOption option = AlignTokensOption.AlignIndentationOfTokensToBaseToken)
-        {
-            if (containingNode == null || tokens == null)
-            {
-                return;
-            }
-
-            list.Add(FormattingOperations.CreateAlignTokensOperation(baseNode, tokens, option));
-        }
-
-        protected AdjustNewLinesOperation CreateAdjustNewLinesOperation(int line, AdjustNewLinesOption option)
-        {
-            return FormattingOperations.CreateAdjustNewLinesOperation(line, option);
-        }
-
-        protected AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
-        {
-            return FormattingOperations.CreateAdjustSpacesOperation(space, option);
-        }
-
-        protected void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
-        {
-            var bracePair = node.GetBracePair();
-            if (!bracePair.IsValidBracePair())
-            {
-                return;
-            }
-
-            var firstTokenOfNode = node.GetFirstToken(includeZeroWidth: true);
-
-            if (node is MemberDeclarationSyntax memberDeclNode)
-            {
-                var firstAndLastTokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
-                firstTokenOfNode = firstAndLastTokens.Item1;
-            }
-
-            if (node.IsLambdaBodyBlock())
-            {
-                // include lambda itself.
-                firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
-            }
-            else if (node.IsKind(SyntaxKind.PropertyPatternClause))
-            {
-                // include the pattern recursive pattern syntax and/or subpattern
-                firstTokenOfNode = firstTokenOfNode.GetPreviousToken();
-            }
-
-            // suppress wrapping on whole construct that owns braces and also brace pair itself if 
-            // it is on same line
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.Item2);
-            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, bracePair.Item2);
-        }
+        // suppress wrapping on whole construct that owns braces and also brace pair itself if 
+        // it is on same line
+        AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.closeBrace);
+        AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.openBrace, bracePair.closeBrace);
     }
 }

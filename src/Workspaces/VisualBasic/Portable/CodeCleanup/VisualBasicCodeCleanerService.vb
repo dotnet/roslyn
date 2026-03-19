@@ -5,9 +5,10 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
     Partial Friend Class VisualBasicCodeCleanerService
@@ -42,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Return result.ToImmutableAndFree()
         End Function
 
-        Private Sub ProcessNode(node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
+        Private Shared Sub ProcessNode(node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
             If SkipProcessing(node, result) Then
                 Return
             End If
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Next
         End Sub
 
-        Private Sub ProcessToken(token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
+        Private Shared Sub ProcessToken(token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
             If SkipProcessing(token, result) Then
                 Return
             End If
@@ -69,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             End If
         End Sub
 
-        Private Function SkipProcessing(nodeOrToken As SyntaxNodeOrToken, result As ArrayBuilder(Of TextSpan)) As Boolean
+        Private Shared Function SkipProcessing(nodeOrToken As SyntaxNodeOrToken, result As ArrayBuilder(Of TextSpan)) As Boolean
             ' Don't bother looking at nodes or token that don't have any syntax errors in them.
             If Not nodeOrToken.ContainsDiagnostics Then
                 Return True
@@ -85,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Return False
         End Function
 
-        Private Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
+        Private Shared Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
             Return node.DescendantTokens().Any(
                 Function(t)
                     If t.Kind() = SyntaxKind.StringLiteralToken OrElse
@@ -97,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 End Function)
         End Function
 
-        Private Function GetMultiLineContainer(node As SyntaxNode) As SyntaxNode
+        Private Shared Function GetMultiLineContainer(node As SyntaxNode) As SyntaxNode
             If node Is Nothing Then
                 Return Nothing
             End If

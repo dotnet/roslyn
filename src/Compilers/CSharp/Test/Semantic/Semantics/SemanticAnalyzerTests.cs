@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -59,7 +61,6 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
-
 
         [Fact, WorkItem(546716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546716")]
         public void TestBug16639()
@@ -245,7 +246,7 @@ class P // : IEnumerable
 //        // error CS0245: Destructors and object.Finalize cannot be called directly. Consider
 //        // calling IDisposable.Dispose if available.
 //        base.Finalize();
-//        // error CS0250: Do not directly call your base class Finalize method. It is called
+//        // error CS0250: Do not directly call your base type Finalize method. It is called
 //        // automatically from your destructor.
 //    }
     public void GenericConstrained<T>(T t) where T : class { }
@@ -449,16 +450,16 @@ class C
     }
 }";
             CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
-                // (69,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (69,28): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static P Select(this P p, Func<P, P> projection)
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(69, 28),
-                // (84,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (84,29): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static void PExt(this P p) {}
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(84, 29),
-                // (80,33): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (80,33): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static object Select(this Q q, object projection)
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(80, 33),
-                // (76,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (76,28): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static P Select(this P p, Func<P, P> projection)
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(76, 28),
                 // (95,11): error CS0121: The call is ambiguous between the following methods or properties: 'P.Ambiguous(string, object)' and 'P.Ambiguous(object, string)'
@@ -1431,7 +1432,6 @@ class C
             Assert.Equal(0, call.Arguments.Length);
             Assert.Equal("T", call.Constructor.ContainingSymbol.Name);
         }
-
 
         [Fact]
         public void TestObjectCreationOfDeclaredTypeWithSingleIntArgument()

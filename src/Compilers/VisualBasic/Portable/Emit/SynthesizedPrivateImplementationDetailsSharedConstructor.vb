@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
 
             Dim factory As New SyntheticBoundNodeFactory(Me, Me, VisualBasicSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics)
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each payloadRoot As KeyValuePair(Of Integer, InstrumentationPayloadRootField) In _privateImplementationType.GetInstrumentationPayloadRoots()
 
                 Dim analysisKind As Integer = payloadRoot.Key
-                Dim payloadArrayType As ArrayTypeSymbol = DirectCast(payloadRoot.Value.Type, ArrayTypeSymbol)
+                Dim payloadArrayType As ArrayTypeSymbol = DirectCast(payloadRoot.Value.Type.GetInternalSymbol(), ArrayTypeSymbol)
 
                 body.Add(
                     factory.Assignment(

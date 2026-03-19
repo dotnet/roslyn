@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -21,14 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             TypeSymbol type,
             string name,
-            bool isPublic = false,
+            DeclarationModifiers accessibility = DeclarationModifiers.Private,
             bool isReadOnly = false,
             bool isStatic = false)
-            : base(containingType, name, isPublic, isReadOnly, isStatic)
+            : base(containingType, name, accessibility, isReadOnly, isStatic)
         {
             Debug.Assert((object)type != null);
             _type = TypeWithAnnotations.Create(type);
         }
+
+        public override RefKind RefKind => RefKind.None;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override bool SuppressDynamicAttribute
         {

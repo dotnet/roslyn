@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class TryBlockContext
         Inherits ExecutableStatementContext
 
-        Private _catchParts As SyntaxListBuilder(Of CatchBlockSyntax)
+        Private ReadOnly _catchParts As SyntaxListBuilder(Of CatchBlockSyntax)
         Private _optionalFinallyPart As FinallyBlockSyntax
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)

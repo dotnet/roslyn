@@ -1,0 +1,9 @@
+<Project>
+
+  <PropertyGroup>
+    <RootNamespace Condition="'$(TargetFramework)' == 'net6'">Project.NetCore</RootNamespace>
+    <RootNamespace Condition="'$(TargetFramework)' == 'netstandard2.0'">Project.NetStandard</RootNamespace>
+    <RootNamespace Condition="'$(TargetFramework)' == 'net5'">Project.NetFramework</RootNamespace>
+  </PropertyGroup>
+
+</Project>

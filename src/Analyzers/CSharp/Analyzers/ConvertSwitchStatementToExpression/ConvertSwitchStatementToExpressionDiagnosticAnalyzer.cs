@@ -5,91 +5,76 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-#else
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-#endif
+namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
+using Constants = ConvertSwitchStatementToExpressionConstants;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
+        EnforceOnBuildValues.ConvertSwitchStatementToExpression,
+        CSharpCodeStyleOptions.PreferSwitchExpression,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    using Constants = ConvertSwitchStatementToExpressionConstants;
+    protected override void InitializeWorker(AnalysisContext context)
+        => context.RegisterCompilationStartAction(context =>
+        {
+            if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp8)
+                return;
 
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+        });
+
+    private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        public ConvertSwitchStatementToExpressionDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
-                CSharpCodeStyleOptions.PreferSwitchExpression,
-                LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+        var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
+        if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
+            // User has disabled this feature.
+            return;
         }
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+        var switchStatement = context.Node;
+        if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+            return;
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        // Avoid providing code fixes for switch statements containing directives
+        if (switchStatement.ContainsDirectives)
+            return;
+
+        var (nodeToGenerate, declaratorToRemoveOpt) = Analyzer.Analyze(
+            (SwitchStatementSyntax)switchStatement,
+            context.SemanticModel,
+            out var shouldRemoveNextStatement);
+        if (nodeToGenerate == default)
         {
-            var switchStatement = context.Node;
-            if (switchStatement.ContainsDirectives)
-            {
-                return;
-            }
-
-            var syntaxTree = switchStatement.SyntaxTree;
-
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
-            {
-                return;
-            }
-
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, syntaxTree, cancellationToken);
-            if (!styleOption.Value)
-            {
-                // User has disabled this feature.
-                return;
-            }
-
-            if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
-            {
-                return;
-            }
-
-            var (nodeToGenerate, declaratorToRemoveOpt) =
-                Analyzer.Analyze(
-                    (SwitchStatementSyntax)switchStatement,
-                    context.SemanticModel,
-                    out var shouldRemoveNextStatement);
-            if (nodeToGenerate == default)
-            {
-                return;
-            }
-
-            var additionalLocations = ArrayBuilder<Location>.GetInstance();
-            additionalLocations.Add(switchStatement.GetLocation());
-            additionalLocations.AddOptional(declaratorToRemoveOpt?.GetLocation());
-
-            context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
-                // Report the diagnostic on the "switch" keyword.
-                location: switchStatement.GetFirstToken().GetLocation(),
-                effectiveSeverity: styleOption.Notification.Severity,
-                additionalLocations: additionalLocations.ToArrayAndFree(),
-                properties: ImmutableDictionary<string, string>.Empty
-                    .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
-                    .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));
+            return;
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        var additionalLocations = ArrayBuilder<Location>.GetInstance();
+        additionalLocations.Add(switchStatement.GetLocation());
+        additionalLocations.AddIfNotNull(declaratorToRemoveOpt?.GetLocation());
+
+        context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
+            // Report the diagnostic on the "switch" keyword.
+            location: switchStatement.GetFirstToken().GetLocation(),
+            notificationOption: styleOption.Notification,
+            context.Options,
+            additionalLocations: additionalLocations.ToArrayAndFree(),
+            properties: ImmutableDictionary<string, string?>.Empty
+                .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
+                .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));
     }
+
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 }

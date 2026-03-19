@@ -6,117 +6,116 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class AddKeywordRecommenderTests : KeywordRecommenderTests
 {
-    public class AddKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
+@"global using Goo = $$");
+
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterEvent()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { $$");
-        }
+    [Fact]
+    public Task TestAfterEvent()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               event Goo Bar { $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAttribute()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { [Bar] $$");
-        }
+    [Fact]
+    public Task TestAfterAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               event Goo Bar { [Bar] $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRemove()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { remove { } $$");
-        }
+    [Fact]
+    public Task TestAfterRemove()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               event Goo Bar { remove { } $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRemoveAndAttribute()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { remove { } [Bar] $$");
-        }
+    [Fact]
+    public Task TestAfterRemoveAndAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               event Goo Bar { remove { } [Bar] $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRemoveBlock()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-   event Goo Bar { set { } $$");
-        }
+    [Fact]
+    public Task TestAfterRemoveBlock()
+        => VerifyKeywordAsync(
+            """
+            class C {
+               event Goo Bar { set { } $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAddKeyword()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-   event Goo Bar { add $$");
-        }
+    [Fact]
+    public Task TestNotAfterAddKeyword()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               event Goo Bar { add $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAddAccessor()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-   event Goo Bar { add { } $$");
-        }
+    [Fact]
+    public Task TestNotAfterAddAccessor()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               event Goo Bar { add { } $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInProperty()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-   int Goo { $$");
-        }
-    }
+    [Fact]
+    public Task TestNotInProperty()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+               int Goo { $$
+            """);
 }

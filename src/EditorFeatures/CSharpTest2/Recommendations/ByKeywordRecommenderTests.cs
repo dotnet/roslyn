@@ -6,77 +6,76 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class ByKeywordRecommenderTests : KeywordRecommenderTests
 {
-    public class ByKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$");
-        }
+    [Fact]
+    public Task TestNotAtRoot()
+        => VerifyAbsenceAsync(
+@"$$", options: CSharp9ParseOptions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement()
+        => VerifyAbsenceAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """, options: CSharp9ParseOptions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration()
+        => VerifyAbsenceAsync(
+            """
+            int i = 0;
+            $$
+            """, options: CSharp9ParseOptions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
-        }
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
+@"global using Goo = $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGroupExpr()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          group a $$"));
-        }
+    [Theory, CombinatorialData]
+    public Task TestNotInEmptyStatement(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
+@"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGroup()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          group $$"));
-        }
+    [Theory, CombinatorialData]
+    public Task TestAfterGroupExpr(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            var q = from x in y
+                      group a $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterBy()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          group a by $$"));
-        }
-    }
+    [Theory, CombinatorialData]
+    public Task TestNotAfterGroup(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            var q = from x in y
+                      group $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+
+    [Theory, CombinatorialData]
+    public Task TestNotAfterBy(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            var q = from x in y
+                      group a by $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 }

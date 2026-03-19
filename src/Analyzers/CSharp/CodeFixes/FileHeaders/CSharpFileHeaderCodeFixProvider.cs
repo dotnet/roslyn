@@ -2,35 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.FileHeaders;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
+namespace Microsoft.CodeAnalysis.CSharp.FileHeaders;
+
+/// <summary>
+/// Implements a code fix for file header diagnostics.
+/// </summary>
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FileHeader), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpFileHeaderCodeFixProvider() : AbstractFileHeaderCodeFixProvider
 {
-    /// <summary>
-    /// Implements a code fix for file header diagnostics.
-    /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpFileHeaderCodeFixProvider))]
-    [Shared]
-    internal class CSharpFileHeaderCodeFixProvider : AbstractFileHeaderCodeFixProvider
-    {
-        [ImportingConstructor]
-        public CSharpFileHeaderCodeFixProvider()
-        {
-        }
-
-        protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
-
-        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-
-        protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
-
-        protected override SyntaxTrivia EndOfLine(string text)
-            => SyntaxFactory.EndOfLine(text);
-    }
+    protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
 }

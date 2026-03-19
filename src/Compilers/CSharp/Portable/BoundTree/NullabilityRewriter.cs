@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -14,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class NullabilityRewriter : BoundTreeRewriter
     {
-        protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected override BoundNode? VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)Visit(node);
+            return Visit(node);
         }
 
         public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
@@ -27,6 +25,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
             return VisitBinaryOperatorBase(node);
+        }
+
+        public override BoundNode? VisitIfStatement(BoundIfStatement node)
+        {
+            var stack = ArrayBuilder<(BoundIfStatement, BoundExpression, BoundStatement)>.GetInstance();
+
+            BoundStatement? rewrittenAlternative;
+            while (true)
+            {
+                var rewrittenCondition = (BoundExpression)Visit(node.Condition);
+                var rewrittenConsequence = (BoundStatement)Visit(node.Consequence);
+                Debug.Assert(rewrittenConsequence is { });
+                stack.Push((node, rewrittenCondition, rewrittenConsequence));
+
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    rewrittenAlternative = null;
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    rewrittenAlternative = (BoundStatement)Visit(alternative);
+                    break;
+                }
+            }
+
+            BoundStatement result;
+            do
+            {
+                var (ifStatement, rewrittenCondition, rewrittenConsequence) = stack.Pop();
+                result = ifStatement.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative);
+                rewrittenAlternative = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
+            return result;
         }
 
         private BoundNode VisitBinaryOperatorBase(BoundBinaryOperatorBase binaryOperator)
@@ -41,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
             }
-            while (currentBinary is object);
+            while (currentBinary is not null);
 
             Debug.Assert(stack.Count > 0);
             var leftChild = (BoundExpression)Visit(stack.Peek().Left);
@@ -50,15 +91,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 currentBinary = stack.Pop();
 
-                bool foundInfo = _updatedNullabilities.TryGetValue(currentBinary, out (NullabilityInfo Info, TypeSymbol Type) infoAndType);
+                bool foundInfo = _updatedNullabilities.TryGetValue(currentBinary, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType);
                 var right = (BoundExpression)Visit(currentBinary.Right);
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
                 currentBinary = currentBinary switch
                 {
-                    BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, GetUpdatedSymbol(binary, binary.MethodOpt), binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
-                    // https://github.com/dotnet/roslyn/issues/35031: We'll need to update logical.LogicalOperator
-                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    BoundBinaryOperator binary => binary.Update(
+                        binary.OperatorKind,
+                        binary.BinaryOperatorMethod is { } binaryOperatorMethod ? binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binaryOperatorMethod)) : binary.Data,
+                        binary.ResultKind,
+                        leftChild,
+                        right,
+                        type!),
+
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(
+                        logical.OperatorKind,
+                        GetUpdatedSymbol(logical, logical.LogicalOperator),
+                        logical.TrueOperator,
+                        logical.FalseOperator,
+                        logical.TrueFalseOperandPlaceholder,
+                        logical.TrueFalseOperandConversion,
+                        logical.ConstrainedToTypeOpt,
+                        logical.ResultKind,
+                        logical.OriginalUserDefinedOperatorsOpt,
+                        leftChild,
+                        right,
+                        type!),
                     _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
                 };
 
@@ -73,6 +132,71 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(currentBinary != null);
             return currentBinary!;
+        }
+
+        public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            // Use an explicit stack to avoid blowing the managed stack when visiting deeply-recursive
+            // binary nodes
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern? currentBinary = node;
+
+            do
+            {
+                stack.Push(currentBinary);
+                currentBinary = currentBinary.Left as BoundBinaryPattern;
+            }
+            while (currentBinary is not null);
+
+            Debug.Assert(stack.Count > 0);
+            var leftChild = (BoundPattern)Visit(stack.Peek().Left);
+
+            do
+            {
+                currentBinary = stack.Pop();
+
+                TypeSymbol inputType = GetUpdatedSymbol(currentBinary, currentBinary.InputType);
+                TypeSymbol narrowedType = GetUpdatedSymbol(currentBinary, currentBinary.NarrowedType);
+
+                var right = (BoundPattern)Visit(currentBinary.Right);
+
+                currentBinary = currentBinary.Update(currentBinary.Disjunction, leftChild, right, inputType, narrowedType);
+
+                leftChild = currentBinary;
+            }
+            while (stack.Count > 0);
+
+            return currentBinary;
+        }
+
+        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = GetUpdatedArray(node, node.OriginalUserDefinedOperatorsOpt);
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
+            BoundExpression? leftConversion = node.LeftConversion;
+            BoundValuePlaceholder? finalPlaceholder = node.FinalPlaceholder;
+            BoundExpression? finalConversion = node.FinalConversion;
+            BoundCompoundAssignmentOperator updatedNode;
+
+            var op = node.Operator;
+
+            if (op.Method is not null)
+            {
+                op = new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, GetUpdatedSymbol(node, op.Method), op.ConstrainedToTypeOpt);
+            }
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, node.Type);
+            }
+            return updatedNode;
         }
 
         private T GetUpdatedSymbol<T>(BoundNode expr, T sym) where T : Symbol?
@@ -117,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (updatedDelegateType is null)
                 {
                     Debug.Assert(updatedContaining is object);
-                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind, lambda.RefCustomModifiers);
                 }
                 else
                 {
@@ -156,6 +280,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _remappedSymbols.Add(local, updatedLocal);
                 return updatedLocal;
             }
+        }
+
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundExpression lengthOrCountAccess = node.LengthOrCountAccess;
+            BoundExpression indexerAccess = (BoundExpression)this.Visit(node.IndexerOrSliceAccess);
+            BoundImplicitIndexerAccess updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, node.Type);
+            }
+            return updatedNode;
         }
 
         private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol?

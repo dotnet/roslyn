@@ -4,10 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -15,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         internal static SyntaxNode Replace<TNode>(
             SyntaxNode root,
-            IEnumerable<TNode> nodes = null,
-            Func<TNode, TNode, SyntaxNode> computeReplacementNode = null,
-            IEnumerable<SyntaxToken> tokens = null,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null,
-            IEnumerable<SyntaxTrivia> trivia = null,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
+            IEnumerable<TNode>? nodes = null,
+            Func<TNode, TNode, SyntaxNode>? computeReplacementNode = null,
+            IEnumerable<SyntaxToken>? tokens = null,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken = null,
+            IEnumerable<SyntaxTrivia>? trivia = null,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia = null)
             where TNode : SyntaxNode
         {
             var replacer = new Replacer<TNode>(
@@ -40,12 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static SyntaxToken Replace(
             SyntaxToken root,
-            IEnumerable<SyntaxNode> nodes = null,
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode = null,
-            IEnumerable<SyntaxToken> tokens = null,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null,
-            IEnumerable<SyntaxTrivia> trivia = null,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
+            IEnumerable<SyntaxNode>? nodes = null,
+            Func<SyntaxNode, SyntaxNode, SyntaxNode>? computeReplacementNode = null,
+            IEnumerable<SyntaxToken>? tokens = null,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken = null,
+            IEnumerable<SyntaxTrivia>? trivia = null,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia = null)
         {
             var replacer = new Replacer<SyntaxNode>(
                 nodes, computeReplacementNode,
@@ -64,26 +63,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private class Replacer<TNode> : CSharpSyntaxRewriter where TNode : SyntaxNode
         {
-            private readonly Func<TNode, TNode, SyntaxNode> _computeReplacementNode;
-            private readonly Func<SyntaxToken, SyntaxToken, SyntaxToken> _computeReplacementToken;
-            private readonly Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> _computeReplacementTrivia;
+            private readonly Func<TNode, TNode, SyntaxNode>? _computeReplacementNode;
+            private readonly Func<SyntaxToken, SyntaxToken, SyntaxToken>? _computeReplacementToken;
+            private readonly Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? _computeReplacementTrivia;
 
             private readonly HashSet<SyntaxNode> _nodeSet;
             private readonly HashSet<SyntaxToken> _tokenSet;
             private readonly HashSet<SyntaxTrivia> _triviaSet;
             private readonly HashSet<TextSpan> _spanSet;
 
-            private readonly TextSpan _totalSpan;
-            private readonly bool _visitIntoStructuredTrivia;
-            private readonly bool _shouldVisitTrivia;
+            private TextSpan _totalSpan;
+            private bool _visitIntoStructuredTrivia;
+            private bool _shouldVisitTrivia;
 
             public Replacer(
-                IEnumerable<TNode> nodes,
-                Func<TNode, TNode, SyntaxNode> computeReplacementNode,
-                IEnumerable<SyntaxToken> tokens,
-                Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken,
-                IEnumerable<SyntaxTrivia> trivia,
-                Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia)
+                IEnumerable<TNode>? nodes,
+                Func<TNode, TNode, SyntaxNode>? computeReplacementNode,
+                IEnumerable<SyntaxToken>? tokens,
+                Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken,
+                IEnumerable<SyntaxTrivia>? trivia,
+                Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia)
             {
                 _computeReplacementNode = computeReplacementNode;
                 _computeReplacementToken = computeReplacementToken;
@@ -93,19 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _tokenSet = tokens != null ? new HashSet<SyntaxToken>(tokens) : s_noTokens;
                 _triviaSet = trivia != null ? new HashSet<SyntaxTrivia>(trivia) : s_noTrivia;
 
-                _spanSet = new HashSet<TextSpan>(
-                    _nodeSet.Select(n => n.FullSpan).Concat(
-                    _tokenSet.Select(t => t.FullSpan).Concat(
-                    _triviaSet.Select(t => t.FullSpan))));
+                _spanSet = new HashSet<TextSpan>();
 
-                _totalSpan = ComputeTotalSpan(_spanSet);
-
-                _visitIntoStructuredTrivia =
-                    _nodeSet.Any(n => n.IsPartOfStructuredTrivia()) ||
-                    _tokenSet.Any(t => t.IsPartOfStructuredTrivia()) ||
-                    _triviaSet.Any(t => t.IsPartOfStructuredTrivia());
-
-                _shouldVisitTrivia = _triviaSet.Count > 0 || _visitIntoStructuredTrivia;
+                CalculateVisitationCriteria();
             }
 
             private static readonly HashSet<SyntaxNode> s_noNodes = new HashSet<SyntaxNode>();
@@ -128,13 +117,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            private static TextSpan ComputeTotalSpan(IEnumerable<TextSpan> spans)
+            private void CalculateVisitationCriteria()
             {
+                _spanSet.Clear();
+                foreach (var node in _nodeSet)
+                {
+                    _spanSet.Add(node.FullSpan);
+                }
+
+                foreach (var token in _tokenSet)
+                {
+                    _spanSet.Add(token.FullSpan);
+                }
+
+                foreach (var trivia in _triviaSet)
+                {
+                    _spanSet.Add(trivia.FullSpan);
+                }
+
                 bool first = true;
                 int start = 0;
                 int end = 0;
 
-                foreach (var span in spans)
+                foreach (var span in _spanSet)
                 {
                     if (first)
                     {
@@ -149,7 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-                return new TextSpan(start, end - start);
+                _totalSpan = new TextSpan(start, end - start);
+
+                _visitIntoStructuredTrivia =
+                    _nodeSet.Any(static n => n.IsPartOfStructuredTrivia()) ||
+                    _tokenSet.Any(static t => t.IsPartOfStructuredTrivia()) ||
+                    _triviaSet.Any(static t => t.IsPartOfStructuredTrivia());
+
+                _shouldVisitTrivia = _triviaSet.Count > 0 || _visitIntoStructuredTrivia;
             }
 
             private bool ShouldVisit(TextSpan span)
@@ -175,20 +187,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            [return: NotNullIfNotNull(nameof(node))]
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
-                SyntaxNode rewritten = node;
+                var rewritten = node;
 
                 if (node != null)
                 {
+                    bool isReplacedNode = _nodeSet.Remove(node);
+
+                    if (isReplacedNode)
+                    {
+                        // If node is in _nodeSet, then it contributed to the calculation of _spanSet.
+                        // We are currently processing that node, so it no longer needs to contribute
+                        // to _spanSet and affect determination of inward visitation. This is done before
+                        // calling ShouldVisit to avoid walking into the node if there aren't any remaining
+                        // spans inside it representing items to replace.
+                        CalculateVisitationCriteria();
+                    }
+
                     if (this.ShouldVisit(node.FullSpan))
                     {
                         rewritten = base.Visit(node);
                     }
 
-                    if (_nodeSet.Contains(node) && _computeReplacementNode != null)
+                    if (isReplacedNode && _computeReplacementNode != null)
                     {
-                        rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten);
+                        rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten!);
                     }
                 }
 
@@ -198,13 +223,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var rewritten = token;
+                bool isReplacedToken = _tokenSet.Remove(token);
+
+                if (isReplacedToken)
+                {
+                    // If token is in _tokenSet, then it contributed to the calculation of _spanSet.
+                    // We are currently processing that token, so it no longer needs to contribute
+                    // to _spanSet and affect determination of inward visitation. This is done before
+                    // calling ShouldVisit to avoid walking into the token if there aren't any remaining
+                    // spans inside it representing items to replace.
+                    CalculateVisitationCriteria();
+                }
 
                 if (_shouldVisitTrivia && this.ShouldVisit(token.FullSpan))
                 {
                     rewritten = base.VisitToken(token);
                 }
 
-                if (_tokenSet.Contains(token) && _computeReplacementToken != null)
+                if (isReplacedToken && _computeReplacementToken != null)
                 {
                     rewritten = _computeReplacementToken(token, rewritten);
                 }
@@ -215,13 +251,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
             {
                 var rewritten = trivia;
+                bool isReplacedTrivia = _triviaSet.Remove(trivia);
+
+                if (isReplacedTrivia)
+                {
+                    // If trivia is in _triviaSet, then it contributed to the calculation of _spanSet.
+                    // We are currently processing that trivia, so it no longer needs to contribute
+                    // to _spanSet and affect determination of inward visitation. This is done before
+                    // calling ShouldVisit to avoid walking into the trivia if there aren't any remaining
+                    // spans inside it representing items to replace.
+                    CalculateVisitationCriteria();
+                }
 
                 if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
                 {
                     rewritten = this.VisitTrivia(trivia);
                 }
 
-                if (_triviaSet.Contains(trivia) && _computeReplacementTrivia != null)
+                if (isReplacedTrivia && _computeReplacementTrivia != null)
                 {
                     rewritten = _computeReplacementTrivia(trivia, rewritten);
                 }
@@ -282,6 +329,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return new InvalidOperationException(CodeAnalysisResources.MissingListItem);
         }
 
+        private static InvalidOperationException GetTokenNotListElementException()
+        {
+            return new InvalidOperationException(CodeAnalysisResources.MissingTokenListItem);
+        }
+
         private abstract class BaseListEditor : CSharpSyntaxRewriter
         {
             private readonly TextSpan _elementSpan;
@@ -322,9 +374,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            [return: NotNullIfNotNull(nameof(node))]
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
-                SyntaxNode rewritten = node;
+                SyntaxNode? rewritten = node;
 
                 if (node != null)
                 {
@@ -377,7 +430,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _newNodes = replacementNodes;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            [return: NotNullIfNotNull(nameof(node))]
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
                 if (node == _originalNode)
                 {
@@ -455,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (token == _originalToken)
                 {
-                    throw GetItemNotListElementException();
+                    throw GetTokenNotListElementException();
                 }
 
                 return base.VisitToken(token);

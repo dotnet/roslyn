@@ -12,12 +12,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommentSelection
         Inherits AbstractCommentSelectionService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Overrides ReadOnly Property SingleLineCommentString As String = "'"
 
-        Public Overrides ReadOnly Property SupportsBlockComment As Boolean = False
+        Public Overrides ReadOnly Property SupportsBlockComment As Boolean
 
         Public Overrides ReadOnly Property BlockCommentEndString As String
             Get

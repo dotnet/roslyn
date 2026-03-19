@@ -24,13 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.VisitExpressionNode(lambda)
         End Function
 
-
         Private Shared Function BuildDelegateRelaxationLambda(
                 syntaxNode As SyntaxNode,
                 targetType As NamedTypeSymbol,
                 boundMember As BoundLateMemberAccess,
                 binder As Binder,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
 
             Dim delegateInvoke = targetType.DelegateInvokeMethod
@@ -138,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundLambda = New BoundLambda(syntaxNode,
                                           lambdaSymbol,
                                           lambdaBody,
-                                          ImmutableArray(Of Diagnostic).Empty,
+                                          ReadOnlyBindingDiagnostic(Of AssemblySymbol).Empty,
                                           Nothing,
                                           ConversionKind.DelegateRelaxationLevelWidening,
                                           MethodConversionKind.Identity)
@@ -151,7 +150,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return result
         End Function
-
 
     End Class
 End Namespace

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,6 +11,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -81,7 +84,6 @@ namespace System.Threading.Tasks {
                 taskAssembly = taskAssembly + "\n" + extensionSource;
             }
 
-
             var taskCompilation = CreateEmptyCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
             taskCompilation.VerifyDiagnostics();
             return taskCompilation.ToMetadataReference();
@@ -136,7 +138,7 @@ namespace System.Threading.Tasks {
         {
             var script = CreateEmptyCompilation(
                 source: @"interface I {}",
-                parseOptions: TestOptions.Script,
+                parseOptions: TestOptions.Script.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
                 references: new MetadataReference[] { TaskFacadeAssembly() });
             script.VerifyEmitDiagnostics(
@@ -230,7 +232,7 @@ System.Console.Write(""complete"");",
             string test = @"
 this[1]
 ";
-            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(test, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -260,7 +262,7 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -283,7 +285,7 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -440,7 +442,7 @@ delegate void G();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -482,7 +484,7 @@ WriteLine(""hello"");
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -515,7 +517,7 @@ WriteLine(""hello"");
 @"L0: ;
 goto L0;";
             var tree = Parse(source, options: TestOptions.Script);
-            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var model = CreateCompilationWithMscorlib461(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
             var root = tree.GetCompilationUnitRoot();
             var statements = root.ChildNodes().Select(n => ((GlobalStatementSyntax)n).Statement).ToArray();
             var symbol0 = model.GetDeclaredSymbol((LabeledStatementSyntax)statements[0]);
@@ -531,7 +533,7 @@ goto L0;";
 @"int x = 1;
 object y = x;";
             var tree = Parse(source, options: TestOptions.Script);
-            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var model = CreateCompilationWithMscorlib461(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
             var root = tree.GetCompilationUnitRoot();
             var declarations = root.ChildNodes().Select(n => ((FieldDeclarationSyntax)n).Declaration.Variables[0]).ToArray();
             var symbol0 = model.GetDeclaredSymbol(declarations[0]);
@@ -622,7 +624,7 @@ this[1]
 decimal d = checked(2M + 1M);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
+            var compilation = CreateCompilationWithMscorlib461(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -635,7 +637,7 @@ using System.IO;
 FileAccess fa = checked(FileAccess.Read + 1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
+            var compilation = CreateCompilationWithMscorlib461(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -647,7 +649,7 @@ FileAccess fa = checked(FileAccess.Read + 1);
 System.Action a = null;
 a += null;
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
+            var compilation = CreateCompilationWithMscorlib461(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -751,11 +753,10 @@ internal protected E e3;
 public E e4;
 ", previous: c0);
 
-
             CreateSubmission(@"protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"internal A x;", previous: c1).VerifyDiagnostics(
@@ -765,7 +766,7 @@ public E e4;
             CreateSubmission(@"internal protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public A x;", previous: c1).VerifyDiagnostics(
@@ -779,7 +780,7 @@ public E e4;
             CreateSubmission(@"internal protected B x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'B' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public B x;", previous: c1).VerifyDiagnostics(
@@ -1104,7 +1105,7 @@ goto Label;");
         [Fact]
         public void DefineExtensionMethods()
         {
-            var references = new[] { TestReferences.NetFx.v4_0_30319.System_Core };
+            var references = new[] { NetFramework.SystemCore };
 
             // No error for extension method defined in interactive session.
             var s0 = CreateSubmission("static void E(this object o) { }", references);
@@ -1131,7 +1132,7 @@ goto Label;");
 @"fixed int x[3];
 ";
             var tree = Parse(source, options: TestOptions.Script);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree });
 
             compilation.VerifyDiagnostics(
                 // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
@@ -1151,12 +1152,12 @@ goto Label;");
 @"fixed var x[3] = 1;
 ";
             var tree = Parse(source, options: TestOptions.Script);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree });
 
             compilation.VerifyDiagnostics(
                 // (1,16): error CS1003: Syntax error, ',' expected
                 // fixed var x[3] = 1;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(1, 16),
                 // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
                 // fixed var x[3] = 1;
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "x").WithLocation(1, 11),
@@ -1169,14 +1170,15 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_01()
         {
             var code = "System.Console.WriteLine(1);";
             var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
             var syntaxTree = compilationUnit.SyntaxTree;
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
             var semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             MemberAccessExpressionSyntax node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1188,7 +1190,7 @@ goto Label;");
                 Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(1);").WithLocation(1, 1)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1203,7 +1205,7 @@ goto Label;");
                 );
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe);
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe);
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1212,7 +1214,7 @@ goto Label;");
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1221,7 +1223,7 @@ goto Label;");
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName(""));
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName(""));
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1233,7 +1235,7 @@ goto Label;");
                 );
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName(null));
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName(null));
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1245,7 +1247,7 @@ goto Label;");
                 );
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("a\0b"));
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("a\0b"));
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1257,8 +1259,9 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_02()
         {
             var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit("\nSystem.Console.WriteLine(1);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
@@ -1269,7 +1272,7 @@ goto Label;");
             Assert.Equal("WriteLine", node1.Name.ToString());
             Assert.Equal("WriteLine", node2.Name.ToString());
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree1, syntaxTree2 });
+            var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree1, syntaxTree2 });
             var semanticModel1 = compilation.GetSemanticModel(syntaxTree1, true);
             var semanticModel2 = compilation.GetSemanticModel(syntaxTree2, true);
             Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol);
@@ -1281,7 +1284,7 @@ goto Label;");
                 Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(1);").WithLocation(2, 1)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree2, syntaxTree1 });
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree2, syntaxTree1 });
             semanticModel1 = compilation.GetSemanticModel(syntaxTree1, true);
             semanticModel2 = compilation.GetSemanticModel(syntaxTree2, true);
             Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol);
@@ -1294,14 +1297,15 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_03()
         {
             var code = "System.Console.WriteLine(out var x, x);";
             var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
             var syntaxTree = compilationUnit.SyntaxTree;
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
             var semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             MemberAccessExpressionSyntax node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1315,7 +1319,7 @@ goto Label;");
                 Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(out var x, x);").WithLocation(1, 1)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script1"));
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script1"));
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1330,7 +1334,7 @@ goto Label;");
                 );
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
@@ -1345,7 +1349,7 @@ goto Label;");
                 );
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script1"));
+            compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script1"));
             semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());

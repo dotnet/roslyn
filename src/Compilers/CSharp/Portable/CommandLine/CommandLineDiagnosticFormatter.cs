@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (PathUtilities.IsSameDirectoryOrChildOf(normalizedDirectory, normalizedBaseDirectory))
             {
                 return normalizedPath.Substring(
-                    PathUtilities.IsDirectorySeparator(normalizedBaseDirectory.Last())
+                    PathUtilities.IsDirectorySeparator(normalizedBaseDirectory[^1])
                         ? normalizedBaseDirectory.Length
                         : normalizedBaseDirectory.Length + 1);
             }

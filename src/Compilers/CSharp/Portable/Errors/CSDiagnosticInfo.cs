@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -38,6 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Internal errors are abnormal and should not occur except where there are bugs in the compiler.
             Debug.Assert(code != ErrorCode.ERR_InternalError);
             _additionalLocations = additionalLocations.IsDefaultOrEmpty ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations;
+        }
+
+        private CSDiagnosticInfo(CSDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _additionalLocations = original._additionalLocations;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new CSDiagnosticInfo(this, severity);
         }
 
         public override IReadOnlyList<Location> AdditionalLocations => _additionalLocations;

@@ -4,8 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.UseCollectionExpression
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
@@ -21,25 +25,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
-            VariableDeclaratorSyntax)
+            LocalDeclarationStatementSyntax,
+            VariableDeclaratorSyntax,
+            VisualBasicCollectionInitializerAnalyzer)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetNewStatement(
-                statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As StatementSyntax
+        Protected Overrides Function GetAnalyzer() As VisualBasicCollectionInitializerAnalyzer
+            Return VisualBasicCollectionInitializerAnalyzer.Allocate()
+        End Function
+
+        Protected Overrides Function GetReplacementNodesAsync(
+                document As Document,
+                objectCreation As ObjectCreationExpressionSyntax,
+                useCollectionExpression As Boolean,
+                preMatches As ImmutableArray(Of CollectionMatch(Of SyntaxNode)),
+                postMatches As ImmutableArray(Of CollectionMatch(Of SyntaxNode)),
+                cancellationToken As CancellationToken) As Task(Of (SyntaxNode, SyntaxNode))
+            Contract.ThrowIfFalse(preMatches.IsEmpty)
+            Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")
+
+            Dim statement = objectCreation.FirstAncestorOrSelf(Of StatementSyntax)
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, matches))
+                GetNewObjectCreation(objectCreation, postMatches))
 
             Dim totalTrivia = ArrayBuilder(Of SyntaxTrivia).GetInstance()
             totalTrivia.AddRange(statement.GetLeadingTrivia())
             totalTrivia.Add(SyntaxFactory.ElasticMarker)
 
-            For Each match In matches
-                For Each trivia In match.GetLeadingTrivia()
+            For Each match In postMatches
+                For Each trivia In match.Node.GetLeadingTrivia()
                     If trivia.Kind = SyntaxKind.CommentTrivia Then
                         totalTrivia.Add(trivia)
                         totalTrivia.Add(SyntaxFactory.ElasticMarker)
@@ -47,25 +66,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 Next
             Next
 
-            Return newStatement.WithLeadingTrivia(totalTrivia)
+            Dim result = newStatement.WithLeadingTrivia(totalTrivia).WithAdditionalAnnotations(Formatter.Annotation)
+            Return Task.FromResult((DirectCast(statement, SyntaxNode), DirectCast(result, SyntaxNode)))
         End Function
 
-        Private Function GetNewObjectCreation(
+        Private Shared Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of CollectionMatch(Of SyntaxNode))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
                 SyntaxFactory.ObjectCollectionInitializer(
-                    CreateCollectionInitializer(matches)))
+                    CreateCollectionInitializer(objectCreation, matches)))
         End Function
 
-        Private Function CreateCollectionInitializer(
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As CollectionInitializerSyntax
-            Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
+        Private Shared Function CreateCollectionInitializer(
+                objectCreation As ObjectCreationExpressionSyntax,
+                matches As ImmutableArray(Of CollectionMatch(Of SyntaxNode))) As CollectionInitializerSyntax
+            Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
+
+            AddExistingItems(objectCreation, nodesAndTokens)
 
             For i = 0 To matches.Length - 1
-                Dim expressionStatement = matches(i)
+                Dim expressionStatement = DirectCast(matches(i).Node, ExpressionStatementSyntax)
 
                 Dim newExpression As ExpressionSyntax
                 Dim invocationExpression = DirectCast(expressionStatement.Expression, InvocationExpressionSyntax)
@@ -92,10 +115,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 End If
             Next
 
-            Return SyntaxFactory.CollectionInitializer(
+            Dim result = SyntaxFactory.CollectionInitializer(
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
                 SyntaxFactory.SeparatedList(Of ExpressionSyntax)(nodesAndTokens),
                 SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+            nodesAndTokens.Free()
+            Return result
         End Function
     End Class
 End Namespace

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundArrayLiteral
+    Partial Friend Class BoundArrayLiteral
         Inherits BoundExpression
 
         Public ReadOnly Property IsEmptyArrayLiteral As Boolean

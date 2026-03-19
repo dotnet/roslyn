@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -19,10 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
         protected SymbolCompletionState state;
-        protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
-        private readonly ImmutableArray<Location> _locations;
+        private readonly Location? _location;
         private readonly RefKind _refKind;
+        private readonly ScopedKind _scope;
+#nullable disable
 
         public static SourceParameterSymbol Create(
             Binder context,
@@ -32,17 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             SyntaxToken identifier,
             int ordinal,
-            bool isParams,
+            bool hasParamsModifier,
             bool isExtensionMethodThis,
             bool addRefReadOnlyModifier,
-            DiagnosticBag declarationDiagnostics)
+            ScopedKind scope,
+            BindingDiagnosticBag declarationDiagnostics)
         {
-            Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
+            Debug.Assert(owner is not LambdaSymbol); // therefore we don't need to deal with discard parameters
 
             var name = identifier.ValueText;
-            var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
+            var location = new SourceLocation(name == "" ? syntax.Type : identifier);
 
-            if (isParams)
+            if (hasParamsModifier && parameterType.IsSZArray())
             {
                 // touch the constructor in order to generate proper use-site diagnostics
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(context.Compilation,
@@ -51,31 +55,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            if (addRefReadOnlyModifier && refKind == RefKind.In)
-            {
-                var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
+            ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
+            Debug.Assert(!inModifiers.IsDefault);
 
-                return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
+            if (!inModifiers.IsDefaultOrEmpty)
+            {
+                return new SourceComplexParameterSymbolWithCustomModifiersPrecedingRef(
                     owner,
                     ordinal,
                     parameterType,
                     refKind,
-                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
+                    inModifiers,
                     name,
-                    locations,
+                    location,
                     syntax.GetReference(),
-                    ConstantValue.Unset,
-                    isParams,
-                    isExtensionMethodThis);
+                    hasParamsModifier: hasParamsModifier,
+                    isParams: hasParamsModifier,
+                    isExtensionMethodThis,
+                    scope);
             }
 
-            if (!isParams &&
+            if (!hasParamsModifier &&
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod())
+                !owner.IsPartialMember() &&
+                scope == ScopedKind.None)
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard: false, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, location);
             }
 
             return new SourceComplexParameterSymbol(
@@ -84,33 +91,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterType,
                 refKind,
                 name,
-                locations,
+                location,
                 syntax.GetReference(),
-                ConstantValue.Unset,
-                isParams,
-                isExtensionMethodThis);
+                hasParamsModifier: hasParamsModifier,
+                isParams: hasParamsModifier,
+                isExtensionMethodThis,
+                scope);
         }
 
         protected SourceParameterSymbol(
             Symbol owner,
-            TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
+            ScopedKind scope,
             string name,
-            ImmutableArray<Location> locations)
+            Location location)
             : base(owner, ordinal)
         {
-#if DEBUG
-            foreach (var location in locations)
-            {
-                Debug.Assert(location != null);
-            }
-#endif
-            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
-            this.parameterType = parameterType;
+            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property) || owner is NamedTypeSymbol { IsExtension: true });
             _refKind = refKind;
+            _scope = scope;
             _name = name;
-            _locations = locations;
+            _location = location;
         }
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
@@ -132,28 +134,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newTypeWithModifiers,
                     _refKind,
                     _name,
-                    _locations,
+                    _location,
                     this.SyntaxReference,
-                    this.ExplicitDefaultConstantValue,
-                    newIsParams,
-                    this.IsExtensionMethodThis);
+                    hasParamsModifier: HasParamsModifier,
+                    isParams: newIsParams,
+                    this.IsExtensionMethodThis,
+                    this.DeclaredScope);
             }
 
             // Local functions should never have custom modifiers
             Debug.Assert(!(ContainingSymbol is LocalFunctionSymbol));
 
-            return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
+            return new SourceComplexParameterSymbolWithCustomModifiersPrecedingRef(
                 this.ContainingSymbol,
                 this.Ordinal,
                 newTypeWithModifiers,
                 _refKind,
                 newRefCustomModifiers,
                 _name,
-                _locations,
+                _location,
                 this.SyntaxReference,
-                this.ExplicitDefaultConstantValue,
-                newIsParams,
-                this.IsExtensionMethodThis);
+                hasParamsModifier: HasParamsModifier,
+                isParams: newIsParams,
+                this.IsExtensionMethodThis,
+                this.DeclaredScope);
         }
 
         internal sealed override bool RequiresCompletion
@@ -166,8 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
+            Debug.Assert(filter == null);
             state.DefaultForceComplete(this, cancellationToken);
         }
 
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// go on the compilation, but if it is a local function it is part of the local
         /// function's declaration diagnostics.
         /// </summary>
-        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
             => ContainingSymbol.AddDeclarationDiagnostics(diagnostics);
 
         internal abstract SyntaxReference SyntaxReference { get; }
@@ -215,6 +220,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// The declared scope. From source, this is from the <c>scope</c> keyword only.
+        /// </summary>
+        internal sealed override ScopedKind DeclaredScope => _scope;
+
+        /// <summary>
+        /// Reflects presence of `params` modifier in source
+        /// </summary>
+        protected abstract bool HasParamsModifier { get; }
+
+        internal abstract override ScopedKind EffectiveScope { get; }
+
+        protected ScopedKind CalculateEffectiveScopeIgnoringAttributes()
+        {
+            var declaredScope = this.DeclaredScope;
+
+            if (declaredScope == ScopedKind.None)
+            {
+                if (ParameterHelpers.IsRefScopedByDefault(this))
+                {
+                    return ScopedKind.ScopedRef;
+                }
+                else if (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType())
+                {
+                    return ScopedKind.ScopedValue;
+                }
+            }
+
+            return declaredScope;
+        }
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
         public sealed override string Name
         {
             get
@@ -224,12 +262,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _locations;
-            }
-        }
+            => _location is null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(_location);
+
+#nullable enable
+
+        public override Location? TryGetFirstLocation()
+            => _location;
+
+#nullable disable
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -237,15 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return IsImplicitlyDeclared ?
                     ImmutableArray<SyntaxReference>.Empty :
-                    GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(_locations);
-            }
-        }
-
-        public sealed override TypeWithAnnotations TypeWithAnnotations
-        {
-            get
-            {
-                return this.parameterType;
+                    GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(this.Locations);
             }
         }
 
@@ -260,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsMetadataIn => RefKind == RefKind.In;
+        internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
 
         internal override bool IsMetadataOut => RefKind == RefKind.Out;
     }

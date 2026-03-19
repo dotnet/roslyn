@@ -2,40 +2,42 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using System;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal sealed class NavigationBarProjectItem(
+    string text,
+    Glyph glyph,
+    Workspace workspace,
+    DocumentId documentId,
+    string language) : NavigationBarItem(textVersion: null, text, glyph,
+               spans: [],
+               childItems: [],
+               indent: 0, bolded: false, grayed: false), IEquatable<NavigationBarProjectItem>
 {
-    internal sealed class NavigationBarProjectItem : NavigationBarItem
+    public Workspace Workspace { get; } = workspace;
+    public DocumentId DocumentId { get; } = documentId;
+    public string Language { get; } = language;
+
+    internal void SwitchToContext()
     {
-        public DocumentId DocumentId { get; }
-        public Workspace Workspace { get; }
-        public string Language { get; }
-
-        public NavigationBarProjectItem(
-            string text,
-            Glyph glyph,
-            Workspace workspace,
-            DocumentId documentId,
-            string language,
-            int indent = 0,
-            bool bolded = false,
-            bool grayed = false)
-                : base(text, glyph, SpecializedCollections.EmptyList<TextSpan>(), /*childItems:*/ null, indent, bolded, grayed)
+        if (this.Workspace.CanChangeActiveContextDocument)
         {
-            this.Workspace = workspace;
-            this.DocumentId = documentId;
-            this.Language = language;
-        }
-
-        internal void SwitchToContext()
-        {
-            if (this.Workspace.CanChangeActiveContextDocument)
-            {
-                // TODO: Can we pass something better?
-                this.Workspace.SetDocumentContext(DocumentId);
-            }
+            // TODO: Can we pass something better?
+            this.Workspace.SetDocumentContext(DocumentId);
         }
     }
+
+    public override bool Equals(object? obj)
+        => Equals(obj as NavigationBarProjectItem);
+
+    public bool Equals(NavigationBarProjectItem? item)
+        => base.Equals(item) &&
+           Workspace == item.Workspace &&
+           DocumentId == item.DocumentId &&
+           Language == item.Language;
+
+    public override int GetHashCode()
+        => throw new NotImplementedException();
 }

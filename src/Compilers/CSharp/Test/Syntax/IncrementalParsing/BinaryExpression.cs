@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -62,6 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         public void PlusToRightShift()
         {
             MakeBinOpChange(SyntaxKind.AddExpression, SyntaxKind.RightShiftExpression);
+        }
+
+        [Fact]
+        public void PlusToUnsignedRightShift()
+        {
+            MakeBinOpChange(SyntaxKind.AddExpression, SyntaxKind.UnsignedRightShiftExpression);
         }
 
         [Fact]
@@ -230,6 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                     return "<<";
                 case SyntaxKind.RightShiftExpression:
                     return ">>";
+                case SyntaxKind.UnsignedRightShiftExpression:
+                    return ">>>";
                 case SyntaxKind.LogicalOrExpression:
                     return "||";
                 case SyntaxKind.LogicalAndExpression:

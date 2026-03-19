@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -47,8 +49,14 @@ class A {
         public void NoParameterlessCtorForStruct()
         {
             var text = "struct A { A() {} }";
-            var comp = CreateCompilation(text);
-            Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // struct A { A() {} }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A").WithArguments("parameterless struct constructors", "10.0").WithLocation(1, 12),
+                // (1,12): error CS8938: The parameterless struct constructor must be 'public'.
+                // struct A { A() {} }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A").WithLocation(1, 12));
         }
 
         [WorkItem(537194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537194")]
@@ -391,7 +399,7 @@ public interface A {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
@@ -448,15 +456,15 @@ public interface A {
             Assert.Equal(RefKind.Out, p2.RefKind);
         }
 
-        [Fact]
-        public void InterfaceImplementsCrossTrees()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void InterfaceImplementsCrossTrees(string ob, string cb)
         {
             var text1 =
 @"using System;
 using System.Collections.Generic;
 
 namespace NS
-{
+" + ob + @"
   public class Abc {}
 
   public interface IGoo<T>
@@ -475,14 +483,14 @@ namespace NS
     void M21(); 
     Abc M22(ref Abc p);
   }
-}";
+" + cb;
 
             var text2 =
 @"using System;
 using System.Collections.Generic;
 
 namespace NS.NS1
-{
+" + ob + @"
   public class Impl : I2, IGoo<string>, I1
   {
     void IGoo<string>.M(ref string p) { }
@@ -496,7 +504,7 @@ namespace NS.NS1
   {
     void IGoo<T>.M(ref T t) {}
   }
-}";
+" + cb;
 
             var comp = CreateCompilation(new[] { text1, text2 });
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
@@ -574,7 +582,7 @@ namespace N1.N2  {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(new[] { text, text1, text2 });
+            var comp = CreateCompilationWithMscorlib461(new[] { text, text1, text2 });
             Assert.Equal(0, comp.GetDiagnostics().Count());
             var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
             var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
@@ -745,16 +753,16 @@ namespace N1.N2  {
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45(text);
+            var comp1 = CreateCompilationWithMscorlib461(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+            var comp2 = CreateCompilationWithMscorlib461(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
             //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
             //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
             //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithMscorlib45(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+            var comp = CreateCompilationWithMscorlib461(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
             //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
@@ -1671,14 +1679,14 @@ class C : I
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
             Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -1715,14 +1723,14 @@ class F : System.IFormattable
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
             Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -1741,7 +1749,7 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -1762,14 +1770,14 @@ class C : I
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
             Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -1816,16 +1824,16 @@ class IC : Namespace.I<int>
             Assert.Equal(substitutedInterface, explicitImpl.ContainingType);
             Assert.Equal(substitutedInterfaceMethod.OriginalDefinition, explicitImpl.OriginalDefinition);
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType);
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
+            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
 
             var explicitOverrideImplementedMethod = explicitOverride.ImplementedMethod;
-            Assert.Equal(substitutedInterface, explicitOverrideImplementedMethod.GetContainingType(context));
+            Assert.Equal(substitutedInterface, explicitOverrideImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(substitutedInterfaceMethod.Name, explicitOverrideImplementedMethod.Name);
             Assert.Equal(substitutedInterfaceMethod.Arity, explicitOverrideImplementedMethod.GenericParameterCount);
             context.Diagnostics.Verify();
@@ -1859,8 +1867,8 @@ class C
             Assert.False(method4.IsVirtual);
 
             //1 and 3 - read before set
-            Assert.True(((Cci.IMethodDefinition)method1).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)method3).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)method1.GetCciAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)method3.GetCciAdapter()).IsVirtual);
 
             //2 and 4 - set before read
             method2.EnsureMetadataVirtual();
@@ -1870,8 +1878,8 @@ class C
             method2.EnsureMetadataVirtual();
             method4.EnsureMetadataVirtual();
 
-            Assert.True(((Cci.IMethodDefinition)method2).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)method4).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)method2.GetCciAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)method4.GetCciAdapter()).IsVirtual);
 
             //API view unchanged
             Assert.True(method1.IsVirtual);
@@ -1957,14 +1965,14 @@ public class C : B
             var methodB = classB.GetMember<MethodSymbol>("get_P");
             var methodC = classC.GetMember<PropertySymbol>("P").GetMethod;
 
-            var typeDefC = (Cci.ITypeDefinition)classC;
+            var typeDefC = (Cci.ITypeDefinition)classC.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(classC, explicitOverride.ContainingType);
-            Assert.Equal(methodC, explicitOverride.ImplementingMethod);
-            Assert.Equal(methodA, explicitOverride.ImplementedMethod);
+            Assert.Equal(classC, explicitOverride.ContainingType.GetInternalSymbol());
+            Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetInternalSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -2001,14 +2009,14 @@ public class C : B
             var methodB = classB.GetMember<PropertySymbol>("P").GetMethod;
             var methodC = classC.GetMember<MethodSymbol>("get_P");
 
-            var typeDefC = (Cci.ITypeDefinition)classC;
+            var typeDefC = (Cci.ITypeDefinition)classC.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(classC, explicitOverride.ContainingType);
-            Assert.Equal(methodC, explicitOverride.ImplementingMethod);
-            Assert.Equal(methodA, explicitOverride.ImplementedMethod);
+            Assert.Equal(classC, explicitOverride.ContainingType.GetInternalSymbol());
+            Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetInternalSymbol());
             context.Diagnostics.Verify();
         }
 
@@ -2103,10 +2111,7 @@ partial class C
     async partial void M() { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-              // (15,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-              //     async partial void M() { }
-              Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
@@ -2169,7 +2174,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,16): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 16)
@@ -2187,7 +2192,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,25): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref readonly void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
@@ -2207,7 +2212,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,13): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
@@ -2238,7 +2243,7 @@ static class C
 ";
 
             var parseOptions = TestOptions.Regular;
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,22): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref readonly void M2() {M1(); throw null;}
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
@@ -2255,13 +2260,10 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
@@ -2279,13 +2281,10 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref readonly int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
                 // (4,35): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
@@ -2383,6 +2382,248 @@ class C
                     Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""Debug"")").WithArguments("C.M()").WithLocation(5, 6));
             var method = compilation.GetMember<MethodSymbol>("C.M");
             Assert.True(method.IsConditional);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnNonPartial()
+        {
+            var source = @"
+class C
+{
+    void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.False(m.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnPartialDefinitionOnly()
+        {
+            var source = @"
+partial class C
+{
+    partial void M();
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.True(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.Null(m.PartialImplementationPart);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionWithPartialImplementation()
+        {
+            var source = @"
+partial class C
+{
+    partial void M();
+    partial void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.True(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnPartialImplementation_NonPartialClass()
+        {
+            var source = @"
+class C
+{
+    partial void M();
+    partial void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0751: A partial member must be declared within a partial type
+                //     partial void M();
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(4, 18),
+                // (5,18): error CS0751: A partial member must be declared within a partial type
+                //     partial void M() {}
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(5, 18)
+            );
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.True(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnPartialImplementationOnly()
+        {
+            var source = @"
+partial class C
+{
+    partial void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M()'
+                //     partial void M() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M()").WithLocation(4, 18)
+            );
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.False(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.Null(m.PartialImplementationPart);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinition_ReturnsFalseFromMetadata()
+        {
+            var source = @"
+public partial class C
+{
+    public partial void M();
+    public partial void M() {}
+}
+";
+
+            CompileAndVerify(source,
+                sourceSymbolValidator: module =>
+                {
+                    var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
+                    Assert.True(m.IsPartialDefinition);
+                    Assert.Null(m.PartialDefinitionPart);
+                    Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+                },
+                symbolValidator: module =>
+                {
+                    var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
+                    Assert.False(m.IsPartialDefinition);
+                    Assert.Null(m.PartialDefinitionPart);
+                    Assert.Null(m.PartialImplementationPart);
+                });
+        }
+
+        [Fact]
+        public void IsPartialDefinition_OnPartialExtern()
+        {
+            var source = @"
+public partial class C
+{
+    private partial void M();
+    private extern partial void M();
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+
+            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var partialDef = model.GetDeclaredSymbol(methods[0]);
+            Assert.True(partialDef.IsPartialDefinition);
+
+            var partialImpl = model.GetDeclaredSymbol(methods[1]);
+            Assert.False(partialImpl.IsPartialDefinition);
+
+            Assert.Same(partialDef.PartialImplementationPart, partialImpl);
+            Assert.Same(partialImpl.PartialDefinitionPart, partialDef);
+
+            Assert.Null(partialDef.PartialDefinitionPart);
+            Assert.Null(partialImpl.PartialImplementationPart);
+        }
+
+        [Fact]
+        public void IsPartialDefinition_Constructed()
+        {
+            var source = @"
+public partial class C
+{
+    public partial void M<T>();
+    public partial void M<T>() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+
+            var type = syntax.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var classC = model.GetDeclaredSymbol(type);
+            var partialDef = model.GetDeclaredSymbol(methods[0]);
+            var partialDefConstructed = partialDef.Construct(classC); // M<C>()
+
+            Assert.True(partialDef.IsPartialDefinition);
+            Assert.False(partialDefConstructed.IsPartialDefinition);
+
+            var partialImpl = model.GetDeclaredSymbol(methods[1]);
+            var partialImplConstructed = partialImpl.Construct(classC); // M<C>()
+
+            Assert.False(partialImpl.IsPartialDefinition);
+            Assert.False(partialImplConstructed.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22598")]
+        public void PartialMethodsLocationsAndSyntaxReferences()
+        {
+            var source1 = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM();
+                    }
+                }
+                """;
+
+            var source2 = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM() { }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([(source1, "source1"), (source2, "source2")]);
+            comp.VerifyDiagnostics();
+
+            var method = (IMethodSymbol)comp.GetSymbolsWithName("PartialM").Single();
+
+            // For partial methods, Locations and DeclaringSyntaxReferences contain only one location
+            Assert.Equal(1, method.Locations.Length);
+            Assert.Equal(1, method.DeclaringSyntaxReferences.Length);
+
+            // The single location is the definition part
+            Assert.True(method.IsPartialDefinition);
+            Assert.Null(method.PartialDefinitionPart);
+            Assert.NotNull(method.PartialImplementationPart);
+
+            // To get all locations, you need to use PartialImplementationPart
+            var implementationPart = method.PartialImplementationPart;
+            Assert.Equal(1, implementationPart.Locations.Length);
+            Assert.Equal(1, implementationPart.DeclaringSyntaxReferences.Length);
+
+            // Verify the locations are different
+            Assert.NotEqual(method.Locations[0], implementationPart.Locations[0]);
+
+            Assert.Equal("source1", method.Locations[0].SourceTree.FilePath);
+            Assert.Equal("source2", implementationPart.Locations[0].SourceTree.FilePath);
         }
     }
 }

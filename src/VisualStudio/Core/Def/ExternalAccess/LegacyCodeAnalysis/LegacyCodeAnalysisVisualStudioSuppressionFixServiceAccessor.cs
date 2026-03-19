@@ -4,34 +4,97 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
+namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis;
+
+[Export(typeof(ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor))]
+[Shared]
+internal sealed class LegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
+    : ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
 {
-    [Export(typeof(ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor))]
-    [Shared]
-    internal sealed class LegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
-        : ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
+    private readonly VisualStudioWorkspace _workspace;
+    private readonly IVisualStudioSuppressionFixService _implementation;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor(
+        VisualStudioWorkspace workspace,
+        IVisualStudioSuppressionFixService implementation)
     {
-        private readonly IVisualStudioSuppressionFixService _implementation;
+        _workspace = workspace;
+        _implementation = implementation;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor(IVisualStudioSuppressionFixService implementation)
+    public bool AddSuppressions(IVsHierarchy? projectHierarchy)
+    {
+        var errorReportingService = _workspace.Services.GetRequiredService<IErrorReportingService>();
+
+        try
         {
-            _implementation = implementation;
+            return _implementation.AddSuppressions(projectHierarchy);
         }
+        catch (Exception ex)
+        {
+            errorReportingService.ShowGlobalErrorInfo(
+                string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                TelemetryFeatureName.LegacySuppressionFix,
+                ex,
+                new InfoBarUI(
+                    WorkspacesResources.Show_Stack_Trace,
+                    InfoBarUI.UIKind.HyperLink,
+                    () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+            return false;
+        }
+    }
 
-        public bool AddSuppressions(IVsHierarchy projectHierarchyOpt)
-            => _implementation.AddSuppressions(projectHierarchyOpt);
+    public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy? projectHierarchy)
+    {
+        var errorReportingService = _workspace.Services.GetRequiredService<IErrorReportingService>();
 
-        public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt)
-            => _implementation.AddSuppressions(selectedErrorListEntriesOnly, suppressInSource, projectHierarchyOpt);
+        try
+        {
+            return _implementation.AddSuppressions(selectedErrorListEntriesOnly, suppressInSource, projectHierarchy);
+        }
+        catch (Exception ex)
+        {
+            errorReportingService.ShowGlobalErrorInfo(
+                message: string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                TelemetryFeatureName.LegacySuppressionFix,
+                ex,
+                new InfoBarUI(
+                    WorkspacesResources.Show_Stack_Trace,
+                    InfoBarUI.UIKind.HyperLink,
+                    () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+            return false;
+        }
+    }
 
-        public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy projectHierarchyOpt)
-            => _implementation.RemoveSuppressions(selectedErrorListEntriesOnly, projectHierarchyOpt);
+    public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy? projectHierarchy)
+    {
+        var errorReportingService = _workspace.Services.GetRequiredService<IErrorReportingService>();
+
+        try
+        {
+            return _implementation.RemoveSuppressions(selectedErrorListEntriesOnly, projectHierarchy);
+        }
+        catch (Exception ex)
+        {
+            errorReportingService.ShowGlobalErrorInfo(
+                message: string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                TelemetryFeatureName.LegacySuppressionFix,
+                ex,
+                new InfoBarUI(
+                    WorkspacesResources.Show_Stack_Trace,
+                    InfoBarUI.UIKind.HyperLink,
+                    () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+            return false;
+        }
     }
 }

@@ -2,20 +2,23 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
+    <Trait(Traits.Feature, Traits.Features.DocumentationComments)>
     Public Class DocumentationCommentTests
         Inherits AbstractDocumentationCommentTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(GetType(CommitConnectionListener))
+
+        <WpfFact>
         Public Sub TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
 ''$$
@@ -27,10 +30,13 @@ End Class
 Class C
 End Class
 "
-            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyTypingCharacter(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
+            })
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestTypingCharacter_Class()
             Const code = "
 ''$$
@@ -47,7 +53,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestTypingCharacter_Method()
             Const code = "
 Class C
@@ -74,8 +80,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         Public Sub TestTypingCharacter_NoReturnType()
             Const code = "
 Class C
@@ -97,7 +102,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestTypingCharacter_NotWhenDocCommentExists1()
             Const code = "
 ''$$
@@ -114,7 +119,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestTypingCharacter_NotWhenDocCommentExists2()
             Const code = "
 Class C
@@ -137,8 +142,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
         Public Sub TestTypingCharacter_NotAfterClassName()
             Const code = "
 Class C''$$
@@ -151,8 +155,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
         Public Sub TestTypingCharacter_NotInsideClass()
             Const code = "
 Class C
@@ -167,8 +170,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
         Public Sub TestTypingCharacter_NotAfterConstructorName()
             Const code = "
 Class C
@@ -183,8 +185,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
         Public Sub TestTypingCharacter_NotInsideConstructor()
             Const code = "
 Class C
@@ -203,8 +204,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
         Public Sub TestTypingCharacter_NotInsideMethodBody()
             Const code = "
 Class C
@@ -223,8 +223,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(540004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
         Public Sub TestTypingCharacter_NoReturnsOnWriteOnlyProperty()
             Const code = "
 Class C
@@ -249,7 +248,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_Class1()
             Const code = "
 '''$$
@@ -266,7 +265,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_Class1_AutoGenerateXmlDocCommentsOff()
             Const code = "
 '''$$
@@ -279,10 +278,13 @@ $$
 Class C
 End Class
 "
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyPressingEnter(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
+            })
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_Class2()
             Const code = "
 '''$$Class C
@@ -298,7 +300,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_Class3()
             Const code = "
 '''$$<Goo()> Class C
@@ -314,8 +316,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(538717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538717")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538717")>
         Public Sub TestPressingEnter_Module()
             Const code = "
 '''$$Module M
@@ -333,7 +334,7 @@ End Module
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_Method1()
             Const code = "
 Class C
@@ -359,7 +360,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_Method2()
             Const code = "
 Class C
@@ -384,7 +385,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes1()
             Const code = "
 '''$$
@@ -402,7 +403,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes2()
             Const code = "
 ''' <summary>
@@ -422,7 +423,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes3()
             Const code = "
 ''' <summary>$$</summary>
@@ -438,7 +439,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes4()
             Const code = "
     '''$$
@@ -456,7 +457,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes5()
             Const code = "
     ''' <summary>
@@ -476,7 +477,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes6()
             Const code = "
     ''' <summary>$$</summary>
@@ -492,7 +493,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes7()
             Const code = "
 Class C
@@ -516,8 +517,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         Public Sub TestPressingEnter_InsertApostrophes8()
             Const code = "
 ''' <summary></summary>$$
@@ -533,8 +533,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")>
         Public Sub TestPressingEnter_InsertApostrophes9_AutoGenerateXmlDocCommentsOff()
             Const code = "
 ''' <summary></summary>$$
@@ -547,12 +546,14 @@ End Class
 Class C
 End Class
 "
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyPressingEnter(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
+            })
         End Sub
 
-        <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Sub TestPressingEnter_DontInsertApostrophes1()
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
+        Public Sub TestPressingEnter_DoNotInsertApostrophes1()
             Const code = "
 ''' <summary></summary>
 ''' $$
@@ -569,7 +570,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestPressingEnter_NotInsideConstructor()
             Const code = "
 Class C
@@ -589,8 +590,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(537534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537534")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537534")>
         Public Sub TestPressingEnter_NotInsideMethodBody()
             Const code = "
 Class C
@@ -610,8 +610,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")>
         Public Sub TestPressingEnter_NotBeforeDocComment()
             Const code = "
     Class c1
@@ -639,8 +638,7 @@ Public Async Function TestGoo() As Task
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2091")>
         Public Sub TestPressingEnter_InTextBeforeSpace()
             Const code = "
 Class C
@@ -664,8 +662,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         Public Sub TestPressingEnter_Indentation1()
             Const code = "
 Class C
@@ -689,8 +686,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         Public Sub TestPressingEnter_Indentation2()
             Const code = "
 Class C
@@ -714,8 +710,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         Public Sub TestPressingEnter_Indentation3()
             Const code = "
 Class C
@@ -739,8 +734,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         Public Sub TestPressingEnter_Indentation4()
             Const code = "
 Class C
@@ -764,8 +758,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         Public Sub TestPressingEnter_Indentation5_UseTabs()
             Const code = "
 Class C
@@ -789,8 +782,7 @@ End Class
             VerifyPressingEnter(code, expected, useTabs:=True)
         End Sub
 
-        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5486")>
         Public Sub TestPressingEnter_Selection1()
             Const code = "
 ''' <summary>
@@ -810,8 +802,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5486")>
         Public Sub TestPressingEnter_Selection2()
             Const code = "
 ''' <summary>
@@ -831,7 +822,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestCommand_Class()
             Const code = "
 Class C
@@ -843,14 +834,13 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-    
+
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")>
         Public Sub TestCommand_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
 Class C
@@ -862,13 +852,16 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-    
+
 End Class
 "
-            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyInsertCommentCommand(code, expected, globalOptions:=New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, False}
+            })
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestCommand_Class_NotIfCommentExists()
             Const code = "
 ''' <summary></summary>
@@ -885,8 +878,7 @@ End Class
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         Public Sub TestCommand_Method1()
             Const code = "
 Class C
@@ -907,7 +899,7 @@ End Class
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestCommand_Method2()
             Const code = "
 Class C
@@ -932,7 +924,7 @@ End Class
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact>
         Public Sub TestCommand_Method_NotIfCommentExists()
             Const code = "
 Class C
@@ -953,8 +945,7 @@ End Class
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         Public Sub TestCommand_FirstModuleOnLine()
             Const code = "
 $$Module M : End Module : Module N : End Module
@@ -969,8 +960,7 @@ Module M : End Module : Module N : End Module
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         Public Sub TestCommand_NotOnSecondModuleOnLine()
             Const code = "Module M : End Module : $$Module N : End Module"
             Const expected = "Module M : End Module : $$Module N : End Module"
@@ -978,8 +968,7 @@ Module M : End Module : Module N : End Module
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         Public Sub TestCommand_FirstPropertyOnLine()
             Const code = "
 Module M
@@ -998,8 +987,7 @@ End Module
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineAbove1()
             Const code = "
 Class C
@@ -1023,8 +1011,7 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineAbove2()
             Const code = "
 Class C
@@ -1048,8 +1035,7 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
-        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         Public Sub TestCommand_NotOnSecondPropertyOnLine()
             Dim code =
                 StringFromLines("Module M",
@@ -1057,8 +1043,7 @@ End Class
                                 "End Module")
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineAbove3()
             Const code = "
 Class C
@@ -1084,8 +1069,7 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineAbove4_Tabs()
             Const code = "
 Class C
@@ -1109,8 +1093,7 @@ End Class
             VerifyOpenLineAbove(code, expected, useTabs:=True)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineBelow1()
             Const code = "
 Class C
@@ -1134,8 +1117,7 @@ End Class
             VerifyOpenLineBelow(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineBelow2()
             Const code = "
 Class C
@@ -1159,8 +1141,7 @@ End Class
             VerifyOpenLineBelow(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineBelow3()
             Const code = "
 ''' <summary>
@@ -1174,8 +1155,7 @@ End Class
             VerifyOpenLineBelow(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         Public Sub TestOpenLineBelow4_Tabs()
             Const code = "
 Class C
@@ -1199,16 +1179,194 @@ End Class
             VerifyOpenLineBelow(code, expected, useTabs:=True)
         End Sub
 
-        Friend Overrides Function CreateCommandHandler(
-            waitIndicator As IWaitIndicator,
-            undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService) As ICommandHandler
+        <WpfFact>
+        Public Sub TestTypingCharacter_WithExistingComment()
+            Const code = "
+''$$ This is a comment for this class
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' $$This is a comment for this class
+''' </summary>
+Class C
+End Class
+"
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
-            Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_Class_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+''$$
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>$$</summary>
+Class C
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_Method_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_MethodWithParameters_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    ''' <param name=""x""></param>
+    ''' <param name=""y""></param>
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_Property_Collapsed()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Public Property P As Integer
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    ''' <returns></returns>
+    Public Property P As Integer
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_MethodWithParameters_OnlySummary()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+    ''' $$
+    ''' </summary>
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub TypingCharacter_MethodWithParameters_OnlySummaryAndSingleLine()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True},
+                {DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, True}
+            }
+
+            Const code = "
+Class C
+    ''$$
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>$$</summary>
+    Sub M(x As Integer, y As String)
+    End Sub
+End Class
+"
+            VerifyTypingCharacter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/10968")>
+        Public Sub PressingEnter_InsideSingleLineSummary_Expands()
+            Dim globalOptions = New OptionsCollection(LanguageNames.VisualBasic) From
+            {
+                {DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, True}
+            }
+
+            Const code = "
+''' <summary>$$</summary>
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' $$</summary>
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected, globalOptions:=globalOptions)
+        End Sub
+
+        Friend Overrides Function CreateCommandHandler(workspace As EditorTestWorkspace) As ICommandHandler
+            Return workspace.ExportProvider.GetCommandHandler(Of DocumentationCommentCommandHandler)(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)
         End Function
 
-        Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code, exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
+        Protected Overrides Function CreateTestWorkspace(code As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(code, composition:=s_composition)
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

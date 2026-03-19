@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -60,6 +62,28 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsValidCharSet(CharSet value)
         {
             return value >= Cci.Constants.CharSet_None && value <= Cci.Constants.CharSet_Auto;
+        }
+        #endregion
+
+        #region ExperimentalAttribute
+        private ObsoleteAttributeData _experimentalAttributeData = ObsoleteAttributeData.Uninitialized;
+        public ObsoleteAttributeData ExperimentalAttributeData
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _experimentalAttributeData.IsUninitialized ? null : _experimentalAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+                Debug.Assert(!value.IsUninitialized);
+                Debug.Assert(value.Kind == ObsoleteAttributeKind.Experimental);
+
+                _experimentalAttributeData = value;
+                SetDataStored();
+            }
         }
         #endregion
     }

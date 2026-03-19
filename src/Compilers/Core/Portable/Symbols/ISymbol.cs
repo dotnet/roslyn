@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -60,7 +57,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         string MetadataName { get; }
 
+        /// <summary>
+        /// Gets the metadata token associated with this symbol, or 0 if the symbol is not loaded from metadata.
+        /// </summary>
+        int MetadataToken { get; }
+
 #nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
+#pragma warning disable RS0041 // uses oblivious reference types
         /// <summary>
         /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
         /// </summary>
@@ -90,6 +93,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         INamespaceSymbol ContainingNamespace { get; }
 #nullable enable
+#pragma warning restore RS0041 // uses oblivious reference types
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
+        /// an explicit corresponding source code declaration.
         /// </summary> 
         /// <remarks>
         /// This is intended for symbols that are ordinary symbols in the language sense, and may be
@@ -148,6 +152,9 @@ namespace Microsoft.CodeAnalysis
         /// <item><description>Methods in anonymous types.</description></item>
         /// </list>
         /// </para>
+        /// <para>
+        /// The class and entry point method for top-level statements are not considered as implicitly declared.
+        /// </para>
         /// </remarks>
         bool IsImplicitlyDeclared { get; }
 
@@ -158,16 +165,26 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the locations where the symbol was originally defined, either in source or
-        /// metadata. Some symbols (for example, partial classes) may be defined in more than one
-        /// location.
+        /// metadata. Some symbols (for example, partial types such as classes, structs, and interfaces) may be defined in more than one
+        /// location. Note that for partial members (such as methods, properties, and events), this property returns
+        /// only one location. To get all locations for a partial member, use the <c>PartialDefinitionPart</c> and
+        /// <c>PartialImplementationPart</c> properties on <see cref="IMethodSymbol"/>, <see cref="IPropertySymbol"/>, or
+        /// <see cref="IEventSymbol"/>.
         /// </summary>
         ImmutableArray<Location> Locations { get; }
 
         /// <summary>
         /// Get the syntax node(s) where this symbol was declared in source. Some symbols (for example,
-        /// partial classes) may be defined in more than one location. This property should return
+        /// partial types such as classes, structs, and interfaces) may be defined in more than one location. This property should return
         /// one or more syntax nodes only if the symbol was declared in source code and also was
         /// not implicitly declared (see the IsImplicitlyDeclared property). 
+        /// 
+        /// <para>
+        /// Note that for partial members (methods, properties, events), this property returns only one
+        /// syntax node. To get all syntax nodes for a partial member, use the <c>PartialDefinitionPart</c> and
+        /// <c>PartialImplementationPart</c> properties on <see cref="IMethodSymbol"/>, <see cref="IPropertySymbol"/>, or
+        /// <see cref="IEventSymbol"/>.
+        /// </para>
         /// 
         /// <para>
         /// Note that for namespace symbol, the declaring syntax might be declaring a nested namespace.
@@ -183,7 +200,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get; }
 
         /// <summary>
-        /// Gets the attributes for the symbol. Returns an empty <see cref="IEnumerable{ISymbolAttribute}"/>
+        /// Gets the attributes for the symbol. Returns an empty <see cref="ImmutableArray{AttributeData}"/>
         /// if there are no attributes.
         /// </summary>
         ImmutableArray<AttributeData> GetAttributes();
@@ -202,7 +219,8 @@ namespace Microsoft.CodeAnalysis
         ISymbol OriginalDefinition { get; }
 
         void Accept(SymbolVisitor visitor);
-        TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
+        TResult? Accept<TResult>(SymbolVisitor<TResult> visitor);
+        TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument);
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't
@@ -217,7 +235,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="expandIncludes">Optionally, expand &lt;include&gt; elements.  No impact on non-source documentation comments.</param>
         /// <param name="cancellationToken">Token allowing cancellation of request.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
-        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
+        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Converts the symbol to a string representation.

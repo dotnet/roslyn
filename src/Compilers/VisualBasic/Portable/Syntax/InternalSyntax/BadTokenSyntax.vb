@@ -22,22 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _subKind = subKind
         End Sub
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            _subKind = CType(reader.ReadUInt16(), SyntaxSubKind)
-        End Sub
-
-        Friend Shared Shadows CreateInstance As Func(Of ObjectReader, Object) = Function(o) New BadTokenSyntax(o)
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteUInt16(CType(_subKind, UShort))
-        End Sub
-
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(BadTokenSyntax), Function(r) New BadTokenSyntax(r))
-        End Sub
-
         Friend ReadOnly Property SubKind As SyntaxSubKind
             Get
                 Return _subKind

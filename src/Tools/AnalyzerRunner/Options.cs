@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -10,7 +12,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace AnalyzerRunner
 {
-    internal sealed class Options
+    public sealed class Options
     {
         public readonly string AnalyzerPath;
         public readonly string SolutionPath;
@@ -20,22 +22,58 @@ namespace AnalyzerRunner
         public readonly bool RunConcurrent;
         public readonly bool ReportSuppressedDiagnostics;
         public readonly bool ApplyChanges;
-        public readonly bool ShowStats;
-        public readonly bool ShowCompilerDiagnostics;
         public readonly bool UseAll;
         public readonly int Iterations;
-        public readonly bool TestDocuments;
-        public readonly Func<string, bool> TestDocumentMatch;
-        public readonly int TestDocumentIterations;
-        public readonly string LogFileName;
-        public readonly string ProfileRoot;
 
         // Options specific to incremental analyzers
-        public readonly bool UsePersistentStorage;
-        public readonly BackgroundAnalysisScope AnalysisScope;
-        public readonly ImmutableList<string> IncrementalAnalyzerNames;
+        public readonly ImmutableArray<string> IncrementalAnalyzerNames;
+        public readonly bool FullSolutionAnalysis;
 
-        private Options(
+        // Options used by AnalyzerRunner CLI only
+        internal readonly bool ShowStats;
+        internal readonly bool ShowCompilerDiagnostics;
+        internal readonly bool TestDocuments;
+        internal readonly Func<string, bool> TestDocumentMatch;
+        internal readonly int TestDocumentIterations;
+        internal readonly string LogFileName;
+        internal readonly string ProfileRoot;
+
+        internal BackgroundAnalysisScope AnalysisScope
+            => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
+
+        public Options(
+            string analyzerPath,
+            string solutionPath,
+            ImmutableHashSet<string> analyzerIds,
+            ImmutableHashSet<string> refactoringNodes,
+            bool runConcurrent,
+            bool reportSuppressedDiagnostics,
+            bool applyChanges,
+            bool useAll,
+            int iterations,
+            bool fullSolutionAnalysis,
+            ImmutableArray<string> incrementalAnalyzerNames)
+            : this(analyzerPath,
+                  solutionPath,
+                  analyzerIds,
+                  refactoringNodes,
+                  runConcurrent,
+                  reportSuppressedDiagnostics,
+                  applyChanges,
+                  showStats: false,
+                  showCompilerDiagnostics: false,
+                  useAll,
+                  iterations,
+                  testDocuments: false,
+                  testDocumentMatch: _ => false,
+                  testDocumentIterations: 0,
+                  logFileName: null,
+                  profileRoot: null,
+                  fullSolutionAnalysis,
+                  incrementalAnalyzerNames)
+        { }
+
+        internal Options(
             string analyzerPath,
             string solutionPath,
             ImmutableHashSet<string> analyzerIds,
@@ -52,9 +90,8 @@ namespace AnalyzerRunner
             int testDocumentIterations,
             string logFileName,
             string profileRoot,
-            bool usePersistentStorage,
-            BackgroundAnalysisScope analysisScope,
-            ImmutableList<string> incrementalAnalyzerNames)
+            bool fullSolutionAnalysis,
+            ImmutableArray<string> incrementalAnalyzerNames)
         {
             AnalyzerPath = analyzerPath;
             SolutionPath = solutionPath;
@@ -72,8 +109,7 @@ namespace AnalyzerRunner
             TestDocumentIterations = testDocumentIterations;
             LogFileName = logFileName;
             ProfileRoot = profileRoot;
-            UsePersistentStorage = usePersistentStorage;
-            AnalysisScope = analysisScope;
+            FullSolutionAnalysis = fullSolutionAnalysis;
             IncrementalAnalyzerNames = incrementalAnalyzerNames;
         }
 
@@ -95,9 +131,8 @@ namespace AnalyzerRunner
             int testDocumentIterations = 10;
             string logFileName = null;
             string profileRoot = null;
-            var usePersistentStorage = false;
-            var analysisScope = BackgroundAnalysisScope.Default;
-            var incrementalAnalyzerNames = ImmutableList.CreateBuilder<string>();
+            var fullSolutionAnalysis = false;
+            var incrementalAnalyzerNames = ImmutableArray.CreateBuilder<string>();
 
             int i = 0;
             while (i < args.Length)
@@ -151,11 +186,8 @@ namespace AnalyzerRunner
                     case "/profileroot":
                         profileRoot = ReadValue();
                         break;
-                    case "/persist":
-                        usePersistentStorage = true;
-                        break;
                     case "/fsa":
-                        analysisScope = BackgroundAnalysisScope.FullSolution;
+                        fullSolutionAnalysis = true;
                         break;
                     case "/ia":
                         incrementalAnalyzerNames.Add(ReadValue());
@@ -171,10 +203,11 @@ namespace AnalyzerRunner
                         }
                         else
                         {
-                            throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal) ?
-                             "Unrecognized option " + arg :
-                             "Unrecognized parameter " + arg));
+                            throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal)
+                             ? "Unrecognized option " + arg
+                             : "Unrecognized parameter " + arg));
                         }
+
                         break;
                 }
             }
@@ -206,8 +239,7 @@ namespace AnalyzerRunner
                 testDocumentIterations: testDocumentIterations,
                 logFileName: logFileName,
                 profileRoot: profileRoot,
-                usePersistentStorage: usePersistentStorage,
-                analysisScope: analysisScope,
+                fullSolutionAnalysis: fullSolutionAnalysis,
                 incrementalAnalyzerNames: incrementalAnalyzerNames.ToImmutable());
         }
     }

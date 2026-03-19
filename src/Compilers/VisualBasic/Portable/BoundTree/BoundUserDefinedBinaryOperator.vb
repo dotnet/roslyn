@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundUserDefinedBinaryOperator
+    Partial Friend Class BoundUserDefinedBinaryOperator
 
         Public ReadOnly Property Left As BoundExpression
             Get
@@ -33,6 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Type.Equals(UnderlyingExpression.Type))
             Debug.Assert((OperatorKind And BinaryOperatorKind.UserDefined) <> 0)
             Debug.Assert(UnderlyingExpression.Kind = BoundKind.BadExpression OrElse UnderlyingExpression.Kind = BoundKind.Call)
+            Debug.Assert((OperatorKind And BinaryOperatorKind.OpMask) <> BinaryOperatorKind.AndAlso)
+            Debug.Assert((OperatorKind And BinaryOperatorKind.OpMask) <> BinaryOperatorKind.OrElse)
 
             If UnderlyingExpression.Kind = BoundKind.Call Then
                 Dim underlyingCall = DirectCast(UnderlyingExpression, BoundCall)

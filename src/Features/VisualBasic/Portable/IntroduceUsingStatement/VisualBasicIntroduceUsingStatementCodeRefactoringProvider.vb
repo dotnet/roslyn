@@ -3,47 +3,79 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.IntroduceUsingStatement
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
-
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), [Shared]>
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
-        Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax)
+        Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of
+            StatementSyntax,
+            ExpressionStatementSyntax,
+            LocalDeclarationStatementSyntax,
+            TryBlockSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
         Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Introduce_Using_statement
+
+        Protected Overrides Function PreferSimpleUsingStatement(options As AnalyzerOptionsProvider) As Boolean
+            ' VB does not have simple using statements.
+            Return False
+        End Function
+
+        Protected Overrides Function HasCatchBlocks(tryStatement As TryBlockSyntax) As Boolean
+            Return tryStatement.CatchBlocks.Count > 0
+        End Function
+
+        Protected Overrides Function GetTryFinallyStatements(tryStatement As TryBlockSyntax) As (SyntaxList(Of StatementSyntax), SyntaxList(Of StatementSyntax))
+            Return (tryStatement.Statements, If(tryStatement.FinallyBlock IsNot Nothing, tryStatement.FinallyBlock.Statements, Nothing))
+        End Function
 
         Protected Overrides Function CanRefactorToContainBlockStatements(parent As SyntaxNode) As Boolean
             ' We don’t care enough about declarations in single-line If, Else, lambdas, etc, to support them.
             Return parent.IsMultiLineExecutableBlock()
         End Function
 
-        Protected Overrides Function GetStatements(parentOfStatementsToSurround As SyntaxNode) As SyntaxList(Of StatementSyntax)
-            Return parentOfStatementsToSurround.GetExecutableBlockStatements()
+        Protected Overrides Function GetSurroundingStatements(declarationStatement As StatementSyntax) As SyntaxList(Of StatementSyntax)
+            Return declarationStatement.GetRequiredParent().GetExecutableBlockStatements()
         End Function
 
         Protected Overrides Function WithStatements(parentOfStatementsToSurround As SyntaxNode, statements As SyntaxList(Of StatementSyntax)) As SyntaxNode
             Return parentOfStatementsToSurround.ReplaceStatements(statements)
         End Function
 
-        Protected Overrides Function CreateUsingStatement(declarationStatement As LocalDeclarationStatementSyntax, sameLineTrivia As SyntaxTriviaList, statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
-            Dim usingStatement =
-                SyntaxFactory.UsingStatement(
-                    expression:=Nothing,
-                    variables:=declarationStatement.Declarators)
-
-            If sameLineTrivia.Any Then
-                usingStatement = usingStatement.WithTrailingTrivia(sameLineTrivia)
-            End If
-
+        Protected Overrides Function CreateUsingStatement(
+                declarationStatement As LocalDeclarationStatementSyntax,
+                statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
+            Dim usingStatement = SyntaxFactory.UsingStatement(
+                expression:=Nothing,
+                variables:=declarationStatement.Declarators).WithTriviaFrom(declarationStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
+        End Function
+
+        Protected Overrides Function CreateUsingBlockStatement(
+                expressionStatement As ExpressionStatementSyntax,
+                statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
+            Dim usingStatement = SyntaxFactory.UsingStatement(
+                expression:=expressionStatement.Expression.WithoutTrivia(),
+                variables:=Nothing).WithTriviaFrom(expressionStatement)
+            Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
+        End Function
+
+        Protected Overrides Function CreateUsingLocalDeclarationStatement(expressionStatement As ExpressionStatementSyntax, newVariableName As SyntaxToken) As StatementSyntax
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
+        Protected Overrides Function TryCreateUsingLocalDeclaration(options As ParseOptions, declarationStatement As LocalDeclarationStatementSyntax, ByRef usingDeclarationStatement As LocalDeclarationStatementSyntax) As Boolean
+            Return False
         End Function
     End Class
 End Namespace

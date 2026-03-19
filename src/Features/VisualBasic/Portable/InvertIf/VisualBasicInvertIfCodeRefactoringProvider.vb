@@ -7,7 +7,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     Friend MustInherit Class VisualBasicInvertIfCodeRefactoringProvider(Of TIfStatementSyntax As ExecutableStatementSyntax)
-        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax, StatementSyntax, SyntaxList(Of StatementSyntax))
+        Inherits AbstractInvertIfCodeRefactoringProvider(Of
+            SyntaxKind,
+            StatementSyntax,
+            TIfStatementSyntax,
+            SyntaxList(Of StatementSyntax),
+            DirectiveTriviaSyntax,
+            IfDirectiveTriviaSyntax)
 
         Protected NotOverridable Overrides Function GetTitle() As String
             Return VBFeaturesResources.Invert_If
@@ -27,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                    TypeOf node IsNot WhileBlockSyntax
         End Function
 
-        Protected NotOverridable Overrides Function GetJumpStatementRawKind(node As SyntaxNode) As Integer
+        Protected NotOverridable Overrides Function GetJumpStatementKind(node As SyntaxNode) As SyntaxKind?
             If TypeOf node Is MethodBlockBaseSyntax OrElse
                TypeOf node Is LambdaExpressionSyntax Then
                 Return SyntaxKind.ReturnStatement
@@ -49,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 Return SyntaxKind.ContinueWhileStatement
             End If
 
-            Return -1
+            Return Nothing
         End Function
 
         Protected NotOverridable Overrides Function IsStatementContainer(node As SyntaxNode) As Boolean
@@ -71,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return Nothing
         End Function
 
-        Protected NotOverridable Overrides Function GetJumpStatement(rawKind As Integer) As StatementSyntax
-            Select Case rawKind
+        Protected NotOverridable Overrides Function GetJumpStatement(kind As SyntaxKind) As StatementSyntax
+            Select Case kind
                 Case SyntaxKind.ReturnStatement
                     Return SyntaxFactory.ReturnStatement
                 Case SyntaxKind.ExitSelectStatement
@@ -84,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 Case SyntaxKind.ContinueWhileStatement
                     Return SyntaxFactory.ContinueWhileStatement
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(rawKind)
+                    Throw ExceptionUtilities.UnexpectedValue(kind)
             End Select
         End Function
 
@@ -105,7 +111,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         End Function
 
         Protected NotOverridable Overrides Function AsEmbeddedStatement(statements As IEnumerable(Of StatementSyntax), original As SyntaxList(Of StatementSyntax)) As SyntaxList(Of StatementSyntax)
-            Return SyntaxFactory.List(statements)
+            Dim newStatements = statements.ToArray()
+            If newStatements.Length > 0 Then
+                newStatements(0) = newStatements(0).GetNodeWithoutLeadingBlankLines()
+            End If
+            Return SyntaxFactory.List(newStatements)
         End Function
 
         Protected NotOverridable Overrides Function WithStatements(node As SyntaxNode, statements As IEnumerable(Of StatementSyntax)) As SyntaxNode
@@ -114,6 +124,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
         Protected NotOverridable Overrides Function IsSingleStatementStatementRange(statementRange As StatementRange) As Boolean
             Return Not statementRange.IsEmpty AndAlso statementRange.FirstStatement Is statementRange.LastStatement
+        End Function
+
+        Protected Overrides Function GetCondition(ifNode As IfDirectiveTriviaSyntax) As SyntaxNode
+            Return ifNode.Condition
         End Function
     End Class
 End Namespace

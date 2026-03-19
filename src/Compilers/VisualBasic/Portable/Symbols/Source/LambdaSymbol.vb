@@ -208,6 +208,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return 0
+        End Function
+
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
                 Return False
@@ -240,6 +244,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides ReadOnly Property IsVararg As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
             Get
                 Return False
             End Get
@@ -366,6 +376,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return hc
         End Function
 
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
 

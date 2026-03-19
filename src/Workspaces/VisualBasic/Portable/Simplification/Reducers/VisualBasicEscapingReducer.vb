@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -19,7 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared Function TryUnescapeToken(identifier As SyntaxToken, semanticModel As SemanticModel, optionSet As OptionSet, cancellationToken As CancellationToken) As SyntaxToken
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
+
+#Disable Warning IDE0060 ' Remove unused parameter - False positive, used as a delegate in a nested type.
+        ' https://github.com/dotnet/roslyn/issues/44226
+        Private Shared Function TryUnescapeToken(identifier As SyntaxToken, semanticModel As SemanticModel, options As VisualBasicSimplifierOptions, cancellationToken As CancellationToken) As SyntaxToken
+#Enable Warning IDE0060 ' Remove unused parameter
             If Not identifier.IsBracketed Then
                 Return identifier
             End If
@@ -43,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 ' Always escape keywords as identifier if they are not part of a qualified name or member access
                 ' e.g. Class [Class]
-                If Not TypeOf (parent) Is ExpressionSyntax Then
+                If TypeOf (parent) IsNot ExpressionSyntax Then
                     Return identifier
                 Else
                     ' always escape keywords on the left side of a dot
@@ -117,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' escape contextual query keywords if they are the first token after a query expression 
             ' and on the following line
             Dim previousToken = identifier.GetPreviousToken(False, False, True, True)
-            Dim queryAncestorOfPrevious = previousToken.GetAncestors(Of QueryExpressionSyntax).FirstOrDefault()
+            Dim queryAncestorOfPrevious = previousToken.GetAncestor(Of QueryExpressionSyntax)
             If queryAncestorOfPrevious IsNot Nothing AndAlso queryAncestorOfPrevious.GetLastToken() = previousToken Then
                 lastTokenOfQuery = previousToken
 
@@ -156,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     ' if this token is part of a XmlDocument, all trailing whitespace is part of the XmlDocument
                     ' so all line breaks actually will not help.
                     ' see VB spec #11.23.3
-                    If previousToken.GetAncestors(Of XmlDocumentSyntax).FirstOrDefault() IsNot Nothing Then
+                    If previousToken.GetAncestor(Of XmlDocumentSyntax) IsNot Nothing Then
                         Return identifier
                     End If
 

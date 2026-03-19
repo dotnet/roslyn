@@ -5,7 +5,7 @@
 Imports System.IO
 Imports System.Text
 
-Friend Module Program
+Public Module Program
     Public Function Main(args As String()) As Integer
         If args.Length <> 2 Then
             Console.WriteLine(
@@ -18,13 +18,22 @@ Friend Module Program
         Dim inputPath = args(0)
         Dim outputPath = args(1)
 
+        Return Generate(inputPath, outputPath)
+    End Function
+
+    Public Function Generate(inputPath As String, outputPath As String) As Integer
         Dim outputText = New StringBuilder
         outputText.AppendLine("Namespace Microsoft.CodeAnalysis.VisualBasic")
         outputText.AppendLine("    Friend Partial Module ErrorFacts")
 
-        Dim warningCodeNames, fatalCodeNames, infoCodeNames, hiddenCodeNames As New List(Of String)
+        Dim warningCodeNames As New List(Of String)
+        Dim fatalCodeNames As New List(Of String)
+        Dim infoCodeNames As New List(Of String)
+        Dim hiddenCodeNames As New List(Of String)
         For Each line In From l In File.ReadAllLines(inputPath) Select l.Trim
-            If line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase) Then
+            If (line.Contains("_NextAvailable", StringComparison.OrdinalIgnoreCase)) Then
+                Continue For
+            ElseIf line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase) Then
                 warningCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))
             ElseIf line.StartsWith("FTL_", StringComparison.OrdinalIgnoreCase) Then
                 fatalCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))

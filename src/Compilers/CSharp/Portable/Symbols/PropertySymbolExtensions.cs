@@ -10,16 +10,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class PropertySymbolExtensions
     {
+        public static bool IsParams(this PropertySymbol property)
+        {
+            return property.ParameterCount != 0 && property.Parameters[property.ParameterCount - 1].IsParams;
+        }
+
         /// <summary>
         /// If the property has a GetMethod, return that.  Otherwise check the overridden
         /// property, if any.  Repeat for each overridden property.
         /// </summary>
-        public static MethodSymbol GetOwnOrInheritedGetMethod(this PropertySymbol property)
+        public static MethodSymbol? GetOwnOrInheritedGetMethod(this PropertySymbol? property)
         {
-            while ((object)property != null)
+            while ((object?)property != null)
             {
                 MethodSymbol getMethod = property.GetMethod;
-                if ((object)getMethod != null)
+                if ((object?)getMethod != null)
                 {
                     return getMethod;
                 }
@@ -34,12 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the property has a SetMethod, return that.  Otherwise check the overridden
         /// property, if any.  Repeat for each overridden property.
         /// </summary>
-        public static MethodSymbol GetOwnOrInheritedSetMethod(this PropertySymbol property)
+        public static MethodSymbol? GetOwnOrInheritedSetMethod(this PropertySymbol? property)
         {
-            while ((object)property != null)
+            while ((object?)property != null)
             {
                 MethodSymbol setMethod = property.SetMethod;
-                if ((object)setMethod != null)
+                if ((object?)setMethod != null)
                 {
                     return setMethod;
                 }

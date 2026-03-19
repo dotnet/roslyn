@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+#nullable disable
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+
+internal abstract class Snapshot
 {
-    internal abstract class Snapshot
-    {
-        public abstract int Count { get; }
-        public abstract EnvDTE.CodeElement this[int index] { get; }
-    }
+    public abstract int Count { get; }
+    public abstract EnvDTE.CodeElement this[int index] { get; }
 }

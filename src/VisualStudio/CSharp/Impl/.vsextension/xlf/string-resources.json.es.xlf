@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="es" original="../string-resources.json">
+    <body>
+      <trans-unit id="CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName">
+        <source>C# Interactive</source>
+        <target state="translated">C# interactivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharpLanguageServiceExtension.OpenSemanticSearchWindow.DisplayName">
+        <source>C# Semantic Search</source>
+        <target state="translated">Búsqueda semántica de C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharpLanguageServiceExtension.ResetInteractiveWindowFromProject.DisplayName">
+        <source>Initialize Interactive with Project</source>
+        <target state="translated">Inicializar el elemento interactivo con el proyecto</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

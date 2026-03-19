@@ -5,16 +5,15 @@
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList;
 
-namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
+namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
+
+internal abstract class AbstractCSharpSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>
+    : AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>
+    where TListSyntax : SyntaxNode
+    where TListItemSyntax : SyntaxNode
 {
-    internal abstract class AbstractCSharpSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>
-        : AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>
-        where TListSyntax : SyntaxNode
-        where TListItemSyntax : SyntaxNode
+    protected AbstractCSharpSeparatedSyntaxListWrapper()
+        : base(CSharpIndentationService.Instance)
     {
-        protected AbstractCSharpSeparatedSyntaxListWrapper()
-            : base(CSharpIndentationService.Instance)
-        {
-        }
     }
 }

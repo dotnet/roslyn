@@ -4,27 +4,28 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
-#Else
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-#End If
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicOrderModifiersCodeFixProvider
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.OrderModifiers), [Shared]>
+    Friend NotInheritable Class VisualBasicOrderModifiersCodeFixProvider
         Inherits AbstractOrderModifiersCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFacts.Instance,
-                       VisualBasicCodeStyleOptions.PreferredModifierOrder,
                        VisualBasicOrderModifiersHelper.Instance)
         End Sub
+
+        Protected Overrides Function GetCodeStyleOption(options As AnalyzerOptionsProvider) As CodeStyleOption2(Of String)
+            Return CType(options, VisualBasicAnalyzerOptionsProvider).PreferredModifierOrder
+        End Function
 
         Protected Overrides ReadOnly Property FixableCompilerErrorIds As ImmutableArray(Of String) =
             ImmutableArray(Of String).Empty

@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -16,9 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
-        private readonly bool _isCheckedBuiltin;
 
-        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
+        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType)
         {
             if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
@@ -40,33 +42,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((leftType.IsDynamic() || rightType.IsDynamic()) == returnType.IsDynamic());
             Debug.Assert(_containingType.IsDynamic() == returnType.IsDynamic());
 
-            _parameters = (new ParameterSymbol[] {new SynthesizedOperatorParameterSymbol(this, leftType, 0, "left"),
-                                                      new SynthesizedOperatorParameterSymbol(this, rightType, 1, "right")}).AsImmutableOrNull();
-            _isCheckedBuiltin = isCheckedBuiltin;
+            _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, leftType, 0, "left"),
+                                                      new SynthesizedOperatorParameterSymbol(this, rightType, 1, "right"));
         }
 
-        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType, bool isCheckedBuiltin)
+        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType)
         {
             _containingType = container;
             _name = name;
             _returnType = returnType;
-            _parameters = (new ParameterSymbol[] { new SynthesizedOperatorParameterSymbol(this, container, 0, "value") }).AsImmutableOrNull();
-            _isCheckedBuiltin = isCheckedBuiltin;
+            _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, container, 0, "value"));
         }
+
+        public override bool IsCheckedBuiltin => SyntaxFacts.IsCheckedOperator(this.Name);
 
         public override string Name
         {
             get
             {
                 return _name;
-            }
-        }
-
-        public override bool IsCheckedBuiltin
-        {
-            get
-            {
-                return _isCheckedBuiltin;
             }
         }
 
@@ -104,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -164,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
@@ -242,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
+
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
@@ -276,6 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // operators are never 'readonly' because there is no 'this' parameter
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -410,10 +408,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
@@ -429,8 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (_isCheckedBuiltin == other._isCheckedBuiltin &&
-                _parameters.Length == other._parameters.Length &&
+            if (_parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
                 TypeSymbol.Equals(_containingType, other._containingType, compareKind) &&
                 TypeSymbol.Equals(_returnType, other._returnType, compareKind))
@@ -461,9 +472,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, name)
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, ScopedKind.None, name)
             {
             }
+
+            internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
+
+            internal override bool IsMetadataOut => RefKind == RefKind.Out;
+
+#nullable enable
+            internal override ConstantValue? DefaultValueFromAttributes => null;
+#nullable disable
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
@@ -492,10 +511,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
+            internal override bool HasEnumeratorCancellationAttribute => false;
+
             internal override MarshalPseudoCustomAttributeData MarshallingInformation
             {
                 get { return null; }
             }
+
+            internal override bool HasUnscopedRefAttribute => false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            return 0;
         }
     }
 }

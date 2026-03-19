@@ -8,6 +8,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -15,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     <ExportLanguageService(GetType(ISimplificationService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicSimplificationService
-        Inherits AbstractSimplificationService(Of ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
+        Inherits AbstractSimplificationService(Of CompilationUnitSyntax, ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
 
         Private Shared ReadOnly s_reducers As ImmutableArray(Of AbstractReducer) =
             ImmutableArray.Create(Of AbstractReducer)(
@@ -31,9 +33,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 New VisualBasicInferredMemberNameReducer())
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(s_reducers)
         End Sub
+
+        Public Overrides ReadOnly Property DefaultOptions As SimplifierOptions
+            Get
+                Return VisualBasicSimplifierOptions.Default
+            End Get
+        End Property
+
+        Public Overrides Function GetSimplifierOptions(options As IOptionsReader) As SimplifierOptions
+            Return New VisualBasicSimplifierOptions(options)
+        End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken)
@@ -139,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans)
         End Function
 
-        Protected Overrides Function CanNodeBeSimplifiedWithoutSpeculation(node As SyntaxNode) As Boolean
+        Protected Overrides Function NodeRequiresNonSpeculativeSemanticModel(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso node.Parent IsNot Nothing AndAlso
                 TypeOf node Is VariableDeclaratorSyntax AndAlso
                 TypeOf node.Parent Is FieldDeclarationSyntax
@@ -149,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Const s_BC50001_UnusedImportsStatement As String = "BC50001"
 
         Protected Overrides Sub GetUnusedNamespaceImports(model As SemanticModel, namespaceImports As HashSet(Of SyntaxNode), cancellationToken As CancellationToken)
-            Dim root = model.SyntaxTree.GetRoot()
+            Dim root = model.SyntaxTree.GetRoot(cancellationToken)
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
             For Each diagnostic In diagnostics
@@ -164,5 +177,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Next
         End Sub
 
+        Protected Overrides Sub AddImportDeclarations(root As CompilationUnitSyntax, importDeclarations As ArrayBuilder(Of SyntaxNode))
+            importDeclarations.AddRange(root.Imports)
+        End Sub
     End Class
 End Namespace

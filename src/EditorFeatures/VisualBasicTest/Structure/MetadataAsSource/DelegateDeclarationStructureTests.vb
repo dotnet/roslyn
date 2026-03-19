@@ -4,10 +4,10 @@
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
-Imports Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
     Public Class DelegateDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of DelegateStatementSyntax)
 
@@ -18,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Property
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New MetadataDelegateDeclarationStructureProvider()
+            Return New DelegateDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Delegate Sub $$Bar()
@@ -32,7 +32,7 @@ Delegate Sub $$Bar()
 
         Public Delegate Sub Bar(x As Int16)
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithAttributes() As Task
             Dim code = "
 {|hint:{|textspan:<Goo>
@@ -43,7 +43,7 @@ Delegate Sub $$Bar()
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 {|hint:{|textspan:' Summary:
@@ -56,7 +56,7 @@ Delegate Sub $$Bar()
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
 {|hint:{|textspan:' Summary:

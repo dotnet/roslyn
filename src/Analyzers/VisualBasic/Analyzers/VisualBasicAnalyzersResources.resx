@@ -120,4 +120,27 @@
   <data name="Imports_statement_is_unnecessary" xml:space="preserve">
     <value>Imports statement is unnecessary.</value>
   </data>
+  <data name="Use_Is_Nothing_check" xml:space="preserve">
+    <value>Use 'Is Nothing' check</value>
+  </data>
+  <data name="Use_IsNot_Nothing_check" xml:space="preserve">
+    <value>Use 'IsNot Nothing' check</value>
+  </data>
+  <data name="If_statement_can_be_simplified" xml:space="preserve">
+    <value>'If' statement can be simplified</value>
+  </data>
+  <data name="Remove_ByVal" xml:space="preserve">
+    <value>'ByVal' keyword is unnecessary and can be removed.</value>
+    <comment>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</comment>
+  </data>
+  <data name="GetType_can_be_converted_to_NameOf" xml:space="preserve">
+    <value>'GetType' can be converted to 'NameOf'</value>
+  </data>
+  <data name="Use_IsNot_expression" xml:space="preserve">
+    <value>Use 'IsNot' expression</value>
+    <comment>{locked: IsNot}This is a Visual Basic keyword and should not be localized or have its casing changed</comment>
+  </data>
+  <data name="Object_creation_can_be_simplified" xml:space="preserve">
+    <value>Object creation can be simplified</value>
+  </data>
 </root>

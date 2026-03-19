@@ -6,13 +6,17 @@ Param(
   [string] $msbuildEngine = $null,
   [switch] $restore,
   [switch] $prepareMachine,
+  [switch][Alias('nobl')]$excludeCIBinaryLog,
+  [switch]$noWarnAsError,
   [switch] $help,
+  [string] $runtimeSourceFeed = '',
+  [string] $runtimeSourceFeedKey = '',
   [Parameter(ValueFromRemainingArguments=$true)][String[]]$properties
 )
 
 $ci = $true
-$binaryLog = $true
-$warnAsError = $true
+$binaryLog = if ($excludeCIBinaryLog) { $false } else { $true }
+$warnAsError = if ($noWarnAsError) { $false } else { $true }
 
 . $PSScriptRoot\tools.ps1
 
@@ -27,6 +31,7 @@ function Print-Usage() {
   Write-Host "Advanced settings:"
   Write-Host "  -prepareMachine         Prepare machine for CI run"
   Write-Host "  -msbuildEngine <value>  Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
+  Write-Host "  -excludeCIBinaryLog     When running on CI, allow no binary log (short: -nobl)"
   Write-Host ""
   Write-Host "Command line arguments not listed above are passed thru to msbuild."
 }
@@ -34,14 +39,16 @@ function Print-Usage() {
 function Build([string]$target) {
   $logSuffix = if ($target -eq 'Execute') { '' } else { ".$target" }
   $log = Join-Path $LogDir "$task$logSuffix.binlog"
-  $outputPath = Join-Path $ToolsetDir "$task\\"
+  $binaryLogArg = if ($binaryLog) { "/bl:$log" } else { "" }
+  $outputPath = Join-Path $ToolsetDir "$task\"
 
   MSBuild $taskProject `
-    /bl:$log `
+    $binaryLogArg `
     /t:$target `
     /p:Configuration=$configuration `
     /p:RepoRoot=$RepoRoot `
     /p:BaseIntermediateOutputPath=$outputPath `
+    /v:$verbosity `
     @properties
 }
 
@@ -52,14 +59,32 @@ try {
   }
 
   if ($task -eq "") {
-    Write-PipelineTelemetryError -Category 'Build' -Message "Missing required parameter '-task <value>'" -ForegroundColor Red
+    Write-PipelineTelemetryError -Category 'Build' -Message "Missing required parameter '-task <value>'"
     Print-Usage
     ExitWithExitCode 1
   }
 
+  if( $msbuildEngine -eq "vs") {
+    # Ensure desktop MSBuild is available for sdk tasks.
+    if( -not ($GlobalJson.tools.PSObject.Properties.Name -contains "vs" )) {
+      $GlobalJson.tools | Add-Member -Name "vs" -Value (ConvertFrom-Json "{ `"version`": `"16.5`" }") -MemberType NoteProperty
+    }
+    if( -not ($GlobalJson.tools.PSObject.Properties.Name -match "xcopy-msbuild" )) {
+      $GlobalJson.tools | Add-Member -Name "xcopy-msbuild" -Value "18.0.0" -MemberType NoteProperty
+    }
+    if ($GlobalJson.tools."xcopy-msbuild".Trim() -ine "none") {
+        $xcopyMSBuildToolsFolder = InitializeXCopyMSBuild $GlobalJson.tools."xcopy-msbuild" -install $true
+    }
+    if ($xcopyMSBuildToolsFolder -eq $null) {
+      throw 'Unable to get xcopy downloadable version of msbuild'
+    }
+
+    $global:_MSBuildExe = "$($xcopyMSBuildToolsFolder)\MSBuild\Current\Bin\MSBuild.exe"
+  }
+
   $taskProject = GetSdkTaskProject $task
   if (!(Test-Path $taskProject)) {
-    Write-PipelineTelemetryError -Category 'Build' -Message "Unknown task: $task" -ForegroundColor Red
+    Write-PipelineTelemetryError -Category 'Build' -Message "Unknown task: $task"
     ExitWithExitCode 1
   }
 

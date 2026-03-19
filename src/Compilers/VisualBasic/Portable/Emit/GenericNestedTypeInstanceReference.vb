@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As Cci.ITypeReference Implements Cci.ITypeMemberReference.GetContainingType
-            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(m_UnderlyingNamedType.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(m_UnderlyingNamedType.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Public Overrides ReadOnly Property AsGenericTypeInstanceReference As Cci.IGenericTypeInstanceReference
@@ -44,6 +44,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Overrides ReadOnly Property AsSpecializedNestedTypeReference As Cci.ISpecializedNestedTypeReference
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property INestedTypeReferenceInheritsEnclosingTypeTypeParameters As Boolean Implements Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters
+            Get
+                Return True
             End Get
         End Property
     End Class

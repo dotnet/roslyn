@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
+#nullable disable
+
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
     internal static class ScriptStateTaskExtensions
     {
-        internal async static Task<T> CastAsync<S, T>(this Task<S> task) where S : T
+        internal static async Task<T> CastAsync<S, T>(this Task<S> task) where S : T
         {
             return await task.ConfigureAwait(true);
         }
 
-        internal async static Task<T> GetEvaluationResultAsync<T>(this Task<ScriptState<T>> task)
+        internal static async Task<T> GetEvaluationResultAsync<T>(this Task<ScriptState<T>> task)
         {
             return (await task.ConfigureAwait(true)).ReturnValue;
         }

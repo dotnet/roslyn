@@ -15,70 +15,110 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
         Inherits AbstractCompletionProviderTests(Of VisualBasicTestWorkspaceFixture)
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
+        Protected Overrides Function CreateWorkspace(fileContents As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(fileContents, composition:=GetComposition())
         End Function
 
-        Friend Overrides Function GetCompletionService(project As Project) As CompletionServiceWithProviders
+        Friend Overrides Function GetCompletionService(project As Project) As CompletionService
             Return Assert.IsType(Of VisualBasicCompletionService)(MyBase.GetCompletionService(project))
         End Function
 
         Private Protected Overrides Function BaseVerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
-                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
-                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
-                matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?) As Task
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, deletedCharTrigger As Char?,
+                checkForAbsence As Boolean, glyph As Glyph?, matchPriority As Integer?,
+                hasSuggestionItem As Boolean?, displayTextSuffix As String, displayTextPrefix As String, inlineDescription As String,
+                isComplexTextEdit As Boolean?, matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
-                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags)
+                sourceCodeKind, usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence,
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
+        End Function
+
+        Private Protected Overrides Function BaseVerifyWorkerAsync(
+            code As String, position As Integer, usePreviousCharAsTrigger As Boolean, deletedCharTrigger As Char?,
+            hasSuggestionItem As Boolean?, sourceCodeKind As SourceCodeKind, expectedResults() As ItemExpectation,
+            matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
+            Return MyBase.VerifyWorkerAsync(
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind,
+                expectedResults, matchingFilters, flags, options, skipSpeculation)
         End Function
 
         Private Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
-                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
-                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
-                matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?) As Task
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, deletedCharTrigger As Char?,
+                checkForAbsence As Boolean, glyph As Glyph?, matchPriority As Integer?,
+                hasSuggestionItem As Boolean?, displayTextSuffix As String, displayTextPrefix As String, inlineDescription As String,
+                isComplexTextEdit As Boolean?, matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
-            If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
+            If sourceCodeKind <> SourceCodeKind.Regular Then
                 Return
             End If
 
             Await VerifyAtPositionAsync(
-                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags)
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
 
             Await VerifyAtEndOfFileAsync(
-                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags)
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags, options)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
             If Not checkForAbsence AndAlso expectedItemOrNull <> Nothing Then
                 Await VerifyAtPosition_ItemPartiallyWrittenAsync(
-                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
-                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters)
+                    code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem,
+                    displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags:=Nothing, options, skipSpeculation:=skipSpeculation)
 
                 Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
-                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
-                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters)
+                    code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem,
+                    displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags:=Nothing, options)
             End If
         End Function
 
+        Private Protected Overrides Async Function VerifyWorkerAsync(
+            code As String, position As Integer, usePreviousCharAsTrigger As Boolean, deletedCharTrigger As Char?,
+            hasSuggestionModeItem As Boolean?, sourceCodeKind As SourceCodeKind,
+            expectedResults() As ItemExpectation, matchingFilters As List(Of CompletionFilter),
+            flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
+
+            ' Script/interactive support removed for now.
+            ' TODO: Re-enable these when interactive is back in the product.
+            If sourceCodeKind <> SourceCodeKind.Regular Then
+                Return
+            End If
+
+            Await VerifyAtPositionAsync(
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionModeItem, sourceCodeKind,
+                expectedResults, matchingFilters, flags, options, skipSpeculation)
+
+            Await VerifyAtEndOfFileAsync(
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionModeItem, sourceCodeKind,
+                expectedResults, matchingFilters, flags, options)
+
+            ' Items cannot be partially written if we're checking for their absence,
+            ' or if we're verifying that the list will show up (without specifying an actual item)
+            For Each item In expectedResults
+                If Not item.IsAbsent AndAlso item.Name IsNot Nothing Then
+                    Await VerifyAtPosition_ItemPartiallyWrittenAsync(
+                        code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionModeItem, sourceCodeKind,
+                        expectedResults, item.Name, matchingFilters, flags:=Nothing, options, skipSpeculation)
+
+                    Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+                        code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionModeItem, sourceCodeKind,
+                        expectedResults, item.Name, matchingFilters, flags:=Nothing, options)
+                End If
+            Next
+
+        End Function
         Protected Overrides Async Function VerifyCustomCommitProviderWorkerAsync(codeBeforeCommit As String, position As Integer, itemToCommit As String, expectedCodeAfterCommit As String, sourceCodeKind As SourceCodeKind, Optional commitChar As Char? = Nothing) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
@@ -93,10 +133,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             If expectedItemOrNull(0) = "[" Then
                 Return expectedItemOrNull.Substring(1, 1)
             End If
+
             Return expectedItemOrNull.Substring(0, 1)
         End Function
 
-        Protected Function AddInsideMethod(text As String) As String
+        Protected Shared Function AddInsideMethod(text As String) As String
             Return "Class C" & vbCrLf &
                    "    Function F()" & vbCrLf &
                    "        " & text & vbCrLf &
@@ -104,17 +145,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                    "End Class"
         End Function
 
-        Protected Function CreateContent(ParamArray contents As String()) As String
+        Protected Shared Function CreateContent(ParamArray contents As String()) As String
             Return String.Join(vbCrLf, contents)
         End Function
 
-        Protected Function AddImportsStatement(importsStatement As String, text As String) As String
+        Protected Shared Function AddImportsStatement(importsStatement As String, text As String) As String
             Return importsStatement & vbCrLf & vbCrLf & text
         End Function
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
                 initialMarkup As String, textTypedSoFar As String, expected As Boolean, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, exportProvider:=ExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, composition:=GetComposition())
                 Dim hostDocument = workspace.DocumentWithCursor
                 workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind)
                 Dim documentId = workspace.GetDocumentId(hostDocument)
@@ -123,9 +164,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
                 Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)
-                Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
+                Dim item = completionList.ItemsList.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
-                Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar))
+                Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, textTypedSoFar))
             End Using
         End Function
 

@@ -782,7 +782,6 @@ End Structure
     ]]>)
         End Sub
 
-
         <Fact()>
         Public Sub SimpleRaiseHandlerWithImplementedEvent()
             CompileAndVerify(
@@ -1480,7 +1479,6 @@ End Module]]>,
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"))
         End Sub
-
 
         <Fact()>
         Public Sub WithEventsProperty()

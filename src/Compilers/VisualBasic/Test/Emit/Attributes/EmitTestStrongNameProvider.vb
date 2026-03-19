@@ -3,15 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
-Imports System.Reflection.Metadata
-Imports System.Security.Cryptography
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.SigningTestHelpers
 
 Partial Public Class InternalsVisibleToAndStrongNameTests
     Inherits BasicTestBase
@@ -20,7 +16,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     Public Sub BadInputStream()
         SigningTestHelpers.InstallKey()
         Dim thrownException = New IOException("This is a test IOException")
-        Dim testFileSystem = New TestStrongNameFileSystem() With {
+        Dim testFileSystem = New TestStrongNameFileSystem(Temp.CreateDirectory().Path) With {
             .CreateFileStreamFunc = Function(filePath As String, fileMode As FileMode, fileAccess As FileAccess, fileShare As FileShare) As FileStream
                                         Throw thrownException
                                     End Function

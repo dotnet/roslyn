@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -12,11 +14,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
-using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -36,15 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                   emitOptions,
                   outputKind: OutputKind.DynamicallyLinkedLibrary,
                   serializationProperties: serializationProperties,
-                  manifestResources: SpecializedCollections.EmptyEnumerable<ResourceDescription>(),
+                  manifestResources: [],
                   additionalTypes: additionalTypes)
         {
             _getDynamicOperationContextType = getDynamicOperationContextType;
 
             if (testData != null)
             {
-                this.SetMethodTestData(testData.Methods);
-                testData.Module = this;
+                SetTestData(testData);
             }
         }
 
@@ -67,18 +63,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IgnoreAccessibility => true;
+        public override EmitBaseline? PreviousGeneration => null;
+        public override SymbolChanges? EncSymbolChanges => null;
+        public override bool FieldRvaSupported => true;
+        public override bool MethodImplSupported => true;
+
+        public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
+            => null;
+
+        public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType()
+            => null;
 
         internal override NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
         {
             return _getDynamicOperationContextType(contextType);
         }
 
-        public override int CurrentGenerationOrdinal => 0;
-
         internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
-            => (symbol is EEMethodSymbol method) ? new SlotAllocator(GetLocalDefinitions(method.Locals)) : null;
+            => (symbol is EEMethodSymbol method) ? new SlotAllocator(GetLocalDefinitions(method.Locals, diagnostics)) : null;
 
-        private static ImmutableArray<LocalDefinition> GetLocalDefinitions(ImmutableArray<LocalSymbol> locals)
+        private ImmutableArray<LocalDefinition> GetLocalDefinitions(ImmutableArray<LocalSymbol> locals, DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<LocalDefinition>.GetInstance();
             foreach (var local in locals)
@@ -87,14 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     continue;
                 }
-                var def = ToLocalDefinition(local, builder.Count);
+                var def = ToLocalDefinition(local, builder.Count, diagnostics);
                 Debug.Assert(((EELocalSymbol)local).Ordinal == def.SlotIndex);
                 builder.Add(def);
             }
             return builder.ToImmutableAndFree();
         }
 
-        private static LocalDefinition ToLocalDefinition(LocalSymbol local, int index)
+        private LocalDefinition ToLocalDefinition(LocalSymbol local, int index, DiagnosticBag diagnostics)
         {
             // See EvaluationContext.GetLocals.
             TypeSymbol type;
@@ -113,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new LocalDefinition(
                 local,
                 local.Name,
-                (Cci.ITypeReference)type,
+                Translate(type, syntaxNodeOpt: null, diagnostics),
                 slot: index,
                 synthesizedKind: local.SynthesizedKind,
                 id: LocalDebugId.None,
@@ -163,18 +170,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return false;
             }
 
-            public override bool TryGetPreviousClosure(SyntaxNode closureSyntax, out DebugId closureId)
+            public override bool TryGetPreviousClosure(SyntaxNode closureSyntax, DebugId? parentClosureId, ImmutableArray<string> structCaptures, out DebugId closureId, out RuntimeRudeEdit? runtimeRudeEdit)
             {
                 closureId = default;
+                runtimeRudeEdit = null;
                 return false;
             }
 
-            public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId)
+            public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, int closureOrdinal, ImmutableArray<DebugId> structClosureIds, out DebugId lambdaId, out RuntimeRudeEdit? runtimeRudeEdit)
             {
                 lambdaId = default;
+                runtimeRudeEdit = null;
                 return false;
             }
 
+            public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, AwaitDebugId awaitId, out StateMachineState state)
+            {
+                state = 0;
+                return false;
+            }
+
+            public override StateMachineState? GetFirstUnusedStateMachineState(bool increasing) => null;
             public override string? PreviousStateMachineTypeName => null;
             public override int PreviousHoistedLocalSlotCount => 0;
             public override int PreviousAwaiterSlotCount => 0;

@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -194,9 +198,9 @@ class C : CSharpErrors.InterfaceMethods
     // (5,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceMethods.ReturnType2() { return null; }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 5),
-    // (5,54): error CS0539: 'C.ReturnType2()' in explicit interface declaration is not a member of interface
+    // (5,54): error CS9334: 'C.ReturnType2()': return type must be 'UnavailableClass[]' to match implemented member 'InterfaceMethods.ReturnType2()'
     //     UnavailableClass[] CSharpErrors.InterfaceMethods.ReturnType2() { return null; }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ReturnType2").WithArguments("C.ReturnType2()").WithLocation(5, 54),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "ReturnType2").WithArguments("C.ReturnType2()", "UnavailableClass[]", "CSharpErrors.InterfaceMethods.ReturnType2()").WithLocation(5, 54),
     // (6,55): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     void CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass x) { }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 55),
@@ -212,9 +216,9 @@ class C : CSharpErrors.InterfaceMethods
     // (4,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceMethods.ReturnType1() { return null; }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(4, 5),
-    // (4,52): error CS0539: 'C.ReturnType1()' in explicit interface declaration is not a member of interface
+    // (4,52): error CS9334: 'C.ReturnType1()': return type must be 'UnavailableClass' to match implemented member 'InterfaceMethods.ReturnType1()'
     //     UnavailableClass CSharpErrors.InterfaceMethods.ReturnType1() { return null; }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ReturnType1").WithArguments("C.ReturnType1()").WithLocation(4, 52),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "ReturnType1").WithArguments("C.ReturnType1()", "UnavailableClass", "CSharpErrors.InterfaceMethods.ReturnType1()").WithLocation(4, 52),
     // (2,11): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     // class C : CSharpErrors.InterfaceMethods
     Diagnostic(ErrorCode.ERR_NoTypeDef, "CSharpErrors.InterfaceMethods").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 11),
@@ -469,39 +473,39 @@ class C : CSharpErrors.InterfaceProperties
     // (4,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceProperties.Get1 { get { return null; } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(4, 5),
-    // (4,55): error CS0539: 'C.Get1' in explicit interface declaration is not a member of interface
+    // (4,55): error CS9333: 'C.Get1': type must be 'UnavailableClass' to match implemented member 'InterfaceProperties.Get1'
     //     UnavailableClass CSharpErrors.InterfaceProperties.Get1 { get { return null; } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Get1").WithArguments("C.Get1").WithLocation(4, 55),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Get1").WithArguments("C.Get1", "UnavailableClass", "CSharpErrors.InterfaceProperties.Get1").WithLocation(4, 55),
     // (5,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Get2 { get { return null; } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 5),
-    // (5,57): error CS0539: 'C.Get2' in explicit interface declaration is not a member of interface
+    // (5,57): error CS9333: 'C.Get2': type must be 'UnavailableClass[]' to match implemented member 'InterfaceProperties.Get2'
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Get2 { get { return null; } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Get2").WithArguments("C.Get2").WithLocation(5, 57),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Get2").WithArguments("C.Get2", "UnavailableClass[]", "CSharpErrors.InterfaceProperties.Get2").WithLocation(5, 57),
     // (7,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceProperties.Set1 { set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(7, 5),
-    // (7,55): error CS0539: 'C.Set1' in explicit interface declaration is not a member of interface
+    // (7,55): error CS9333: 'C.Set1': type must be 'UnavailableClass' to match implemented member 'InterfaceProperties.Set1'
     //     UnavailableClass CSharpErrors.InterfaceProperties.Set1 { set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Set1").WithArguments("C.Set1").WithLocation(7, 55),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Set1").WithArguments("C.Set1", "UnavailableClass", "CSharpErrors.InterfaceProperties.Set1").WithLocation(7, 55),
     // (8,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Set2 { set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(8, 5),
-    // (8,57): error CS0539: 'C.Set2' in explicit interface declaration is not a member of interface
+    // (8,57): error CS9333: 'C.Set2': type must be 'UnavailableClass[]' to match implemented member 'InterfaceProperties.Set2'
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.Set2 { set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Set2").WithArguments("C.Set2").WithLocation(8, 57),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Set2").WithArguments("C.Set2", "UnavailableClass[]", "CSharpErrors.InterfaceProperties.Set2").WithLocation(8, 57),
     // (10,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceProperties.GetSet1 { get { return null; } set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(10, 5),
-    // (10,55): error CS0539: 'C.GetSet1' in explicit interface declaration is not a member of interface
+    // (10,55): error CS9333: 'C.GetSet1': type must be 'UnavailableClass' to match implemented member 'InterfaceProperties.GetSet1'
     //     UnavailableClass CSharpErrors.InterfaceProperties.GetSet1 { get { return null; } set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "GetSet1").WithArguments("C.GetSet1").WithLocation(10, 55),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "GetSet1").WithArguments("C.GetSet1", "UnavailableClass", "CSharpErrors.InterfaceProperties.GetSet1").WithLocation(10, 55),
     // (11,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.GetSet2 { get { return null; } set { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(11, 5),
-    // (11,57): error CS0539: 'C.GetSet2' in explicit interface declaration is not a member of interface
+    // (11,57): error CS9333: 'C.GetSet2': type must be 'UnavailableClass[]' to match implemented member 'InterfaceProperties.GetSet2'
     //     UnavailableClass[] CSharpErrors.InterfaceProperties.GetSet2 { get { return null; } set { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "GetSet2").WithArguments("C.GetSet2").WithLocation(11, 57),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "GetSet2").WithArguments("C.GetSet2", "UnavailableClass[]", "CSharpErrors.InterfaceProperties.GetSet2").WithLocation(11, 57),
     // (2,11): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     // class C : CSharpErrors.InterfaceProperties
     Diagnostic(ErrorCode.ERR_NoTypeDef, "CSharpErrors.InterfaceProperties").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 11),
@@ -827,21 +831,21 @@ class C : CSharpErrors.InterfaceEvents
     // (4,11): error CS0246: The type or namespace name 'UnavailableDelegate' could not be found (are you missing a using directive or an assembly reference?)
     //     event UnavailableDelegate CSharpErrors.InterfaceEvents.Event1 { add { } remove { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate").WithLocation(4, 11),
-    // (4,60): error CS0539: 'C.Event1' in explicit interface declaration is not a member of interface
+    // (4,60): error CS9333: 'C.Event1': type must be 'UnavailableDelegate' to match implemented member 'InterfaceEvents.Event1'
     //     event UnavailableDelegate CSharpErrors.InterfaceEvents.Event1 { add { } remove { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event1").WithArguments("C.Event1").WithLocation(4, 60),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Event1").WithArguments("C.Event1", "UnavailableDelegate", "CSharpErrors.InterfaceEvents.Event1").WithLocation(4, 60),
     // (5,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     event CSharpErrors.EventDelegate<UnavailableClass> CSharpErrors.InterfaceEvents.Event2 { add { } remove { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 38),
-    // (5,85): error CS0539: 'C.Event2' in explicit interface declaration is not a member of interface
+    // (5,85): error CS9333: 'C.Event2': type must be 'CSharpErrors.EventDelegate<UnavailableClass>' to match implemented member 'InterfaceEvents.Event2'
     //     event CSharpErrors.EventDelegate<UnavailableClass> CSharpErrors.InterfaceEvents.Event2 { add { } remove { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event2").WithArguments("C.Event2").WithLocation(5, 85),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Event2").WithArguments("C.Event2", "CSharpErrors.EventDelegate<UnavailableClass>", "CSharpErrors.InterfaceEvents.Event2").WithLocation(5, 85),
     // (6,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 38),
-    // (6,87): error CS0539: 'C.Event3' in explicit interface declaration is not a member of interface
+    // (6,87): error CS9333: 'C.Event3': type must be 'CSharpErrors.EventDelegate<UnavailableClass[]>' to match implemented member 'InterfaceEvents.Event3'
     //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event3").WithArguments("C.Event3").WithLocation(6, 87),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Event3").WithArguments("C.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>", "CSharpErrors.InterfaceEvents.Event3").WithLocation(6, 87),
     // (2,11): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     // class C : CSharpErrors.InterfaceEvents
     Diagnostic(ErrorCode.ERR_NoTypeDef, "CSharpErrors.InterfaceEvents").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 11),
@@ -930,28 +934,27 @@ class C : ILErrors.InterfaceEvents
 
             var delegatesWithoutInvokeReference = TestReferences.SymbolsTests.DelegateImplementation.DelegatesWithoutInvoke;
             CreateCompilation(text, new MetadataReference[] { delegatesWithoutInvokeReference }).VerifyDiagnostics(
-                // (7,16): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                // (7,16): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         return del("goo"); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"del(""goo"")").WithArguments("DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>"),
-                // (13,70): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"del(""goo"")").WithArguments("DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>").WithLocation(7, 16),
+                // (13,70): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate1 = bar;
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "bar").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke"),
-                // (14,21): error CS1061: 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' does not contain a definition for 'Invoke' and no extension method 'Invoke' accepting a first argument of type 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "bar").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke").WithLocation(13, 70),
+                // (14,21): error CS1061: 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' does not contain a definition for 'Invoke' and no accessible extension method 'Invoke' accepting a first argument of type 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' could be found (are you missing a using directive or an assembly reference?)
                 //         myDelegate1.Invoke("goo"); // will show an ERR_NoSuchMemberOrExtension
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Invoke").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke", "Invoke"),
-                // (15,70): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Invoke").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke", "Invoke").WithLocation(14, 21),
+                // (15,70): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate2 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(myDelegate1);
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "new DelegateWithoutInvoke.DelegateSubWithoutInvoke(myDelegate1)").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke"),
-                // (16,30): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "new DelegateWithoutInvoke.DelegateSubWithoutInvoke(myDelegate1)").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke").WithLocation(15, 70),
+                // (16,30): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         object myDelegate3 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(bar2);
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "new DelegateWithoutInvoke.DelegateSubWithoutInvoke(bar2)").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke"),
-                // (17,70): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "new DelegateWithoutInvoke.DelegateSubWithoutInvoke(bar2)").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke").WithLocation(16, 30),
+                // (17,72): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate4 = x => System.Console.WriteLine("Hello World");
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"x => System.Console.WriteLine(""Hello World"")").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke"),
-                // (18,87): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateFunctionWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "=>").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke").WithLocation(17, 72),
+                // (18,89): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateFunctionWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         object myDelegate6 = new DelegateWithoutInvoke.DelegateFunctionWithoutInvoke( x => "Hello World");
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"x => ""Hello World""").WithArguments("DelegateWithoutInvoke.DelegateFunctionWithoutInvoke")
-            );
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "=>").WithArguments("DelegateWithoutInvoke.DelegateFunctionWithoutInvoke").WithLocation(18, 89));
         }
 
         [Fact]
@@ -960,10 +963,13 @@ class C : ILErrors.InterfaceEvents
             var text =
 @"class C 
 {
+
+
     public static T goo<T>(CSharpErrors.DelegateParameterType3<T> del)
     {
         return del.Invoke(""goo"");
     }
+
 
     public static void Main() 
     {
@@ -989,66 +995,75 @@ class C : ILErrors.InterfaceEvents
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
             CreateCompilation(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
-                // (5,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         return del.Invoke("goo");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "del.Invoke").WithArguments("UnavailableClass<>", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (13,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "bar").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (14,9): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         myDelegate1("goo");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""goo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (15,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(myDelegate1)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (16,30): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         object myDelegate3 = new CSharpErrors.DelegateReturnType1(bar);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(bar)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (17,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         CSharpErrors.DelegateReturnType1 myDelegate4 = x => System.Console.WriteLine("Hello World");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"x => System.Console.WriteLine(""Hello World"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (18,68): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         object myDelegate6 = new CSharpErrors.DelegateReturnType1( x => "Hello World");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"x => ""Hello World""").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+                    // (7,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         return del.Invoke("goo");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "del.Invoke").WithArguments("UnavailableClass<>", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 16),
+                    // (13,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "bar").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 56),
+                    // (14,9): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         myDelegate1("goo");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""goo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(14, 9),
+                    // (15,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(myDelegate1)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(15, 56),
+                    // (16,30): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         object myDelegate3 = new CSharpErrors.DelegateReturnType1(bar);
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(bar)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(16, 30),
+                    // (17,58): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         CSharpErrors.DelegateReturnType1 myDelegate4 = x => System.Console.WriteLine("Hello World");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "=>").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(17, 58),
+                    // (18,70): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         object myDelegate6 = new CSharpErrors.DelegateReturnType1( x => "Hello World");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "=>").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(18, 70));
         }
 
         [Fact, WorkItem(531090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531090")]
         public void Constructor()
         {
-            string srcLib1 = @"
-using System;
+            string delSource = """
+                using System;
 
-public sealed class A
-{
-    public A(int a, Func<string, string> example) {}
-    public A(Func<string, string> example) {}
-}
-";
+                public delegate string MyFunc(string arg);
+                """;
+            var delComp = CreateEmptyCompilation(
+                delSource,
+                assemblyName: "Delegate.Util",
+                references: [NetFramework.mscorlib],
+                options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-            var lib1 = CreateEmptyCompilation(
-                new[] { Parse(srcLib1) },
-                new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v3_5_30729.SystemCore },
+            string lib1Source = """
+                using System;
+
+                public sealed class A
+                {
+                    public A(int a, MyFunc example) {}
+                    public A(MyFunc example) {}
+                }
+                """;
+            var lib1Comp = CreateEmptyCompilation(
+                lib1Source,
+                references: [NetFramework.mscorlib, delComp.ToMetadataReference()],
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-            string srcLib2 = @"
-class Program
-{
-    static void Main()
-    {
-        new A(x => x);
-    }
-}
-";
-            var lib2 = CreateEmptyCompilation(
-                new[] { Parse(srcLib2) },
-                new[] { MscorlibRef, new CSharpCompilationReference(lib1) },
+            string lib2Source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        new A(x => x);
+                    }
+                }
+                """;
+            var lib2Comp = CreateEmptyCompilation(
+                lib2Source,
+                references: [NetFramework.mscorlib, lib1Comp.ToMetadataReference()],
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-            lib2.VerifyDiagnostics(
-                // (6,13): error CS0012: The type 'System.Func<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+            lib2Comp.VerifyDiagnostics(
+                // (5,13): error CS0012: The type 'MyFunc' is defined in an assembly that is not referenced. You must add a reference to assembly 'Delegate.Util, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         new A(x => x);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.Func<,>", "System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("MyFunc", "Delegate.Util, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 13));
         }
 
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
@@ -1058,7 +1073,6 @@ class Program
 public class X {}
 ";
             var xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
-
 
             var libSource = @"
 public interface I
@@ -1079,9 +1093,9 @@ class B : C, I { }
             var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
-                // (2,7): error CS7068: Reference to type 'X' claims it is defined in this assembly, but it is not defined in source or any added modules
+                // (2,7): error CS7069: Reference to type 'X' claims it is defined in 'Test', but it could not be found
                 // class B : C, I { }
-                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "B").WithArguments("X"));
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "B").WithArguments("X", "Test").WithLocation(2, 7));
         }
 
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
@@ -1188,15 +1202,12 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
             var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             main.VerifyDiagnostics(
-    // (2,49): error CS0648: '' is a type not supported by the language
+    // (2,7): error CS0570: 'ModReqInterfaceEvents.Event1.remove' is not supported by the language
     // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BogusType, "ILErrors.ModReqInterfaceEvents").WithArguments("").WithLocation(2, 49),
-    // (2,49): error CS0570: 'ModReqInterfaceEvents.remove_Event1(?)' is not supported by the language
+    Diagnostic(ErrorCode.ERR_BindToBogus, "B").WithArguments("ILErrors.ModReqInterfaceEvents.Event1.remove").WithLocation(2, 7),
+    // (2,7): error CS0570: 'ModReqInterfaceEvents.Event1.add' is not supported by the language
     // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BindToBogus, "ILErrors.ModReqInterfaceEvents").WithArguments("ILErrors.ModReqInterfaceEvents.remove_Event1(?)").WithLocation(2, 49),
-    // (2,49): error CS0570: 'ModReqInterfaceEvents.add_Event1(?)' is not supported by the language
-    // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BindToBogus, "ILErrors.ModReqInterfaceEvents").WithArguments("ILErrors.ModReqInterfaceEvents.add_Event1(?)").WithLocation(2, 49)
+    Diagnostic(ErrorCode.ERR_BindToBogus, "B").WithArguments("ILErrors.ModReqInterfaceEvents.Event1.add").WithLocation(2, 7)
             );
         }
 
@@ -2152,18 +2163,18 @@ class C
 }
 ";
             CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
-                // (8,22): error CS0570: 'Constructors.Constructors(?)' is not supported by the language
+                // (8,22): error CS0570: 'Constructors.Constructors(string)' is not supported by the language
                 //         var c2 = new Constructors(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(?)"),
-                // (10,9): error CS0570: 'Methods.M(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(string)").WithLocation(8, 22),
+                // (10,17): error CS0570: 'Methods.M(string)' is not supported by the language
                 //         Methods.M(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Methods.M(?)"),
-                // (12,29): error CS0570: 'Methods.M(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Methods.M(string)").WithLocation(10, 17),
+                // (12,29): error CS0570: 'Methods.M(string)' is not supported by the language
                 //         Action<string> a2 = Methods.M;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(?)"),
-                // (14,18): error CS1546: Property, indexer, or event 'Indexers.this[?]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(?)'
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(string)").WithLocation(12, 29),
+                // (14,18): error CS1546: Property, indexer, or event 'Indexers.this[string]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(string)'
                 //         var i2 = new Indexers()[null];
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)"));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(14, 18));
         }
 
         [WorkItem(939928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939928")]
@@ -2291,7 +2302,8 @@ public delegate void D();
 
 public interface I1 {}
 ";
-            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
             compilation1.VerifyEmitDiagnostics();
 
             Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
@@ -2307,7 +2319,7 @@ interface I2
 }
 ";
 
-            var compilation2 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
 
             compilation2.VerifyEmitDiagnostics();
             CompileAndVerify(compilation2);
@@ -2318,7 +2330,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation3 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
+            var compilation3 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
 
             compilation3.VerifyEmitDiagnostics();
             CompileAndVerify(compilation3);
@@ -2329,7 +2341,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation4 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
+            var compilation4 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
 
             compilation4.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2359,13 +2371,14 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation5 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
+            var compilation5 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
 
             compilation5.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
                 );
-            CompileAndVerify(compilation5);
+            // ILVerify: no corlib
+            CompileAndVerify(compilation5, verify: Verification.FailsILVerify);
 
             Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind);
             Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind);
@@ -2373,7 +2386,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation6 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
+            var compilation6 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
 
             compilation6.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2403,7 +2416,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation7 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
+            var compilation7 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
 
             compilation7.VerifyEmitDiagnostics();
             CompileAndVerify(compilation7);
@@ -2440,6 +2453,1394 @@ class C : CSharpErrors.ClassMethods
                     Assert.Equal(actualAssemblyId, expectedAssemblyId);
                 }
             }
+        }
+
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilation(@"
+public struct S1
+{
+    public int i;
+}", assemblyName: "libS1").ToMetadataReference();
+
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
+public struct S2
+{
+    public S1 s1;
+}
+", references: new[] { UnmanagedUseSiteError_Ref1 }, assemblyName: "libS2").ToMetadataReference();
+
+        [Fact]
+        public void Unmanaged_UseSiteError_01()
+        {
+            var source = @"
+class C
+{
+    unsafe void M(S2 s2)
+    {
+        var ptr = &s2;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (6,19): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var ptr = &s2;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 19),
+                // (6,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var ptr = &s2;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s2").WithArguments("S2").WithLocation(6, 19)
+                );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_02()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        var size = sizeof(S2);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (6,20): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var size = sizeof(S2);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "sizeof(S2)").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 20),
+                // (6,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var size = sizeof(S2);
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(6, 20));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_03()
+        {
+            var source = @"
+class C
+{
+    unsafe void M(S2* ptr)
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (4,23): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     unsafe void M(S2* ptr)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "ptr").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 23),
+                // (4,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //     unsafe void M(S2* ptr)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "ptr").WithArguments("S2").WithLocation(4, 23));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_04()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        S2* span = stackalloc S2[16];
+        S2* span2 = stackalloc [] { default(S2) };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
+                // (6,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(6, 9),
+                // (6,31): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 31),
+                // (6,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(6, 31),
+                // (7,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
+                // (7,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 9),
+                // (7,21): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "stackalloc [] { default(S2) }").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 21),
+                // (7,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc [] { default(S2) }").WithArguments("S2").WithLocation(7, 21));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_05()
+        {
+            var source = @"
+class C
+{
+    S2 s2;
+    unsafe void M()
+    {
+        fixed (S2* ptr = &s2)
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 16),
+                // (7,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 16),
+                // (7,26): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26),
+                // (7,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26),
+                // (7,26): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26),
+                // (7,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26)
+                );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_06()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t) where T : unmanaged { }
+
+    void M1()
+    {
+        M(default(S2)); // 1, 2
+        M(default(S2)); // 3, 4
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (8,9): error CS8377: The type 'S2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S2)); // 1, 2
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S2").WithLocation(8, 9),
+                // (8,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S2)); // 1, 2
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 9),
+                // (9,9): error CS8377: The type 'S2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S2)); // 3, 4
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S2").WithLocation(9, 9),
+                // (9,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S2)); // 3, 4
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 9));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_07()
+        {
+            var source = @"
+public struct S3
+{
+    public S2 s2;
+}
+
+class C
+{
+    void M<T>(T t) where T : unmanaged { }
+
+    void M1()
+    {
+        M(default(S3)); // 1, 2
+        M(default(S3)); // 3, 4
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS8377: The type 'S3' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S3)); // 1, 2
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S3").WithLocation(13, 9),
+                // (13,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S3)); // 1, 2
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 9),
+                // (14,9): error CS8377: The type 'S3' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S3)); // 3, 4
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S3").WithLocation(14, 9),
+                // (14,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S3)); // 3, 4
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(14, 9));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_08()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+class C
+{
+    async Task M1()
+    {
+        S2 s2 = M2();
+        await M1();
+        Console.Write(s2);
+    }
+
+    S2 M2() => default;
+}
+";
+            var comp = CreateCompilation(source, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_09()
+        {
+            var source = @"
+public struct S3
+{
+    public S2 s2;
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+            var s3 = comp.GetMember<NamedTypeSymbol>("S3");
+
+            verifyIsManagedType();
+            verifyIsManagedType();
+
+            void verifyIsManagedType()
+            {
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(s3.ContainingAssembly);
+                Assert.True(s3.IsManagedType(ref managedKindUseSiteInfo));
+                managedKindUseSiteInfo.Diagnostics.Verify(
+                    // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                    );
+            }
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+            s3 = comp.GetMember<NamedTypeSymbol>("S3");
+
+            verifyIsUnmanagedType();
+            verifyIsUnmanagedType();
+
+            void verifyIsUnmanagedType()
+            {
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(s3.ContainingAssembly);
+                Assert.False(s3.IsManagedType(ref managedKindUseSiteInfo));
+                Assert.Null(managedKindUseSiteInfo.Diagnostics);
+            }
+        }
+
+        [Fact]
+        public void OverrideWithModreq_01()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int get_P()
+    {
+        return default;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (4,25): error CS0570: 'CL1.get_P()' is not supported by the language
+                //     public override int get_P()
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("CL1.get_P()").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_02()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (4,25): error CS0569: 'Test.P': cannot override 'CL1.P' because it is not supported by the language
+                //     public override int P
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "P").WithArguments("Test.P", "CL1.P").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_03()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_04()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_05()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_06()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_07()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_08()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_09()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void add_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action)
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_10()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action)
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_01()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public int get_P()
+    {
+        return default;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (4,16): error CS0570: 'CL1.get_P()' is not supported by the language
+                //     public int get_P()
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("CL1.get_P()").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_02()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+    }
+}
+
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0686: Accessor 'Test1.P.get' cannot implement interface member 'CL1.get_P()' for type 'Test1'. Use an explicit interface implementation.
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_AccessorImplementingMethod, "get").WithArguments("Test1.P.get", "CL1.get_P()", "Test1").WithLocation(6, 9),
+                // (12,13): error CS0682: 'Test2.CL1.P' cannot implement 'CL1.P' because it is not supported by the language
+                //     int CL1.P
+                Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "P").WithArguments("Test2.CL1.P", "CL1.P").WithLocation(12, 13),
+                // (14,9): error CS0570: 'CL1.get_P()' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.get_P()").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_03()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (14,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_04()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(6, 9),
+                // (14,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_05()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9),
+                // (15,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(15, 9),
+                // (16,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_06()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9),
+                // (16,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_07()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (15,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_08()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    event System.Action CL1.E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9),
+                // (15,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(15, 9),
+                // (16,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_09()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void add_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+    }
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action)
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    event System.Action CL1.E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9),
+                // (16,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_10()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action)
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    event System.Action CL1.E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9),
+                // (15,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(15, 9)
+                );
         }
     }
 }

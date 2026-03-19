@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
@@ -12,26 +11,26 @@ using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection
-{
-    [ExportLanguageService(typeof(ICaseCorrectionService), LanguageNames.CSharp), Shared]
-    internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
-    {
-        [ImportingConstructor]
-        public CSharpCaseCorrectionService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection;
 
-        protected override void AddReplacements(
-            SemanticModel? semanticModel,
-            SyntaxNode root,
-            ImmutableArray<TextSpan> spans,
-            Workspace workspace,
-            ConcurrentDictionary<SyntaxToken, SyntaxToken> replacements,
-            CancellationToken cancellationToken)
-        {
-            // C# doesn't support case correction since we are a case sensitive language.
-            return;
-        }
+[ExportLanguageService(typeof(ICaseCorrectionService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpCaseCorrectionService : AbstractCaseCorrectionService
+{
+    public static int I { get; }
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCaseCorrectionService()
+    {
+    }
+
+    protected override void AddReplacements(
+        SemanticModel? semanticModel,
+        SyntaxNode root,
+        ImmutableArray<TextSpan> spans,
+        ConcurrentDictionary<SyntaxToken, SyntaxToken> replacements,
+        CancellationToken cancellationToken)
+    {
+        // C# doesn't support case correction since we are a case sensitive language.
+        return;
     }
 }

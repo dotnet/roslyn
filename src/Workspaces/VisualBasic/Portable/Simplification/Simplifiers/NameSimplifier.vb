@@ -6,11 +6,9 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -26,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         Public Overrides Function TrySimplify(
                 name As NameSyntax,
                 semanticModel As SemanticModel,
-                optionSet As OptionSet,
+                options As VisualBasicSimplifierOptions,
                 <Out> ByRef replacementNode As ExpressionSyntax,
                 <Out> ByRef issueSpan As TextSpan,
                 cancellationToken As CancellationToken) As Boolean
@@ -52,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     Return CanReplaceWithReducedName(name, replacementNode, semanticModel, cancellationToken)
                 End If
 
-                If Not TypeOf symbol Is INamespaceOrTypeSymbol Then
+                If TypeOf symbol IsNot INamespaceOrTypeSymbol Then
                     Return False
                 End If
             Else
@@ -153,8 +151,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     ' Don't simplify to predefined type if name is part of a QualifiedName.
                     ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                     ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
-                    If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
-                        Dim type = semanticModel.GetTypeInfo(name).Type
+                    If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso
+                        Not name.Parent.IsKind(SyntaxKind.QualifiedName) AndAlso
+                        Not name.Parent.IsKind(SyntaxKind.NameOfExpression) Then
+
+                        Dim type = semanticModel.GetTypeInfo(name, cancellationToken).Type
                         If type IsNot Nothing Then
                             Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
                             If keywordKind <> SyntaxKind.None Then
@@ -165,15 +166,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                     keywordKind,
                                     name.GetTrailingTrivia())
                                 Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
-                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet)
-                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)
+                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, options)
+                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, options)
                                 If token.Text = valueText OrElse (inDeclarationContext OrElse inMemberAccessContext) Then
 
                                     Dim codeStyleOptionName As String = Nothing
                                     If inDeclarationContext Then
-                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                        codeStyleOptionName = NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
                                     ElseIf inMemberAccessContext Then
-                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
+                                        codeStyleOptionName = NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
                                     End If
 
                                     replacementNode = SyntaxFactory.PredefinedType(token)
@@ -255,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         ''' must be parented by an namespace declaration and the node itself must be equal to the declaration's Name
         ''' property.
         ''' </summary>
-        Private Function IsPartOfNamespaceDeclarationName(node As SyntaxNode) As Boolean
+        Private Shared Function IsPartOfNamespaceDeclarationName(node As SyntaxNode) As Boolean
 
             Dim nextNode As SyntaxNode = node
 
@@ -281,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function CanReplaceWithReducedName(
+        Private Shared Function CanReplaceWithReducedName(
             name As NameSyntax,
             replacementNode As ExpressionSyntax,
             semanticModel As SemanticModel,
@@ -295,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return CanReplaceWithReducedNameInContext(name, replacementNode)
         End Function
 
-        Private Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax) As Boolean
+        Private Shared Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax) As Boolean
 
             ' Special case.  if this new minimal name parses out to a predefined type, then we
             ' have to make sure that we're not in a using alias.   That's the one place where the
@@ -309,19 +310,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return Not (invalidTransformation1 OrElse invalidTransformation2 OrElse invalidTransformation3)
         End Function
 
-        Private Function IsNonNameSyntaxInImportsDirective(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
+        Private Shared Function IsNonNameSyntaxInImportsDirective(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
             Return TypeOf expression.Parent Is ImportsClauseSyntax AndAlso
-                Not TypeOf simplifiedNode Is NameSyntax
+                TypeOf simplifiedNode IsNot NameSyntax
         End Function
 
-        Private Function IsNullableTypeSyntaxLeftOfDotInMemberAccess(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
+        Private Shared Function IsNullableTypeSyntaxLeftOfDotInMemberAccess(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
             Return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                 simplifiedNode.Kind = SyntaxKind.NullableType
         End Function
 
-        Private Function TryOmitModuleName(name As QualifiedNameSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryOmitModuleName(name As QualifiedNameSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
             If name.IsParentKind(SyntaxKind.QualifiedName) Then
-                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax)).Symbol
+                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax), cancellationToken).Symbol
 
                 ' in case this QN is used in a "New NSName.ModuleName.MemberName()" expression
                 ' the returned symbol is a constructor. Then we need to get the containing type.
@@ -367,8 +368,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 If name.Parent.Kind = SyntaxKind.Attribute OrElse name.IsRightSideOfDot() Then
                     Dim newIdentifierText = String.Empty
 
-                    ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation
-                    If identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation) Then
+                    ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DoNotSimplifyAnnotation
+                    If identifierToken.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation) Then
                         newIdentifierText = identifierToken.ValueText + "Attribute"
                     ElseIf identifierToken.ValueText.TryReduceAttributeSuffix(newIdentifierText) Then
                         issueSpan = New TextSpan(name.Span.End - 9, 9)
@@ -391,11 +392,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
+        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, options As VisualBasicSimplifierOptions) As Boolean
             Return (Not IsDirectChildOfMemberAccessExpression(name)) AndAlso
                    (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, LanguageNames.VisualBasic)
+                   options.PreferPredefinedTypeKeywordInDeclaration.Value
         End Function
 
         Private Shared Function CanSimplifyNullable(type As INamedTypeSymbol, name As NameSyntax) As Boolean
@@ -434,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             If name.IsKind(SyntaxKind.GenericName) Then
                 If (name.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="Nullable(Of T)"
                    (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="System.Nullable(Of T)"
-                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso (name.Parent?.IsParentKind(SyntaxKind.QualifiedName)).GetValueOrDefault() AndAlso name.Parent.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
+                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso If(name.Parent?.IsParentKind(SyntaxKind.QualifiedName), False) AndAlso name.Parent.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
                     ' Unfortunately, unlike in corresponding C# case, we need syntax based checking to detect these cases because of bugs in the VB SemanticModel.
                     ' See https://github.com/dotnet/roslyn/issues/2196, https://github.com/dotnet/roslyn/issues/2197
                     Return False

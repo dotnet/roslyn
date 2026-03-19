@@ -9,57 +9,47 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DestructorDeclarationSyntax>
 {
-    public class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DestructorDeclarationSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new DestructorDeclarationStructureProvider();
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new DestructorDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestDestructor()
-        {
-            const string code = @"
-class C
-{
-    {|hint:$$~C(){|textspan:
-    {
-    }|}|}
-}";
+    [Fact]
+    public Task TestDestructor()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    {|hint:$$~C(){|textspan:
+                    {
+                    }|}|}
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    [Fact]
+    public Task TestDestructorWithComments()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$~C(){|textspan2:
+                    {
+                    }|}|}
+                }
+                """,
+            Region("span1", "// Goo ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestDestructorWithComments()
-        {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$~C(){|textspan2:
-    {
-    }|}|}
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// Goo ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestDestructorMissingCloseParenAndBody()
-        {
-            // Expected behavior is that the class should be outlined, but the destructor should not.
-
-            const string code = @"
-class C
-{
-    $$~C(
-}";
-
-            await VerifyNoBlockSpansAsync(code);
-        }
-    }
+    [Fact]
+    public Task TestDestructorMissingCloseParenAndBody()
+        // Expected behavior is that the class should be outlined, but the destructor should not.
+        => VerifyNoBlockSpansAsync("""
+                class C
+                {
+                    $$~C(
+                }
+                """);
 }

@@ -378,7 +378,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             s_keywords.Add(Name, Token)
         End Sub
 
-
     End Class
 
     '//-------------------------------------------------------------------------------------------------

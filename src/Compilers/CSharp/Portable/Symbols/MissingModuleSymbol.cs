@@ -2,16 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -141,10 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
+#nullable enable
+        internal override NamedTypeSymbol? LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
         {
-            return new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
+            return null;
         }
+#nullable disable
 
         internal override ImmutableArray<AssemblyIdentity> GetReferencedAssemblies()
         {
@@ -158,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool HasUnifiedReferences
@@ -168,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool HasAssemblyCompilationRelaxationsAttribute
@@ -190,8 +195,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
+
+        internal sealed override bool UseUpdatedMemorySafetyRules => false;
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+#nullable disable
     }
 
     internal sealed class MissingModuleSymbolWithName : MissingModuleSymbol

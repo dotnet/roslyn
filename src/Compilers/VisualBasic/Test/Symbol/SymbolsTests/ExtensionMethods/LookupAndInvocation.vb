@@ -2,14 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
@@ -1045,7 +1038,6 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
 </expected>)
         End Sub
 
-
         <Fact>
         Public Sub InstanceVsExtension1()
             Dim compilationDef =
@@ -1381,7 +1373,6 @@ BC36908: Late-bound extension methods are not supported.
 
         End Sub
 
-
         <Fact>
         Public Sub InstanceVsExtension5()
             Dim compilationDef =
@@ -1677,7 +1668,6 @@ BC30574: Option Strict On disallows late binding.
              ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub AccessingThroughTypeOrNamespace()
@@ -2088,7 +2078,6 @@ BC36590: Too few type arguments to extension method 'Public Sub Test5(Of S, Q)(y
                ~~~~~~~~~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub NestedClasses1()
@@ -3039,7 +3028,6 @@ End Namespace
 Goo
 ]]>)
 
-
             Dim compilationDef2 =
 <compilation name="Bug9301_1">
     <file name="a.vb">
@@ -3198,7 +3186,6 @@ End Module
 ]]>
     </file>
 </compilation>
-
 
             CompileAndVerify(compilationDef, expectedOutput:="After").VerifyIL(
                 "Program.Main", <![CDATA[

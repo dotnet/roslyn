@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,14 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (!node.WasCompilerGenerated && this.Instrument)
             {
-                rewrittenCondition = _instrumenter.InstrumentDoStatementCondition(node, rewrittenCondition, _factory);
+                rewrittenCondition = Instrumenter.InstrumentDoStatementCondition(node, rewrittenCondition, _factory);
             }
 
             BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, rewrittenCondition, true, startLabel);
 
             if (!node.WasCompilerGenerated && this.Instrument)
             {
-                ifConditionGotoStart = _instrumenter.InstrumentDoStatementConditionalGotoStart(node, ifConditionGotoStart);
+                ifConditionGotoStart = Instrumenter.InstrumentDoStatementConditionalGotoStart(node, ifConditionGotoStart);
             }
 
             // do

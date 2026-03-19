@@ -2,26 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml.Features
+namespace Microsoft.CodeAnalysis.Editor.Xaml.Features;
+
+[DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+internal readonly struct DocumentSpan
 {
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal struct DocumentSpan
+    public Document Document { get; }
+    public TextSpan TextSpan { get; }
+
+    public DocumentSpan(Document document, TextSpan textSpan) : this()
     {
-        public Document Document { get; }
-        public TextSpan TextSpan { get; }
+        this.Document = document;
+        this.TextSpan = textSpan;
+    }
 
-        public DocumentSpan(Document document, TextSpan textSpan) : this()
-        {
-            this.Document = document;
-            this.TextSpan = textSpan;
-        }
-
-        private string GetDebuggerDisplay()
-        {
-            return $"{Document.Name} [{TextSpan.Start}...{TextSpan.End}]";
-        }
+    private string GetDebuggerDisplay()
+    {
+        return $"{Document.Name} [{TextSpan.Start}...{TextSpan.End}]";
     }
 }

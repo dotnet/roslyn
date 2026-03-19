@@ -2,20 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+#nullable disable
+
 using System.Threading.Tasks;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public class Checkpoint
 {
-    public class Checkpoint
-    {
-        private readonly TaskCompletionSource<object> _tcs = new TaskCompletionSource<object>();
+    private readonly TaskCompletionSource<object> _tcs = new();
 
-        public Task Task => _tcs.Task;
+    public Task Task => _tcs.Task;
 
-        public void Release() => _tcs.SetResult(null);
-    }
+    public void Release() => _tcs.SetResult(null);
 }

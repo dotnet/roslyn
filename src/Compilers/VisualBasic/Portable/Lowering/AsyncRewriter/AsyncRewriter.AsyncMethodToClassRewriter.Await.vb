@@ -110,7 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function GenerateAwaitForIncompleteTask(awaiterTemp As LocalSymbol) As BoundBlock
-                Dim state As StateInfo = Me.AddState()
+                Dim state As StateMachineState = 0
+                Dim resumeLabel As GeneratedLabelSymbol = Nothing
+                AddResumableState(awaiterTemp.GetDeclaratorSyntax(), state, resumeLabel)
 
                 Dim awaiterType As TypeSymbol = awaiterTemp.Type
                 Dim awaiterFieldType As TypeSymbol = awaiterType
@@ -125,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(state.Number))))
+                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(state))))
 
                 ' Emit Await yield point to be injected into PDB
                 blockBuilder.Add(Me.F.NoOp(NoOpStatementFlavor.AwaitYieldPoint))
@@ -212,12 +214,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' STMT:   this.builder.AwaitUnsafeOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
                         '  or
                         ' STMT:   this.builder.AwaitOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
+                        Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Me.F.Diagnostics, Me.CompilationState.Compilation.Assembly)
                         Dim useUnsafeOnCompleted As Boolean =
                             Conversions.IsWideningConversion(
                                 Conversions.ClassifyDirectCastConversion(
                                     awaiterType,
                                     ICriticalNotifyCompletion,
-                                    useSiteDiagnostics:=Nothing))
+                                    useSiteInfo:=useSiteInfo))
+
+                        Me.F.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
                         blockBuilder.Add(
                             Me.F.ExpressionStatement(
@@ -238,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(Me.F.Goto(Me._exitLabel))
                 '----------------------------------------------
                 '   RESUME LABEL
-                blockBuilder.Add(Me.F.Label(state.ResumeLabel))
+                blockBuilder.Add(Me.F.Label(resumeLabel))
                 '----------------------------------------------
 
                 ' Emit Await resume point to be injected into PDB
@@ -248,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.NotStartedStateMachine))))
+                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineState.NotStartedOrRunningState))))
 
                 ' STMT:   $awaiterTemp = Me.$awaiter
                 '  or   

@@ -3,38 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+internal sealed class StructuredTriviaFormattingRule : BaseFormattingRule
 {
-    internal class StructuredTriviaFormattingRule : BaseFormattingRule
+    internal const string Name = "CSharp Structured Trivia Formatting Rule";
+
+    public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
     {
-        internal const string Name = "CSharp Structured Trivia Formatting Rule";
-
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
         {
-            if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
-            {
-                return null;
-            }
-
-            return nextOperation.Invoke();
+            return null;
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
-        {
-            if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
-            {
-                // this doesn't take care of all cases where tokens belong to structured trivia. this is only for cases we care
-                return GetAdjustSpacesOperation(previousToken, currentToken, in nextOperation);
-            }
+        return nextOperation.Invoke(in previousToken, in currentToken);
+    }
 
-            return nextOperation.Invoke();
-        }
-
-        private AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+    public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+    {
+        if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
         {
+            // this doesn't take care of all cases where tokens belong to structured trivia. this is only for cases we care
             if (previousToken.Kind() == SyntaxKind.HashToken && SyntaxFacts.IsPreprocessorKeyword(currentToken.Kind()))
             {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -49,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
-
-            return nextOperation.Invoke();
         }
+
+        return nextOperation.Invoke(in previousToken, in currentToken);
     }
 }

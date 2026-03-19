@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly BoundStatement _boundBody;
         private readonly ILBuilder _builder;
         private readonly PEModuleBuilder _module;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly ILEmitStyle _ilEmitStyle;
         private readonly bool _emitPdbSequencePoints;
 
@@ -35,11 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         // There are scenarios where rvalues need to be passed to ref/in parameters
         // in such cases the values must be spilled into temps and retained for the entirety of
-        // the most encompassing expression.       
+        // the most encompassing expression.
         private ArrayBuilder<LocalDefinition> _expressionTemps;
 
         // not 0 when in a protected region with a handler. 
         private int _tryNestingLevel;
+
+        // not 0 when emitting code in a catch filter
+        private int _inCatchFilterLevel;
 
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
         private int _uniqueNameId;
@@ -56,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// This is used to track the state of the epilogue.
         /// </summary>
         private IndirectReturnState _indirectReturnState;
+
+        /// <summary>
+        /// Used to implement <see cref="BoundSavePreviousSequencePoint"/> and <see cref="BoundRestorePreviousSequencePoint"/>.
+        /// </summary>
+        private PooledDictionary<object, TextSpan> _savedSequencePoints;
 
         private enum IndirectReturnState : byte
         {
@@ -78,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             BoundStatement boundBody,
             ILBuilder builder,
             PEModuleBuilder moduleBuilder,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             OptimizationLevel optimizations,
             bool emittingPdb)
         {
@@ -87,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(builder != null);
             Debug.Assert(moduleBuilder != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
 
             _method = method;
             _boundBody = boundBody;
@@ -162,15 +173,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         ? LocalSlotConstraints.None
                         : LocalSlotConstraints.ByRef;
 
+                    var returnTypeWithAnnotations = _method.ReturnTypeWithAnnotations;
+                    if (_method.IsAsync && _module.Compilation.IsRuntimeAsyncEnabledIn(_method))
+                    {
+                        // The return type of the method is either Task<T> or ValueTask<T>. The il of the method is
+                        // actually going to appear to return a T, not the wrapper task type. So we need to
+                        // translate the return type to the actual type that will be returned.
+
+                        var returnType = returnTypeWithAnnotations.Type;
+                        Debug.Assert(((InternalSpecialType)returnType.OriginalDefinition.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_ValueTask_T or InternalSpecialType.System_Threading_Tasks_Task_T);
+
+                        returnTypeWithAnnotations = ((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    }
 
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
                         int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(bodySyntax), bodySyntax.SyntaxTree);
-                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+                        var localSymbol = new SynthesizedLocal(_method, returnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
-                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
+                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics.DiagnosticBag),
                             symbol: localSymbol,
                             name: null,
                             kind: localSymbol.SynthesizedKind,
@@ -183,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
+                        result = AllocateTemp(returnTypeWithAnnotations.Type, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;
@@ -217,14 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             hasStackAlloc = _sawStackalloc;
             Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
-            asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
+            asyncCatchHandlerOffset = _diagnostics.HasAnyErrors() ? -1 : _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
 
             ArrayBuilder<int> yieldPoints = _asyncYieldPoints;
             ArrayBuilder<int> resumePoints = _asyncResumePoints;
 
             Debug.Assert((yieldPoints == null) == (resumePoints == null));
 
-            if (yieldPoints == null)
+            if (yieldPoints == null || _diagnostics.HasAnyErrors())
             {
                 asyncYieldPoints = ImmutableArray<int>.Empty;
                 asyncResumePoints = ImmutableArray<int>.Empty;
@@ -294,15 +317,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(!(_expressionTemps?.Count > 0), "leaking expression temps?");
             _expressionTemps?.Free();
+            _savedSequencePoints?.Free();
         }
 
         private void HandleReturn()
         {
             _builder.MarkLabel(s_returnLabel);
 
-            Debug.Assert(_method.ReturnsVoid == (_returnTemp == null));
+            Debug.Assert(_method.ReturnsVoid == (_returnTemp == null)
+                || (_method.IsAsync
+                    && _module.Compilation.IsRuntimeAsyncEnabledIn(_method)
+                    && ((InternalSpecialType)_method.ReturnType.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_Task or InternalSpecialType.System_Threading_Tasks_ValueTask));
 
-            if (_emitPdbSequencePoints && !_method.IsIterator && !_method.IsAsync)
+            if (_emitPdbSequencePoints &&
+                !_method.IsIterator &&
+                (!_method.IsAsync || _module.Compilation.IsRuntimeAsyncEnabledIn(_method)))
             {
                 // In debug mode user could set a breakpoint on the last "}" of the method and 
                 // expect to hit it before exiting the method.
@@ -330,22 +359,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitTypeReferenceToken(Cci.ITypeReference symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(symbol, syntaxNode, _diagnostics);
+            _builder.EmitToken(symbol, syntaxNode);
         }
 
         private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag), syntaxNode);
         }
 
         private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
         {
-            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList, needDeclaration: encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken);
+            var methodRef = _module.Translate(method, syntaxNode, _diagnostics.DiagnosticBag, optArgList, needDeclaration: encodeAsRawDefinitionToken);
+            _builder.EmitToken(methodRef, syntaxNode, encodeAsRawDefinitionToken ? Cci.MetadataWriter.RawTokenEncoding.RowId : 0);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+            var fieldRef = _module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(fieldRef, syntaxNode);
+        }
+
+        private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
+        {
+            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)
@@ -399,6 +435,58 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // otherwise this point could get associated with some random statement, possibly in a wrong scope
                 _builder.EmitOpCode(ILOpCode.Nop);
             }
+        }
+
+        private void EmitSavePreviousSequencePoint(BoundSavePreviousSequencePoint statement)
+        {
+            if (!_emitPdbSequencePoints)
+                return;
+
+            ArrayBuilder<RawSequencePoint> sequencePoints = _builder.SeqPointsOpt;
+            if (sequencePoints is null)
+                return;
+
+            for (int i = sequencePoints.Count - 1; i >= 0; i--)
+            {
+                var span = sequencePoints[i].Span;
+                if (span == RawSequencePoint.HiddenSequencePointSpan)
+                    continue;
+
+                // Found the previous non-hidden sequence point.  Save it.
+                _savedSequencePoints ??= PooledDictionary<object, TextSpan>.GetInstance();
+                _savedSequencePoints.Add(statement.Identifier, span);
+                return;
+            }
+        }
+
+        private void EmitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node)
+        {
+            Debug.Assert(node.Syntax is { });
+            if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var span))
+                return;
+
+            EmitStepThroughSequencePoint(node.Syntax, span);
+        }
+
+        private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
+        {
+            EmitStepThroughSequencePoint(node.Syntax, node.Span);
+        }
+
+        private void EmitStepThroughSequencePoint(SyntaxNode syntaxNode, TextSpan span)
+        {
+            if (!_emitPdbSequencePoints)
+                return;
+
+            var label = new object();
+            // The IL builder is eager to discard unreachable code, so
+            // we fool it by branching on a condition that is always true at runtime.
+            _builder.EmitConstantValue(ConstantValue.Create(true), syntaxNode);
+            _builder.EmitBranch(ILOpCode.Brtrue, label);
+            EmitSequencePoint(syntaxNode.SyntaxTree, span);
+            _builder.EmitOpCode(ILOpCode.Nop);
+            _builder.MarkLabel(label);
+            EmitHiddenSequencePoint();
         }
 
         private void SetInitialDebugDocument()

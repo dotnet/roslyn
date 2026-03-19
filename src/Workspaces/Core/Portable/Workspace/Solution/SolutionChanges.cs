@@ -2,60 +2,112 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public readonly struct SolutionChanges
 {
-    public struct SolutionChanges
+    internal Solution OldSolution { get; }
+    internal Solution NewSolution { get; }
+
+    internal SolutionChanges(Solution newSolution, Solution oldSolution)
     {
-        private readonly Solution _newSolution;
-        private readonly Solution _oldSolution;
+        NewSolution = newSolution;
+        OldSolution = oldSolution;
+    }
 
-        internal SolutionChanges(Solution newSolution, Solution oldSolution)
+    public IEnumerable<Project> GetAddedProjects()
+    {
+        foreach (var id in NewSolution.ProjectIds)
         {
-            _newSolution = newSolution;
-            _oldSolution = oldSolution;
-        }
-
-        public IEnumerable<Project> GetAddedProjects()
-        {
-            foreach (var id in _newSolution.ProjectIds)
+            if (!OldSolution.ContainsProject(id))
             {
-                if (!_oldSolution.ContainsProject(id))
-                {
-                    yield return _newSolution.GetRequiredProject(id);
-                }
+                yield return NewSolution.GetRequiredProject(id);
             }
         }
+    }
 
-        public IEnumerable<ProjectChanges> GetProjectChanges()
+    public IEnumerable<ProjectChanges> GetProjectChanges()
+    {
+        var old = OldSolution;
+
+        // if the project states are different then there is a change.
+        foreach (var id in NewSolution.ProjectIds)
         {
-            var old = _oldSolution;
-
-            // if the project states are different then there is a change.
-            foreach (var id in _newSolution.ProjectIds)
+            var newState = NewSolution.GetProjectState(id);
+            var oldState = old.GetProjectState(id);
+            if (oldState != null && newState != null && newState != oldState)
             {
-                var newState = _newSolution.GetProjectState(id);
-                var oldState = old.GetProjectState(id);
-                if (oldState != null && newState != null && newState != oldState)
-                {
-                    yield return _newSolution.GetRequiredProject(id).GetChanges(_oldSolution.GetRequiredProject(id));
-                }
+                yield return NewSolution.GetRequiredProject(id).GetChanges(OldSolution.GetRequiredProject(id));
             }
         }
+    }
 
-        public IEnumerable<Project> GetRemovedProjects()
+    public IEnumerable<Project> GetRemovedProjects()
+    {
+        foreach (var id in OldSolution.ProjectIds)
         {
-            foreach (var id in _oldSolution.ProjectIds)
+            if (!NewSolution.ContainsProject(id))
             {
-                if (!_newSolution.ContainsProject(id))
-                {
-                    yield return _oldSolution.GetRequiredProject(id);
-                }
+                yield return OldSolution.GetRequiredProject(id);
             }
         }
+    }
+
+    public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
+    {
+        var oldAnalyzerReferences = new HashSet<AnalyzerReference>(OldSolution.AnalyzerReferences);
+        foreach (var analyzerReference in NewSolution.AnalyzerReferences)
+        {
+            if (!oldAnalyzerReferences.Contains(analyzerReference))
+            {
+                yield return analyzerReference;
+            }
+        }
+    }
+
+    public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
+    {
+        var newAnalyzerReferences = new HashSet<AnalyzerReference>(NewSolution.AnalyzerReferences);
+        foreach (var analyzerReference in OldSolution.AnalyzerReferences)
+        {
+            if (!newAnalyzerReferences.Contains(analyzerReference))
+            {
+                yield return analyzerReference;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets changed source generated document ids that were modified with <see cref="Solution.WithFrozenSourceGeneratedDocuments(System.Collections.Immutable.ImmutableArray{ValueTuple{SourceGeneratedDocumentIdentity, DateTime, Text.SourceText}})"/>
+    /// </summary>
+    /// <remarks>
+    /// It is possible for a source generated document to be "frozen" without it existing in the solution, and in that case
+    /// this method will not return that document. This only returns changes to source generated documents, hence they had
+    /// to already be observed in the old solution.
+    /// </remarks>
+    internal IEnumerable<DocumentId> GetExplicitlyChangedSourceGeneratedDocuments()
+    {
+        if (NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty)
+            return [];
+
+        using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
+        foreach (var (id, _) in NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        {
+            var oldState = OldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
+            oldStateBuilder.AddIfNotNull(oldState);
+        }
+
+        var oldStates = new TextDocumentStates<SourceGeneratedDocumentState>(oldStateBuilder);
+        return NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.GetChangedStateIds(
+            oldStates,
+            ignoreUnchangedContent: true,
+            ignoreUnchangeableDocuments: false);
     }
 }

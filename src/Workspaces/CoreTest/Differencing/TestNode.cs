@@ -2,53 +2,49 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Differencing.UnitTests
+namespace Microsoft.CodeAnalysis.Differencing.UnitTests;
+
+public sealed class TestNode
 {
-    public class TestNode
+    public const int MaxValue = 10;
+    public const int MaxLabel = 1;
+
+    public readonly int Label;
+    public readonly int Value;
+    public readonly TestNode[] Children;
+    public TestNode Parent;
+
+    private TestNode _lazyRoot;
+
+    public TestNode(int label, int value, params TestNode[] children)
     {
-        public const int MaxValue = 10;
-        public const int MaxLabel = 1;
+        Debug.Assert(value is >= 0 and <= MaxValue);
+        Debug.Assert(label is >= 0 and <= MaxLabel);
 
-        public readonly int Label;
-        public readonly int Value;
-        public readonly TestNode[] Children;
-        public TestNode Parent;
+        this.Label = label;
+        this.Value = value;
+        this.Children = children;
 
-        private TestNode _lazyRoot;
-
-        public TestNode(int label, int value, params TestNode[] children)
+        foreach (var child in children)
         {
-            Debug.Assert(value >= 0 && value <= MaxValue);
-            Debug.Assert(label >= 0 && label <= MaxLabel);
-
-            this.Label = label;
-            this.Value = value;
-            this.Children = children;
-
-            foreach (var child in children)
-            {
-                child.Parent = this;
-            }
-        }
-
-        public TestNode Root
-        {
-            get
-            {
-                if (_lazyRoot == null)
-                {
-                    _lazyRoot = this.Parent == null ? this : this.Parent.Root;
-                }
-
-                return _lazyRoot;
-            }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("({0}, {1})", Label, Value);
+            child.Parent = this;
         }
     }
+
+    public TestNode Root
+    {
+        get
+        {
+            _lazyRoot ??= this.Parent == null ? this : this.Parent.Root;
+
+            return _lazyRoot;
+        }
+    }
+
+    public override string ToString()
+        => string.Format("({0}, {1})", Label, Value);
 }

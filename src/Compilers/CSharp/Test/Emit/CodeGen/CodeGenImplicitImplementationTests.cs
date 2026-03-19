@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -825,7 +827,7 @@ class C1 : IInterface
 
         [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
-        public void InterfaceDiamondInheritenceWithNewMember()
+        public void InterfaceDiamondInheritanceWithNewMember()
         {
             var source = @"
 interface IBase
@@ -968,7 +970,6 @@ Class2.Method<U>(0, a)",
                     Signature("Class2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<U>([out] System.Int32& a, U[]& b, [System.ParamArrayAttribute()] System.Collections.Generic.List`1[U][] c) cil managed")
                 });
         }
-
 
         [Fact]
         public void ReImplementInterfaceInGrandChild()
@@ -1509,7 +1510,6 @@ Derived1.Method`2",
                 // (19,35): warning CS0693: Type parameter 'Y' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
         }
-
 
         [Fact]
         public void TestImplementationInBaseGenericType()

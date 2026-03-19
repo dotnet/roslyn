@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,14 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundMethodGroup(
             SyntaxNode syntax,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
-            BoundExpression receiverOpt,
+            BoundExpression? receiverOpt,
             string name,
             ImmutableArray<MethodSymbol> methods,
             LookupResult lookupResult,
             BoundMethodGroupFlags flags,
+            Binder binder,
             bool hasErrors = false)
-            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, receiverOpt, lookupResult.Kind, hasErrors)
+            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
+            FunctionType?.SetExpression(this);
+        }
+
+        private static FunctionTypeSymbol? GetFunctionType(Binder binder, SyntaxNode syntax)
+        {
+            return FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr));
         }
 
         public MemberAccessExpressionSyntax? MemberAccessExpressionSyntax
@@ -65,11 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool SearchExtensionMethods
+        public bool SearchExtensions
         {
             get
             {
-                return (this.Flags & BoundMethodGroupFlags.SearchExtensionMethods) != 0;
+                return (this.Flags & BoundMethodGroupFlags.SearchExtensions) != 0;
             }
         }
     }

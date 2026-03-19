@@ -2,116 +2,76 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
-    public partial class MoveTypeTests : CSharpMoveTypeTestsBase
-    {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task SingleClassInFile_RenameType()
-        {
-            var code =
-@"[||]class Class1 { }";
+    [Fact]
+    public Task SingleClassInFile_RenameType()
+        => TestRenameTypeToMatchFileAsync(@"[||]class Class1 { }", @"class [|test1|] { }");
 
-            var codeWithTypeRenamedToMatchFileName =
-@"class [|test1|] { }";
+    [Fact]
+    public Task MoreThanOneTypeInFile_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1
+            { 
+                class Inner { }
+            }
+            """, """
+            class [|test1|]
+            { 
+                class Inner { }
+            }
+            """);
 
-            await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-        }
+    [Fact]
+    public Task TestMissing_TypeNameMatchesFileName_RenameType()
+        => TestRenameTypeToMatchFileAsync(@"[||]class test1 { }", expectedCodeAction: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task MoreThanOneTypeInFile_RenameType()
-        {
-            var code =
-@"[||]class Class1
-{ 
-    class Inner { }
-}";
+    [Fact]
+    public Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1 { }
+            class test1 { }
+            """, expectedCodeAction: false);
 
-            var codeWithTypeRenamedToMatchFileName =
-@"class [|test1|]
-{ 
-    class Inner { }
-}";
+    [Fact]
+    public Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            [||]class Class1 { }
+            class Class2 { }
+            """, """
+            class [|test1|] { }
+            class Class2 { }
+            """);
 
-            await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-        }
+    [Fact]
+    public Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameType()
+        => TestRenameTypeToMatchFileAsync("""
+            class Class1 { }
+            [||]class Class2 { }
+            """, """
+            class Class1 { }
+            class [|test1|] { }
+            """);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestMissing_TypeNameMatchesFileName_RenameType()
-        {
-            // testworkspace creates files like test1.cs, test2.cs and so on.. 
-            // so type name matches filename here and rename file action should not be offered.
-            var code =
-@"[||]class test1 { }";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
+    public Task NothingOfferedWhenTypeHasNoNameYet1()
+        => TestMissingAsync(@"class[||]");
 
-            await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
+    public Task NothingOfferedWhenTypeHasNoNameYet2()
+        => TestMissingAsync(@"class [||]");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
-        {
-            var code =
-@"[||]class Class1 { }
-class test1 { }";
-
-            await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
-        {
-            var code =
-@"[||]class Class1 { }
-class Class2 { }";
-
-            var codeWithTypeRenamedToMatchFileName =
-@"class [|test1|] { }
-class Class2 { }";
-
-            await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameType()
-        {
-            var code =
-@"class Class1 { }
-[||]class Class2 { }";
-
-            var codeWithTypeRenamedToMatchFileName =
-@"class Class1 { }
-class [|test1|] { }";
-
-            await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
-        public async Task NothingOfferedWhenTypeHasNoNameYet1()
-        {
-            var code = @"class[||]";
-            await TestMissingAsync(code);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
-        public async Task NothingOfferedWhenTypeHasNoNameYet2()
-        {
-            var code = @"class [||]";
-            await TestMissingAsync(code);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
-        public async Task NothingOfferedWhenTypeHasNoNameYet3()
-        {
-            var code = @"class [||] { }";
-            await TestMissingAsync(code);
-        }
-    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40043")]
+    public Task NothingOfferedWhenTypeHasNoNameYet3()
+        => TestMissingAsync(@"class [||] { }");
 }

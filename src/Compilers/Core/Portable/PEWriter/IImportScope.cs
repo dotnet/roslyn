@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -17,7 +16,7 @@ namespace Microsoft.Cci
         /// Zero or more used namespaces. These correspond to using directives in C# or Imports syntax in VB.
         /// Multiple invocations return the same array instance.
         /// </summary>
-        ImmutableArray<UsedNamespaceOrType> GetUsedNamespaces();
+        ImmutableArray<UsedNamespaceOrType> GetUsedNamespaces(EmitContext context);
 
         /// <summary>
         /// Parent import scope, or null.

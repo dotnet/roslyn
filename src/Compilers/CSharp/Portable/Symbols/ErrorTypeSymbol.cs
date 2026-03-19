@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -22,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol
     {
         internal static readonly ErrorTypeSymbol UnknownResultType = new UnsupportedMetadataTypeSymbol();
+        internal static readonly ErrorTypeSymbol EmptyParamsCollectionElementTypeSentinel = new UnsupportedMetadataTypeSymbol();
 
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
@@ -81,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return this.ErrorInfo;
+            return new UseSiteInfo<AssemblySymbol>(this.ErrorInfo);
         }
 
         /// <summary>
@@ -107,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+
         public sealed override bool IsRefLikeType
         {
             get
@@ -114,6 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        internal sealed override string? ExtensionGroupingName => null;
+
+        internal sealed override string? ExtensionMarkerName => null;
 
         public sealed override bool IsReadOnly
         {
@@ -134,6 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool HasDeclaredRequiredMembers => false;
+
         /// <summary>
         /// Get all the members of this symbol.
         /// </summary>
@@ -143,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                var result = AddOrWrapTupleMembers(ImmutableArray<Symbol>.Empty);
+                var result = MakeSynthesizedTupleMembers(ImmutableArray<Symbol>.Empty);
                 RoslynDebug.Assert(result is object);
                 return result.ToImmutableAndFree();
             }
@@ -158,12 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// no members with this name, returns an empty ImmutableArray. Never returns Null.</returns>
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return GetMembers().WhereAsArray(m => m.Name == name);
+            return GetMembers().WhereAsArray((m, name) => m.Name == name, name);
         }
 
         internal sealed override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
@@ -192,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name.
         /// If this symbol has no type members with this name,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -203,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name and arity.
         /// If this symbol has no type members with this name and arity,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -293,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
+        /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
@@ -423,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public sealed override bool MightContainExtensionMethods
+        public sealed override bool MightContainExtensions
         {
             get
             {
@@ -433,7 +440,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
 
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsUnionTypeCore => false;
+
+        internal override bool IsInterpolatedStringHandlerType => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
@@ -509,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -529,8 +548,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
+
+        internal override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
+
+        internal override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
 
         protected sealed override ISymbol CreateISymbol()
         {
@@ -541,6 +564,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
             return new PublicModel.ErrorTypeSymbol(this, nullableAnnotation);
+        }
+
+        internal sealed override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
         }
     }
 
@@ -564,6 +615,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _originalDefinition.MangleName; }
         }
+
+        internal sealed override bool IsFileLocal => _originalDefinition.IsFileLocal;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => _originalDefinition.AssociatedFileIdentifier;
 
         internal override DiagnosticInfo? ErrorInfo
         {
@@ -595,9 +649,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.ResultKind; }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _originalDefinition.GetUseSiteDiagnostic();
+            return _originalDefinition.GetUseSiteInfo();
         }
 
         public override int GetHashCode()
@@ -694,6 +748,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
     }
 }

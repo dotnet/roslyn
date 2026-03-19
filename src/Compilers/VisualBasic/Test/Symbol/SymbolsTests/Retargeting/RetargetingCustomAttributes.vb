@@ -2,21 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.[Text]
-Imports System.Collections.Generic
-Imports System.Linq
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 #If Not Retargeting Then
@@ -151,13 +141,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         Private Shared ReadOnly Property OldMsCorLib As MetadataReference
             Get
-                Return TestReferences.NetFx.v4_0_21006.mscorlib
+                Return Net40.References.mscorlib
             End Get
         End Property
 
         Private Shared ReadOnly Property NewMsCorLib As MetadataReference
             Get
-                Return TestReferences.NetFx.v4_0_30319.mscorlib
+                Return NetFramework.mscorlib
             End Get
         End Property
 
@@ -292,6 +282,78 @@ End Class
             Assert.True(named("F").IsNull)
             Assert.Equal("Integer()", named("F").Type.ToDisplayString())
             Assert.Throws(Of InvalidOperationException)(Function() named("F").Value)
+        End Sub
+
+        <Fact>
+        <WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")>
+        Public Sub MissingAttributeType()
+            Dim source1 = "
+Imports System
+
+Public Class A
+    Inherits Attribute
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll)
+
+            Dim source2 = "
+<A>
+Public Class C1
+End Class
+"
+
+            Dim comp2 = CreateCompilation(source2, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugDll)
+            Dim comp3 = CreateCompilation("", references:={comp2.ToMetadataReference()}, options:=TestOptions.DebugDll)
+
+            Dim c1 = comp3.GetTypeByMetadataName("C1")
+            Dim a = c1.GetAttributes().Single()
+            Assert.Equal("A", a.ToString())
+            Assert.IsAssignableFrom(Of MissingMetadataTypeSymbol)(a.AttributeClass)
+            Assert.Null(a.AttributeConstructor)
+        End Sub
+
+        <Fact>
+        <WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")>
+        Public Sub MissingAttributeConstructor()
+            Dim source1_1 = "
+Imports System
+
+Public Class A
+    Inherits Attribute
+End Class
+"
+
+            Dim comp1_1 = CreateCompilation(source1_1, options:=TestOptions.DebugDll, assemblyName:="Lib65048")
+
+            Dim source2 = "
+<A>
+Public Class C1
+End Class
+"
+
+            Dim comp2 = CreateCompilation(source2, references:={comp1_1.ToMetadataReference()}, options:=TestOptions.DebugDll)
+
+            Dim source1_2 = "
+Imports System
+
+Public Class A
+    Inherits Attribute
+
+    Public Sub New(x as Integer)
+    End Sub
+End Class
+"
+
+            Dim comp1_2 = CreateCompilation(source1_2, options:=TestOptions.DebugDll, assemblyName:="Lib65048")
+
+            Dim comp3 = CreateCompilation("", references:={comp2.ToMetadataReference(), comp1_2.ToMetadataReference()}, options:=TestOptions.DebugDll)
+
+            Dim c1 = comp3.GetTypeByMetadataName("C1")
+            Dim a = c1.GetAttributes().Single()
+            Assert.Equal("A", a.ToString())
+            Assert.False(a.AttributeClass.IsErrorType())
+            Assert.Null(a.AttributeConstructor)
         End Sub
     End Class
 #End If

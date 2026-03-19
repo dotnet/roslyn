@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overridable Function GetContainingType(context As EmitContext) As Cci.ITypeReference Implements Cci.ITypeMemberReference.GetContainingType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
@@ -34,6 +35,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition Implements Cci.IReference.AsDefinition
             Return Nothing
+        End Function
+
+        Private Function IReferenceGetInternalSymbol() As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.GetInternalSymbol
+            Return UnderlyingSymbol
+        End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public NotOverridable Overrides Function GetHashCode() As Integer
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

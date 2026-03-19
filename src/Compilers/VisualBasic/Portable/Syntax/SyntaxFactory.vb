@@ -508,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return element.WithStartTag(element.StartTag.AddAttributes(
                 XmlAttribute(
-                    XmlName(Nothing, XmlTextLiteralToken(DocumentationCommentXmlNames.CrefAttributeName, DocumentationCommentXmlNames.CrefAttributeName)),
+                    XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.HrefAttributeName, SyntaxKind.XmlName)).WithLeadingTrivia(ElasticSpace),
                     XmlString(
                         Token(SyntaxKind.DoubleQuoteToken),
                         SyntaxTokenList.Create(
@@ -614,7 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         ''' </summary>
         ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         Public Shared Function XmlValueElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
@@ -622,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         ''' </summary>
         ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         Public Shared Function XmlValueElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
@@ -837,7 +837,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return XmlTextNewLine(text, True)
         End Function
 
-
         ''' <summary>
         ''' Creates a token with kind XmlTextLiteralNewLineToken.
         ''' </summary>
@@ -1016,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Determines if a submission contains an LINQ query not followed by an empty line.
+        ''' Determines if a submission contains a LINQ query not followed by an empty line.
         '''
         ''' Examples:
         ''' 1. <c>Dim x = 1</c> returns false since the statement is not a LINQ query
@@ -1113,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each err In lastToken.GetDiagnostics()
                 Select Case DirectCast(err.Code, ERRID)
                     Case ERRID.ERR_UnterminatedStringLiteral
-                        If Parser.CheckFeatureAvailability(languageVersion, Feature.MultilineStringLiterals) Then
+                        If Parser.CheckFeatureAvailability(languageVersion, Syntax.InternalSyntax.Feature.MultilineStringLiterals) Then
                             Return False
                         End If
                 End Select

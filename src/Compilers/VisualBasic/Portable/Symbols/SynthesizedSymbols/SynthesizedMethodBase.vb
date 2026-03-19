@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public NotOverridable Overrides ReadOnly Property ReturnsByRef As Boolean
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
             Get
                 Return False
             End Get
@@ -204,11 +204,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend NotOverridable Overrides ReadOnly Property IsMethodKindBasedOnSyntax As Boolean
             Get
                 Return False
             End Get
         End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return 0
+        End Function
     End Class
 
 End Namespace

@@ -4,6 +4,8 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -169,7 +171,6 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 </expected>)
-
 
             CompileAndVerify(compilation, <![CDATA[
 1
@@ -968,7 +969,6 @@ BC30518: Overload resolution failed because no accessible 'M1' can be called wit
 
         End Sub
 
-
         <Fact>
         Public Sub Test11()
 
@@ -1002,7 +1002,6 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
     <![CDATA[
@@ -1019,7 +1018,6 @@ BC36918: Single-line statement lambdas must include exactly one statement.
 </expected>)
 
         End Sub
-
 
         <Fact>
         Public Sub Test12()
@@ -1476,7 +1474,6 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
                                      ~~~~~~~~~~~~~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub Error_BC36625()
@@ -2164,5 +2161,385 @@ In getter
 ]]>)
         End Sub
 
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_1()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public a, b As New C1((Function(n) n + 1)(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_2()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Shared Sub Main()
+        Dim a, b As New C1((Function(n) n + 1)(1))
+        System.Console.Write(a.F1)
+        System.Console.Write(b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_3()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public a, b As New C1((Function(n) n + 1)(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+
+        x = New C0(True)
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+
+    Sub New()
+    End Sub
+
+    Sub New(b as Boolean)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="2222")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_4()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public a, b As New C1((Function(n1) (Function(n2) n2 + 1)(n1))(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_5()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Shared Sub Main()
+        Test(Of Object)()
+    End Sub
+
+    Shared Sub Test(Of T)()
+        Dim a, b As New C1((Function(n)
+                                Dim x as T
+                                x = Nothing
+                                Return CObj(x) + n + 1
+                            End Function)(1))
+        System.Console.Write(a.F1)
+        System.Console.Write(b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_6()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public WithEvents a, b As New C1((Function(n) n + 1)(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")>
+        <Fact()>
+        Public Sub ReferToFieldWithinLambdaInTypeAttribute_01()
+
+            Dim compilationDef =
+"
+<Display(Function() $""{Name}"")>
+public class Test
+    <Display(Name:=""Name"")>
+    public readonly property Name As String
+end class
+
+public class DisplayAttribute
+    Inherits System.Attribute
+
+    public Sub New()
+    end Sub
+End Class
+"
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+            compilation.AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Sub New()'.
+<Display(Function() $"{Name}")>
+         ~~~~~~~~~~~~~~~~~~~~
+BC30059: Constant expression is required.
+<Display(Function() $"{Name}")>
+         ~~~~~~~~~~~~~~~~~~~~
+BC30661: Field or property 'Name' is not found.
+    <Display(Name:="Name")>
+             ~~~~
+]]></expected>
+            )
+        End Sub
+
+        <WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")>
+        <Fact()>
+        Public Sub ReferToFieldWithinLambdaInTypeAttribute_02()
+
+            Dim compilationDef =
+"
+<Display(Function() Name)>
+public class Test
+    <Display(Name:=""Name"")>
+    public readonly property Name As String
+end class
+
+public class DisplayAttribute
+    Inherits System.Attribute
+
+    public Sub New()
+    end Sub
+End Class
+"
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+            compilation.AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Sub New()'.
+<Display(Function() Name)>
+         ~~~~~~~~~~~~~~~
+BC30059: Constant expression is required.
+<Display(Function() Name)>
+         ~~~~~~~~~~~~~~~
+BC30661: Field or property 'Name' is not found.
+    <Display(Name:="Name")>
+             ~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_01()
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Parameter)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Class Test1
+    Function M2(<Preserve1,Preserve2,Preserve3> x As Integer) As System.Func(Of Integer)
+        Return Function() x
+    End Function
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {"Preserve1Attribute"},
+                                   m.GlobalNamespace.GetMember("Test1._Closure$__1-0.$VB$Local_x").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, source2, CompilerLoweringPreserveAttributeDefinition},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub IteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Iterator Function() As IEnumerable(Of Integer)
+                         Yield 1
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.True(lambdaMethod.IsIterator)
+        End Sub
+
+        <Fact>
+        Public Sub NotIteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Function() As IEnumerable(Of Integer)
+                         Return Nothing
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.False(lambdaMethod.IsIterator)
+        End Sub
     End Class
 End Namespace

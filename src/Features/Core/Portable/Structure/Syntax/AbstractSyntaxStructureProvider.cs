@@ -5,20 +5,20 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Structure
-{
-    internal abstract class AbstractSyntaxStructureProvider
-    {
-        public abstract void CollectBlockSpans(
-            Document document,
-            SyntaxNode node,
-            ArrayBuilder<BlockSpan> spans,
-            CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.Structure;
 
-        public abstract void CollectBlockSpans(
-            Document document,
-            SyntaxTrivia trivia,
-            ArrayBuilder<BlockSpan> spans,
-            CancellationToken cancellationToken);
-    }
+internal abstract class AbstractSyntaxStructureProvider
+{
+    public abstract void CollectBlockSpans(
+        SyntaxToken previousToken,
+        SyntaxNode node,
+        ArrayBuilder<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken);
+
+    public abstract void CollectBlockSpans(
+        SyntaxTrivia trivia,
+        ArrayBuilder<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken);
 }

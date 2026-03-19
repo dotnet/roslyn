@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -331,7 +333,7 @@ namespace B
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
-        private void UsingsFromLoadedScript()
+        public void UsingsFromLoadedScript()
         {
             const string scriptSource = @"
 using static System.IO.Path;
@@ -376,7 +378,7 @@ t = typeof(C); // declaration exposed
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
-        private void UsingsToLoadedScript()
+        public void UsingsToLoadedScript()
         {
             const string scriptSource = @"
 using System.Collections.Generic;
@@ -461,7 +463,7 @@ class C { }
         }
 
         [Fact]
-        private void GlobalUsingsToLoadedScript()
+        public void GlobalUsingsToLoadedScript()
         {
             const string scriptSource = @"
 System.Type t;
@@ -487,7 +489,7 @@ t = typeof(File); // global using exposed
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Valid()
         {
             const string libSource = @"
@@ -534,7 +536,7 @@ namespace NOuter
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Invalid()
         {
             const string libSource = @"

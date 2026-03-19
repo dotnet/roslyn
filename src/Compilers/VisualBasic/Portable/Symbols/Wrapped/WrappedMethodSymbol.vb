@@ -219,6 +219,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return Me.UnderlyingMethod.IsInitOnly
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Me.UnderlyingMethod.Syntax

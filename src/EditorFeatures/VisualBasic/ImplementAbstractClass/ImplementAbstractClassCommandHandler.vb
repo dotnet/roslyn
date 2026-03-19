@@ -3,9 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementAbstractClass
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
@@ -22,15 +26,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
         Inherits AbstractImplementAbstractClassOrInterfaceCommandHandler
 
         <ImportingConstructor>
-        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService)
-            MyBase.New(editorOperationsFactoryService)
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                editorOperationsFactoryService As IEditorOperationsFactoryService,
+                globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, editorOperationsFactoryService, globalOptions)
         End Sub
 
-        Protected Overrides Function TryGetNewDocument(
+        Protected Overrides Async Function TryGetNewDocumentAsync(
             document As Document,
             typeSyntax As TypeSyntax,
-            cancellationToken As CancellationToken
-        ) As Document
+            cancellationToken As CancellationToken) As Task(Of Document)
 
             If typeSyntax.Parent.Kind <> SyntaxKind.InheritsStatement Then
                 Return Nothing
@@ -41,14 +48,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
                 Return Nothing
             End If
 
-            Dim updatedDocument = ImplementAbstractClassData.TryImplementAbstractClassAsync(
-                document, classBlock, classBlock.ClassStatement.Identifier, cancellationToken).WaitAndGetResult(cancellationToken)
-            If updatedDocument IsNot Nothing AndAlso
-                updatedDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken).Count = 0 Then
+            Dim updatedDocument = Await ImplementAbstractClassData.TryImplementAbstractClassAsync(
+                document, classBlock, classBlock.ClassStatement.Identifier, cancellationToken).ConfigureAwait(True)
+
+            If updatedDocument Is Nothing Then
                 Return Nothing
             End If
 
-            Return updatedDocument
+            Dim changes = Await updatedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(True)
+            If changes.Any() Then
+                Return updatedDocument
+            End If
+
+            Return Nothing
         End Function
     End Class
 End Namespace

@@ -190,7 +190,6 @@ End Class
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(endInvoke, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols
 
-
                         ' --- test FuncGenDel methods -------------------------------------------------------------------------------------------
 
                         Dim subGenDel = [module].GlobalNamespace.GetTypeMembers("C1").Single().GetTypeMembers("SubGenDel").Single()
@@ -294,8 +293,6 @@ SubDel
     ]]>)
             Next
         End Sub
-
-
 
         ''' Bug 5987 "Target parameter of a delegate instantiation is not boxed in case of a structure"
         <Fact>
@@ -2146,7 +2143,6 @@ ByRefParamArraySubOfBase returned: 23 2 3
 
         End Sub
 
-
         <Fact>
         Public Sub CaptureReceiverUsedByStub()
             Dim source =
@@ -2346,8 +2342,8 @@ End Structure
         </file>
     </compilation>
 
-
-            CompileAndVerify(source,
+            Dim verifier = CompileAndVerify(source,
+                         verify:=Verification.FailsILVerify.WithILVerifyMessage("[Test15]: Unrecognized arguments for delegate .ctor. { Offset = 0x1f }"),
                          expectedOutput:=<![CDATA[
 -- Test1 --
 SideEffect1
@@ -2404,6 +2400,29 @@ P1
 1
 2
 ]]>)
+
+            verifier.VerifyIL("Module1.Test15", "
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldstr      ""-- Test15 --""
+  IL_0005:  call       ""Sub System.Console.WriteLine(String)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  box        ""S1""
+  IL_0018:  dup
+  IL_0019:  ldvirtftn  ""Function Object.GetHashCode() As Integer""
+  IL_001f:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_0024:  dup
+  IL_0025:  callvirt   ""Function System.Func(Of Integer).Invoke() As Integer""
+  IL_002a:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_002f:  callvirt   ""Function System.Func(Of Integer).Invoke() As Integer""
+  IL_0034:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0039:  ret
+}
+")
 
         End Sub
 
@@ -2938,6 +2957,56 @@ End Module
     </file>
     </compilation>
             CompileAndVerify(source, expectedOutput:="pass").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2521944")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79696")>
+        Public Sub DoubleCreateTruncating()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+
+Module Program
+    Sub Main()
+        Dim b As Byte = 10
+        Console.Write(Test1()(b))
+        Console.Write(":")
+        Console.Write(Test2(b))
+    End Sub
+
+    Function Test1() As Func(Of Byte, Double)
+        Return AddressOf Double.CreateTruncating
+    End Function
+
+    Function Test2(b As Byte) As Double
+        Return Double.CreateTruncating(b)
+    End Function
+End Module    </file>
+</compilation>
+
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Net90, options:=TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "10:10", Nothing), verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+            verifier.VerifyIL("Program.Test1", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      "Function Double.CreateTruncating(Of Byte)(Byte) As Double"
+  IL_0007:  newobj     "Sub System.Func(Of Byte, Double)..ctor(Object, System.IntPtr)"
+  IL_000c:  ret
+}
+]]>)
+            verifier.VerifyIL("Program.Test2", <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Double.CreateTruncating(Of Byte)(Byte) As Double"
+  IL_0006:  ret
+}
+]]>)
         End Sub
 
     End Class

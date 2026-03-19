@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Reflection;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -286,8 +288,7 @@ class C
         /// Instance of type where all members are marked
         /// [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)].
         /// </summary>
-        [WorkItem(934800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934800")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934800")]
         public void RootHidden_Empty()
         {
             var source =
@@ -656,8 +657,7 @@ public class C<T>
                 EvalResult("X", "0", "int", "o.X", DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [WorkItem(18581, "https://github.com/dotnet/roslyn/issues/18581")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18581")]
         public void AccessibilityNotTrumpedByAttribute()
         {
             var source =

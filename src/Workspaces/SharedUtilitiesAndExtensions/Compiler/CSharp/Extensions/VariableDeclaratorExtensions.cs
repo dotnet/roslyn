@@ -2,33 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class VariableDeclaratorExtensions
 {
-    internal static class VariableDeclaratorExtensions
+    public static TypeSyntax GetVariableType(this VariableDeclaratorSyntax declarator)
     {
-        public static TypeSyntax GetVariableType(this VariableDeclaratorSyntax declarator)
+        if (declarator.Parent is VariableDeclarationSyntax variableDeclaration)
         {
-            if (declarator.Parent is VariableDeclarationSyntax variableDeclaration)
-            {
-                return variableDeclaration.Type;
-            }
-
-            return null;
+            return variableDeclaration.Type;
         }
 
-        public static bool IsTypeInferred(this VariableDeclaratorSyntax variable, SemanticModel semanticModel)
-        {
-            var variableTypeName = variable.GetVariableType();
-            if (variableTypeName == null)
-            {
-                return false;
-            }
+        return null;
+    }
 
-            return variableTypeName.IsTypeInferred(semanticModel);
+    public static bool IsTypeInferred(this VariableDeclaratorSyntax variable, SemanticModel semanticModel)
+    {
+        var variableTypeName = variable.GetVariableType();
+        if (variableTypeName == null)
+        {
+            return false;
         }
+
+        return variableTypeName.IsTypeInferred(semanticModel);
     }
 }

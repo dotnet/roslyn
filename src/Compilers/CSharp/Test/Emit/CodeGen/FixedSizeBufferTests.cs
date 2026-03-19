@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
@@ -173,9 +176,10 @@ class Program
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
                 .VerifyIL("Program.Main", @"
 {
-  // Code size       52 (0x34)
+  // Code size       54 (0x36)
   .maxstack  2
-  .locals init (S1 V_0) //c
+  .locals init (S1 V_0, //c
+                int& V_1) //i
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S1""
   IL_0008:  ldloca.s   V_0
@@ -188,9 +192,11 @@ class Program
   IL_001e:  ldflda     ""S S1.field""
   IL_0023:  ldflda     ""int* S.x""
   IL_0028:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_002d:  ldind.i4
-  IL_002e:  call       ""void System.Console.WriteLine(int)""
-  IL_0033:  ret
+  IL_002d:  stloc.1
+  IL_002e:  ldloc.1
+  IL_002f:  ldind.i4
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ret
 }");
         }
 
@@ -224,8 +230,9 @@ class Program
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
                 .VerifyIL("Program.Main", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       48 (0x30)
   .maxstack  3
+  .locals init (int& V_0) //i
   IL_0000:  newobj     ""C1..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""S C1.field""
@@ -236,9 +243,11 @@ class Program
   IL_0018:  ldflda     ""S C1.field""
   IL_001d:  ldflda     ""int* S.x""
   IL_0022:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_0027:  ldind.i4
-  IL_0028:  call       ""void System.Console.WriteLine(int)""
-  IL_002d:  ret
+  IL_0027:  stloc.0
+  IL_0028:  ldloc.0
+  IL_0029:  ldind.i4
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ret
 }");
         }
 
@@ -275,8 +284,9 @@ class Program
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
                 .VerifyIL("Program.Main", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       60 (0x3c)
   .maxstack  3
+  .locals init (int& V_0) //i
   IL_0000:  newobj     ""C1..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""S C1.field""
@@ -290,9 +300,11 @@ class Program
   IL_0024:  ldflda     ""S C1.field""
   IL_0029:  ldflda     ""int* S.x""
   IL_002e:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_0033:  ldind.i4
-  IL_0034:  call       ""void System.Console.WriteLine(int)""
-  IL_0039:  ret
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldind.i4
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  ret
 }");
         }
 
@@ -393,7 +405,7 @@ class Program
 ";
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor or a variable initializer)
+                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor, an init-only member or a variable initializer)
                 //         c.field.x[0] = 12;
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(17, 9),
                 // (19,27): error CS1649: Members of readonly field 'S1.field' cannot be used as a ref or out value (except in a constructor)
@@ -436,16 +448,17 @@ class Program
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
                 .VerifyIL("Program.Main", @"
 {
-  // Code size       62 (0x3e)
+  // Code size       64 (0x40)
   .maxstack  4
-  .locals init (pinned int& V_0)
+  .locals init (int& V_0, //i
+                pinned int& V_1)
   IL_0000:  newobj     ""S1..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""S S1.field""
   IL_000b:  ldflda     ""int* S.x""
   IL_0010:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.0
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
   IL_0017:  conv.u
   IL_0018:  ldc.i4.3
   IL_0019:  conv.i
@@ -456,7 +469,7 @@ class Program
   IL_001f:  stind.i4
   IL_0020:  ldc.i4.0
   IL_0021:  conv.u
-  IL_0022:  stloc.0
+  IL_0022:  stloc.1
   IL_0023:  ldflda     ""S S1.field""
   IL_0028:  ldflda     ""int* S.x""
   IL_002d:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
@@ -465,9 +478,11 @@ class Program
   IL_0034:  ldc.i4.4
   IL_0035:  mul
   IL_0036:  add
-  IL_0037:  ldind.i4
-  IL_0038:  call       ""void System.Console.WriteLine(int)""
-  IL_003d:  ret
+  IL_0037:  stloc.0
+  IL_0038:  ldloc.0
+  IL_0039:  ldind.i4
+  IL_003a:  call       ""void System.Console.WriteLine(int)""
+  IL_003f:  ret
 }");
         }
 
@@ -859,10 +874,10 @@ class Program
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "const").WithLocation(8, 18),
     // (8,18): error CS1003: Syntax error, '[' expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
-    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[", "const").WithLocation(8, 18),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[").WithLocation(8, 18),
     // (8,18): error CS1003: Syntax error, ']' expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
-    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]", "const").WithLocation(8, 18),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]").WithLocation(8, 18),
     // (8,18): error CS0443: Syntax error; value expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_ValueExpected, "const").WithLocation(8, 18),
@@ -1135,6 +1150,23 @@ unsafe class C
   IL_001e:  pop
   IL_001f:  ret
 }");
+        }
+
+        [Fact]
+        [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
+        public void FixedSizeBufferRetargeting()
+        {
+            var source = @"
+public unsafe struct FixedBuffer
+{
+    public fixed byte buffer[256];
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Mscorlib40, assemblyName: "fixedBuffer");
+            comp.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingField = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("FixedBuffer").GetMember<RetargetingFieldSymbol>("buffer");
+            Assert.True(retargetingField.IsFixedSizeBuffer);
         }
     }
 }

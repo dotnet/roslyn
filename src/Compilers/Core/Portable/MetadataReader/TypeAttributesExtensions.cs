@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -17,11 +19,6 @@ namespace Microsoft.CodeAnalysis
         public static bool IsWindowsRuntime(this TypeAttributes flags)
         {
             return (flags & TypeAttributes.WindowsRuntime) != 0;
-        }
-
-        public static bool IsPublic(this TypeAttributes flags)
-        {
-            return (flags & TypeAttributes.Public) != 0;
         }
 
         public static bool IsSpecialName(this TypeAttributes flags)

@@ -28,9 +28,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Given anonymous type descriptor provided constructs an anonymous type symbol.
         /// </summary>
-        public NamedTypeSymbol ConstructAnonymousTypeSymbol(AnonymousTypeDescriptor typeDescr)
+        public NamedTypeSymbol ConstructAnonymousTypeSymbol(AnonymousTypeDescriptor typeDescr, BindingDiagnosticBag diagnostics)
         {
+            if (diagnostics.AccumulatesDependencies)
+            {
+                var dependencies = BindingDiagnosticBag.GetInstance(withDependencies: true, withDiagnostics: false);
+                ReportMissingOrErroneousSymbols(dependencies);
+                diagnostics.AddRange(dependencies);
+                dependencies.Free();
+            }
+
             return new AnonymousTypePublicSymbol(this, typeDescr);
+        }
+
+        public NamedTypeSymbol ConstructAnonymousDelegateSymbol(AnonymousTypeDescriptor typeDescr)
+        {
+            // ReportMissingOrErroneousSymbols is not reporting anything for delegate types and
+            // ReportMissingOrErroneousSymbolsForDelegates reports only Special types.
+            // Therefore, we have no additional dependencies to report here.
+            return new AnonymousDelegatePublicSymbol(this, typeDescr);
         }
 
         /// <summary>
@@ -46,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Retrieves anonymous type properties types
+        /// Retrieves anonymous type field types.
         /// </summary>
-        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypePropertyTypesWithAnnotations(NamedTypeSymbol type)
+        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypeFieldTypes(NamedTypeSymbol type)
         {
             Debug.Assert(type.IsAnonymousType);
-            var anonymous = (AnonymousTypePublicSymbol)type;
+            var anonymous = (AnonymousTypeOrDelegatePublicSymbol)type;
             var fields = anonymous.TypeDescriptor.Fields;
             return fields.SelectAsArray(f => f.TypeWithAnnotations);
         }
@@ -66,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(type.IsAnonymousType);
 
             var anonymous = (AnonymousTypePublicSymbol)type;
-            return anonymous.Manager.ConstructAnonymousTypeSymbol(anonymous.TypeDescriptor.WithNewFieldsTypes(newFieldTypes));
+            return anonymous.Manager.ConstructAnonymousTypeSymbol(anonymous.TypeDescriptor.WithNewFieldsTypes(newFieldTypes), BindingDiagnosticBag.Discarded);
         }
     }
 }

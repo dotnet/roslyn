@@ -2,30 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.MethodXml
+#nullable disable
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.MethodXml;
+
+internal abstract partial class AbstractMethodXmlBuilder
 {
-    internal abstract partial class AbstractMethodXmlBuilder
+    private readonly struct AttributeInfo
     {
-        private struct AttributeInfo
+        public static readonly AttributeInfo Empty = new();
+
+        public readonly string Name;
+        public readonly string Value;
+
+        public AttributeInfo(string name, string value)
         {
-            public static readonly AttributeInfo Empty = new AttributeInfo();
+            this.Name = name;
+            this.Value = value;
+        }
 
-            public readonly string Name;
-            public readonly string Value;
-
-            public AttributeInfo(string name, string value)
+        public bool IsEmpty
+        {
+            get
             {
-                this.Name = name;
-                this.Value = value;
-            }
-
-            public bool IsEmpty
-            {
-                get
-                {
-                    return this.Name == null
-                        && this.Value == null;
-                }
+                return this.Name == null
+                    && this.Value == null;
             }
         }
     }

@@ -9,25 +9,21 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    public class EventFieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EventFieldDeclarationSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new EventFieldDeclarationStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestEventFieldWithComments()
-        {
-            const string code = @"
-class C
+public sealed class EventFieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EventFieldDeclarationSyntax>
 {
-    {|span:// Goo
-    // Bar|}
-    $$event EventHandler E;
-}";
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new EventFieldDeclarationStructureProvider();
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Goo ...", autoCollapse: true));
-        }
-    }
+    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    public Task TestEventFieldWithComments()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    {|span:// Goo
+                    // Bar|}
+                    $$event EventHandler E;
+                }
+                """,
+            Region("span", "// Goo ...", autoCollapse: true));
 }

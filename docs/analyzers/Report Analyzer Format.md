@@ -1,6 +1,6 @@
 Introduction
 ============
-The C# and Visual Basic compilers support a /reportanalyzer switch on
+The C# and Visual Basic compilers support a `/reportanalyzer` switch on
 the command line to report additional analyzer information, such as execution time.
 
 The output contains the total wall clock time spent in executing the analyzers and
@@ -9,6 +9,13 @@ Note that the elapsed time may be less than analyzer execution time because
 analyzers can run concurrently. One should use this data only for comparative analysis to
 identify any outlier analyzer which takes signinficantly more time than other analyzers.
 
+MSBuild command
+=============
+Use the following msbuild command line to get the analyzer performance report:
+
+```
+msbuild.exe /v:d /p:reportanalyzer=true <%project_file%>
+```
 
 Output Format
 =============

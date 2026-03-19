@@ -1,0 +1,617 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="MissingAttributeMessage" xml:space="preserve">
+    <value>Missing '{0}' attribute</value>
+  </data>
+  <data name="MissingDiagnosticAnalyzerAttributeTitle" xml:space="preserve">
+    <value>Missing diagnostic analyzer attribute</value>
+  </data>
+  <data name="MissingDiagnosticAnalyzerAttributeDescription" xml:space="preserve">
+    <value>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</value>
+  </data>
+  <data name="AddLanguageSupportToAnalyzerMessage" xml:space="preserve">
+    <value>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</value>
+  </data>
+  <data name="AddLanguageSupportToAnalyzerTitle" xml:space="preserve">
+    <value>Recommend adding language support to diagnostic analyzer</value>
+  </data>
+  <data name="AddLanguageSupportToAnalyzerDescription" xml:space="preserve">
+    <value>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</value>
+  </data>
+  <data name="ApplyDiagnosticAnalyzerAttribute_1" xml:space="preserve">
+    <value>Apply DiagnosticAnalyzer attribute for '{0}'.</value>
+  </data>
+  <data name="ApplyDiagnosticAnalyzerAttribute_2" xml:space="preserve">
+    <value>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</value>
+  </data>
+  <data name="MissingSymbolKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>Specify at least one SymbolKind of interest when registering a symbol analyzer action</value>
+  </data>
+  <data name="MissingSyntaxKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</value>
+  </data>
+  <data name="MissingOperationKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>Specify at least one OperationKind of interest when registering an operation analyzer action</value>
+  </data>
+  <data name="MissingKindArgumentToRegisterActionTitle" xml:space="preserve">
+    <value>Missing kind argument when registering an analyzer action</value>
+  </data>
+  <data name="MissingKindArgumentToRegisterActionDescription" xml:space="preserve">
+    <value>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</value>
+  </data>
+  <data name="UnsupportedSymbolKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>SymbolKind '{0}' is not supported for symbol analyzer actions</value>
+  </data>
+  <data name="UnsupportedSymbolKindArgumentToRegisterActionTitle" xml:space="preserve">
+    <value>Unsupported SymbolKind argument when registering a symbol analyzer action</value>
+  </data>
+  <data name="InvalidReportDiagnosticMessage" xml:space="preserve">
+    <value>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</value>
+  </data>
+  <data name="InvalidReportDiagnosticTitle" xml:space="preserve">
+    <value>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</value>
+  </data>
+  <data name="InvalidReportDiagnosticDescription" xml:space="preserve">
+    <value>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</value>
+  </data>
+  <data name="InvalidSyntaxKindTypeArgumentMessage" xml:space="preserve">
+    <value>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</value>
+  </data>
+  <data name="InvalidSyntaxKindTypeArgumentTitle" xml:space="preserve">
+    <value>Invalid type argument for DiagnosticAnalyzer's Register method</value>
+  </data>
+  <data name="InvalidSyntaxKindTypeArgumentDescription" xml:space="preserve">
+    <value>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</value>
+  </data>
+  <data name="StartActionWithOnlyEndActionTitle" xml:space="preserve">
+    <value>Start action has no registered non-end actions</value>
+  </data>
+  <data name="StartActionWithNoRegisteredActionsMessage" xml:space="preserve">
+    <value>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</value>
+  </data>
+  <data name="StartActionWithNoRegisteredActionsTitle" xml:space="preserve">
+    <value>Start action has no registered actions</value>
+  </data>
+  <data name="StartActionWithOnlyEndActionMessage" xml:space="preserve">
+    <value>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</value>
+  </data>
+  <data name="StatefulAnalyzerRegisterActionsDescription" xml:space="preserve">
+    <value>An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
+1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
+2. If required, define and initialize state in the start action.
+3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
+4. If required, register an end action to report diagnostics based on the final state.</value>
+  </data>
+  <data name="UseLocalizableStringsInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</value>
+  </data>
+  <data name="UseLocalizableStringsInDescriptorTitle" xml:space="preserve">
+    <value>Provide localizable arguments to diagnostic descriptor constructor</value>
+  </data>
+  <data name="UseLocalizableStringsInDescriptorDescription" xml:space="preserve">
+    <value>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</value>
+  </data>
+  <data name="ProvideHelpUriInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</value>
+  </data>
+  <data name="ProvideHelpUriInDescriptorTitle" xml:space="preserve">
+    <value>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</value>
+  </data>
+  <data name="ProvideHelpUriInDescriptorDescription" xml:space="preserve">
+    <value>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</value>
+  </data>
+  <data name="DoNotStorePerCompilationDataOntoFieldsMessage" xml:space="preserve">
+    <value>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</value>
+  </data>
+  <data name="DoNotStorePerCompilationDataOntoFieldsTitle" xml:space="preserve">
+    <value>Avoid storing per-compilation data into the fields of a diagnostic analyzer</value>
+  </data>
+  <data name="DoNotStorePerCompilationDataOntoFieldsDescription" xml:space="preserve">
+    <value>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</value>
+  </data>
+  <data name="InternalImplementationOnlyDescription" xml:space="preserve">
+    <value>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</value>
+  </data>
+  <data name="InternalImplementationOnlyMessage" xml:space="preserve">
+    <value>Type {0} cannot implement interface {1} because {1} is not available for public implementation</value>
+  </data>
+  <data name="InternalImplementationOnlyTitle" xml:space="preserve">
+    <value>Only internal implementations of this interface are allowed</value>
+  </data>
+  <data name="CodeActionNeedsEquivalenceKeyDescription" xml:space="preserve">
+    <value>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</value>
+  </data>
+  <data name="CreateCodeActionWithEquivalenceKeyMessage" xml:space="preserve">
+    <value>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</value>
+  </data>
+  <data name="CreateCodeActionWithEquivalenceKeyTitle" xml:space="preserve">
+    <value>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</value>
+  </data>
+  <data name="OverrideCodeActionEquivalenceKeyMessage" xml:space="preserve">
+    <value>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</value>
+  </data>
+  <data name="OverrideCodeActionEquivalenceKeyTitle" xml:space="preserve">
+    <value>Use code actions that have a unique EquivalenceKey for FixAll occurrences support</value>
+  </data>
+  <data name="OverrideGetFixAllProviderTitle" xml:space="preserve">
+    <value>Code fix providers should provide FixAll support</value>
+  </data>
+  <data name="OverrideGetFixAllProviderMessage" xml:space="preserve">
+    <value>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</value>
+  </data>
+  <data name="OverrideGetFixAllProviderDescription" xml:space="preserve">
+    <value>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</value>
+  </data>
+  <data name="OverrideGetFixAllProviderCodeFixTitle" xml:space="preserve">
+    <value>Override GetFixAllProvider.</value>
+  </data>
+  <data name="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription" xml:space="preserve">
+    <value>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</value>
+  </data>
+  <data name="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage" xml:space="preserve">
+    <value>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</value>
+  </data>
+  <data name="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle" xml:space="preserve">
+    <value>Do not ignore values returned by methods on immutable objects</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantTitle" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be a non-null constant</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantMessage" xml:space="preserve">
+    <value>Diagnostic Id for rule '{0}' must be a non-null constant</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be a non-null constant.</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatTitle" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be in specified format</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatMessage" xml:space="preserve">
+    <value>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be in specified format.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdTitle" xml:space="preserve">
+    <value>DiagnosticId must be unique across analyzers</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdMessage" xml:space="preserve">
+    <value>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdDescription" xml:space="preserve">
+    <value>DiagnosticId must be unique across analyzers.</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeTitle" xml:space="preserve">
+    <value>Category for analyzers must be from the specified values</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeMessage" xml:space="preserve">
+    <value>Category '{0}' is not from the allowed categories specified in the file '{1}'</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeDescription" xml:space="preserve">
+    <value>Category for analyzers must be from the specified values.</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidTitle" xml:space="preserve">
+    <value>Invalid entry in analyzer category and diagnostic ID range specification file</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidMessage" xml:space="preserve">
+    <value>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidDescription" xml:space="preserve">
+    <value>Invalid entry in analyzer category and diagnostic ID range specification file.</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleDescription" xml:space="preserve">
+    <value>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleDirectMessage" xml:space="preserve">
+    <value>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleIndirectMessage" xml:space="preserve">
+    <value>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleTitle" xml:space="preserve">
+    <value>Do not use types from Workspaces assembly in an analyzer</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceDescription" xml:space="preserve">
+    <value>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceMessage" xml:space="preserve">
+    <value>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceTitle" xml:space="preserve">
+    <value>Upgrade MSBuildWorkspace</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyDescription" xml:space="preserve">
+    <value>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyMessage" xml:space="preserve">
+    <value>Use 'SymbolEqualityComparer' when comparing symbols</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyTitle" xml:space="preserve">
+    <value>Symbols should be compared for equality</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyCodeFix" xml:space="preserve">
+    <value>Use a 'SymbolEqualityComparer' for symbol comparison</value>
+  </data>
+  <data name="ConfigureGeneratedCodeAnalysisMessage" xml:space="preserve">
+    <value>Configure generated code analysis</value>
+  </data>
+  <data name="ConfigureGeneratedCodeAnalysisTitle" xml:space="preserve">
+    <value>Configure generated code analysis</value>
+  </data>
+  <data name="EnableConcurrentExecutionMessage" xml:space="preserve">
+    <value>Enable concurrent execution</value>
+  </data>
+  <data name="EnableConcurrentExecutionTitle" xml:space="preserve">
+    <value>Enable concurrent execution</value>
+  </data>
+  <data name="ConfigureGeneratedCodeAnalysisFix" xml:space="preserve">
+    <value>Configure generated code analysis</value>
+  </data>
+  <data name="EnableConcurrentExecutionFix" xml:space="preserve">
+    <value>Enable concurrent execution</value>
+  </data>
+  <data name="ClassIsNotDiagnosticAnalyzerMessage" xml:space="preserve">
+    <value>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</value>
+  </data>
+  <data name="ClassIsNotDiagnosticAnalyzerTitle" xml:space="preserve">
+    <value>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorDescription" xml:space="preserve">
+    <value>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorTitle" xml:space="preserve">
+    <value>Provide non-null 'customTags' value to diagnostic descriptor constructor</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers should not use reserved IDs.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdMessage" xml:space="preserve">
+    <value>'{0}' is a reserved diagnostic ID</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdTitle" xml:space="preserve">
+    <value>Do not use reserved diagnostic IDs</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelDescription" xml:space="preserve">
+    <value>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelMessage" xml:space="preserve">
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelTitle" xml:space="preserve">
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
+  </data>
+  <data name="DeclareDiagnosticIdInAnalyzerReleaseTitle" xml:space="preserve">
+    <value>Add analyzer diagnostic IDs to analyzer release</value>
+  </data>
+  <data name="DeclareDiagnosticIdInAnalyzerReleaseMessage" xml:space="preserve">
+    <value>Rule '{0}' is not part of any analyzer release</value>
+  </data>
+  <data name="DeclareDiagnosticIdInAnalyzerReleaseDescription" xml:space="preserve">
+    <value>All supported analyzer diagnostic IDs should be part of an analyzer release.</value>
+  </data>
+  <data name="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle" xml:space="preserve">
+    <value>Add rule entry to unshipped release file</value>
+  </data>
+  <data name="UpdateDiagnosticIdInAnalyzerReleaseTitle" xml:space="preserve">
+    <value>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</value>
+  </data>
+  <data name="UpdateDiagnosticIdInAnalyzerReleaseMessage" xml:space="preserve">
+    <value>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</value>
+  </data>
+  <data name="UpdateDiagnosticIdInAnalyzerReleaseDescription" xml:space="preserve">
+    <value>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</value>
+  </data>
+  <data name="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle" xml:space="preserve">
+    <value>Update rule entry in unshipped release file</value>
+  </data>
+  <data name="RemoveUnshippedDeletedDiagnosticIdTitle" xml:space="preserve">
+    <value>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</value>
+  </data>
+  <data name="RemoveUnshippedDeletedDiagnosticIdMessage" xml:space="preserve">
+    <value>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</value>
+  </data>
+  <data name="RemoveUnshippedDeletedDiagnosticIdDescription" xml:space="preserve">
+    <value>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</value>
+  </data>
+  <data name="RemoveShippedDeletedDiagnosticIdTitle" xml:space="preserve">
+    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</value>
+  </data>
+  <data name="RemoveShippedDeletedDiagnosticIdMessage" xml:space="preserve">
+    <value>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</value>
+  </data>
+  <data name="RemoveShippedDeletedDiagnosticIdDescription" xml:space="preserve">
+    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</value>
+  </data>
+  <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle" xml:space="preserve">
+    <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</value>
+  </data>
+  <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage" xml:space="preserve">
+    <value>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</value>
+  </data>
+  <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription" xml:space="preserve">
+    <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID in the same analyzer release</value>
+  </data>
+  <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage" xml:space="preserve">
+    <value>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</value>
+  </data>
+  <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID in the same analyzer release.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID between analyzer releases</value>
+  </data>
+  <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage" xml:space="preserve">
+    <value>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</value>
+  </data>
+  <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID between analyzer releases.</value>
+  </data>
+  <data name="InvalidEntryInAnalyzerReleasesFileRuleTitle" xml:space="preserve">
+    <value>Invalid entry in analyzer release file</value>
+  </data>
+  <data name="InvalidEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has an invalid entry '{1}'</value>
+  </data>
+  <data name="InvalidHeaderInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has a missing or invalid release header '{1}'</value>
+  </data>
+  <data name="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</value>
+  </data>
+  <data name="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</value>
+  </data>
+  <data name="InvalidEntryInAnalyzerReleasesFileRuleDescription" xml:space="preserve">
+    <value>Invalid entry in analyzer release file.</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleTitle" xml:space="preserve">
+    <value>Enable analyzer release tracking</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleMessage" xml:space="preserve">
+    <value>Enable analyzer release tracking for the analyzer project containing rule '{0}'</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleDescription" xml:space="preserve">
+    <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
+  </data>
+  <data name="DefineDiagnosticTitleCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</value>
+  </data>
+  <data name="DefineDiagnosticTitleCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic title correctly</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic message correctly</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic description correctly</value>
+  </data>
+  <data name="AddCompilationEndCustomTagDescription" xml:space="preserve">
+    <value>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</value>
+  </data>
+  <data name="AddCompilationEndCustomTagMessage" xml:space="preserve">
+    <value>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</value>
+  </data>
+  <data name="AddCompilationEndCustomTagTitle" xml:space="preserve">
+    <value>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyDescriptionGetHashCode" xml:space="preserve">
+    <value>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</value>
+  </data>
+  <data name="PreferIsKindDescription" xml:space="preserve">
+    <value>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</value>
+  </data>
+  <data name="PreferIsKindMessage" xml:space="preserve">
+    <value>Prefer 'IsKind' for checking syntax kinds</value>
+  </data>
+  <data name="PreferIsKindTitle" xml:space="preserve">
+    <value>Prefer 'IsKind' for checking syntax kinds</value>
+  </data>
+  <data name="PreferIsKindFix" xml:space="preserve">
+    <value>Use 'IsKind' instead of 'Kind'</value>
+  </data>
+  <data name="SymbolIsBannedInAnalyzersDescription" xml:space="preserve">
+    <value>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</value>
+  </data>
+  <data name="SymbolIsBannedInAnalyzersMessage" xml:space="preserve">
+    <value>The symbol '{0}' is banned for use by analyzers{1}</value>
+  </data>
+  <data name="SymbolIsBannedInAnalyzersTitle" xml:space="preserve">
+    <value>Do not use APIs banned for analyzers</value>
+  </data>
+  <data name="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription" xml:space="preserve">
+    <value>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</value>
+  </data>
+  <data name="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage" xml:space="preserve">
+    <value>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</value>
+  </data>
+  <data name="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle" xml:space="preserve">
+    <value>Specify analyzer banned API enforcement setting</value>
+  </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage" xml:space="preserve">
+    <value>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage" xml:space="preserve">
+    <value>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage" xml:space="preserve">
+    <value>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</value>
+  </data>
+  <data name="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription" xml:space="preserve">
+    <value>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</value>
+  </data>
+  <data name="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle" xml:space="preserve">
+    <value>Compiler extensions should be implemented in assemblies with compiler-provided references</value>
+  </data>
+  <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription" xml:space="preserve">
+    <value>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</value>
+  </data>
+  <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage" xml:space="preserve">
+    <value>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</value>
+  </data>
+  <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle" xml:space="preserve">
+    <value>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</value>
+  </data>
+  <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription" xml:space="preserve">
+    <value>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</value>
+  </data>
+  <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage" xml:space="preserve">
+    <value>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</value>
+  </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage" xml:space="preserve">
+    <value>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription" xml:space="preserve">
+    <value>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle" xml:space="preserve">
+    <value>Compiler extensions should be implemented in assemblies targeting netstandard2.0</value>
+  </data>
+  <data name="ImplementationIsObsoleteDescription" xml:space="preserve">
+    <value>The author of this interface has deprecated implementing this interface.</value>
+  </data>
+  <data name="ImplementationIsObsoleteMessage" xml:space="preserve">
+    <value>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</value>
+    <remarks>{2} is a URL</remarks>
+  </data>
+  <data name="ImplementationIsObsoleteTitle" xml:space="preserve">
+    <value>Implementations of this interface are not allowed</value>
+  </data>
+  <data name="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription" xml:space="preserve">
+    <value>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</value>
+  </data>
+  <data name="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage" xml:space="preserve">
+    <value>Type '{0}' should not be marked with 'file'</value>
+  </data>
+  <data name="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle" xml:space="preserve">
+    <value>Do not use file types for implementing analyzers, generators, and code fixers</value>
+  </data>
+</root>

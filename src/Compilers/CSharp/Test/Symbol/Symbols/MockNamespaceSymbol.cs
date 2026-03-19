@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
     {
         private NamespaceSymbol _container;
-        private NamespaceExtent _extent;
+        private readonly NamespaceExtent _extent;
         private readonly IEnumerable<Symbol> _children;
         private readonly string _name;
 
@@ -49,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return _children.AsImmutable();
         }
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
+        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
-            return _children.Where(ns => (ns.Name == name)).ToArray().AsImmutableOrNull();
+            return _children.Where(ns => ns.Name.AsSpan().SequenceEqual(name.Span)).ToArray().AsImmutableOrNull();
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
@@ -61,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return (from c in _children
-                    where c is NamedTypeSymbol && c.Name == name
+                    where c is NamedTypeSymbol && c.Name.AsSpan().SequenceEqual(name.Span)
                     select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
         }
 

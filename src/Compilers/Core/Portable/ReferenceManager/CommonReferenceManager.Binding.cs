@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
+        private static readonly ObjectPool<MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>> s_pool =
+            new ObjectPool<MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>>(() => new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(AssemblyIdentityComparer.SimpleNameComparer));
+
         /// <summary>
         /// For the given set of AssemblyData objects, do the following:
         ///    1) Resolve references from each assembly against other assemblies in the set.
@@ -23,7 +27,6 @@ namespace Microsoft.CodeAnalysis
         /// One can think about the rest of the items in assemblies array as assembly references given to the compiler to
         /// build executable for the assembly being built. 
         /// </summary>
-        /// <param name="compilation">Compilation.</param>
         /// <param name="explicitAssemblies">
         /// An array of <see cref="AssemblyData"/> objects describing assemblies, for which this method should
         /// resolve references and find suitable AssemblySymbols. The first slot contains the assembly being built.
@@ -85,22 +88,21 @@ namespace Microsoft.CodeAnalysis
         ///
         /// -    Result of resolving assembly references of the corresponding assembly 
         ///     against provided set of assembly definitions. Essentially, this is an array returned by
-        ///     <see cref="AssemblyData.BindAssemblyReferences(ImmutableArray{AssemblyData}, AssemblyIdentityComparer)"/> method.
+        ///     <see cref="AssemblyData.BindAssemblyReferences"/> method.
         /// </return>
         protected BoundInputAssembly[] Bind(
-            TCompilation compilation,
             ImmutableArray<AssemblyData> explicitAssemblies,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<ResolvedReference> explicitReferenceMap,
-            MetadataReferenceResolver resolverOpt,
+            MetadataReferenceResolver? resolverOpt,
             MetadataImportOptions importOptions,
             bool supersedeLowerVersions,
             [In, Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<AssemblyData> allAssemblies,
             out ImmutableArray<MetadataReference> implicitlyResolvedReferences,
             out ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap,
-            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
+            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> implicitReferenceResolutions,
             [In, Out] DiagnosticBag resolutionDiagnostics,
             out bool hasCircularReference,
             out int corLibraryIndex)
@@ -109,20 +111,29 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(explicitReferences.Length == explicitReferenceMap.Length);
 
             var referenceBindings = ArrayBuilder<AssemblyReferenceBinding[]>.GetInstance();
+            var explicitAssembliesMap = s_pool.Allocate();
+            explicitAssembliesMap.EnsureCapacity(explicitAssemblies.Length);
+
             try
             {
+
+                for (int i = 0; i < explicitAssemblies.Length; i++)
+                {
+                    explicitAssembliesMap.Add(explicitAssemblies[i].Identity.Name, (explicitAssemblies[i], i));
+                }
+
                 // Based on assembly identity, for each assembly, 
                 // bind its references against the other assemblies we have.
                 for (int i = 0; i < explicitAssemblies.Length; i++)
                 {
-                    referenceBindings.Add(explicitAssemblies[i].BindAssemblyReferences(explicitAssemblies, IdentityComparer));
+                    referenceBindings.Add(explicitAssemblies[i].BindAssemblyReferences(explicitAssembliesMap, IdentityComparer));
                 }
 
                 if (resolverOpt?.ResolveMissingAssemblies == true)
                 {
                     ResolveAndBindMissingAssemblies(
-                        compilation,
                         explicitAssemblies,
+                        explicitAssembliesMap,
                         explicitModules,
                         explicitReferences,
                         explicitReferenceMap,
@@ -187,13 +198,16 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
+                explicitAssembliesMap.Clear();
+                s_pool.Free(explicitAssembliesMap);
+
                 referenceBindings.Free();
             }
         }
 
         private void ResolveAndBindMissingAssemblies(
-            TCompilation compilation,
             ImmutableArray<AssemblyData> explicitAssemblies,
+            MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> explicitAssembliesMap,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<ResolvedReference> explicitReferenceMap,
@@ -205,7 +219,7 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<AssemblyData> allAssemblies,
             out ImmutableArray<MetadataReference> metadataReferences,
             out ImmutableArray<ResolvedReference> resolvedReferences,
-            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
+            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> implicitReferenceResolutions,
             DiagnosticBag resolutionDiagnostics)
         {
             Debug.Assert(explicitAssemblies[0] is AssemblyDataForAssemblyBeingBuilt);
@@ -222,7 +236,7 @@ namespace Microsoft.CodeAnalysis
 
             var metadataReferencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
 
-            Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
+            Dictionary<MetadataReference, MergedAliases>? lazyAliasMap = null;
 
             // metadata references and corresponding bindings of their references, used to calculate a fixed point:
             var referenceBindingsToProcess = ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)>.GetInstance();
@@ -232,6 +246,7 @@ namespace Microsoft.CodeAnalysis
 
             // NB: includes the assembly being built:
             int explicitAssemblyCount = explicitAssemblies.Length;
+            MultiDictionary<string, (CommonReferenceManager<TCompilation, TAssemblySymbol>.AssemblyData DefinitionData, int DefinitionIndex)>? implicitAssembliesMap = null;
 
             try
             {
@@ -247,15 +262,16 @@ namespace Microsoft.CodeAnalysis
                             continue;
                         }
 
+                        Debug.Assert(binding.ReferenceIdentity is object);
                         if (!TryResolveMissingReference(
                             requestingReference,
                             binding.ReferenceIdentity,
                             ref implicitReferenceResolutions,
                             resolver,
                             resolutionDiagnostics,
-                            out AssemblyIdentity resolvedAssemblyIdentity,
-                            out AssemblyMetadata resolvedAssemblyMetadata,
-                            out PortableExecutableReference resolvedReference))
+                            out AssemblyIdentity? resolvedAssemblyIdentity,
+                            out AssemblyMetadata? resolvedAssemblyMetadata,
+                            out PortableExecutableReference? resolvedReference))
                         {
                             // Note the failure, but do not commit it to implicitReferenceResolutions until we are done with resolving all missing references.
                             resolutionFailures.Add(binding.ReferenceIdentity);
@@ -287,7 +303,7 @@ namespace Microsoft.CodeAnalysis
                         var data = CreateAssemblyDataForResolvedMissingAssembly(resolvedAssemblyMetadata, resolvedReference, importOptions);
                         implicitAssemblies.Add(data);
 
-                        var referenceBinding = data.BindAssemblyReferences(explicitAssemblies, IdentityComparer);
+                        var referenceBinding = data.BindAssemblyReferences(explicitAssembliesMap, IdentityComparer);
                         referenceBindings.Add(referenceBinding);
                         referenceBindingsToProcess.Push((resolvedReference, new ArraySegment<AssemblyReferenceBinding>(referenceBinding)));
                     }
@@ -312,6 +328,16 @@ namespace Microsoft.CodeAnalysis
                 // Rebind assembly references that were initially missing. All bindings established above
                 // are against explicitly specified references.
 
+                // We only need to resolve against implicitly resolved assemblies,
+                // since we already resolved against explicitly specified ones.
+                implicitAssembliesMap = s_pool.Allocate();
+                implicitAssembliesMap.EnsureCapacity(implicitAssemblies.Count);
+
+                for (int i = 0; i < implicitAssemblies.Count; i++)
+                {
+                    implicitAssembliesMap.Add(implicitAssemblies[i].Identity.Name, (implicitAssemblies[i], explicitAssemblyCount + i));
+                }
+
                 allAssemblies = explicitAssemblies.AddRange(implicitAssemblies);
 
                 for (int bindingsIndex = 0; bindingsIndex < referenceBindings.Count; bindingsIndex++)
@@ -331,10 +357,11 @@ namespace Microsoft.CodeAnalysis
 
                         // We only need to resolve against implicitly resolved assemblies,
                         // since we already resolved against explicitly specified ones.
+                        Debug.Assert(binding.ReferenceIdentity is object);
                         referenceBinding[i] = ResolveReferencedAssembly(
                             binding.ReferenceIdentity,
-                            allAssemblies,
-                            explicitAssemblyCount,
+                            implicitAssembliesMap,
+                            resolveAgainstAssemblyBeingBuilt: false,
                             IdentityComparer);
                     }
                 }
@@ -346,6 +373,12 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
+                if (implicitAssembliesMap is not null)
+                {
+                    implicitAssembliesMap.Clear();
+                    s_pool.Free(implicitAssembliesMap);
+                }
+
                 implicitAssemblies.Free();
                 referenceBindingsToProcess.Free();
                 metadataReferencesBuilder.Free();
@@ -359,7 +392,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ResolvedReference> explicitReferenceMap,
             ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings,
             int totalReferencedAssemblyCount,
-            [Out]ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)> result)
+            [Out] ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)> result)
         {
             Debug.Assert(result.Count == 0);
 
@@ -426,7 +459,7 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<ResolvedReference> ToResolvedAssemblyReferences(
             ImmutableArray<MetadataReference> references,
-            Dictionary<MetadataReference, MergedAliases> propertyMapOpt,
+            Dictionary<MetadataReference, MergedAliases>? propertyMapOpt,
             int explicitAssemblyCount)
         {
             var result = ArrayBuilder<ResolvedReference>.GetInstance(references.Length);
@@ -491,12 +524,12 @@ namespace Microsoft.CodeAnalysis
         private bool TryResolveMissingReference(
             MetadataReference requestingReference,
             AssemblyIdentity referenceIdentity,
-            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
+            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> implicitReferenceResolutions,
             MetadataReferenceResolver resolver,
             DiagnosticBag resolutionDiagnostics,
-            out AssemblyIdentity resolvedAssemblyIdentity,
-            out AssemblyMetadata resolvedAssemblyMetadata,
-            out PortableExecutableReference resolvedReference)
+            [NotNullWhen(true)] out AssemblyIdentity? resolvedAssemblyIdentity,
+            [NotNullWhen(true)] out AssemblyMetadata? resolvedAssemblyMetadata,
+            [NotNullWhen(true)] out PortableExecutableReference? resolvedReference)
         {
             resolvedAssemblyIdentity = null;
             resolvedAssemblyMetadata = null;
@@ -523,6 +556,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var resolvedAssembly = resolvedAssemblyMetadata.GetAssembly();
+            Debug.Assert(resolvedAssembly is object);
 
             // Allow reference and definition identities to differ in version, but not other properties.
             // Don't need to compare if we are reusing a previously resolved reference.
@@ -542,8 +576,10 @@ namespace Microsoft.CodeAnalysis
             PortableExecutableReference peReference,
             MetadataImportOptions importOptions)
         {
+            var assembly = assemblyMetadata.GetAssembly();
+            Debug.Assert(assembly is object);
             return CreateAssemblyDataForFile(
-                assemblyMetadata.GetAssembly(),
+                assembly,
                 assemblyMetadata.CachedSymbols,
                 peReference.DocumentationProvider,
                 SimpleAssemblyName,
@@ -684,227 +720,249 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        private static readonly ObjectPool<Queue<AssemblyReferenceCandidate>> s_candidatesToExaminePool = new ObjectPool<Queue<AssemblyReferenceCandidate>>(() => new Queue<AssemblyReferenceCandidate>());
+        private static readonly ObjectPool<List<TAssemblySymbol?>> s_candidateReferencedSymbolsPool = new ObjectPool<List<TAssemblySymbol?>>(() => new List<TAssemblySymbol?>(capacity: 1024));
+
         private void ReuseAssemblySymbols(BoundInputAssembly[] boundInputs, TAssemblySymbol[] candidateInputAssemblySymbols, ImmutableArray<AssemblyData> assemblies, int corLibraryIndex)
         {
             // Queue of references we need to examine for consistency
-            Queue<AssemblyReferenceCandidate> candidatesToExamine = new Queue<AssemblyReferenceCandidate>();
-            int totalAssemblies = assemblies.Length;
+            Queue<AssemblyReferenceCandidate> candidatesToExamine = s_candidatesToExaminePool.Allocate();
 
-            for (int i = 1; i < totalAssemblies; i++)
+            // A reusable buffer to contain the AssemblySymbols a candidate symbol refers to
+            // ⚠ PERF: https://github.com/dotnet/roslyn/issues/47471
+            List<TAssemblySymbol?> candidateReferencedSymbols = s_candidateReferencedSymbolsPool.Allocate();
+            try
             {
-                // We could have a match already
-                if (boundInputs[i].AssemblySymbol != null || assemblies[i].ContainsNoPiaLocalTypes)
+                int totalAssemblies = assemblies.Length;
+
+                for (int i = 1; i < totalAssemblies; i++)
                 {
-                    continue;
-                }
-
-                foreach (TAssemblySymbol candidateAssembly in assemblies[i].AvailableSymbols)
-                {
-                    bool match = true;
-
-                    // We should examine this candidate, all its references that are supposed to 
-                    // match one of the given assemblies and do the same for their references, etc. 
-                    // The whole set of symbols we get at the end should be consistent with the set 
-                    // of assemblies we are given. The whole set of symbols should be accepted or rejected.
-
-                    // The set of symbols is accumulated in candidateInputAssemblySymbols. It is merged into 
-                    // boundInputs after consistency is confirmed. 
-                    Array.Clear(candidateInputAssemblySymbols, 0, candidateInputAssemblySymbols.Length);
-
-                    // Symbols and index of the corresponding assembly to match against are accumulated in the
-                    // candidatesToExamine queue. They are examined one by one. 
-                    candidatesToExamine.Clear();
-
-                    // This is a queue of symbols that we are picking up as a result of using
-                    // symbols from candidateAssembly
-                    candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(i, candidateAssembly));
-
-                    while (match && candidatesToExamine.Count > 0)
+                    // We could have a match already
+                    if (boundInputs[i].AssemblySymbol != null || assemblies[i].ContainsNoPiaLocalTypes)
                     {
-                        AssemblyReferenceCandidate candidate = candidatesToExamine.Dequeue();
+                        continue;
+                    }
 
-                        Debug.Assert(candidate.DefinitionIndex >= 0);
+                    foreach (TAssemblySymbol candidateAssembly in assemblies[i].AvailableSymbols)
+                    {
+                        bool match = true;
 
-                        int candidateIndex = candidate.DefinitionIndex;
+                        // We should examine this candidate, all its references that are supposed to 
+                        // match one of the given assemblies and do the same for their references, etc. 
+                        // The whole set of symbols we get at the end should be consistent with the set 
+                        // of assemblies we are given. The whole set of symbols should be accepted or rejected.
 
-                        // Have we already chosen symbols for the corresponding assembly?
-                        Debug.Assert(boundInputs[candidateIndex].AssemblySymbol == null ||
-                                              candidateInputAssemblySymbols[candidateIndex] == null);
+                        // The set of symbols is accumulated in candidateInputAssemblySymbols. It is merged into 
+                        // boundInputs after consistency is confirmed. 
+                        Array.Clear(candidateInputAssemblySymbols, 0, candidateInputAssemblySymbols.Length);
 
-                        TAssemblySymbol inputAssembly = boundInputs[candidateIndex].AssemblySymbol;
-                        if (inputAssembly == null)
+                        // Symbols and index of the corresponding assembly to match against are accumulated in the
+                        // candidatesToExamine queue. They are examined one by one. 
+                        candidatesToExamine.Clear();
+
+                        // This is a queue of symbols that we are picking up as a result of using
+                        // symbols from candidateAssembly
+                        candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(i, candidateAssembly));
+
+                        while (match && candidatesToExamine.Count > 0)
                         {
-                            inputAssembly = candidateInputAssemblySymbols[candidateIndex];
-                        }
+                            AssemblyReferenceCandidate candidate = candidatesToExamine.Dequeue();
 
-                        if (inputAssembly != null)
-                        {
-                            if (Object.ReferenceEquals(inputAssembly, candidate.AssemblySymbol))
+                            Debug.Assert(candidate.DefinitionIndex >= 0);
+                            Debug.Assert(candidate.AssemblySymbol is object);
+
+                            int candidateIndex = candidate.DefinitionIndex;
+
+                            // Have we already chosen symbols for the corresponding assembly?
+                            Debug.Assert(boundInputs[candidateIndex].AssemblySymbol == null ||
+                                                  candidateInputAssemblySymbols[candidateIndex] == null);
+
+                            TAssemblySymbol? inputAssembly = boundInputs[candidateIndex].AssemblySymbol;
+                            if (inputAssembly == null)
                             {
-                                // We already checked this AssemblySymbol, no reason to check it again
-                                continue; // Proceed with the next assembly in candidatesToExamine queue.
+                                inputAssembly = candidateInputAssemblySymbols[candidateIndex];
                             }
 
-                            // We are using different AssemblySymbol for this assembly
-                            match = false;
-                            break; // Stop processing items from candidatesToExamine queue.
-                        }
-
-                        // Candidate should be referenced the same way (/r or /l) by the compilation, 
-                        // which originated the symbols. We need this restriction in order to prevent 
-                        // non-interface generic types closed over NoPia local types from crossing 
-                        // assembly boundaries.
-                        if (IsLinked(candidate.AssemblySymbol) != assemblies[candidateIndex].IsLinked)
-                        {
-                            match = false;
-                            break; // Stop processing items from candidatesToExamine queue.
-                        }
-
-                        // Add symbols to the set at corresponding index
-                        Debug.Assert(candidateInputAssemblySymbols[candidateIndex] == null);
-                        candidateInputAssemblySymbols[candidateIndex] = candidate.AssemblySymbol;
-
-                        // Now process references of the candidate.
-
-                        // how we bound the candidate references for this compilation:
-                        var candidateReferenceBinding = boundInputs[candidateIndex].ReferenceBinding;
-
-                        // the AssemblySymbols the candidate symbol refers to:
-                        TAssemblySymbol[] candidateReferencedSymbols = GetActualBoundReferencesUsedBy(candidate.AssemblySymbol);
-
-                        Debug.Assert(candidateReferenceBinding.Length == candidateReferencedSymbols.Length);
-                        int referencesCount = candidateReferencedSymbols.Length;
-
-                        for (int k = 0; k < referencesCount; k++)
-                        {
-                            // All candidate's references that were /l-ed by the compilation, 
-                            // which originated the symbols, must be /l-ed by this compilation and 
-                            // other references must be either /r-ed or not referenced. 
-                            // We need this restriction in order to prevent non-interface generic types 
-                            // closed over NoPia local types from crossing assembly boundaries.
-
-                            // if target reference isn't resolved against given assemblies, 
-                            // we cannot accept a candidate that has the reference resolved.
-                            if (!candidateReferenceBinding[k].IsBound)
+                            if (inputAssembly != null)
                             {
-                                if (candidateReferencedSymbols[k] != null)
+                                if (Object.ReferenceEquals(inputAssembly, candidate.AssemblySymbol))
+                                {
+                                    // We already checked this AssemblySymbol, no reason to check it again
+                                    continue; // Proceed with the next assembly in candidatesToExamine queue.
+                                }
+
+                                // We are using different AssemblySymbol for this assembly
+                                match = false;
+                                break; // Stop processing items from candidatesToExamine queue.
+                            }
+
+                            // Candidate should be referenced the same way (/r or /l) by the compilation, 
+                            // which originated the symbols. We need this restriction in order to prevent 
+                            // non-interface generic types closed over NoPia local types from crossing 
+                            // assembly boundaries.
+                            if (IsLinked(candidate.AssemblySymbol) != assemblies[candidateIndex].IsLinked)
+                            {
+                                match = false;
+                                break; // Stop processing items from candidatesToExamine queue.
+                            }
+
+                            // Add symbols to the set at corresponding index
+                            Debug.Assert(candidateInputAssemblySymbols[candidateIndex] == null);
+                            candidateInputAssemblySymbols[candidateIndex] = candidate.AssemblySymbol;
+
+                            // Now process references of the candidate.
+
+                            // how we bound the candidate references for this compilation:
+                            var candidateReferenceBinding = boundInputs[candidateIndex].ReferenceBinding;
+
+                            // get the AssemblySymbols the candidate symbol refers to into candidateReferencedSymbols
+                            candidateReferencedSymbols.Clear();
+                            GetActualBoundReferencesUsedBy(candidate.AssemblySymbol, candidateReferencedSymbols);
+
+                            Debug.Assert(candidateReferenceBinding is object);
+                            Debug.Assert(candidateReferenceBinding.Length == candidateReferencedSymbols.Count);
+                            int referencesCount = candidateReferencedSymbols.Count;
+
+                            for (int k = 0; k < referencesCount; k++)
+                            {
+                                // All candidate's references that were /l-ed by the compilation, 
+                                // which originated the symbols, must be /l-ed by this compilation and 
+                                // other references must be either /r-ed or not referenced. 
+                                // We need this restriction in order to prevent non-interface generic types 
+                                // closed over NoPia local types from crossing assembly boundaries.
+
+                                // if target reference isn't resolved against given assemblies, 
+                                // we cannot accept a candidate that has the reference resolved.
+                                if (!candidateReferenceBinding[k].IsBound)
+                                {
+                                    if (candidateReferencedSymbols[k] != null)
+                                    {
+                                        // can't use symbols 
+
+                                        // If we decide do go back to accepting references like this,
+                                        // we should still not do this if the reference is a /l-ed assembly.
+                                        match = false;
+                                        break; // Stop processing references.
+                                    }
+
+                                    continue; // Proceed with the next reference.
+                                }
+
+                                // We resolved the reference, candidate must have that reference resolved too.
+                                var currentCandidateReferencedSymbol = candidateReferencedSymbols[k];
+                                if (currentCandidateReferencedSymbol == null)
                                 {
                                     // can't use symbols 
-
-                                    // If we decide do go back to accepting references like this,
-                                    // we should still not do this if the reference is a /l-ed assembly.
                                     match = false;
                                     break; // Stop processing references.
                                 }
 
-                                continue; // Proceed with the next reference.
-                            }
-
-                            // We resolved the reference, candidate must have that reference resolved too.
-                            if (candidateReferencedSymbols[k] == null)
-                            {
-                                // can't use symbols 
-                                match = false;
-                                break; // Stop processing references.
-                            }
-
-                            int definitionIndex = candidateReferenceBinding[k].DefinitionIndex;
-                            if (definitionIndex == 0)
-                            {
-                                // We can't reuse any assembly that refers to the assembly being built.
-                                match = false;
-                                break;
-                            }
-
-                            // Make sure symbols represent the same assembly/binary
-                            if (!assemblies[definitionIndex].IsMatchingAssembly(candidateReferencedSymbols[k]))
-                            {
-                                // Mismatch between versions?
-                                match = false;
-                                break; // Stop processing references.
-                            }
-
-                            if (assemblies[definitionIndex].ContainsNoPiaLocalTypes)
-                            {
-                                // We already know that we cannot reuse any existing symbols for 
-                                // this assembly
-                                match = false;
-                                break; // Stop processing references.
-                            }
-
-                            if (IsLinked(candidateReferencedSymbols[k]) != assemblies[definitionIndex].IsLinked)
-                            {
-                                // Mismatch between reference kind.
-                                match = false;
-                                break; // Stop processing references.
-                            }
-
-                            // Add this reference to the queue so that we consider it as a candidate too 
-                            candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(definitionIndex, candidateReferencedSymbols[k]));
-                        }
-
-                        // Check that the COR library used by the candidate assembly symbol is the same as the one use by this compilation.
-                        if (match)
-                        {
-                            TAssemblySymbol candidateCorLibrary = GetCorLibrary(candidate.AssemblySymbol);
-
-                            if (candidateCorLibrary == null)
-                            {
-                                // If the candidate didn't have a COR library, that is fine as long as we don't have one either.
-                                if (corLibraryIndex >= 0)
+                                int definitionIndex = candidateReferenceBinding[k].DefinitionIndex;
+                                if (definitionIndex == 0)
                                 {
+                                    // We can't reuse any assembly that refers to the assembly being built.
                                     match = false;
-                                    break; // Stop processing references.
-                                }
-                            }
-                            else
-                            {
-                                // We can't be compiling corlib and have a corlib reference at the same time:
-                                Debug.Assert(corLibraryIndex != 0);
-
-                                Debug.Assert(ReferenceEquals(candidateCorLibrary, GetCorLibrary(candidateCorLibrary)));
-
-                                // Candidate has COR library, we should have one too.
-                                if (corLibraryIndex < 0)
-                                {
-                                    match = false;
-                                    break; // Stop processing references.
+                                    break;
                                 }
 
-                                // Make sure candidate COR library represent the same assembly/binary
-                                if (!assemblies[corLibraryIndex].IsMatchingAssembly(candidateCorLibrary))
+                                // Make sure symbols represent the same assembly/binary
+                                if (!assemblies[definitionIndex].IsMatchingAssembly(currentCandidateReferencedSymbol))
                                 {
                                     // Mismatch between versions?
                                     match = false;
                                     break; // Stop processing references.
                                 }
 
-                                Debug.Assert(!assemblies[corLibraryIndex].ContainsNoPiaLocalTypes);
-                                Debug.Assert(!assemblies[corLibraryIndex].IsLinked);
-                                Debug.Assert(!IsLinked(candidateCorLibrary));
+                                if (assemblies[definitionIndex].ContainsNoPiaLocalTypes)
+                                {
+                                    // We already know that we cannot reuse any existing symbols for 
+                                    // this assembly
+                                    match = false;
+                                    break; // Stop processing references.
+                                }
 
-                                // Add the candidate COR library to the queue so that we consider it as a candidate.
-                                candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(corLibraryIndex, candidateCorLibrary));
+                                if (IsLinked(currentCandidateReferencedSymbol) != assemblies[definitionIndex].IsLinked)
+                                {
+                                    // Mismatch between reference kind.
+                                    match = false;
+                                    break; // Stop processing references.
+                                }
+
+                                // Add this reference to the queue so that we consider it as a candidate too 
+                                candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(definitionIndex, currentCandidateReferencedSymbol));
                             }
-                        }
-                    }
 
-                    if (match)
-                    {
-                        // Merge the set of symbols into result
-                        for (int k = 0; k < totalAssemblies; k++)
-                        {
-                            if (candidateInputAssemblySymbols[k] != null)
+                            // Check that the COR library used by the candidate assembly symbol is the same as the one use by this compilation.
+                            if (match)
                             {
-                                Debug.Assert(boundInputs[k].AssemblySymbol == null);
-                                boundInputs[k].AssemblySymbol = candidateInputAssemblySymbols[k];
+                                TAssemblySymbol? candidateCorLibrary = GetCorLibrary(candidate.AssemblySymbol);
+
+                                if (candidateCorLibrary == null)
+                                {
+                                    // If the candidate didn't have a COR library, that is fine as long as we don't have one either.
+                                    if (corLibraryIndex >= 0)
+                                    {
+                                        match = false;
+                                        break; // Stop processing references.
+                                    }
+                                }
+                                else
+                                {
+                                    // We can't be compiling corlib and have a corlib reference at the same time:
+                                    Debug.Assert(corLibraryIndex != 0);
+
+                                    Debug.Assert(ReferenceEquals(candidateCorLibrary, GetCorLibrary(candidateCorLibrary)));
+
+                                    // Candidate has COR library, we should have one too.
+                                    if (corLibraryIndex < 0)
+                                    {
+                                        match = false;
+                                        break; // Stop processing references.
+                                    }
+
+                                    // Make sure candidate COR library represent the same assembly/binary
+                                    if (!assemblies[corLibraryIndex].IsMatchingAssembly(candidateCorLibrary))
+                                    {
+                                        // Mismatch between versions?
+                                        match = false;
+                                        break; // Stop processing references.
+                                    }
+
+                                    Debug.Assert(!assemblies[corLibraryIndex].ContainsNoPiaLocalTypes);
+                                    Debug.Assert(!assemblies[corLibraryIndex].IsLinked);
+                                    Debug.Assert(!IsLinked(candidateCorLibrary));
+
+                                    // Add the candidate COR library to the queue so that we consider it as a candidate.
+                                    candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(corLibraryIndex, candidateCorLibrary));
+                                }
                             }
                         }
 
-                        // No reason to examine other symbols for this assembly
-                        break; // Stop processing assemblies[i].AvailableSymbols
+                        if (match)
+                        {
+                            // Merge the set of symbols into result
+                            for (int k = 0; k < totalAssemblies; k++)
+                            {
+                                if (candidateInputAssemblySymbols[k] != null)
+                                {
+                                    Debug.Assert(boundInputs[k].AssemblySymbol == null);
+                                    boundInputs[k].AssemblySymbol = candidateInputAssemblySymbols[k];
+                                }
+                            }
+
+                            // No reason to examine other symbols for this assembly
+                            break; // Stop processing assemblies[i].AvailableSymbols
+                        }
                     }
                 }
+            }
+            finally
+            {
+                candidatesToExamine.Clear();
+                candidateReferencedSymbols.Clear();
+
+                s_candidatesToExaminePool.Free(candidatesToExamine);
+                s_candidateReferencedSymbolsPool.Free(candidateReferencedSymbols);
             }
         }
 
@@ -926,13 +984,15 @@ namespace Microsoft.CodeAnalysis
 
         private static bool IsSuperseded(AssemblyIdentity identity, IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName)
         {
-            return assemblyReferencesBySimpleName[identity.Name][0].Identity.Version != identity.Version;
+            var value = assemblyReferencesBySimpleName[identity.Name][0];
+            Debug.Assert(value.Identity is object);
+            return value.Identity.Version != identity.Version;
         }
 
         private static int IndexOfCorLibrary(ImmutableArray<AssemblyData> assemblies, IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName, bool supersedeLowerVersions)
         {
             // Figure out COR library for this compilation.
-            ArrayBuilder<int> corLibraryCandidates = null;
+            ArrayBuilder<int>? corLibraryCandidates = null;
 
             for (int i = 1; i < assemblies.Length; i++)
             {
@@ -999,26 +1059,24 @@ namespace Microsoft.CodeAnalysis
         /// access to assembly <paramref name="compilationName"/>. It does not make a conclusive
         /// determination of visibility because the compilation's strong name key is not supplied.
         /// </summary>
-        static internal bool InternalsMayBeVisibleToAssemblyBeingCompiled(string compilationName, PEAssembly assembly)
+        internal static bool InternalsMayBeVisibleToAssemblyBeingCompiled(string compilationName, PEAssembly assembly)
         {
             return !assembly.GetInternalsVisibleToPublicKeys(compilationName).IsEmpty();
         }
 
-#nullable enable
         // https://github.com/dotnet/roslyn/issues/40751 It should not be necessary to annotate this method to annotate overrides
         /// <summary>
-        /// Return AssemblySymbols referenced by the input AssemblySymbol. The AssemblySymbols must correspond 
+        /// Compute AssemblySymbols referenced by the input AssemblySymbol and fill in <paramref name="referencedAssemblySymbols"/> with the result.
+        /// The AssemblySymbols must correspond 
         /// to the AssemblyNames returned by AssemblyData.AssemblyReferences property. If reference is not 
         /// resolved, null reference should be returned in the corresponding item. 
         /// </summary>
-        /// <param name="assemblySymbol"></param>
-        /// The target AssemblySymbol instance.
-        /// <returns>
-        /// An array of AssemblySymbols referenced by the input AssemblySymbol.
-        /// Implementers may return cached array, Binder does not mutate it.
-        /// </returns>
-        protected abstract TAssemblySymbol?[] GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol);
-#nullable restore
+        /// <param name="assemblySymbol">The target AssemblySymbol instance.</param>
+        /// <param name="referencedAssemblySymbols">A list which will be filled in with
+        /// AssemblySymbols referenced by the input AssemblySymbol. The caller is expected to clear
+        /// the list before calling this method.
+        /// Implementer may not cache the list; the caller may mutate it.</param>
+        protected abstract void GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol, List<TAssemblySymbol?> referencedAssemblySymbols);
 
         /// <summary>
         /// Return collection of assemblies involved in canonical type resolution of
@@ -1032,11 +1090,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract bool IsLinked(TAssemblySymbol candidateAssembly);
 
-#nullable enable
         /// <summary>
         /// Get Assembly used as COR library for the candidate.
         /// </summary>
         protected abstract TAssemblySymbol? GetCorLibrary(TAssemblySymbol candidateAssembly);
-#nullable restore
     }
 }

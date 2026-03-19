@@ -8,11 +8,11 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBro
 Imports Microsoft.VisualStudio.ComponentModelHost
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
-    Friend Class ObjectBrowserLibraryManager
+    Friend NotInheritable Class ObjectBrowserLibraryManager
         Inherits AbstractObjectBrowserLibraryManager
 
         Public Sub New(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace)
-            MyBase.New(LanguageNames.VisualBasic, Guids.VisualBasicLibraryId, __SymbolToolLanguage.SymbolToolLanguage_VB, serviceProvider, componentModel, workspace)
+            MyBase.New(LanguageNames.VisualBasic, Guids.VisualBasicLibraryId, serviceProvider, componentModel, workspace)
         End Sub
 
         Friend Overrides Function CreateDescriptionBuilder(

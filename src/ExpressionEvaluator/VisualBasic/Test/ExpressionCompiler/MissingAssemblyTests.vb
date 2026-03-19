@@ -4,7 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -14,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
@@ -249,7 +250,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub ERR_UndefinedType1()
             Dim source = "
@@ -281,19 +282,16 @@ End Class
                     actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage.Additional"}, globalNamespace).Single()
                     Assert.Equal(expectedIdentity, actualIdentity)
 
-
                     expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=AssemblyContentType.WindowsRuntime)
 
                     actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
                     Assert.Equal(expectedIdentity, actualIdentity)
 
-
                     Assert.True(GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml(Of T)"}, globalNamespace).IsDefault)
                 End Sub)
         End Sub
 
-        <WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
         Public Sub ERR_NameNotMember2()
             Const source = "
 Imports System.Linq
@@ -343,9 +341,8 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
-        <WorkItem(597, "GitHub")>
-        <Fact>
+        <Fact, WorkItem(597, "GitHub")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
         Public Sub PseudoVariableType()
             Const source = "
 Public Class C
@@ -385,7 +382,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds()
             Dim source = "
@@ -427,7 +424,7 @@ End Class
         ''' <remarks>
         ''' Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         ''' </remarks>
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_MultipleParts()
             Dim source = "
@@ -466,7 +463,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_GetType()
             Dim source = "
@@ -506,8 +503,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
         Public Sub CompileWithRetrySameErrorReported()
             Dim source = " 
 Class C 
@@ -525,6 +521,7 @@ End Class
 
                     Dim numRetries = 0
                     Dim errorMessage As String = Nothing
+                    Dim compileResult As CompileResult = Nothing
                     ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                         runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                         context,
@@ -538,6 +535,7 @@ End Class
                             uSize = CUInt(missingModule.MetadataLength)
                             Return missingModule.MetadataAddress
                         End Function,
+                        compileResult,
                         errorMessage)
 
                     Assert.Equal(2, numRetries) ' Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
@@ -614,8 +612,8 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (x As Integer, Integer) V_1, //y
-                (Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer) V_1, //y
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
@@ -639,15 +637,14 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (x As Integer, Integer) V_1, //y
-                (Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer) V_1, //y
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }", LanguageVersion.VisualBasic15_3)
         End Sub
 
-        <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16879")>
         Public Sub NonTupleNoSystemRuntime()
             Const source =
 "Class C
@@ -665,8 +662,8 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (x As Integer, Integer) V_1, //y
-                (Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer) V_1, //y
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")
@@ -674,18 +671,18 @@ End Class"
 
         Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String,
                                                        Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15)
-            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll,
+            Dim comp = CreateEmptyCompilation({source}, references:={Net461.References.mscorlib, Net461.References.SystemRuntime, ValueTupleLegacyRef}, options:=TestOptions.DebugDll,
                                                      parseOptions:=TestOptions.Regular.WithLanguageVersion(languageVersion))
-            Using systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance()
-                WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef},
+            Using systemRuntime = Net461.References.SystemRuntime.ToModuleInstance()
+                WithRuntimeInstance(comp, {Net461.References.mscorlib, ValueTupleLegacyRef},
                     Sub(runtime)
                         Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-                        Dim moduleVersionId As Guid = Nothing
+                        Dim moduleId As ModuleId = Nothing
                         Dim symReader As ISymUnmanagedReader = Nothing
                         Dim typeToken = 0
                         Dim methodToken = 0
                         Dim localSignatureToken = 0
-                        GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                        GetContextState(runtime, "C.M", methodBlocks, moduleId, symReader, methodToken, localSignatureToken)
                         Dim errorMessage As String = Nothing
                         Dim testData As CompilationTestData = Nothing
                         Dim retryCount = 0
@@ -693,7 +690,7 @@ End Class"
                             runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                             expression,
                             ImmutableArray(Of [Alias]).Empty,
-                            Function(b, u) EvaluationContext.CreateMethodContext(b.ToCompilation(), MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion:=1, ilOffset:=0, localSignatureToken:=localSignatureToken),
+                            Function(b, u) EvaluationContext.CreateMethodContext(b.ToCompilation(), MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion:=1, ilOffset:=0, localSignatureToken:=localSignatureToken),
                             Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
                                 retryCount += 1
                                 Assert.Equal("System.Runtime", assemblyIdentity.Name)

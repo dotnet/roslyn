@@ -122,10 +122,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each initializer In node.Initializers
                 ' Ignore assignments in object initializers, only reference the value
-                Debug.Assert(initializer.Kind = BoundKind.AssignmentOperator)
-                Dim assignment = DirectCast(initializer, BoundAssignmentOperator)
-                Debug.Assert(assignment.LeftOnTheRightOpt Is Nothing)
-                Me.Visit(assignment.Right)
+                Dim boundExpression As BoundExpression = initializer
+                If boundExpression.Kind = BoundKind.AssignmentOperator Then
+                    Dim assignment = DirectCast(initializer, BoundAssignmentOperator)
+                    Debug.Assert(assignment.LeftOnTheRightOpt Is Nothing)
+
+                    boundExpression = assignment.Right
+                    Dim propertyAccess = TryCast(assignment.Left, BoundPropertyAccess)
+                    If propertyAccess IsNot Nothing Then
+                        CheckRefReturningPropertyAccess(propertyAccess)
+                    End If
+                End If
+
+                Me.Visit(boundExpression)
             Next
 
             Me._expressionTreePlaceholders.Remove(placeholder)
@@ -264,13 +273,17 @@ lSelect:
                 Me.Visit(node.ReceiverOpt)
             End If
 
-            If IsInExpressionLambda AndAlso [property].ReturnsByRef Then
-                GenerateDiagnostic(ERRID.ERR_RefReturningCallInExpressionTree, node)
-            End If
+            CheckRefReturningPropertyAccess(node)
 
             Me.VisitList(node.Arguments)
             Return Nothing
         End Function
+
+        Private Sub CheckRefReturningPropertyAccess(node As BoundPropertyAccess)
+            If IsInExpressionLambda AndAlso node.PropertySymbol.ReturnsByRef Then
+                GenerateDiagnostic(ERRID.ERR_RefReturningCallInExpressionTree, node)
+            End If
+        End Sub
 
         Public Overrides Function VisitEventAccess(node As BoundEventAccess) As BoundNode
             Dim [event] As EventSymbol = node.EventSymbol
@@ -392,6 +405,10 @@ lSelect:
             Me._diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(code), node.Syntax.GetLocation()))
         End Sub
 
+        Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
+            Visit(node.ConstructionOpt)
+            Return MyBase.VisitInterpolatedStringExpression(node)
+        End Function
     End Class
 
 End Namespace

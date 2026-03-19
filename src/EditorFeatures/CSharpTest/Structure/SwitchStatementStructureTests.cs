@@ -9,28 +9,52 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestSwitchStatement1()
-        {
-            const string code = @"
-class C
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
 {
-    void M()
-    {
-        {|hint:$$switch (expr){|textspan:
-        {
-        }|}|}
-    }
-}";
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider();
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
-    }
+    [Fact]
+    public Task TestSwitchStatement1()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        {|hint:$$switch (expr){|textspan:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestSwitchStatement2()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        {|hint1:$$switch (expr){|textspan1:
+                        {
+                            {|hint2:case 0:{|textspan2:
+                                if (true)
+                                {
+                                }
+                                break;|}|}
+                            {|hint3:default:{|textspan3:
+                                if (false)
+                                {
+                                }
+                                break;|}|}
+                        }|}|}
+                    }
+                }
+                """,
+            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+            Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 }

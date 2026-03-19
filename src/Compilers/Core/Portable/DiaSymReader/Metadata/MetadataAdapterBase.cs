@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Reflection;
@@ -15,25 +17,25 @@ namespace Microsoft.DiaSymReader
 
         public virtual int GetSigFromToken(
             int standaloneSignature,
-            [Out]byte** signature,
-            [Out]int* signatureLength)
+            [Out] byte** signature,
+            [Out] int* signatureLength)
             => throw new NotImplementedException();
 
         public virtual int GetTypeDefProps(
             int typeDef,
-            [Out]char* qualifiedName,
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength,
-            [Out]TypeAttributes* attributes,
-            [Out]int* baseType)
+            [Out] int* qualifiedNameLength,
+            [Out] TypeAttributes* attributes,
+            [Out] int* baseType)
             => throw new NotImplementedException();
 
         public virtual int GetTypeRefProps(
             int typeRef,
-            [Out]int* resolutionScope, // ModuleRef or AssemblyRef
-            [Out]char* qualifiedName,
+            [Out] int* resolutionScope, // ModuleRef or AssemblyRef
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength)
+            [Out] int* qualifiedNameLength)
             => throw new NotImplementedException();
 
         public virtual int GetNestedClassProps(int nestedClass, out int enclosingClass)
@@ -90,7 +92,7 @@ namespace Microsoft.DiaSymReader
         int IMetadataImport.GetModuleRefProps(int moduleRef, char* name, int nameBufferLength, int* nameLength) => throw new NotImplementedException();
         int IMetadataImport.EnumModuleRefs(ref void* enumHandle, int* moduleRefs, int bufferLength, int* count) => throw new NotImplementedException();
         int IMetadataImport.GetTypeSpecFromToken(int typeSpec, byte** signature, int* signatureLength) => throw new NotImplementedException();
-        int IMetadataImport.GetNameFromToken(int token, byte* nameUTF8) => throw new NotImplementedException();
+        int IMetadataImport.GetNameFromToken(int token, byte* nameUtf8) => throw new NotImplementedException();
         int IMetadataImport.EnumUnresolvedMethods(ref void* enumHandle, int* methodDefs, int bufferLength, int* count) => throw new NotImplementedException();
         int IMetadataImport.GetUserString(int userStringToken, char* buffer, int bufferLength, int* length) => throw new NotImplementedException();
         int IMetadataImport.GetPinvokeMap(int memberDef, int* attributes, char* importName, int importNameBufferLength, int* importNameLength, int* moduleRef) => throw new NotImplementedException();

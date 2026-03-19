@@ -2,14 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Public Class ScanConditionalTests
-
 
     <Fact>
     Public Sub Scanner_ConditionalSkipEol()
@@ -34,7 +30,6 @@ blah
 blah
 #hi
 boo</text>.Value
-
 
         Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
 

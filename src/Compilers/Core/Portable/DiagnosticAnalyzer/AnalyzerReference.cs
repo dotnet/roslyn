@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -61,5 +60,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="language">Language name.</param>
         public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language);
+
+        /// <summary>
+        /// Gets all the source generators defined in this assembly reference.
+        /// </summary>
+        public virtual ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages() => ImmutableArray<ISourceGenerator>.Empty;
+
+        [Obsolete("Use GetGenerators(string language) or GetGeneratorsForAllLanguages()")]
+        public virtual ImmutableArray<ISourceGenerator> GetGenerators() => ImmutableArray<ISourceGenerator>.Empty;
+
+        /// <summary>
+        /// Gets all the generators defined in this assembly reference for the given <paramref name="language"/>.
+        /// </summary>
+        /// <param name="language">Language name.</param>
+        public virtual ImmutableArray<ISourceGenerator> GetGenerators(string language) => ImmutableArray<ISourceGenerator>.Empty;
     }
 }

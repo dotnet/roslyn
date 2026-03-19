@@ -573,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             ' Merge methodGroup.AdditionalExtensionMethods into the result.
-            For Each method In methodGroup.AdditionalExtensionMethods(useSiteDiagnostics:=Nothing)
+            For Each method In methodGroup.AdditionalExtensionMethods(useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 ' This is a quick fix for the fact that binder lookup in VB does not perform arity check for 
                 '       method symbols leaving it to overload resolution code. Here we filter wrong arity methods
                 If targetArity = 0 Then

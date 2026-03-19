@@ -9,272 +9,236 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<AccessorDeclarationSyntax>
 {
-    public class AccessorDeclarationTests : AbstractCSharpSyntaxNodeStructureTests<AccessorDeclarationSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new AccessorDeclarationStructureProvider();
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new AccessorDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertyGetter1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        $${|hint:get{|textspan:
-        {
-        }|}|}
-    }
-}";
+    [Fact]
+    public Task TestPropertyGetter1()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        $${|hint:get{|textspan:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    [Fact]
+    public Task TestPropertyGetterWithSingleLineComments1()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        {|span1:// My
+                        // Getter|}
+                        $${|hint2:get{|textspan2:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("span1", "// My ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertyGetterWithSingleLineComments1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:// My
-        // Getter|}
-        $${|hint2:get{|textspan2:
-        {
-        }|}|}
-    }
-}
-";
+    [Fact]
+    public Task TestPropertyGetter2()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        $${|hint:get{|textspan:
+                        {
+                        }|}|}
+                        set
+                        {
+                        }
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    [Fact]
+    public Task TestPropertyGetterWithSingleLineComments2()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        {|span1:// My
+                        // Getter|}
+                        $${|hint2:get{|textspan2:
+                        {
+                        }|}|}
+                        set
+                        {
+                        }
+                    }
+                }
+                """,
+            Region("span1", "// My ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertyGetterWithMultiLineComments1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:/* My
-           Getter */|}
-        $${|hint2:get{|textspan2:
-        {
-        }|}|}
-    }
-}
-";
+    [Fact]
+    public Task TestPropertyGetter3()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        $${|hint:get{|textspan:
+                        {
+                        }|}|}
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+                        set
+                        {
+                        }
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertyGetter2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        $${|hint:get{|textspan:
-        {
-        }|}|}
-        set
-        {
-        }
-    }
-}";
+    [Fact]
+    public Task TestPropertyGetterWithSingleLineComments3()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        {|span1:// My
+                        // Getter|}
+                        $${|hint2:get{|textspan2:
+                        {
+                        }|}|}
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+                        set
+                        {
+                        }
+                    }
+                }
+                """,
+            Region("span1", "// My ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertyGetterWithSingleLineComments2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:// My
-        // Getter|}
-        $${|hint2:get{|textspan2:
-        {
-        }|}|}
-        set
-        {
-        }
-    }
-}
-";
+    [Fact]
+    public Task TestPropertySetter1()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        $${|hint:set{|textspan:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    [Fact]
+    public Task TestPropertySetterWithSingleLineComments1()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        {|span1:// My
+                        // Setter|}
+                        $${|hint2:set{|textspan2:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("span1", "// My ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertyGetterWithMultiLineComments2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:/* My
-           Getter */|}
-        $${|hint2:get{|textspan2:
-        {
-        }|}|}
-        set
-        {
-        }
-    }
-}
-";
+    [Fact]
+    public Task TestPropertySetter2()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        get
+                        {
+                        }
+                        $${|hint:set{|textspan:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    [Fact]
+    public Task TestPropertySetterWithSingleLineComments2()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        get
+                        {
+                        }
+                        {|span1:// My
+                        // Setter|}
+                        $${|hint2:set{|textspan2:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("span1", "// My ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertySetter1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        $${|hint:set{|textspan:
-        {
-        }|}|}
-    }
-}";
+    [Fact]
+    public Task TestPropertySetter3()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        get
+                        {
+                        }
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+                        $${|hint:set{|textspan:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertySetterWithSingleLineComments1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:// My
-        // Setter|}
-        $${|hint2:set{|textspan2:
-        {
-        }|}|}
-    }
-}";
+    [Fact]
+    public Task TestPropertySetterWithSingleLineComments3()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    public string Text
+                    {
+                        get
+                        {
+                        }
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertySetterWithMultiLineComments1()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:/* My
-           Setter */|}
-        $${|hint2:set{|textspan2:
-        {
-        }|}|}
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertySetter2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        get
-        {
-        }
-        $${|hint:set{|textspan:
-        {
-        }|}|}
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertySetterWithSingleLineComments2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        get
-        {
-        }
-        {|span1:// My
-        // Setter|}
-        $${|hint2:set{|textspan2:
-        {
-        }|}|}
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestPropertySetterWithMultiLineComments2()
-        {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        get
-        {
-        }
-        {|span1:/* My
-           Setter */|}
-        $${|hint2:set{|textspan2:
-        {
-        }|}|}
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-    }
+                        {|span1:// My
+                        // Setter|}
+                        $${|hint2:set{|textspan2:
+                        {
+                        }|}|}
+                    }
+                }
+                """,
+            Region("span1", "// My ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 }

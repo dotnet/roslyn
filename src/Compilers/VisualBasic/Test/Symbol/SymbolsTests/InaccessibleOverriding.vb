@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -733,8 +732,6 @@ End Module
                 CompilationUtils.AssertNoDiagnostics(compilation1)
             End Using
         End Sub
-
-
 
     End Class
 End Namespace

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal enum LookupResultKind : byte
     {
-        // Note: order is important! High values take precedences over lower values. 
+        // Note: order is important! High values take precedence over lower values. 
 
         Empty,
         NotATypeOrNamespace,

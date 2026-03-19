@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -17,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbolInternal
     {
         // PERF: initialization of the following fields will allocate, so we make them lazy
-        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
+        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensions;
         private string _lazyQualifiedName;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -122,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override sealed bool IsImplicitlyDeclared
+        public sealed override bool IsImplicitlyDeclared
         {
             get
             {
@@ -214,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         /// <summary>
         /// Returns an implicit type symbol for this namespace or null if there is none. This type
         /// wraps misplaced global code.
@@ -233,6 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// Lookup a nested namespace.
         /// </summary>
@@ -243,43 +251,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for the most nested namespace, if found. Nothing 
         /// if namespace or any part of it can not be found.
         /// </returns>
-        internal NamespaceSymbol LookupNestedNamespace(ImmutableArray<string> names)
+        internal NamespaceSymbol? LookupNestedNamespace(ImmutableArray<ReadOnlyMemory<char>> names)
         {
-            NamespaceSymbol scope = this;
-
-            foreach (string name in names)
+            NamespaceSymbol? scope = this;
+            foreach (ReadOnlyMemory<char> name in names)
             {
-                NamespaceSymbol nextScope = null;
-
-                foreach (NamespaceOrTypeSymbol symbol in scope.GetMembers(name))
-                {
-                    var ns = symbol as NamespaceSymbol;
-
-                    if ((object)ns != null)
-                    {
-                        if ((object)nextScope != null)
-                        {
-                            Debug.Assert((object)nextScope == null, "Why did we run into an unmerged namespace?");
-                            nextScope = null;
-                            break;
-                        }
-
-                        nextScope = ns;
-                    }
-                }
-
-                scope = nextScope;
-
-                if ((object)scope == null)
-                {
-                    break;
-                }
+                scope = scope.GetNestedNamespace(name);
+                if (scope is null)
+                    return null;
             }
 
             return scope;
         }
 
-        internal NamespaceSymbol GetNestedNamespace(string name)
+        internal NamespaceSymbol? GetNestedNamespace(string name)
+            => GetNestedNamespace(name.AsMemory());
+
+        internal virtual NamespaceSymbol? GetNestedNamespace(ReadOnlyMemory<char> name)
         {
             foreach (var sym in this.GetMembers(name))
             {
@@ -291,6 +279,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+#nullable disable
+
+        public abstract ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name);
+
+        public sealed override ImmutableArray<Symbol> GetMembers(string name)
+            => GetMembers(name.AsMemory());
 
         internal NamespaceSymbol GetNestedNamespace(NameSyntax name)
         {
@@ -319,50 +314,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMethods
+        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensions
         {
             get
             {
-                var typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                var typesWithExtensionMethods = this._lazyTypesMightContainExtensions;
                 if (typesWithExtensionMethods.IsDefault)
                 {
-                    this._lazyTypesMightContainExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
-                    typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                    this._lazyTypesMightContainExtensions = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensions);
+                    typesWithExtensionMethods = this._lazyTypesMightContainExtensions;
                 }
 
                 return typesWithExtensionMethods;
             }
         }
 
-
+#nullable enable
         /// <summary>
-        /// Add all extension methods in this namespace to the given list. If name or arity
+        /// Add all extension members and methods in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.
         /// </summary>
-        /// <param name="methods">Methods list</param>
-        /// <param name="nameOpt">Optional method name</param>
-        /// <param name="arity">Method arity</param>
-        /// <param name="options">Lookup options</param>
-        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             var assembly = this.ContainingAssembly;
 
-            // Only MergedAssemblySymbol should have a null ContainingAssembly
-            // and MergedAssemblySymbol overrides GetExtensionMethods.
+            // Only MergedNamespaceSymbol should have a null ContainingAssembly
+            // and MergedNamespaceSymbol overrides GetAllExtensionMembers.
             Debug.Assert((object)assembly != null);
 
-            if (!assembly.MightContainExtensionMethods)
+            if (!assembly.MightContainExtensions)
             {
                 return;
             }
 
-            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
+            var typesWithExtensionMethods = this.TypesMightContainExtensions;
 
             foreach (var type in typesWithExtensionMethods)
             {
-                type.DoGetExtensionMethods(methods, nameOpt, arity, options);
+                type.GetAllExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
         }
+#nullable disable
 
         internal string QualifiedName
         {

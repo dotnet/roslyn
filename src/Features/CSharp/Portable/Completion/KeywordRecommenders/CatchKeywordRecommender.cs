@@ -5,16 +5,10 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class CatchKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public CatchKeywordRecommender()
-            : base(SyntaxKind.CatchKeyword)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => context.SyntaxTree.IsCatchOrFinallyContext(position, context.LeftToken);
-    }
+internal sealed class CatchKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.CatchKeyword)
+{
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        => context.SyntaxTree.IsCatchOrFinallyContext(position, context.LeftToken);
 }

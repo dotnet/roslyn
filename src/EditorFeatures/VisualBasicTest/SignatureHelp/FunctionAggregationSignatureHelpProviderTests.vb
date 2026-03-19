@@ -3,24 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class FunctionAggregationSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New FunctionAggregationSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(FunctionAggregationSignatureHelpProvider)
         End Function
 
-        <WorkItem(529682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529682")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529682")>
         Public Async Function TestAggregateFunctionInAggregateClause() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Linq
@@ -40,8 +34,8 @@ End Module
         End Function
 
 #Region "EditorBrowsable tests"
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateAlways() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -79,8 +73,8 @@ End Module
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateNever() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -118,8 +112,8 @@ End Module
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -166,8 +160,8 @@ End Module
                                                 hideAdvancedMembers:=False)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateMixed() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic

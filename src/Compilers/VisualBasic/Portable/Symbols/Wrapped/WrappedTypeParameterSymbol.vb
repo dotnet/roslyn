@@ -61,6 +61,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return Me._underlyingTypeParameter.AllowsRefLikeType
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
                 Return Me._underlyingTypeParameter.Variance
@@ -88,6 +94,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(underlyingTypeParameter As TypeParameterSymbol)
             Debug.Assert(underlyingTypeParameter IsNot Nothing)
             Me._underlyingTypeParameter = underlyingTypeParameter
+
+            Debug.Assert(Me.TypeParameterKind = If(TypeOf Me.ContainingSymbol Is MethodSymbol, TypeParameterKind.Method,
+                                                If(TypeOf Me.ContainingSymbol Is NamedTypeSymbol, TypeParameterKind.Type,
+                                                TypeParameterKind.Cref)),
+                $"Container is {Me.ContainingSymbol?.Kind}, TypeParameterKind is {Me.TypeParameterKind}")
         End Sub
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String

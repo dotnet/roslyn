@@ -3,30 +3,53 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+internal sealed class IndentUserSettingsFormattingRule : BaseFormattingRule
 {
-    internal class IndentUserSettingsFormattingRule : BaseFormattingRule
+    private readonly CSharpSyntaxFormattingOptions _options;
+
+    public IndentUserSettingsFormattingRule()
+        : this(CSharpSyntaxFormattingOptions.Default)
     {
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+    }
+
+    private IndentUserSettingsFormattingRule(CSharpSyntaxFormattingOptions options)
+    {
+        _options = options;
+    }
+
+    public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
+    {
+        var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
+
+        if (_options.Indentation.HasFlag(IndentationPlacement.Braces) == newOptions.Indentation.HasFlag(IndentationPlacement.Braces))
         {
-            nextOperation.Invoke();
+            return this;
+        }
 
-            var bracePair = node.GetBracePair();
+        return new IndentUserSettingsFormattingRule(newOptions);
+    }
 
-            // don't put block indentation operation if the block only contains lambda expression body block
-            if (node.IsLambdaBodyBlock() || !bracePair.IsValidBracePair())
-            {
-                return;
-            }
+    public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+    {
+        nextOperation.Invoke();
 
-            if (options.GetOption(CSharpFormattingOptions.IndentBraces))
-            {
-                AddIndentBlockOperation(list, bracePair.Item1, bracePair.Item1, bracePair.Item1.Span);
-                AddIndentBlockOperation(list, bracePair.Item2, bracePair.Item2, bracePair.Item2.Span);
-            }
+        var bracePair = node.GetBracePair();
+
+        // don't put block indentation operation if the block only contains lambda expression body block
+        if (node.IsLambdaBodyBlock() || !bracePair.IsValidBracketOrBracePair())
+        {
+            return;
+        }
+
+        if (_options.Indentation.HasFlag(IndentationPlacement.Braces))
+        {
+            AddIndentBlockOperation(list, bracePair.openBrace, bracePair.openBrace, bracePair.openBrace.Span);
+            AddIndentBlockOperation(list, bracePair.closeBrace, bracePair.closeBrace, bracePair.closeBrace.Span);
         }
     }
 }

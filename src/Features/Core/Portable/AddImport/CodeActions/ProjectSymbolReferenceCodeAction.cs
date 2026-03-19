@@ -2,44 +2,84 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    /// <summary>
+    /// Code action for adding an import when we find a symbol in source in either our
+    /// starting project, or some other unreferenced project in the solution.  If we 
+    /// find a source symbol in a different project, we'll also add a p2p reference when
+    /// we apply the code action.
+    /// </summary>
+    private sealed class ProjectSymbolReferenceCodeAction : SymbolReferenceCodeAction
     {
         /// <summary>
-        /// Code action for adding an import when we find a symbol in source in either our
-        /// starting project, or some other unreferenced project in the solution.  If we 
-        /// find a source symbol in a different project, we'll also add a p2p reference when
-        /// we apply the code action.
+        /// This code action may or may not add a project reference.  If it does, it requires a non document change
+        /// (and is thus restricted in which hosts it can run).  If it doesn't, it can run anywhere.
         /// </summary>
-        private class ProjectSymbolReferenceCodeAction : SymbolReferenceCodeAction
+        public ProjectSymbolReferenceCodeAction(
+            Document originalDocument,
+            AddImportFixData fixData)
+            : base(originalDocument,
+                   fixData,
+                   additionalTags: ShouldAddProjectReference(originalDocument, fixData) ? RequiresNonDocumentChangeTags : [])
         {
-            public ProjectSymbolReferenceCodeAction(
-                Document originalDocument,
-                AddImportFixData fixData)
-                : base(originalDocument, fixData)
+            Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ProjectSymbol);
+        }
+
+        private static bool ShouldAddProjectReference(Document originalDocument, AddImportFixData fixData)
+            => fixData.ProjectReferenceToAdd != null && fixData.ProjectReferenceToAdd != originalDocument.Project.Id;
+
+        protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
+        {
+            if (!ShouldAddProjectReference(this.OriginalDocument, this.FixData))
+                return SpecializedTasks.Null<CodeActionOperation>();
+
+            var projectWithAddedReference = project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd));
+            var applyOperation = new ApplyChangesOperation(projectWithAddedReference.Solution);
+            if (isPreview)
             {
-                Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ProjectSymbol);
+                return Task.FromResult<CodeActionOperation?>(applyOperation);
             }
 
-            private bool ShouldAddProjectReference()
-                => FixData.ProjectReferenceToAdd != null && FixData.ProjectReferenceToAdd != OriginalDocument.Project.Id;
+            return Task.FromResult<CodeActionOperation?>(new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation));
+        }
 
-            internal override bool PerformFinalApplicabilityCheck
-                => ShouldAddProjectReference();
+        private sealed class AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation) : CodeActionOperation
+        {
+            private readonly ProjectId _referencingProject = referencingProject;
+            private readonly ProjectId _referencedProject = referencedProject;
+            private readonly ApplyChangesOperation _applyOperation = applyOperation;
 
-            internal override bool IsApplicable(Workspace workspace)
-                => ShouldAddProjectReference() &&
-                   workspace.CanAddProjectReference(
-                    OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd);
+            internal override bool ApplyDuringTests => true;
 
-            protected override Project UpdateProject(Project project)
+            public override void Apply(Workspace workspace, CancellationToken cancellationToken)
             {
-                return ShouldAddProjectReference()
-                    ? project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd))
-                    : project;
+                if (!CanApply(workspace))
+                    return;
+
+                _applyOperation.Apply(workspace, cancellationToken);
+            }
+
+            internal override Task<bool> TryApplyAsync(
+                Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+            {
+                if (!CanApply(workspace))
+                    return SpecializedTasks.False;
+
+                return _applyOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
+            }
+
+            private bool CanApply(Workspace workspace)
+            {
+                return workspace.CanAddProjectReference(_referencingProject, _referencedProject);
             }
         }
     }

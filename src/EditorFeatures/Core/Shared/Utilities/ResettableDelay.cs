@@ -6,71 +6,61 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+
+internal sealed class ResettableDelay
 {
-    internal class ResettableDelay
+    public static readonly ResettableDelay CompletedDelay = new();
+
+    private readonly int _delayInMilliseconds;
+    private readonly TaskCompletionSource<object?> _taskCompletionSource = new();
+
+    private int _lastSetTime;
+
+    /// <summary>
+    /// Create a ResettableDelay that will complete a task after a certain duration.  The delay
+    /// can be reset at any point before it elapses in which case completion is postponed.  The
+    /// delay can be reset multiple times.
+    /// </summary>
+    /// <param name="delayInMilliseconds">The time to delay before completing the task</param>
+    public ResettableDelay(int delayInMilliseconds, IExpeditableDelaySource expeditableDelaySource, CancellationToken cancellationToken = default)
     {
-        public static readonly ResettableDelay CompletedDelay = new ResettableDelay();
+        Contract.ThrowIfFalse(delayInMilliseconds >= 50, "Perf, only use delays >= 50ms");
+        _delayInMilliseconds = delayInMilliseconds;
 
-        private readonly int _delayInMilliseconds;
-        private readonly IExpeditableDelaySource _expeditableDelaySource;
-        private readonly TaskCompletionSource<object> _taskCompletionSource;
+        Reset();
 
-        private int _lastSetTime;
+        _ = StartTimerAsync(expeditableDelaySource, cancellationToken);
+    }
 
-        /// <summary>
-        /// Create a ResettableDelay that will complete a task after a certain duration.  The delay
-        /// can be reset at any point before it elapses in which case completion is postponed.  The
-        /// delay can be reset multiple times.
-        /// </summary>
-        /// <param name="delayInMilliseconds">The time to delay before completing the task</param>
-        /// <param name="foregroundTaskScheduler">Optional.  If used, the delay won't start until the supplied TaskScheduler schedules the delay to begin.</param>
-        public ResettableDelay(int delayInMilliseconds, IExpeditableDelaySource expeditableDelaySource, TaskScheduler foregroundTaskScheduler = null)
-        {
-            Contract.ThrowIfFalse(delayInMilliseconds >= 50, "Perf, only use delays >= 50ms");
-            _delayInMilliseconds = delayInMilliseconds;
-            _expeditableDelaySource = expeditableDelaySource;
+    private ResettableDelay()
+    {
+        // create resettableDelay with completed state
+        _delayInMilliseconds = 0;
+        _taskCompletionSource = new TaskCompletionSource<object?>();
+        _taskCompletionSource.SetResult(null);
 
-            _taskCompletionSource = new TaskCompletionSource<object>();
-            Reset();
+        Reset();
+    }
 
-            if (foregroundTaskScheduler != null)
-            {
-                Task.Factory.SafeStartNew(() => StartTimerAsync(continueOnCapturedContext: true), CancellationToken.None, foregroundTaskScheduler);
-            }
-            else
-            {
-                _ = StartTimerAsync(continueOnCapturedContext: false);
-            }
-        }
+    public Task Task => _taskCompletionSource.Task;
 
-        private ResettableDelay()
-        {
-            // create resettableDelay with completed state
-            _delayInMilliseconds = 0;
-            _taskCompletionSource = new TaskCompletionSource<object>();
-            _taskCompletionSource.SetResult(null);
+    public void Reset()
+    {
+        // Note: Environment.TickCount - this.lastSetTime is safe in the presence of overflow, but most
+        // other operations are not.
+        _lastSetTime = Environment.TickCount;
+    }
 
-            Reset();
-        }
-
-        public Task Task => _taskCompletionSource.Task;
-
-        public void Reset()
-        {
-            // Note: Environment.TickCount - this.lastSetTime is safe in the presence of overflow, but most
-            // other operations are not.
-            _lastSetTime = Environment.TickCount;
-        }
-
-        private async Task StartTimerAsync(bool continueOnCapturedContext)
+    private async Task StartTimerAsync(IExpeditableDelaySource expeditableDelaySource, CancellationToken cancellationToken)
+    {
+        try
         {
             do
             {
                 // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime
-                if (!await _expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), CancellationToken.None).ConfigureAwait(continueOnCapturedContext))
+                if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), cancellationToken).ConfigureAwait(false))
                 {
                     // The operation is being expedited.
                     break;
@@ -79,6 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             while (Environment.TickCount - _lastSetTime < _delayInMilliseconds);
 
             _taskCompletionSource.SetResult(null);
+        }
+        catch (OperationCanceledException)
+        {
+            // Calling the "Try" variant because that's the only one that accepts the token to associate with the task
+            _taskCompletionSource.TrySetCanceled(cancellationToken);
         }
     }
 }

@@ -6,337 +6,450 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
 {
-    public class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
-        }
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
+@"global using Goo = $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
+
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
+    [Fact]
+    public Task TestAtRoot()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNamespaceKeyword()
-        {
-            await VerifyAbsenceAsync(@"namespace $$");
-        }
+    [Fact]
+    public async Task TestNotAfterNamespaceKeyword()
+        => await VerifyAbsenceAsync(@"namespace $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"namespace N {}
-$$");
-        }
+    [Fact]
+    public Task TestAfterPreviousNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            namespace N {}
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"namespace N {}
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterPreviousFileScopedNamespace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            namespace N;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterExtern()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"extern alias goo;
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterUsingInFileScopedNamespace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            namespace N;
+            using U;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterExtern_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"extern alias goo;
-$$");
-        }
+    [Fact]
+    public Task TestAfterUsingInNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            namespace N
+            {
+                using U;
+                $$
+            }
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsing()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"using Goo;
-$$");
-        }
+    [Fact]
+    public Task TestAfterPreviousNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            namespace N {}
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsing_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"using Goo;
-$$");
-        }
+    [Fact]
+    public Task TestAfterExtern()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            extern alias goo;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsingAlias()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"using Goo = Bar;
-$$");
-        }
+    [Fact]
+    public Task TestAfterExtern_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            extern alias goo;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsingAlias_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"using Goo = Bar;
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterExternInFileScopedNamespace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
+            """
+            namespace N;
+            extern alias A;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClassDeclaration()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"class C {}
-$$");
-        }
+    [Fact]
+    public Task TestAfterExternInNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            namespace N
+            {
+                extern alias A;
+                $$
+            }
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClassDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C {}
-$$");
-        }
+    [Fact]
+    public Task TestAfterUsing()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            using Goo;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDelegateDeclaration()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"delegate void D();
-$$");
-        }
+    [Fact]
+    public Task TestAfterGlobalUsing()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            global using Goo;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDelegateDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"delegate void D();
-$$");
-        }
+    [Fact]
+    public Task TestAfterUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            using Goo;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedDelegateDeclaration()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    delegate void D();
-    $$");
-        }
+    [Fact]
+    public Task TestAfterGlobalUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            global using Goo;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedMember()
-        {
-            await VerifyAbsenceAsync(@"class A {
-    class C {}
-    $$");
-        }
+    [Fact]
+    public Task TestAfterUsingAlias()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            using Goo = Bar;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideNamespace()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"namespace N {
-    $$");
-        }
+    [Fact]
+    public Task TestAfterUsingAlias_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            using Goo = Bar;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideNamespace_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"namespace N {
-    $$");
-        }
+    [Fact]
+    public Task TestAfterGlobalUsingAlias()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            global using Goo = Bar;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNamespaceKeyword_InsideNamespace()
-        {
-            await VerifyAbsenceAsync(@"namespace N {
-    namespace $$");
-        }
+    [Fact]
+    public Task TestAfterGlobalUsingAlias_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            global using Goo = Bar;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace_InsideNamespace()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"namespace N {
-   namespace N1 {}
-   $$");
-        }
+    [Fact]
+    public Task TestAfterClassDeclaration()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            class C {}
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace_InsideNamespace_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"namespace N {
-   namespace N1 {}
-   $$");
-        }
+    [Fact]
+    public Task TestAfterClassDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C {}
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBeforeUsing_InsideNamespace()
-        {
-            await VerifyAbsenceAsync(@"namespace N {
+    [Fact]
+    public Task TestAfterDelegateDeclaration()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            delegate void D();
+            $$
+            """);
+
+    [Fact]
+    public Task TestAfterDelegateDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            delegate void D();
+            $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterNestedDelegateDeclaration()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                delegate void D();
+                $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterNestedMember()
+        => VerifyAbsenceAsync("""
+            class A {
+                class C {}
+                $$
+            """);
+
+    [Fact]
+    public Task TestInsideNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            namespace N {
+                $$
+            """);
+
+    [Fact]
+    public Task TestInsideNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            namespace N {
+                $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterNamespaceKeyword_InsideNamespace()
+        => VerifyAbsenceAsync("""
+            namespace N {
+                namespace $$
+            """);
+
+    [Fact]
+    public Task TestAfterPreviousNamespace_InsideNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            namespace N {
+               namespace N1 {}
+               $$
+            """);
+
+    [Fact]
+    public Task TestAfterPreviousNamespace_InsideNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            namespace N {
+               namespace N1 {}
+               $$
+            """);
+
+    [Fact]
+    public Task TestNotBeforeUsing_InsideNamespace()
+        => VerifyAbsenceAsync("""
+            namespace N {
+                $$
+                using Goo;
+            """);
+
+    [Fact]
+    public Task TestAfterMember_InsideNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            namespace N {
+                class C {}
+                $$
+            """);
+
+    [Fact]
+    public Task TestAfterMember_InsideNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            namespace N {
+                class C {}
+                $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterNestedMember_InsideNamespace()
+        => VerifyAbsenceAsync("""
+            namespace N {
+                class A {
+                  class C {}
+                  $$
+            """);
+
+    [Fact]
+    public Task TestNotBeforeExtern()
+        => VerifyAbsenceAsync("""
+            $$
+            extern alias Goo;
+            """);
+
+    [Fact]
+    public Task TestNotBeforeUsing()
+        => VerifyAbsenceAsync("""
+            $$
+            using Goo;
+            """);
+
+    [Fact]
+    public Task TestNotBeforeGlobalUsing()
+        => VerifyAbsenceAsync("""
+            $$
+            global using Goo;
+            """);
+
+    [Fact]
+    public Task TestNotBetweenUsings()
+        => VerifyAbsenceAsync(
+            """
+            using Goo;
+            $$
+            using Bar;
+            """);
+
+    [Fact]
+    public Task TestNotBetweenGlobalUsings_01()
+        => VerifyAbsenceAsync(
+            """
+            global using Goo;
+            $$
+            using Bar;
+            """);
+
+    [Fact]
+    public Task TestNotBetweenGlobalUsings_02()
+        => VerifyAbsenceAsync(
+            """
+            global using Goo;
+            $$
+            global using Bar;
+            """);
+
+    [Fact]
+    public Task TestAfterGlobalAttribute()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            """
+            [assembly: Goo]
+            $$
+            """);
+
+    [Fact]
+    public Task TestAfterGlobalAttribute_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            [assembly: Goo]
+            $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterAttribute()
+        => VerifyAbsenceAsync(
+            """
+            [Goo]
+            $$
+            """);
+
+    [Fact]
+    public Task TestNotAfterNestedAttribute()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+              [Goo]
+              $$
+            """);
+
+    [Fact]
+    public Task TestAfterRegion()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+    """
+    #region EDM Relationship Metadata
+
+    [assembly: EdmRelationshipAttribute("PerformanceResultsModel", "FK_Runs_Machines", "Machines", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), "Runs", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
+
+    #endregion
+
     $$
-    using Goo;");
-        }
+    """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMember_InsideNamespace()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"namespace N {
-    class C {}
-    $$");
-        }
+    [Fact]
+    public Task TestAfterRegion_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+    """
+    #region EDM Relationship Metadata
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMember_InsideNamespace_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"namespace N {
-    class C {}
-    $$");
-        }
+    [assembly: EdmRelationshipAttribute("PerformanceResultsModel", "FK_Runs_Machines", "Machines", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), "Runs", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedMember_InsideNamespace()
-        {
-            await VerifyAbsenceAsync(@"namespace N {
-    class A {
-      class C {}
-      $$");
-        }
+    #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBeforeExtern()
-        {
-            await VerifyAbsenceAsync(@"$$
-extern alias Goo;");
-        }
+    $$
+    """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBeforeUsing()
-        {
-            await VerifyAbsenceAsync(@"$$
-using Goo;");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBetweenUsings()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"using Goo;
-$$
-using Bar;"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalAttribute()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"[assembly: Goo]
-$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalAttribute_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"[assembly: Goo]
-$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAttribute()
-        {
-            await VerifyAbsenceAsync(
-@"[Goo]
-$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedAttribute()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-  [Goo]
-  $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRegion()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-        @"#region EDM Relationship Metadata
-
-[assembly: EdmRelationshipAttribute(""PerformanceResultsModel"", ""FK_Runs_Machines"", ""Machines"", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), ""Runs"", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
-
-#endregion
-
-$$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRegion_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-        @"#region EDM Relationship Metadata
-
-[assembly: EdmRelationshipAttribute(""PerformanceResultsModel"", ""FK_Runs_Machines"", ""Machines"", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), ""Runs"", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
-
-#endregion
-
-$$");
-        }
-    }
+    [Fact]
+    public Task TestWithinExtension()
+        => VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
 }

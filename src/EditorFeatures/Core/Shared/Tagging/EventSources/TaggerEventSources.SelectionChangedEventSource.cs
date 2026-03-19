@@ -3,37 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private sealed class SelectionChangedEventSource(ITextView textView) : AbstractTaggerEventSource
     {
-        private class SelectionChangedEventSource : AbstractTaggerEventSource
-        {
-            private readonly ITextView _textView;
+        private readonly ITextView _textView = textView;
 
-            public SelectionChangedEventSource(ITextView textView, TaggerDelay delay)
-                : base(delay)
-            {
-                _textView = textView;
-            }
+        public override void Connect()
+            => _textView.Selection.SelectionChanged += OnSelectionChanged;
 
-            public override void Connect()
-            {
-                _textView.Selection.SelectionChanged += OnSelectionChanged;
-            }
+        public override void Disconnect()
+            => _textView.Selection.SelectionChanged -= OnSelectionChanged;
 
-            public override void Disconnect()
-            {
-                _textView.Selection.SelectionChanged -= OnSelectionChanged;
-            }
-
-            private void OnSelectionChanged(object sender, EventArgs args)
-            {
-                RaiseChanged();
-            }
-        }
+        private void OnSelectionChanged(object? sender, EventArgs args)
+            => RaiseChanged();
     }
 }

@@ -5,16 +5,16 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.FileHeaders
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicFileHeaderCodeFixProvider))>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FileHeader)>
     <[Shared]>
     Friend Class VisualBasicFileHeaderCodeFixProvider
         Inherits AbstractFileHeaderCodeFixProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -23,21 +23,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
                 Return VisualBasicFileHeaderHelper.Instance
             End Get
         End Property
-
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds
-            Get
-                Return VisualBasicSyntaxKinds.Instance
-            End Get
-        End Property
-
-        Protected Overrides Function EndOfLine(text As String) As SyntaxTrivia
-            Return SyntaxFactory.EndOfLine(text)
-        End Function
     End Class
 End Namespace

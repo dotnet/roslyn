@@ -48,14 +48,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Protected Overrides Function LookupNestedTypeDefSymbol(container As TypeSymbol, ByRef emittedName As MetadataTypeName) As TypeSymbol
-            Return container.LookupMetadataType(emittedName)
+            Dim result As NamedTypeSymbol = container.LookupMetadataType(emittedName)
+            Debug.Assert(If(Not result?.IsErrorType(), True))
+
+            Return If(result, New MissingMetadataTypeSymbol.Nested(DirectCast(container, NamedTypeSymbol), emittedName))
         End Function
 
         Protected Overrides Function LookupTopLevelTypeDefSymbol(referencedAssemblyIndex As Integer, ByRef emittedName As MetadataTypeName) As TypeSymbol
             Dim assembly As AssemblySymbol = Me.Module.GetReferencedAssemblySymbol(referencedAssemblyIndex)
             ' GetReferencedAssemblySymbol should not return Nothing since referencedAssemblyIndex
             ' was obtained from GetIndexOfReferencedAssembly above.
-            Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+            Return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies:=Nothing)
         End Function
 
         Protected Overrides Function LookupTopLevelTypeDefSymbol(ByRef emittedName As MetadataTypeName, ByRef isNoPiaLocalType As Boolean) As TypeSymbol

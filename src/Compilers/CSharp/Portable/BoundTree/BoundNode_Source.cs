@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,10 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     append("catch (");
                                     append(catchBlock.ExceptionTypeOpt?.Name);
-                                    append(") ");
-                                    if (catchBlock.ExceptionFilterOpt != null)
+                                    append(" ");
+                                    appendSource(catchBlock.ExceptionSourceOpt);
+                                    append(")");
+                                    if (catchBlock.ExceptionFilterOpt is { } exceptionFilter)
                                     {
-                                        append("... exception filter omitted ...");
+                                        if (catchBlock.ExceptionFilterPrologueOpt is { } exceptionFilterPrologue)
+                                        {
+                                            appendLine("");
+                                            appendLine("{");
+                                            appendSource(exceptionFilterPrologue);
+                                            appendLine("}");
+                                        }
+                                        else
+                                        {
+                                            append(" ");
+                                        }
+                                        append("when (");
+                                        appendSource(exceptionFilter);
+                                        append(")");
                                     }
                                     appendLine("");
 
@@ -222,21 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundLiteral literal:
                         {
-                            var value = literal.ConstantValue?.Value?.ToString();
-                            if (value is null)
-                            {
-                                append("null");
-                                break;
-                            }
-                            switch (literal.ConstantValue?.Discriminator)
-                            {
-                                case ConstantValueTypeDiscriminator.String:
-                                    append($@"""{value}""");
-                                    break;
-                                default:
-                                    append(value);
-                                    break;
-                            }
+                            ConstantValue? constantValueOpt = literal.ConstantValueOpt;
+                            appendConstantValue(constantValueOpt);
                             break;
                         }
                     case BoundAssignmentOperator assignment:
@@ -304,6 +305,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             appendSource(unary.Operand);
                             break;
                         }
+                    case BoundConversion conversion:
+                        {
+                            append($" {conversion.Conversion} ");
+                            appendSource(conversion.Operand);
+                            break;
+                        }
                     case BoundStatementList list:
                         {
                             foreach (var statement in list.Statements)
@@ -337,6 +344,133 @@ namespace Microsoft.CodeAnalysis.CSharp
                             append(binary.OperatorKind.ToString());
                             append(" ");
                             appendSource(binary.Right);
+                            break;
+                        }
+                    case BoundBinaryPattern binaryPattern:
+                        {
+                            append("(");
+                            appendSource(binaryPattern.Left);
+                            append(binaryPattern.Disjunction ? " or " : " and ");
+                            appendSource(binaryPattern.Right);
+                            append(")");
+                            break;
+                        }
+                    case BoundConstantPattern constantPattern:
+                        {
+                            appendConstantValue(constantPattern.ConstantValue);
+                            break;
+                        }
+                    case BoundNegatedPattern negatedPattern:
+                        {
+                            append("(not ");
+                            appendSource(negatedPattern.Negated);
+                            append(")");
+                            break;
+                        }
+                    case BoundListPattern listPattern:
+                        {
+                            append("[");
+                            for (int i = 0; i < listPattern.Subpatterns.Length; i++)
+                            {
+                                if (i != 0) append(", ");
+                                appendSource(listPattern.Subpatterns[i]);
+                            }
+                            append("]");
+                            break;
+                        }
+                    case BoundSlicePattern slicePattern:
+                        {
+                            append("..");
+                            if (slicePattern.Pattern is not null)
+                            {
+                                appendSource(slicePattern.Pattern);
+                            }
+                            break;
+                        }
+                    case BoundDiscardPattern:
+                        {
+                            append("_");
+                            break;
+                        }
+                    case BoundTypePattern typePattern:
+                        {
+                            append(typePattern.DeclaredType.Type.ToString());
+                            break;
+                        }
+                    case BoundRecursivePattern recursivePattern:
+                        {
+                            if (recursivePattern.DeclaredType is { } declaredType)
+                            {
+                                append(declaredType.Type.Name);
+                                append(" ");
+                            }
+
+                            if (recursivePattern.Deconstruction is { IsDefault: false } deconstruction)
+                            {
+                                append("(");
+                                for (int i = 0; i < deconstruction.Length; i++)
+                                {
+                                    if (i != 0) append(", ");
+                                    appendSource(deconstruction[i].Pattern);
+                                }
+                                append(")");
+                            }
+
+                            if (recursivePattern.Properties is { IsDefault: false } properties)
+                            {
+                                append("{");
+                                for (int i = 0; i < properties.Length; i++)
+                                {
+                                    if (i != 0) append(", ");
+                                    BoundPropertySubpattern property = properties[i];
+                                    append(property.Member?.Symbol?.Name);
+                                    append(": ");
+                                    appendSource(property.Pattern);
+                                }
+                                append("}");
+                            }
+                            break;
+                        }
+                    case BoundDeclarationPattern declarationPattern:
+                        {
+                            if (declarationPattern.IsVar)
+                            {
+                                append("var ");
+                            }
+                            else
+                            {
+                                append(declarationPattern.DeclaredType.Type.Name);
+                                append(" ");
+                            }
+
+                            append(declarationPattern.Variable?.Name);
+                            break;
+                        }
+                    case BoundITuplePattern ituplePattern:
+                        {
+                            append("(");
+                            for (int i = 0; i < ituplePattern.Subpatterns.Length; i++)
+                            {
+                                if (i != 0) append(", ");
+                                appendSource(ituplePattern.Subpatterns[i].Pattern);
+                            }
+                            append(")");
+                            break;
+                        }
+                    case BoundRelationalPattern relationalPattern:
+                        {
+                            string relation = (relationalPattern.Relation & BinaryOperatorKind.OpMask) switch
+                            {
+                                BinaryOperatorKind.GreaterThan => ">",
+                                BinaryOperatorKind.GreaterThanOrEqual => ">=",
+                                BinaryOperatorKind.LessThan => "<",
+                                BinaryOperatorKind.LessThanOrEqual => "<=",
+                                _ => relationalPattern.Relation.ToString()
+                            };
+
+                            append(relation);
+                            append(" ");
+                            appendConstantValue(relationalPattern.ConstantValue);
                             break;
                         }
                     default:
@@ -415,6 +549,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         append($"({symbol.GetDebuggerDisplay()})");
+                    }
+                }
+
+                void appendConstantValue(ConstantValue? constantValueOpt)
+                {
+                    var value = constantValueOpt?.Value?.ToString();
+                    if (value is null)
+                    {
+                        append("null");
+                        return;
+                    }
+
+                    switch (constantValueOpt?.Discriminator)
+                    {
+                        case ConstantValueTypeDiscriminator.String:
+                            append($@"""{value}""");
+                            break;
+                        default:
+                            append(value);
+                            break;
                     }
                 }
             }

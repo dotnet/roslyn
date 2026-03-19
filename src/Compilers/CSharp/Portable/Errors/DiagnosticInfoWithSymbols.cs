@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,6 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(CSharp.MessageProvider.Instance, isWarningAsError, (int)errorCode, arguments)
         {
             this.Symbols = symbols;
+        }
+
+        protected DiagnosticInfoWithSymbols(DiagnosticInfoWithSymbols original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            this.Symbols = original.Symbols;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new DiagnosticInfoWithSymbols(this, severity);
         }
     }
 }

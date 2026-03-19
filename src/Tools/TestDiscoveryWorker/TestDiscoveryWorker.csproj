@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="xunit.abstractions" />
+    <PackageReference Include="xunit.runner.utility" />
+    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="Mono.Options" />
+  </ItemGroup>
+    
+  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
+    <PackageReference Include="System.Threading.Channels" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+</Project>

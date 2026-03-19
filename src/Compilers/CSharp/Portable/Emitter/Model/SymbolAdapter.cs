@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,13 +19,47 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class Symbol : Cci.IReference
+    internal abstract partial class
+#if DEBUG
+        SymbolAdapter
+#else
+        Symbol
+#endif 
+        : Cci.IReference
     {
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => AdaptedSymbol;
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+        {
+            return AdaptedSymbol.GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
+        }
+    }
+
+    internal partial class Symbol
+    {
+#if DEBUG
+        internal SymbolAdapter GetCciAdapter() => GetCciAdapterImpl();
+        protected virtual SymbolAdapter GetCciAdapterImpl() => throw ExceptionUtilities.Unreachable();
+#else
+        internal Symbol AdaptedSymbol => this;
+        internal Symbol GetCciAdapter() => this;
+#endif 
+
         /// <summary>
         /// Checks if this symbol is a definition and its containing module is a SourceModuleSymbol.
         /// </summary>
         [Conditional("DEBUG")]
-        internal protected void CheckDefinitionInvariant()
+        protected internal void CheckDefinitionInvariant()
         {
             // can't be generic instantiation
             Debug.Assert(this.IsDefinition);
@@ -33,15 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          (this.Kind == SymbolKind.NetModule && this is SourceModuleSymbol));
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
+        Cci.IReference CodeAnalysis.Symbols.ISymbolInternal.GetCciAdapter() => GetCciAdapter();
 
         /// <summary>
         /// Return whether the symbol is either the original definition
@@ -51,11 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsDefinitionOrDistinct()
         {
             return this.IsDefinition || !this.Equals(this.OriginalDefinition, SymbolEqualityComparer.ConsiderEverything.CompareKind);
-        }
-
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-        {
-            return GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
         }
 
         internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
@@ -72,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.Kind != SymbolKind.Assembly);
 
             ImmutableArray<CSharpAttributeData> userDefined;
-            ArrayBuilder<SynthesizedAttributeData> synthesized = null;
+            ArrayBuilder<CSharpAttributeData> synthesized = null;
             userDefined = this.GetAttributes();
             this.AddSynthesizedAttributes(moduleBuilder, ref synthesized);
 
@@ -87,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {
@@ -104,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {
@@ -143,4 +167,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+#if DEBUG
+    internal partial class SymbolAdapter
+    {
+        internal abstract Symbol AdaptedSymbol { get; }
+
+        public sealed override string ToString()
+        {
+            return AdaptedSymbol.ToString();
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        [Conditional("DEBUG")]
+        protected internal void CheckDefinitionInvariant() => AdaptedSymbol.CheckDefinitionInvariant();
+
+        internal bool IsDefinitionOrDistinct()
+        {
+            return AdaptedSymbol.IsDefinitionOrDistinct();
+        }
+    }
+#endif
 }

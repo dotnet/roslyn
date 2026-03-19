@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,6 +43,7 @@ namespace BuildBoss
             allGood &= CheckDuplicate(textWriter, out var map);
             allGood &= CheckProjects(textWriter, map);
             allGood &= CheckProjectSystemGuid(textWriter, map.Values);
+            allGood &= CheckSameDirectory(textWriter, map);
 
             return allGood;
         }
@@ -105,7 +108,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckProjectSystemGuid(TextWriter textWriter, IEnumerable<SolutionProjectData> dataList)
         {
-            Guid getExpectedGuid(ProjectData data)
+            static Guid getExpectedGuid(ProjectData data)
             {
                 var util = data.ProjectUtil;
                 switch (ProjectEntryUtil.GetProjectFileType(data.FilePath))
@@ -125,6 +128,35 @@ namespace BuildBoss
                 {
                     var name = data.ProjectData.FileName;
                     textWriter.WriteLine($"Project {name} should have GUID {guid} but has {data.ProjectEntry.TypeGuid}");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        /// <summary>
+        /// The .NET SDK does not support multiple projects in the same directory. It creates race conditions 
+        /// during restore.
+        /// 
+        /// https://github.com/dotnet/sdk/issues/28763
+        /// </summary>
+        private bool CheckSameDirectory(TextWriter textWriter, Dictionary<ProjectKey, SolutionProjectData> map)
+        {
+            var allGood = true;
+            var set = new HashSet<string>();
+            foreach (var projectKey in map.Keys.OrderBy(x => x.FileName))
+            {
+                if (Path.GetExtension(projectKey.FileName) == ".shproj")
+                {
+                    continue;
+                }
+
+                var directory = Path.GetDirectoryName(projectKey.FilePath);
+                if (!set.Add(directory))
+                {
+                    textWriter.WriteLine($"Multiple projects in the same directory {directory}");
+                    textWriter.WriteLine($"See this issue for context: https://github.com/dotnet/sdk/issues/28763");
                     allGood = false;
                 }
             }

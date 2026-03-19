@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -52,5 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             return null;
         }
+
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
     }
 }

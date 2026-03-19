@@ -48,8 +48,6 @@ Friend Module TreeValidator
 
     End Sub
 
-
-
     ' Check for structures that are not used at all.
     Private Sub CheckForOrphanStructures(tree As ParseTree)
         Dim referencedStructures As New List(Of ParseNodeStructure)

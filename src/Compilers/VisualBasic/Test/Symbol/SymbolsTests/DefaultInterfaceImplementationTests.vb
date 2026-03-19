@@ -2,14 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -21,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Function GetCSharpCompilation(
             csSource As String,
             Optional additionalReferences As MetadataReference() = Nothing,
-            Optional targetFramework As TargetFramework = TargetFramework.NetStandardLatest,
+            Optional targetFramework As TargetFramework = TargetFramework.NetCoreApp,
             Optional compilationOptions As CSharp.CSharpCompilationOptions = Nothing
         ) As CSharp.CSharpCompilation
             Return CreateCSharpCompilation(csSource,
@@ -30,7 +25,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                            compilationOptions:=compilationOptions)
         End Function
 
-        Private Shared ReadOnly Property VerifyOnMonoOrCoreClr As Verification
+        Private Shared ReadOnly Property VerifyFailsOnMonoOrCoreClr As Verification
+            Get
+                Return If(ExecutionConditionUtil.IsMonoOrCoreClr, Verification.Fails, Verification.Skipped)
+            End Get
+        End Property
+
+        Private Shared ReadOnly Property VerifyPassesOnMonoOrCoreClr As Verification
             Get
                 Return If(ExecutionConditionUtil.IsMonoOrCoreClr, Verification.Passes, Verification.Skipped)
             End Get
@@ -60,7 +61,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
@@ -68,6 +69,10 @@ BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
                ~~
 </errors>
             )
+
+            Dim i1M1 = comp1.GetMember(Of MethodSymbol)("I1.M1")
+            Assert.Empty(i1M1.ExplicitInterfaceImplementations)
+            Assert.Null(i1M1.ContainingType.FindImplementationForInterfaceMember(i1M1))
         End Sub
 
         <Fact>
@@ -103,8 +108,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
+
+            Assert.True(comp1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
         End Sub
 
         <Fact>
@@ -134,7 +141,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
@@ -142,6 +149,12 @@ BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
                ~~
 </errors>
             )
+
+            Dim i1M1 = comp1.GetMember(Of MethodSymbol)("I1.M1")
+            Dim i2 = comp1.GetMember(Of NamedTypeSymbol)("I2")
+            Dim i2i1M1 = i2.GetMembers().OfType(Of MethodSymbol)().Single()
+            Assert.Same(i1M1, i2i1M1.ExplicitInterfaceImplementations.Single())
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M1))
         End Sub
 
         <Fact>
@@ -180,8 +193,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -211,7 +224,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
@@ -257,8 +270,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -286,7 +299,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
             comp1.AssertTheseDiagnostics(
 <errors>
@@ -334,10 +347,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            ' ILVerify: Method is not visible. { Offset = 8 }
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
-
 
         <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
@@ -376,8 +389,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -405,7 +418,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
             comp1.AssertTheseDiagnostics(
 <errors>
@@ -471,7 +484,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
@@ -479,7 +492,7 @@ BC30456: 'M1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
@@ -516,8 +529,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -548,8 +561,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -578,14 +591,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
         I1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
@@ -619,7 +632,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
@@ -653,7 +666,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
@@ -687,14 +700,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
         I1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private'.
@@ -734,8 +747,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -768,7 +781,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
@@ -776,7 +789,7 @@ BC30456: 'M1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
@@ -820,8 +833,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -859,8 +872,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -894,14 +907,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
         i1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
@@ -940,7 +953,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
@@ -976,7 +989,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
@@ -1015,7 +1028,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
@@ -1051,7 +1064,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
@@ -1090,14 +1103,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
         i1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private'.
@@ -1133,7 +1146,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1178,7 +1191,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1224,7 +1237,9 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
+            Assert.False(comp1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -1277,7 +1292,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1331,7 +1346,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1369,8 +1384,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -1396,7 +1411,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
@@ -1404,7 +1419,7 @@ BC30456: 'M1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Friend'.
@@ -1438,8 +1453,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -1467,8 +1482,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -1495,14 +1510,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Private Protected'.
         System.Console.WriteLine(I1.M1)
                                  ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Private Protected'.
@@ -1534,7 +1549,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Protected'.
@@ -1566,7 +1581,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Protected Friend'.
@@ -1598,14 +1613,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
         System.Console.WriteLine(I1.M1)
                                  ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Private'.
@@ -1639,7 +1654,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1673,7 +1688,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1718,7 +1733,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC40004: class 'M1' conflicts with variable 'M1' in the base interface 'I1' and should be declared 'Shadows'.
@@ -1766,8 +1781,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1807,7 +1822,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC40004: sub 'M1' conflicts with variable 'M1' in the base interface 'I1' and should be declared 'Shadows'.
@@ -1856,8 +1871,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         Private Const NoPiaAttributes As String = "
@@ -1891,233 +1906,7 @@ namespace System.Runtime.InteropServices
 "
 
         <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_01()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia7 
-    Implements ITest33
-    Sub M1() Implements ITest33.M1
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Implements ITest33
-               ~~~~~~~
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub M1() Implements ITest33.M1
-                        ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_02()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest33)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest33)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_03()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1(){}
-    void M2();
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest33)
-        x.M2()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest33)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_04()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    sealed void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest33)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest33)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_05()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    static void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main()
-        ITest33.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-        ITest33.M1()
-        ~~~~~~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
         Public Sub NoPia_06()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -2139,7 +1928,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2151,7 +1940,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <error>
 BC31558: Nested type 'ITest33.I1' cannot be embedded.
@@ -2163,8 +1952,6 @@ BC31558: Nested type 'ITest33.I1' cannot be embedded.
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_07()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -2182,7 +1969,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2195,7 +1982,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <error>
 BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -2206,61 +1993,8 @@ BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member.
         End Sub
 
         <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_08()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1();
-}
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
-public interface ITest44 : ITest33
-{
-    void ITest33.M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest44)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest44)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
         <WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")>
         Public Sub NoPia_10()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -2285,7 +2019,7 @@ public interface ITest44 : ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2298,104 +2032,13 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <expected>
 BC37308: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.
     Sub Main(x as ITest44)
                   ~~~~~~~
 </expected>)
-        End Sub
-
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
-        Public Sub NoPia_09()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim pia =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1();
-
-    public interface ITest55
-    {
-        void M2();
-    }
-}
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
-public interface ITest44 : ITest33
-{
-    void ITest33.M1(){}
-}
-"
-
-            Dim piaReference = GetCSharpCompilation(pia, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim consumer1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Public class UsePia 
-    Public Shared Sub Test(x as ITest33)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim consumer2 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class Test 
-    Implements ITest33
-
-    public shared Sub Main()
-        UsePia.Test(new Test())
-    End Sub
-
-    Sub M1() Implements ITest33.M1
-        System.Console.WriteLine("Test.M1")
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-
-            Dim pia2 As String =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1();
-}
-"
-
-            Dim pia2Refernce = GetCSharpCompilation(pia2, {attributesRef}).EmitToImageReference()
-
-            Dim compilation1 = CreateCompilation(consumer1, options:=TestOptions.ReleaseDll, references:={piaReference})
-
-            For Each reference2 In {compilation1.ToMetadataReference(), compilation1.EmitToImageReference()}
-                Dim compilation2 = CreateCompilation(consumer2, options:=TestOptions.ReleaseExe, references:={reference2, pia2Refernce})
-                CompileAndVerify(compilation2, expectedOutput:="Test.M1")
-            Next
         End Sub
 
         <Fact>
@@ -2513,13 +2156,13 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -2574,7 +2217,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
@@ -2656,7 +2299,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -2737,13 +2380,13 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -2799,7 +2442,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Protected Friend'.
@@ -2881,7 +2524,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -2962,7 +2605,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Friend'.
@@ -3043,7 +2686,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Private'.
@@ -3124,7 +2767,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Private Protected'.
@@ -3207,13 +2850,13 @@ End Interface
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3276,13 +2919,13 @@ End Interface
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3311,7 +2954,7 @@ End Interface
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
@@ -3349,7 +2992,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
@@ -3385,7 +3028,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
@@ -3417,7 +3060,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp)
             comp1.AssertTheseDiagnostics()
         End Sub
 
@@ -3500,9 +3143,9 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -3557,7 +3200,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error><![CDATA[
 BC30508: 'M1' cannot expose type 'I1.I2' in namespace '<Default>' through interface 'I3'.
@@ -3654,9 +3297,9 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -3711,7 +3354,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error><![CDATA[
 BC30508: 'M1' cannot expose type 'I1(Of String).I2' in namespace '<Default>' through interface 'I3'.
@@ -3751,7 +3394,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
@@ -3798,10 +3441,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3830,7 +3473,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
@@ -3881,10 +3524,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3914,7 +3557,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
@@ -3966,10 +3609,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4008,7 +3651,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -4056,7 +3699,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this context because it is 'Friend'.
@@ -4104,7 +3747,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context because it is 'Friend'.
@@ -4159,10 +3802,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4208,10 +3851,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4257,10 +3900,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4306,10 +3949,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4355,10 +3998,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4404,10 +4047,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4446,7 +4089,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -4494,7 +4137,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this context because it is 'Private Protected'.
@@ -4542,7 +4185,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context because it is 'Private Protected'.
@@ -4591,7 +4234,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
             Dim validator = Sub(m As ModuleSymbol)
                                 Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
@@ -4615,10 +4258,10 @@ End Class
                                 Assert.Empty(p1Get.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
-            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4652,7 +4295,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
             Dim validator = Sub(m As ModuleSymbol)
                                 Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
@@ -4676,10 +4319,10 @@ End Class
                                 Assert.Empty(p1Get.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
-            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4719,7 +4362,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
             Dim validator = Sub(m As ModuleSymbol)
                                 Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
@@ -4743,10 +4386,10 @@ End Class
                                 Assert.Empty(p1Set.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
-            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4782,7 +4425,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
             Dim validator = Sub(m As ModuleSymbol)
                                 Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("C.P1")
@@ -4806,10 +4449,10 @@ End Class
                                 Assert.Empty(p1Set.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
-            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4845,11 +4488,11 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
 
-            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4886,11 +4529,11 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
 
-            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4926,11 +4569,11 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
 
-            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4985,7 +4628,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -4996,7 +4639,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -5032,7 +4675,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -5040,7 +4683,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5073,7 +4716,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -5081,7 +4724,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5116,8 +4759,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5146,8 +4789,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5176,8 +4819,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5206,8 +4849,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5236,8 +4879,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5266,8 +4909,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5295,7 +4938,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -5306,7 +4949,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -5343,7 +4986,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5351,7 +4994,7 @@ BC31102: 'Set' accessor of property 'P1' is not accessible.
         ~~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5385,7 +5028,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5393,7 +5036,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5426,7 +5069,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -5462,7 +5105,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5495,7 +5138,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5528,7 +5171,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -5564,7 +5207,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5597,7 +5240,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5630,7 +5273,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -5641,7 +5284,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -5677,7 +5320,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -5685,7 +5328,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5718,7 +5361,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -5726,7 +5369,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5767,10 +5410,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5801,7 +5444,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -5809,7 +5452,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -5846,7 +5489,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -5854,7 +5497,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5891,7 +5534,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -5899,7 +5542,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5944,10 +5587,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5986,10 +5629,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6028,10 +5671,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6070,10 +5713,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6112,10 +5755,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6154,10 +5797,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6188,7 +5831,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -6196,7 +5839,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -6233,7 +5876,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -6241,7 +5884,7 @@ BC31102: 'Set' accessor of property 'P1' is not accessible.
         ~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -6278,7 +5921,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -6286,7 +5929,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -6323,7 +5966,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -6360,7 +6003,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -6397,7 +6040,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -6431,7 +6074,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -6465,7 +6108,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -6499,7 +6142,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -6536,7 +6179,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -6573,7 +6216,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -6610,7 +6253,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -6644,7 +6287,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -6678,7 +6321,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -6712,7 +6355,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -6749,7 +6392,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -6757,7 +6400,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -6794,7 +6437,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -6802,7 +6445,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -6839,7 +6482,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -6847,7 +6490,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -6882,7 +6525,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6920,7 +6563,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6955,7 +6598,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6990,7 +6633,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7028,7 +6671,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7063,7 +6706,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7101,7 +6744,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -7148,7 +6791,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7195,7 +6838,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7239,7 +6882,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7283,7 +6926,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7330,7 +6973,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7374,7 +7017,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7405,7 +7048,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interface 'I1'.
@@ -7449,8 +7092,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7479,7 +7122,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interface 'I1'.
@@ -7527,8 +7170,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7558,7 +7201,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interface 'I1'.
@@ -7607,8 +7250,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7645,7 +7288,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -7697,8 +7340,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7741,8 +7384,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7779,7 +7422,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -7841,7 +7484,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -7849,7 +7492,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -7883,8 +7526,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7912,8 +7555,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7940,7 +7583,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -7948,7 +7591,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -7980,7 +7623,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -8012,7 +7655,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -8044,7 +7687,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -8052,7 +7695,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -8092,8 +7735,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8124,7 +7767,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -8132,7 +7775,7 @@ BC30456: 'P1' is not a member of 'I1'.
                 ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -8176,8 +7819,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8215,8 +7858,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8247,7 +7890,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -8255,7 +7898,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                 ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -8292,7 +7935,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -8326,7 +7969,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -8363,7 +8006,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -8397,7 +8040,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -8434,7 +8077,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -8442,7 +8085,7 @@ BC30456: 'P1' is not a member of 'I1'.
                 ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -8476,7 +8119,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8510,7 +8153,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8548,7 +8191,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -8592,7 +8235,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8636,7 +8279,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8667,7 +8310,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interface 'I1'.
@@ -8710,8 +8353,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8740,7 +8383,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interface 'I1'.
@@ -8787,8 +8430,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8818,7 +8461,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interface 'I1'.
@@ -8866,8 +8509,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8903,7 +8546,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -8955,8 +8598,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8998,8 +8641,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9035,7 +8678,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -9100,7 +8743,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -9108,7 +8751,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -9145,8 +8788,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9177,8 +8820,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9205,7 +8848,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -9213,7 +8856,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -9245,7 +8888,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -9277,7 +8920,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -9309,7 +8952,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -9317,7 +8960,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -9357,8 +9000,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9389,7 +9032,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -9397,7 +9040,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -9441,8 +9084,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9480,8 +9123,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9512,7 +9155,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -9520,7 +9163,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -9557,7 +9200,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -9591,7 +9234,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -9628,7 +9271,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -9662,7 +9305,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -9699,7 +9342,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -9707,7 +9350,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -9741,7 +9384,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9775,7 +9418,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9813,7 +9456,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -9857,7 +9500,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9901,7 +9544,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9932,7 +9575,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
@@ -9981,10 +9624,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10013,7 +9656,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
@@ -10066,10 +9709,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10099,7 +9742,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
@@ -10153,10 +9796,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10196,7 +9839,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -10253,10 +9896,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10304,10 +9947,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10347,7 +9990,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -10398,7 +10041,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
-M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
+M2", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10426,7 +10069,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -10437,7 +10080,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -10486,10 +10129,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
-M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
+M2", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10529,10 +10172,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
-M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
+M2", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10561,7 +10204,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -10572,7 +10215,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -10608,7 +10251,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -10644,7 +10287,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -10680,7 +10323,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -10691,7 +10334,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -10736,10 +10379,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
-I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10771,7 +10414,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -10782,7 +10425,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -10831,10 +10474,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
-I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10874,10 +10517,10 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
-I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10909,7 +10552,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -10920,7 +10563,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -10961,7 +10604,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -10999,7 +10642,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -11040,7 +10683,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -11078,7 +10721,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -11119,7 +10762,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -11130,7 +10773,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -11168,7 +10811,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -11206,7 +10849,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -11248,7 +10891,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -11296,7 +10939,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -11344,7 +10987,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -11396,8 +11039,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -11478,8 +11121,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -11646,7 +11289,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC30487: Operator '+' is not defined for type 'I1'.
@@ -11763,7 +11406,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC30452: Operator '+' is not defined for types 'I1' and 'C1'.
@@ -11805,7 +11448,11 @@ public interface I2 : I1
     }
 }
 "
-            Dim csCompilation = GetCSharpCompilation(csSource, compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(
+                csSource,
+                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata),
+                targetFramework:=TargetFramework.NetCoreApp,
+                additionalReferences:=New MetadataReference() {CompilationExtensions.CreateWindowsRuntimeMetadataReference()}).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -11840,7 +11487,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation, CompilationExtensions.CreateWindowsRuntimeMetadataReference()})
 
             Dim validator = Sub(m As ModuleSymbol)
                                 Dim c1 = m.GlobalNamespace.GetTypeMember("C1")
@@ -11864,7 +11511,7 @@ End Class
                                 Assert.Same(i1WinRT.RemoveMethod, i2WinRT.RemoveMethod.ExplicitInterfaceImplementations.Single())
                             End Sub
 
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
     End Class

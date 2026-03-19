@@ -2,14 +2,49 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpVSResources.resx">
     <body>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Alle C#-Formatierungsregeln anwenden (Einzug, Umbruch, Abstand)</target>
+      <trans-unit id="Add_missing_using_directives_on_paste">
+        <source>Add missing using directives on paste</source>
+        <target state="translated">Beim Einfügen fehlende using-Anweisungen hinzufügen</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="translated">Leere Zeile nach Doppelpunkt in Konstruktorinitialisierer zulassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">Leere Zeile nach Token in Pfeilausdrucksklausel zulassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">Leere Zeile nach Token im bedingten Ausdruck zulassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="translated">Leere Zeilen zwischen aufeinanderfolgenden geschweiften Klammern zulassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="translated">Eingebettete Anweisungen in derselben Zeile zulassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="translated">Anweisung bei Semikolon automatisch abschließen</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="new">Automatically show completion list in argument lists (experimental)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="translated">Vervollständigungsliste in Argumentlisten automatisch anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">Blockbereich</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -17,14 +52,29 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Coding_Conventions">
-        <source>C# Coding Conventions</source>
-        <target state="translated">C#-Codierungskonventionen</target>
+      <trans-unit id="CSharp_Interactive">
+        <source>C# Interactive</source>
+        <target state="translated">C# Interactive</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Formatting_Rules">
-        <source>C# Formatting Rules</source>
-        <target state="translated">C#-Formatierungsregeln</target>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">Abfrage abbrechen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">Abbrechen (Esc)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="translated">Reduzieren von Usings beim Öffnen einer Datei</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Abschluss</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -32,9 +82,14 @@
         <target state="translated">Ausschussvariable</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Einstellungen zur Dokumentformatierung (experimentell)</target>
+      <trans-unit id="Edit_color_scheme">
+        <source>Edit color scheme</source>
+        <target state="translated">Farbschema bearbeiten</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">Dateibereich</target>
         <note />
       </trans-unit>
       <trans-unit id="General">
@@ -42,14 +97,24 @@
         <target state="translated">Allgemein</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Ereignisabonnement generieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">In relationalen Operatoren: &lt; &gt; &lt;= &gt;= is as == !=</target>
+        <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="translated">Fügen Sie beim Schreiben von //-Kommentaren zwei Schrägstriche (//) am Anfang der neuen Zeilen ein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">Leerzeichen zwischen aufgerufenem Methodennamen und ihrer runden Klammer links einfügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -57,20 +122,40 @@
         <target state="translated">Innerhalb des Namespaces</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">Außerhalb des Namespaces</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Zusätzliche Codebereinigung während der Formatierung durchführen</target>
+      <trans-unit id="Pattern_matching_preferences_colon">
+        <source>Pattern matching preferences:</source>
+        <target state="translated">Einstellungen für den Musterabgleich:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">"is null" für Verweisübereinstimmungsprüfungen vorziehen</target>
-        <note>'is null' is a C# string and should not be localized.</note>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="translated">Öffnende geschweifte Klammer für Objekt-, Sammlungs-, Array- und with-Initialisierer in neue Zeile einfügen</target>
+        <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Muster für erweiterte Eigenschaften bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="translated">Implizite Objekterstellung bevorzugen, wenn der Typ offensichtlich ist</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="translated">Implizit typisierten Lambdaausdruck bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="translated">Musterabgleich bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
+        <source>Prefer pattern matching over mixed type check</source>
+        <target state="translated">Musterabgleich gegenüber der Überprüfung gemischter Typen bevorzugen</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
@@ -82,19 +167,34 @@
         <target state="translated">Bevorzugte Platzierung der using-Anweisung</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">Abfrage ausführen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">Elemente aus nicht importierten Namespaces anzeigen (experimentell)</target>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">Ausführen (STRG+EINGABE)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Using-Direktiven sortieren</target>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="translated">Hinweise für new-Ausdrücke anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_name_s_uggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">Namensv_orschläge anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="translated">Neue Codeausschnittoberfläche anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">Neue Ausschnittsoberfläche anzeigen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -105,11 +205,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Umschließen mit</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">Ausschnitt einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -222,11 +317,6 @@
         <target state="translated">Öffnende geschweifte Klammer in neuer Zeile für Methoden und lokale Funktionen einfügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Öffnende geschweifte Klammer für Objekt-, Sammlungs- und Arrayinitialisierer in neue Zeile einfügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">
         <source>Place open brace on new line for types</source>
         <target state="translated">Öffnende geschweifte Klammer für Typen in neuer Zeile platzieren</target>
@@ -307,19 +397,9 @@
         <target state="translated">Leerzeichen zwischen runden Klammern um leere Argumentliste einfügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">Leerzeichen zwischen runden Klammern in leere Parameterliste einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">
@@ -417,54 +497,9 @@
         <target state="translated">Zeilenwechseloptionen für Schlüsselwörter</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">Nicht verwendete lokale Variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">Beim Generieren lokaler Variablen "var" verwenden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">_Lokale Deklaration in die extrahierte Methode verschieben, wenn nicht anderweitig verwendet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">_Zeilentrennzeichen in Prozeduren anzeigen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
-        <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">_Nicht ref oder out auf benutzerdefinierte Struktur legen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">Editor-Hilfe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">Verwandte _Schlüsselbegriffe unter Cursor anzeigen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">_Verweise auf Symbol unter Cursor hervorheben</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter _outlining mode when files open</source>
         <target state="translated">_Gliederungsmodus eingeben, wenn Dateien offen sind</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Methode extrahieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
@@ -472,34 +507,9 @@
         <target state="translated">_XML-Dokumentationskommentare für /// eingeben</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">Hervorheben</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>_Insert * at the start of new lines when writing /* */ comments</source>
         <target state="translated">Be_im Schreiben von Kommentaren (/* */) * am Beginn neuer Zeilen einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Für Lösungsgröße optimieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Groß</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Regulär</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Klein</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -507,19 +517,9 @@
         <target state="translated">Using-Direktiven</target>
         <note />
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Leistung</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">"System"-Direktiven beim Sortieren von Using-Direktiven zuerst anordnen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">_Vervoll­ständigungsliste nach Eingabe eines Zeichens anzeigen</target>
+        <target state="translated">System-Anweisungen beim Sortieren von using-Anweisungen an erster Stelle _platzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -529,22 +529,12 @@
       </trans-unit>
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
-        <target state="translated">_Codeausschnitte in Vervollständigungslisten anordnen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">Vervollständigungslisten</target>
+        <target state="translated">_Codeschnipsel in Vervollständigungslisten anordnen</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">
         <source>Selection In Completion List</source>
         <target state="translated">Auswahl in Vervollständigungsliste</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Vorschau für Nachverfolgung beim _Umbenennen anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
@@ -560,11 +550,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">Using-Direktiven für Typen in _NuGet-Paketen vorschlagen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">Typrückschlusseinstellungen:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -652,59 +637,14 @@
         <target state="translated">_Zeichenfolgenliterale bei Eingabe teilen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">_Übereinstimmende Teile der Vervollständigungslistenelemente anzeigen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">Vervollständigungselement_filter anzeigen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">Verhalten der EINGABETASTE:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">Neue _Zeile beim Drücken der EINGABETASTE nur nach einem vollständig eingegebenen Wort einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">_Immer neue Zeile beim Drücken der EINGABETASTE einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">_Nie neue Zeile beim Drücken der EINGABETASTE einfügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="translated">Ausschnitte immer einschließen</target>
+        <target state="translated">Schnipsel immer einschließen</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Ausschnitte einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">Ausschnitte nie einschließen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">Ausschnittverhalten</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">Vervollstän_digungsliste nach Löschen eines Zeichens anzeigen</target>
+        <target state="translated">Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
         <note />
       </trans-unit>
       <trans-unit id="null_checking_colon">
@@ -732,16 +672,6 @@
         <target state="translated">Bei der NULL-Überprüfung Musterabgleich gegenüber "as" bevorzugen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">Blocktextkörper bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">Ausdruckskörper bevorzugen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_format_on_return">
         <source>Automatically format on return</source>
         <target state="translated">Bei Verwendung der EINGABETASTE automatisch formatieren</target>
@@ -750,11 +680,6 @@
       <trans-unit id="Automatically_format_when_typing">
         <source>Automatically format when typing</source>
         <target state="translated">Automatisch während der Eingabe formatieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nie</target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">
@@ -788,8 +713,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
-        <source>Show name s_uggestions</source>
-        <target state="translated">Namensv_orschläge anzeigen</target>
+        <source>Show name suggestions</source>
+        <target state="translated">Namensvorschläge anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
@@ -798,9 +723,9 @@
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">In anderen binären Operatoren: &amp; &amp; ||   ??</target>
-        <note />
+        <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
+        <target state="translated">In anderen binären Operatoren: &amp;&amp;   ||   ??   and   or</target>
+        <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
   </file>

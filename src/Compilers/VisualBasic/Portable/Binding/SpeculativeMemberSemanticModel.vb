@@ -16,22 +16,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a speculative SemanticModel for a TypeSyntax or a RangeArgumentSyntax node at a position within an existing MemberSemanticModel.
         ''' </summary>
-        Public Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer)
-            MyBase.New(root, binder, containingSemanticModelOpt:=Nothing, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
+        Public Sub New(parentSemanticModel As SpeculativeSemanticModelWithMemberModel, root As VisualBasicSyntaxNode, binder As Binder)
+            MyBase.New(root, binder, containingPublicSemanticModel:=parentSemanticModel)
 
             Debug.Assert(root IsNot Nothing)
             Debug.Assert(TypeOf root Is TypeSyntax OrElse TypeOf root Is RangeArgumentSyntax)
         End Sub
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

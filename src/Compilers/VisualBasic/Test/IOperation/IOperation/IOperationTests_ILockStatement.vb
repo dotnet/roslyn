@@ -9,6 +9,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        Private Const LockTypeDefinition As String = "
+namespace System.Threading
+{
+    public class Lock
+    {
+        public Scope EnterScope() => new Scope();
+
+        public ref struct Scope
+        {
+            public void Dispose() { }
+        }
+    }
+}"
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ILockStatement_ObjectLock_FieldReference()
@@ -362,6 +376,86 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'SyncLock o' ... nd Syn
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact, CompilerTrait(CompilerFeature.IOperation)>
+        Public Sub ILockStatement_LockObject()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Threading
+
+Public Class C
+    Public Sub M()
+        Dim l As New Lock()
+        SyncLock l'BIND:"SyncLock l"
+        End SyncLock
+    End Sub
+End Class
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILockOperation (OperationKind.Lock, Type: null, IsInvalid) (Syntax: 'SyncLock l' ... nd SyncLock')
+  Expression:
+    ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+  Body:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'SyncLock l' ... nd SyncLock')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l'BIND:"SyncLock l"
+                 ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, CompilerTrait(CompilerFeature.IOperation)>
+        Public Sub ILockStatement_LockObjectWithAllMembers()
+            Dim lockRef = CreateCSharpCompilation(LockTypeDefinition).VerifyDiagnostics().EmitToImageReference()
+
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Threading
+
+Public Class C
+    Public Sub M()
+        Dim l As New Lock()
+        SyncLock l'BIND:"SyncLock l"
+            System.Console.Write("Body")
+        End SyncLock
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILockOperation (OperationKind.Lock, Type: null, IsInvalid) (Syntax: 'SyncLock l' ... nd SyncLock')
+  Expression:
+    ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'SyncLock l' ... nd SyncLock')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ite("Body")')
+        Expression:
+          IInvocationOperation (Sub System.Console.Write(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ite("Body")')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Body"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Body") (Syntax: '"Body"')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l'BIND:"SyncLock l"
+                 ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, references:={lockRef})
+        End Sub
+
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub LockFlow_04()
@@ -467,6 +561,236 @@ Block[B6] - Exit
 ]]>.Value
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        Public Sub LockFlow_LockObject()
+            Dim source = <![CDATA[
+Imports System.Threading
+
+Public Class C
+    Sub M(l As Lock) 'BIND:"Sub M"
+        SyncLock l
+        End SyncLock
+    End Sub
+End Class
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'SyncLock l ... nd SyncLock')
+          Expression:
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+              Children(1):
+                  IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        Public Sub LockFlow_LockObject_NonEmptyBody()
+            Dim source = <![CDATA[
+Imports System.Threading
+
+Public Class C
+    Sub M(l As Lock) 'BIND:"Sub M"
+        SyncLock l
+            System.Console.Write("Body")
+        End SyncLock
+    End Sub
+End Class
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'SyncLock l ... nd SyncLock')
+          Expression:
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+              Children(1):
+                  IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ite("Body")')
+          Expression:
+            IInvocationOperation (Sub System.Console.Write(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ite("Body")')
+              Instance Receiver:
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Body"')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Body") (Syntax: '"Body"')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        Public Sub LockFlow_LockObject_ConditionalBody()
+            Dim source = <![CDATA[
+Imports System.Threading
+
+Public Class C
+    Sub M(l As Lock, b As Boolean) 'BIND:"Sub M"
+        SyncLock l
+            If b Then
+                System.Console.Write("Body")
+            Else
+                System.Console.Write("Else")
+            End If
+        End SyncLock
+    End Sub
+End Class
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'SyncLock l ... nd SyncLock')
+          Expression:
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+              Children(1):
+                  IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ite("Body")')
+          Expression:
+            IInvocationOperation (Sub System.Console.Write(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ite("Body")')
+              Instance Receiver:
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Body"')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Body") (Syntax: '"Body"')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ite("Else")')
+          Expression:
+            IInvocationOperation (Sub System.Console.Write(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ite("Else")')
+              Instance Receiver:
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Else"')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Else") (Syntax: '"Else"')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B2] [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        Public Sub LockFlow_LockObjectWithAllMembers()
+            Dim lockRef = CreateCSharpCompilation(LockTypeDefinition).VerifyDiagnostics().EmitToImageReference()
+
+            Dim source = <![CDATA[
+Imports System.Threading
+
+Public Class C
+    Sub M(l As Lock) 'BIND:"Sub M"
+        SyncLock l
+            System.Console.Write("Body")
+        End SyncLock
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'SyncLock l ... nd SyncLock')
+          Expression:
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+              Children(1):
+                  IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ite("Body")')
+          Expression:
+            IInvocationOperation (Sub System.Console.Write(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ite("Body")')
+              Instance Receiver:
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Body"')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Body") (Syntax: '"Body"')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics, additionalReferences:={lockRef})
         End Sub
 
     End Class

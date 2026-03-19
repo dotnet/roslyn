@@ -210,7 +210,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 If attribute IsNot Nothing Then
                     Select Case attribute.Kind
                         Case SyntaxKind.XmlAttribute
-                            ClassifyAttribute(DirectCast(attribute, XmlAttributeSyntax))
+                            Dim xmlAttribute = DirectCast(attribute, XmlAttributeSyntax)
+                            If IsLangWordAttribute(xmlAttribute) Then
+                                ClassifyLangWordAttribute(xmlAttribute)
+
+                            Else
+                                ClassifyAttribute(xmlAttribute)
+                            End If
 
                         Case SyntaxKind.XmlCrefAttribute
                             ClassifyCrefAttribute(DirectCast(attribute, XmlCrefAttributeSyntax))
@@ -225,6 +231,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 ClassifyXmlNode(attribute.Name)
                 AddXmlClassification(attribute.EqualsToken, ClassificationTypeNames.XmlDocCommentDelimiter)
                 ClassifyXmlNode(attribute.Value)
+            End Sub
+
+            Private Shared Function IsLangWordAttribute(attribute As XmlAttributeSyntax) As Boolean
+                Dim nameNode = DirectCast(attribute.Name, XmlNameSyntax)
+                If nameNode.LocalName.Text <> DocumentationCommentXmlNames.LangwordAttributeName Then
+                    Return False
+                End If
+
+                Dim startTag = TryCast(attribute.Parent, XmlElementStartTagSyntax)
+                If (startTag IsNot Nothing) Then
+                    Dim startTagName = TryCast(startTag.Name, XmlNameSyntax)
+                    Return startTagName IsNot Nothing AndAlso
+                        startTagName.Prefix Is Nothing AndAlso
+                        startTagName.LocalName.Text = DocumentationCommentXmlNames.SeeElementName
+                End If
+
+                Dim emptyElement = TryCast(attribute.Parent, XmlEmptyElementSyntax)
+                If (emptyElement IsNot Nothing) Then
+                    Dim emptyElementName = TryCast(emptyElement.Name, XmlNameSyntax)
+                    Return emptyElementName IsNot Nothing AndAlso
+                        emptyElementName.Prefix Is Nothing AndAlso
+                        emptyElementName.LocalName.Text = DocumentationCommentXmlNames.SeeElementName
+                End If
+
+                Return False
+            End Function
+
+            Private Sub ClassifyLangWordAttribute(attribute As XmlAttributeSyntax)
+                ClassifyXmlNode(attribute.Name)
+                AddXmlClassification(attribute.EqualsToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+
+                Dim node = (DirectCast(attribute.Value, XmlStringSyntax))
+
+                AddXmlClassification(node.StartQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+                ClassifyLangWordTextTokenList(node.TextTokens)
+                AddXmlClassification(node.EndQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+            End Sub
+
+            Private Sub ClassifyLangWordTextTokenList(list As SyntaxTokenList)
+                For Each token In list
+                    If (token.HasLeadingTrivia) Then
+                        ClassifyXmlTrivia(token.LeadingTrivia, ClassificationTypeNames.XmlDocCommentText)
+                    End If
+
+                    ClassifyLangWordTextToken(token)
+
+                    If (token.HasTrailingTrivia) Then
+                        ClassifyXmlTrivia(token.TrailingTrivia, ClassificationTypeNames.XmlDocCommentText)
+                    End If
+                Next
+            End Sub
+
+            Private Sub ClassifyLangWordTextToken(token As SyntaxToken)
+                Dim kind = SyntaxFacts.GetKeywordKind(token.Text)
+                If kind = SyntaxKind.None Then
+                    kind = SyntaxFacts.GetContextualKeywordKind(token.Text)
+                End If
+
+                If kind = SyntaxKind.None Then
+                    AddXmlClassification(token, ClassificationTypeNames.XmlDocCommentAttributeValue)
+                    Return
+                End If
+
+                Dim isControlKeyword = IsControlKeywordKind(kind) Or IsControlStatementKind(kind)
+                AddXmlClassification(token, If(isControlKeyword, ClassificationTypeNames.ControlKeyword, ClassificationTypeNames.Keyword))
             End Sub
 
             Private Sub ClassifyCrefAttribute(attribute As XmlCrefAttributeSyntax)

@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,9 +17,10 @@ namespace Microsoft.CodeAnalysis
         None = 0,
 
         /// <summary>
-        /// ".ctor" instead of "Goo"
+        /// - ".ctor" instead of "Goo"
+        /// - "&lt;Prop&gt;k__backingField" instead of "Prop.field" (for C# backing fields)
         /// </summary>
-        UseMetadataMethodNames = 1 << 0,
+        UseMetadataMemberNames = 1 << 0,
 
         /// <summary>
         /// "List`1" instead of "List&lt;T&gt;" ("List(of T)" in VB). Overrides GenericsOptions on
@@ -53,8 +55,31 @@ namespace Microsoft.CodeAnalysis
         ReverseArrayRankSpecifiers = 1 << 5,
 
         /// <summary>
-        /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
+        /// Display `System.[U]IntPtr` instead of `n[u]int`.
         /// </summary>
-        UseValueTuple = 1 << 6,
+        UseNativeIntegerUnderlyingType = 1 << 6,
+
+        /// <summary>
+        /// Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
+        /// </summary>
+        UsePlusForNestedTypes = 1 << 7,
+
+        /// <summary>
+        /// Display `MyType@File.cs` instead of `MyType`.
+        /// </summary>
+        IncludeContainingFileForFileTypes = 1 << 8,
+
+        /// <summary>
+        /// Does not include parameter name if the parameter is displayed on its own
+        /// (i.e., not as part of a method, delegate, or indexer).
+        /// </summary>
+        ExcludeParameterNameIfStandalone = 1 << 9,
+
+        /// <summary>
+        /// Display `&lt;File&gt;F&lt;sha256-hex-string&gt;_MyType` instead of `MyType`.
+        /// Differs from <see cref="IncludeContainingFileForFileTypes"/> because it guarantees that
+        /// the prefix will be unique for all files which are permitted to declare file-local types.
+        /// </summary>
+        IncludeFileLocalTypesPrefix = 1 << 10,
     }
 }

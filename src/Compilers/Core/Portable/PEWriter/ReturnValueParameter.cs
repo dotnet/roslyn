@@ -2,116 +2,69 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeGen;
-using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
-    internal class ReturnValueParameter : IParameterDefinition
+    internal sealed class ReturnValueParameter : ParameterDefinitionBase
     {
         internal ReturnValueParameter(IMethodDefinition containingMethod)
         {
             _containingMethod = containingMethod;
         }
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+        public override IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return _containingMethod.GetReturnValueAttributes(context);
         }
 
-        public ISignature ContainingSignature
-        {
-            get { return _containingMethod; }
-        }
-
         private readonly IMethodDefinition _containingMethod;
 
-        public MetadataConstant? Constant
-        {
-            get { return null; }
-        }
-
-        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
+        public override ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
         {
             get { return _containingMethod.RefCustomModifiers; }
         }
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
+        public override ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
             get { return _containingMethod.ReturnValueCustomModifiers; }
         }
 
-        public MetadataConstant? GetDefaultValue(EmitContext context)
-        {
-            return null;
-        }
-
-        public void Dispatch(MetadataVisitor visitor)
-        {
-        }
-
-        public bool HasDefaultValue
-        {
-            get { return false; }
-        }
-
-        public ushort Index
+        public override ushort Index
         {
             get { return 0; }
         }
 
-        public bool IsIn
-        {
-            get { return false; }
-        }
-
-        public bool IsByReference
+        public override bool IsByReference
         {
             get { return _containingMethod.ReturnValueIsByRef; }
         }
 
-        public bool IsMarshalledExplicitly
+        public override bool IsMarshalledExplicitly
         {
             get { return _containingMethod.ReturnValueIsMarshalledExplicitly; }
         }
 
-        public bool IsOptional
-        {
-            get { return false; }
-        }
-
-        public bool IsOut
-        {
-            get { return false; }
-        }
-
-        public IMarshallingInformation MarshallingInformation
+        public override IMarshallingInformation MarshallingInformation
         {
             get { return _containingMethod.ReturnValueMarshallingInformation; }
         }
 
-        public ImmutableArray<byte> MarshallingDescriptor
+        public override ImmutableArray<byte> MarshallingDescriptor
         {
             get { return _containingMethod.ReturnValueMarshallingDescriptor; }
         }
 
-        public string Name
+        public override string Name
         {
             get { return string.Empty; }
         }
 
-        public ITypeReference GetType(EmitContext context)
+        public override ITypeReference GetType(EmitContext context)
         {
             return _containingMethod.GetType(context);
-        }
-
-        public IDefinition AsDefinition(EmitContext context)
-        {
-            return this as IDefinition;
         }
     }
 }

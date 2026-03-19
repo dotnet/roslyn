@@ -2,19 +2,18 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.IO
+Imports System.Reflection
+Imports System.Reflection.Metadata
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
-Imports System.IO
-Imports System.Reflection
-Imports System.Xml.Linq
-Imports Xunit
-Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Emit
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -913,7 +912,7 @@ Public Interface ITest26
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Imports System
 
@@ -1532,7 +1531,8 @@ End Interface
 ]]></file>
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
-            Dim verifier = CompileAndVerify(compilation0, verify:=Verification.Fails)
+            ' PEVerify: Error: Method cannot be both generic and defined on an imported type.
+            Dim verifier = CompileAndVerify(compilation0, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
@@ -1602,13 +1602,13 @@ End Interface
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -1741,7 +1741,7 @@ End Structure
                                                        End Sub
             Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={Net40.References.mscorlib, Net40.References.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
@@ -1761,7 +1761,7 @@ End Structure
 ]]>)
             compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef_v4_0_30316_17626, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={NetFramework.mscorlib, NetFramework.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
@@ -1971,7 +1971,7 @@ Public Interface IE
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class C
     Sub Add(x As I1)
@@ -2090,7 +2090,7 @@ Public Interface IE
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class C
     Implements I
@@ -2381,7 +2381,7 @@ Public Interface I2
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I1, I2
@@ -2435,7 +2435,7 @@ Public Interface I2
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I1, I2
@@ -2482,7 +2482,7 @@ Public Enum E
 End Enum
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As E)
@@ -2529,7 +2529,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -2578,7 +2578,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2612,7 +2612,7 @@ End Structure
         End Sub
 
         <Fact()>
-        Public Sub DispIdAttribute()
+        Public Sub DispIdAttribute_01()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[
 Imports System.Runtime.InteropServices
@@ -2626,7 +2626,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2660,6 +2660,176 @@ End Structure
         End Sub
 
         <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+        Public Sub DispIdAttribute_02()
+
+            Dim dispId = <![CDATA[
+namespace System.Runtime.InteropServices
+{
+    public class DispIdAttribute : System.Attribute
+    {
+        public DispIdAttribute (int dispId){}
+    }
+}
+]]>
+            Dim dispIdDefinition = CreateCSharpCompilation(dispId, assemblyName:="DispId", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib461Extended, Nothing)).EmitToImageReference(aliases:=ImmutableArray.Create("dispId"))
+
+            Dim pia = <![CDATA[
+extern alias dispId;
+
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib("GeneralPIA.dll")]
+[assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")]
+
+[ComImport()]
+[Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58279")]
+public interface I
+{
+    [dispId::System.Runtime.InteropServices.DispIdAttribute(124)]
+    void M();
+}
+]]>
+
+            Dim piaCompilation = CreateCSharpCompilation(pia, assemblyName:="Pia", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib461Extended, {dispIdDefinition})).
+                EmitToImageReference(embedInteropTypes:=True)
+
+            Dim sources1 = <compilation>
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Implements I
+    Private Sub M() Implements I.M
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Dim attr = method.GetAttributes("System.Runtime.InteropServices", "DispIdAttribute").Single()
+                                                           Assert.Equal("System.Runtime.InteropServices.DispIdAttribute(124)", attr.ToString())
+                                                       End Sub
+
+            Dim compilation1 = CreateCompilation(sources1, references:={piaCompilation}, targetFramework:=TargetFramework.Mscorlib461Extended)
+
+            Dim verifier = CompileAndVerify(compilation1.AddReferences(dispIdDefinition), symbolValidator:=validator)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+
+            compilation1.AssertTheseEmitDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'DispId, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'DispIdAttribute'. Add one to your project.
+</expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+        Public Sub DispIdAttribute_03()
+
+            Dim empty = CreateCompilation("", targetFramework:=TargetFramework.Mscorlib461Extended).EmitToImageReference()
+
+            Dim pia = <compilation name="0">
+                          <file name="a.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58271")>
+Public Interface I
+    <DispId("124")>
+    Sub M()
+End Interface
+]]></file>
+                      </compilation>
+
+            Dim piaCompilation = CreateCompilation(pia, references:={empty}, targetFramework:=TargetFramework.Mscorlib461Extended)
+
+            piaCompilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30934: Conversion from 'String' to 'Integer' cannot occur in a constant expression used as an argument to an attribute.
+    <DispId("124")>
+            ~~~~~
+]]></expected>
+            )
+
+            Dim sources1 = <compilation>
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Implements I
+    Private Sub M() Implements I.M
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Assert.Empty(method.GetAttributes())
+                                                       End Sub
+
+            Dim compilation1 = CreateCompilation(sources1, references:={piaCompilation.ToMetadataReference(embedInteropTypes:=True)}, targetFramework:=TargetFramework.Mscorlib461Extended)
+
+            CompileAndVerify(compilation1, symbolValidator:=validator)
+
+            CompileAndVerify(compilation1.AddReferences(empty), symbolValidator:=validator)
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+        Public Sub DispIdAttribute_04()
+
+            Dim pia = <compilation name="0">
+                          <file name="a.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58271")>
+Public Interface I
+    <DispId(124, Something:=10)>
+    Sub M()
+End Interface
+]]></file>
+                      </compilation>
+
+            Dim piaCompilation = CreateCompilation(pia, targetFramework:=TargetFramework.Mscorlib461Extended)
+
+            piaCompilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30661: Field or property 'Something' is not found.
+    <DispId(124, Something:=10)>
+                 ~~~~~~~~~
+]]></expected>
+            )
+
+            Dim sources1 = <compilation>
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Implements I
+    Private Sub M() Implements I.M
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Assert.Empty(method.GetAttributes())
+                                                       End Sub
+
+            Dim compilation1 = CreateCompilation(sources1, references:={piaCompilation.ToMetadataReference(embedInteropTypes:=True)}, targetFramework:=TargetFramework.Mscorlib461Extended)
+
+            CompileAndVerify(compilation1, symbolValidator:=validator)
+        End Sub
+
+        <Fact()>
         Public Sub ParamArrayAttribute()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[
@@ -2673,7 +2843,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2723,7 +2893,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -2775,7 +2945,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -2832,7 +3002,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -2883,7 +3053,7 @@ Imports System.Runtime.InteropServices
 Public Delegate Sub D()
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As D)
@@ -2931,7 +3101,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -3131,7 +3301,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Public Class A
     Public Shared F As Object
@@ -3140,7 +3310,7 @@ Public Class A
 End Class
 ]]></file>
                            </compilation>
-            Dim sources2 = <compilation name="2">
+            Dim sources2 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class B
     Private Shared Sub M(o As I)
@@ -3204,7 +3374,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation name="10">
                                <file name="a.vb"><![CDATA[
 Public Class A
     Public Shared F As Object
@@ -3213,7 +3383,7 @@ Public Class A
 End Class
 ]]></file>
                            </compilation>
-            Dim sources2 = <compilation name="2">
+            Dim sources2 = <compilation name="20">
                                <file name="a.vb"><![CDATA[
 Class B
     Private Shared F = A.F
@@ -3223,7 +3393,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' because of an indirect reference to that assembly from assembly '1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider changing the 'Embed Interop Types' property on either assembly.
+BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' because of an indirect reference to that assembly from assembly '10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider changing the 'Embed Interop Types' property on either assembly.
 </errors>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
@@ -3232,7 +3402,7 @@ BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
                                                            Assert.Equal(2, references.Length)
-                                                           Assert.Equal("1", references(1).Name)
+                                                           Assert.Equal("10", references(1).Name)
                                                        End Sub
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
@@ -3459,7 +3629,7 @@ Public Enum E
 End Enum
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class C
     Private Const F As E = E.B
@@ -3606,7 +3776,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim assembly = compilation1.SourceModule.GetReferencedAssemblySymbols()(1)
             Dim [module] = assembly.Modules(0)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
@@ -3619,7 +3789,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             [module] = assembly.Modules(0)
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(DirectCast([module], PEModuleSymbol).LookupTopLevelMetadataType(fullName, isNoPiaLocalType))
             Assert.True(isNoPiaLocalType)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
@@ -3629,7 +3799,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             assembly = compilation3.SourceModule.GetReferencedAssemblySymbols()(1)
             [module] = assembly.Modules(0)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
@@ -3641,7 +3811,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             [module] = assembly.Modules(0)
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(DirectCast([module], PEModuleSymbol).LookupTopLevelMetadataType(fullName, isNoPiaLocalType))
             Assert.True(isNoPiaLocalType)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
         End Sub
 
@@ -3710,12 +3880,12 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=Verification.Fails)
+            CompileAndVerify(compilation3, verify:=Verification.FailsPEVerify)
 
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=Verification.Fails)
+            CompileAndVerify(compilation4, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact()>
@@ -4127,15 +4297,17 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
 
+            ' PEVerify: [ : C::M][mdToken=0x6000002][offset 0x00000001] Unable to resolve token.
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=Verification.Fails)
+            CompileAndVerify(compilation3, verify:=Verification.FailsPEVerify)
 
+            ' PEVerify: [ : C::M][mdToken=0x6000002][offset 0x00000001] Unable to resolve token.
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=Verification.Fails)
+            CompileAndVerify(compilation4, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact(), WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")>
@@ -4339,7 +4511,6 @@ BC35000: Requested operation is not available because the runtime library functi
                                                 End Sub).VerifyDiagnostics()
         End Sub
 
-
         <Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")>
         Public Sub ParametersWithoutNames()
             Dim sources =
@@ -4365,7 +4536,6 @@ End Class
                                                                                 GetReference(display:="ParametersWithoutNames.dll", embedInteropTypes:=True)
                                                                          },
                                                                          options:=TestOptions.ReleaseDll)
-
 
             AssertParametersWithoutNames(compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("I1").GetMember(Of MethodSymbol)("M1").Parameters, False)
 

@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A list of <see cref="SyntaxNodeOrToken"/> structures.
     /// </summary>
+    [CollectionBuilder(typeof(SyntaxNodeOrTokenList), "Create")]
     public readonly struct SyntaxNodeOrTokenList : IEquatable<SyntaxNodeOrTokenList>, IReadOnlyCollection<SyntaxNodeOrToken>
     {
         /// <summary>
@@ -61,16 +62,47 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="nodesAndTokens">The nodes and tokens</param>
         public SyntaxNodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
-            : this((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens)
+            : this(CreateNodeFromSpan(nodesAndTokens), 0)
         {
+        }
+
+        public static SyntaxNodeOrTokenList Create(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (nodesAndTokens.Length == 0)
+                return default;
+
+            return new SyntaxNodeOrTokenList(CreateNodeFromSpan(nodesAndTokens), index: 0);
+        }
+
+        private static SyntaxNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (nodesAndTokens == default)
+                throw new ArgumentNullException(nameof(nodesAndTokens));
+
+            switch (nodesAndTokens.Length)
+            {
+                case 0: return null;
+                case 1:
+                    return nodesAndTokens[0].IsToken
+                        ? Syntax.InternalSyntax.SyntaxList.List([nodesAndTokens[0].UnderlyingNode]).CreateRed()
+                        : nodesAndTokens[0].AsNode();
+                case 2: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!).CreateRed();
+                case 3: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!, nodesAndTokens[2].UnderlyingNode!).CreateRed();
+                default:
+                    {
+                        var copy = new ArrayElement<GreenNode>[nodesAndTokens.Length];
+                        for (int i = 0, n = nodesAndTokens.Length; i < n; i++)
+                            copy[i].Value = nodesAndTokens[i].UnderlyingNode!;
+
+                        return Syntax.InternalSyntax.SyntaxList.List(copy).CreateRed();
+                    }
+            }
         }
 
         private static SyntaxNode? CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
             if (nodesAndTokens == null)
-            {
                 throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
 
             var builder = new SyntaxNodeOrTokenListBuilder(8);
             builder.Add(nodesAndTokens);
@@ -308,20 +340,23 @@ namespace Microsoft.CodeAnalysis
 
             var nodes = this.ToList();
             nodes.InsertRange(index, nodesAndTokens);
-            return CreateList(nodes[0].UnderlyingNode!, nodes);
+            return CreateList(nodes);
         }
 
-        private static SyntaxNodeOrTokenList CreateList(GreenNode creator, List<SyntaxNodeOrToken> items)
+        private static SyntaxNodeOrTokenList CreateList(List<SyntaxNodeOrToken> items)
         {
             if (items.Count == 0)
             {
                 return default(SyntaxNodeOrTokenList);
             }
 
-            var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode!))!;
+            var newGreen = GreenNode.CreateList(items, static n => n.RequiredUnderlyingNode)!;
             if (newGreen.IsToken)
             {
-                newGreen = creator.CreateList(new[] { newGreen }, alwaysCreateListNode: true)!;
+                newGreen = Syntax.InternalSyntax.SyntaxList.List(new[]
+                {
+                    new ArrayElement<GreenNode> {Value = newGreen}
+                });
             }
 
             return new SyntaxNodeOrTokenList(newGreen.CreateRed(), 0);
@@ -338,10 +373,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var node = this[index];
             var nodes = this.ToList();
             nodes.RemoveAt(index);
-            return CreateList(node.UnderlyingNode!, nodes);
+            return CreateList(nodes);
         }
 
         /// <summary>
@@ -387,14 +421,16 @@ namespace Microsoft.CodeAnalysis
                 var nodes = this.ToList();
                 nodes.RemoveAt(index);
                 nodes.InsertRange(index, newNodesAndTokens);
-                return CreateList(nodeOrTokenInList.UnderlyingNode!, nodes);
+                return CreateList(nodes);
             }
 
             throw new ArgumentOutOfRangeException(nameof(nodeOrTokenInList));
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private SyntaxNodeOrToken[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get { return this.ToArray(); }
         }
@@ -501,7 +537,7 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<SyntaxNodeOrToken>
         {
-            private SyntaxNodeOrTokenList _list;
+            private readonly SyntaxNodeOrTokenList _list;
             private int _index;
 
             internal Enumerator(in SyntaxNodeOrTokenList list)

@@ -3,23 +3,23 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ErrorKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ErrorOptionsAfterOnTest() As Task
+        Public Sub ErrorOptionsAfterOnTest()
             ' We can always exit a Sub/Function, so it should be there
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
-        End Function
+            VerifyRecommendationsAreExactly(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
+        End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ErrorStatementInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Error")
-        End Function
+        Public Sub ErrorStatementInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Error")
+        End Sub
 
-        <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ErrorStatementInLambdaTest() As Task
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
+        Public Sub ErrorStatementInLambdaTest()
             Dim code = <File>
 Public Class Z
     Public Sub Main()
@@ -27,7 +27,7 @@ Public Class Z
     End Sub
 End Class</File>
 
-            Await VerifyRecommendationsContainAsync(code, "Error")
-        End Function
+            VerifyRecommendationsContain(code, "Error")
+        End Sub
     End Class
 End Namespace

@@ -47,7 +47,7 @@ Code:
 - [ ] Target typing (var, lambdas, integrals)
 - [ ] Type inference
 - [ ] Conversions
-    - [ ] Implicit (identity, implicit numeric, implicit enumeration, implicit nullable, null litaral, implicit reference, boxing, implicit dynamic, implicit constant, user-defined implicit conversion, anonymous function, method group)
+    - [ ] Implicit (identity, implicit numeric, implicit enumeration, implicit nullable, null literal, implicit reference, boxing, implicit dynamic, implicit constant, user-defined implicit conversion, anonymous function, method group)
     - [ ] Explicit (numeric, enumeration, nullable, reference, unboxing, dynamic, user-defined)
     - [ ] Anonymous functions
 - [ ] nullable (wrapping, unwrapping)

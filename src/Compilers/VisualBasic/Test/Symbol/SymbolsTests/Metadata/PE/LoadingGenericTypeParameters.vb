@@ -2,16 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Runtime.CompilerServices
-Imports CompilationCreationTestHelpers
-Imports Microsoft.CodeAnalysis.ImmutableArrayExtensions
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -19,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(Net40.Resources.mscorlib)
             Dim module0 = assembly.Modules(0)
 
             Dim objectType = module0.GlobalNamespace.GetMembers("System").
@@ -172,7 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(T.HasReferenceTypeConstraint)
             Assert.False(T.HasValueTypeConstraint)
             Assert.Equal(VarianceKind.Out, T.Variance)
-
 
             Dim I101 = module0.GlobalNamespace.GetTypeMembers("I101").Single()
             Dim I102 = module0.GlobalNamespace.GetTypeMembers("I102").Single()

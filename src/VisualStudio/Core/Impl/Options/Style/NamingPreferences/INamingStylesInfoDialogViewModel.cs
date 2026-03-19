@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
+#nullable disable
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
+
+internal interface INamingStylesInfoDialogViewModel
 {
-    internal interface INamingStylesInfoDialogViewModel
-    {
-        string ItemName { get; set; }
-        bool CanBeDeleted { get; set; }
-    }
+    string ItemName { get; set; }
+    bool CanBeDeleted { get; set; }
 }

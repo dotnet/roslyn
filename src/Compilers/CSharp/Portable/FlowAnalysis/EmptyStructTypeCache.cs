@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -25,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// When set, we ignore private reference fields of structs loaded from metadata.
         /// </summary>
-        private readonly bool _dev12CompilerCompatibility;
+        internal readonly bool _dev12CompilerCompatibility;
 
         private readonly SourceAssemblySymbol _sourceAssembly;
 
@@ -129,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)type == null) return false;
             var nts = type.OriginalDefinition as NamedTypeSymbol;
             if ((object)nts == null) return false;
-            return nts.IsStructType() && nts.SpecialType == SpecialType.None && !nts.KnownCircularStruct;
+            return nts.IsStructType() && !nts.SpecialType.CanOptimizeBehavior() && !nts.KnownCircularStruct;
         }
 
         /// <summary>

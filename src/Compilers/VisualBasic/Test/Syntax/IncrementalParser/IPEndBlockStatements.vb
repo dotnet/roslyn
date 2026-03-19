@@ -2,15 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.ObjectModel
-Imports System.Text
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 
 Public Class IPEndBlockStatements
@@ -144,7 +136,6 @@ Public Class IPEndBlockStatements
         .changeSpan = New TextSpan(code.IndexOf(" Sub()", StringComparison.Ordinal) + 8, change.Length),
         .changeType = ChangeType.Remove})
     End Sub
-
 
     ''' <summary>
     ''' Test2b - Removes End Sub at various places in code
@@ -545,7 +536,6 @@ Public Class IPEndBlockStatements
             "With New Integer " & vbCrLf
         Dim change = "End Using" & vbCrLf
 
-
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
@@ -571,7 +561,6 @@ Public Class IPEndBlockStatements
             "End Module" & vbCrLf &
             "End Namespace" & vbCrLf
         Dim change = "End Using" & vbCrLf
-
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,

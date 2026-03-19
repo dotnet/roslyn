@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -16,16 +18,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractOrdinaryMethodSignatureHelpProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
-            Return ch = "{"c OrElse ch = ","c
-        End Function
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("{"c, ","c)
 
-        Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
-            Return ch = "}"c
-        End Function
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("}"c)
 
         Private Function TryGetInitializerExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, <Out> ByRef expression As CollectionInitializerSyntax) As Boolean
             Return CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsInitializerExpressionToken, cancellationToken, expression) AndAlso
@@ -35,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Function IsTriggerToken(token As SyntaxToken) As Boolean
             Return Not token.IsKind(SyntaxKind.None) AndAlso
                token.ValueText.Length = 1 AndAlso
-               IsTriggerCharacter(token.ValueText(0)) AndAlso
+               TriggerCharacters.Contains(token.ValueText(0)) AndAlso
                TypeOf token.Parent Is CollectionInitializerSyntax
         End Function
 
@@ -43,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return expression.Span.Contains(token.SpanStart) AndAlso token <> expression.CloseBraceToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As MemberDisplayOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim collectionInitializer As CollectionInitializerSyntax = Nothing
             If Not TryGetInitializerExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService)(), triggerInfo.TriggerReason, cancellationToken, collectionInitializer) Then
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim addMethods = Await CommonSignatureHelpUtilities.GetCollectionInitializerAddMethodsAsync(
-                document, collectionInitializer.Parent, cancellationToken).ConfigureAwait(False)
+                document, collectionInitializer.Parent, options, cancellationToken).ConfigureAwait(False)
             If addMethods.IsDefaultOrEmpty Then
                 Return Nothing
             End If
@@ -61,11 +60,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Return CreateCollectionInitializerSignatureHelpItems(
-                addMethods.Select(Function(s) ConvertMemberGroupMember(document, s, collectionInitializer.OpenBraceToken.SpanStart, semanticModel, cancellationToken)).ToList(),
+                addMethods.Select(Function(s) ConvertMemberGroupMember(document, s, collectionInitializer.OpenBraceToken.SpanStart, semanticModel)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState?
             Dim expression As CollectionInitializerSyntax = Nothing
             If TryGetInitializerExpression(
                         root,

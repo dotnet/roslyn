@@ -4,9 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
@@ -22,23 +22,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         Inherits SyntaxEditorBasedCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
 
-        Friend NotOverridable Overrides ReadOnly Property CodeFixCategory As CodeFixCategory
-            Get
-                Return CodeFixCategory.CodeStyle
-            End Get
-        End Property
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            context.RegisterCodeFix(New MyCodeAction(
-                AnalyzersResources.Remove_Unnecessary_Cast,
-                Function(c) FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics)
+            RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, NameOf(AnalyzersResources.Remove_Unnecessary_Cast))
             Return Task.CompletedTask
         End Function
 
@@ -57,8 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         End Function
 
         Protected Overrides Async Function FixAllAsync(
-            document As Document, diagnostics As ImmutableArray(Of Diagnostic),
-            editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+            document As Document,
+            diagnostics As ImmutableArray(Of Diagnostic),
+            editor As SyntaxEditor,
+            cancellationToken As CancellationToken) As Task
 
             ' VB parsing is extremely hairy.  Unlike C#, it can be very dangerous to go and remove a
             ' cast.  For example, if the cast is at the statement level, it may contain an
@@ -89,13 +83,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             Dim expandedRoot = Await ExpandSurroundingStatementsAsync(trackedDocument, originalCastNodes, cancellationToken).ConfigureAwait(False)
             Dim expandedDocument = document.WithSyntaxRoot(expandedRoot)
 
-            Dim removedRoot = Await RemoveCasts(
+            Dim removedRoot = Await RemoveCastsAsync(
                 expandedDocument, originalCastNodes, cancellationToken).ConfigureAwait(False)
 
             editor.ReplaceNode(editor.OriginalRoot, removedRoot)
         End Function
 
-        Private Async Function RemoveCasts(
+        Private Shared Async Function RemoveCastsAsync(
                 document As Document, originalCastNodes As ImmutableArray(Of ExpressionSyntax),
                 cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
@@ -104,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             ' Now, find the cast nodes again in the expanded document
             Dim currentCastNodes = root.GetCurrentNodes(originalCastNodes)
 
-            Dim innerEditor = New SyntaxEditor(root, document.Project.Solution.Workspace)
+            Dim innerEditor = New SyntaxEditor(root, document.Project.Solution.Services)
             Await innerEditor.ApplyExpressionLevelSemanticEditsAsync(
                 document, currentCastNodes.ToImmutableArray(),
                 Function(semanticModel, castExpression) IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
@@ -121,7 +115,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
                 document As Document, originalNodes As ImmutableArray(Of ExpressionSyntax),
                 cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             ' Note: we not only get the containing statement, but also the next statement after
@@ -139,20 +132,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
                         {containingStatement, nextStatement})
                 End Function).Distinct()
 
-            Dim workspace = document.Project.Solution.Workspace
-            Dim editor = New SyntaxEditor(root, workspace)
+            Dim editor = New SyntaxEditor(root, document.Project.Solution.Services)
 
             For Each containingStatement In containingAndNextStatements
-                Dim expandedStatement = Simplifier.Expand(
-                    containingStatement, semanticModel, workspace,
-                    cancellationToken:=cancellationToken)
+                Dim expandedStatement = Await Simplifier.ExpandAsync(containingStatement, document, cancellationToken:=cancellationToken).ConfigureAwait(False)
                 editor.ReplaceNode(containingStatement, expandedStatement)
             Next
 
             Return editor.GetChangedRoot()
         End Function
 
-        Private Function Uncast(old As ExpressionSyntax) As ExpressionSyntax
+        Private Shared Function Uncast(old As ExpressionSyntax) As ExpressionSyntax
             ' parenthesize the uncasted value to help ensure any proper parsing. The excess
             ' parens will be removed if unnecessary. 
             Dim castExpression = TryCast(old, CastExpressionSyntax)
@@ -167,13 +157,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 
             Throw ExceptionUtilities.UnexpectedValue(old)
         End Function
-
-        Private Class MyCodeAction
-            Inherits CustomCodeActions.DocumentChangeAction
-
-            Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument)
-            End Sub
-        End Class
     End Class
 End Namespace

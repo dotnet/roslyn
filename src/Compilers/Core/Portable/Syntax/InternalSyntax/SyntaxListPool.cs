@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,12 +55,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal void Free<TNode>(in SeparatedSyntaxListBuilder<TNode> item) where TNode : GreenNode
         {
-            RoslynDebug.Assert(item.UnderlyingBuilder is object);
             Free(item.UnderlyingBuilder);
         }
 
-        internal void Free(SyntaxListBuilder item)
+        internal void Free(SyntaxListBuilder? item)
         {
+            if (item is null)
+                return;
+
             item.Clear();
             if (_freeIndex >= _freeList.Length)
             {
@@ -85,6 +85,17 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         }
 
         public SyntaxList<TNode> ToListAndFree<TNode>(SyntaxListBuilder<TNode> item)
+            where TNode : GreenNode
+        {
+            if (item.IsNull)
+                return default;
+
+            var list = item.ToList();
+            Free(item);
+            return list;
+        }
+
+        public SeparatedSyntaxList<TNode> ToListAndFree<TNode>(in SeparatedSyntaxListBuilder<TNode> item)
             where TNode : GreenNode
         {
             var list = item.ToList();

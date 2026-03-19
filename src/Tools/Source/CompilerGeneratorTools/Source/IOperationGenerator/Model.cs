@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -24,6 +25,7 @@ namespace IOperationGenerator
         public List<TreeType> Types;
     }
 
+    [DebuggerDisplay("{Name, nq}")]
     public class TreeType
     {
         [XmlAttribute]
@@ -31,6 +33,9 @@ namespace IOperationGenerator
 
         [XmlAttribute]
         public string Base;
+
+        [XmlAttribute]
+        public string? ExperimentalUrl;
 
         [XmlAttribute]
         public string? Namespace;
@@ -75,10 +80,22 @@ namespace IOperationGenerator
         public string? SkipChildrenGenerationText;
         public bool SkipChildrenGeneration => SkipChildrenGenerationText == "true";
 
+        [XmlAttribute(AttributeName = "SkipInCloner")]
+        public string? SkipInClonerText;
+        public bool SkipInCloner => SkipInClonerText == "true";
+
         [XmlAttribute]
         public string? ChildrenOrder;
 
         public override bool IsAbstract => false;
+
+        [XmlAttribute(AttributeName = "HasType")]
+        public string HasTypeText;
+        public bool HasType => HasTypeText == "true";
+
+        [XmlAttribute(AttributeName = "HasConstantValue")]
+        public string HasConstantValueText;
+        public bool HasConstantValue => HasConstantValueText == "true";
     }
 
     public class Kind
@@ -95,6 +112,9 @@ namespace IOperationGenerator
         [XmlAttribute]
         public string Type;
 
+        [XmlAttribute]
+        public string? ExperimentalUrl;
+
         [XmlAttribute(AttributeName = "New")]
         public string NewText;
         public bool IsNew => NewText == "true";
@@ -103,9 +123,17 @@ namespace IOperationGenerator
         public string? IsInternalText;
         public bool IsInternal => IsInternalText == "true";
 
+        [XmlAttribute(AttributeName = "Override")]
+        public string? IsOverrideText;
+        public bool IsOverride => IsOverrideText == "true";
+
         [XmlAttribute(AttributeName = "SkipGeneration")]
         public string? SkipGenerationText;
         public bool SkipGeneration => SkipGenerationText == "true";
+
+        [XmlAttribute(AttributeName = "MakeAbstract")]
+        public string? MakeAbstractText;
+        public bool MakeAbstract => MakeAbstractText == "true";
 
         [XmlElement(ElementName = "Comments", Type = typeof(Comments))]
         public Comments? Comments;

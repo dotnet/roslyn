@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarder.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderLib.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderBase.dll,
-                                        TestReferences.NetFx.v4_0_21006.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             TestTypeForwarderHelper(assemblies);
@@ -90,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
 
-            var corlibAssembly = compilation.GetReferencedAssemblySymbol(MscorlibRef);
+            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.mscorlib);
             Assert.NotNull(corlibAssembly);
-            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(SystemCoreRef);
+            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.SystemCore);
             Assert.NotNull(systemCoreAssembly);
 
             const string funcTypeMetadataName = "System.Func`1";
@@ -753,6 +756,8 @@ class Test : Derived
                 // (2,7): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'pe3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // class Test : Derived
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Derived").WithArguments("Base", "pe3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            Assert.Empty(comp3.GetReferencedAssemblySymbol(ref2).Modules[0].ReferencedAssemblySymbols.OfType<MissingAssemblySymbol>().First().GetPublicSymbol().GetForwardedTypes());
         }
 
         [Fact]
@@ -1087,7 +1092,9 @@ class Test
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1149,7 +1156,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1211,7 +1220,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1343,6 +1354,29 @@ namespace NS
         }
 
         [ClrOnlyFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79894")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78963")]
+        public void Extensions_01()
+        {
+            var source1 = @"
+public static class Extensions
+{
+    extension(int)
+    {
+    }
+}";
+
+            var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Extensions))]
+";
+
+            // The grouping and marker types should be among the forwarded types since they are public.
+            // They also should be among exported types for library built from source1. Type symbols
+            // representing extensions from the language perspective should not be in either set.
+            CheckForwarderEmit(source1, source2, "Extensions", "Extensions+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", "Extensions+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69+<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69");
+        }
+
+        [ClrOnlyFact]
         public void EmitForwarder_Nested_Private()
         {
             var source1 = @"
@@ -1459,7 +1493,10 @@ namespace NS
                 var assembly = module.ContainingAssembly;
 
                 // Attributes should not actually be emitted.
-                Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
+                }
 
                 var topLevelTypes = new HashSet<string>();
 
@@ -1484,23 +1521,49 @@ namespace NS
                     Assert.NotEqual(TypeKind.Error, type.TypeKind);
                     Assert.Equal("Asm1", type.ContainingAssembly.Name);
                 }
+
+                Assert.Equal(topLevelTypes.OrderBy(s => s), GetNamesOfForwardedTypes(assembly));
             };
 
-            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
+            checkForwarderEmit(comp2);
 
-            using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            checkForwarderEmit(comp2);
+
+            var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+            comp1 = comp1.AddReferences(comp3.EmitToImageReference());
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            checkForwarderEmit(comp2);
+
+            void checkForwarderEmit(CSharpCompilation comp2)
             {
-                var metadataReader = metadata.Module.GetMetadataReader();
+                var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator);
 
-                Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
-
-                int i = 0;
-                foreach (var exportedType in metadataReader.ExportedTypes)
+                using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
                 {
-                    ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
-                    i++;
+                    var metadataReader = metadata.Module.GetMetadataReader();
+
+                    Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+
+                    int i = 0;
+                    foreach (var exportedType in metadataReader.ExportedTypes)
+                    {
+                        ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
+                        i++;
+                    }
                 }
             }
+        }
+
+        private static IEnumerable<string> GetNamesOfForwardedTypes(AssemblySymbol assembly)
+        {
+            return GetNamesOfForwardedTypes(assembly.GetPublicSymbol());
+        }
+
+        private static IEnumerable<string> GetNamesOfForwardedTypes(IAssemblySymbol assembly)
+        {
+            return assembly.GetForwardedTypes().Select(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
         }
 
         [WorkItem(545911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
@@ -1592,12 +1655,16 @@ public class CF1
             var modCompilation = CreateCompilation(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var modRef1 = modCompilation.EmitToImageReference();
 
+            Assert.Equal(new[] { "CF1" }, GetNamesOfForwardedTypes(modCompilation.Assembly));
+
             string app =
                 @"
                 public class Test { }
                 ";
 
             var appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
+
+            Assert.Equal(new[] { "CF1" }, GetNamesOfForwardedTypes(appCompilation.Assembly));
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             var metadata = module.Module;
@@ -1672,7 +1739,6 @@ public class CF1
                     // Attributes should not actually be emitted.
                     Assert.Equal(0, m.ContainingAssembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
                 }).VerifyDiagnostics();
-
 
             appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var appModule = ModuleMetadata.CreateFromImage(appCompilation.EmitToArray()).Module;

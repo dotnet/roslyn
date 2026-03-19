@@ -2,64 +2,55 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal static partial class ExtensionOrderer
 {
-    internal partial class ExtensionOrderer
+    private sealed class Graph<TExtension, TMetadata>
+        where TMetadata : OrderableMetadata
     {
-        private class Graph<TExtension, TMetadata>
-            where TMetadata : OrderableMetadata
+        public readonly Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>> Nodes = [];
+
+        public IEnumerable<Lazy<TExtension, TMetadata>> FindExtensions(string name)
         {
-            public readonly Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>> Nodes =
-                new Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>>();
+            Contract.ThrowIfNull(name);
+            return this.Nodes.Keys.Where(k => k.Metadata.Name == name);
+        }
 
-            public IEnumerable<Lazy<TExtension, TMetadata>> FindExtensions(string name)
+        public void CheckForCycles()
+        {
+            foreach (var node in this.Nodes.Values)
+                node.CheckForCycles();
+        }
+
+        public ImmutableArray<Lazy<TExtension, TMetadata>> TopologicalSort()
+        {
+            using var _ = ArrayBuilder<Lazy<TExtension, TMetadata>>.GetInstance(out var result);
+            var seenNodes = new HashSet<Node<TExtension, TMetadata>>();
+
+            foreach (var node in this.Nodes.Values)
+                Visit(node, result, seenNodes);
+
+            return result.ToImmutableAndClear();
+        }
+
+        private static void Visit(
+            Node<TExtension, TMetadata> node,
+            ArrayBuilder<Lazy<TExtension, TMetadata>> result,
+            HashSet<Node<TExtension, TMetadata>> seenNodes)
+        {
+            if (seenNodes.Add(node))
             {
-                Contract.ThrowIfNull(name);
-                return this.Nodes.Keys.Where(k => k.Metadata.Name == name);
-            }
+                foreach (var before in node.ExtensionsBeforeMeSet)
+                    Visit(before, result, seenNodes);
 
-            public void CheckForCycles()
-            {
-                foreach (var node in this.Nodes.Values)
-                {
-                    node.CheckForCycles();
-                }
-            }
-
-            public IList<Lazy<TExtension, TMetadata>> TopologicalSort()
-            {
-                var result = new List<Lazy<TExtension, TMetadata>>();
-                var seenNodes = new HashSet<Node<TExtension, TMetadata>>();
-
-                foreach (var node in this.Nodes.Values)
-                {
-                    Visit(node, result, seenNodes);
-                }
-
-                return result;
-            }
-
-            private static void Visit(
-                Node<TExtension, TMetadata> node,
-                List<Lazy<TExtension, TMetadata>> result,
-                HashSet<Node<TExtension, TMetadata>> seenNodes)
-            {
-                if (seenNodes.Add(node))
-                {
-                    foreach (var before in node.ExtensionsBeforeMeSet)
-                    {
-                        Visit(before, result, seenNodes);
-                    }
-
-                    result.Add(node.Extension);
-                }
+                result.Add(node.Extension);
             }
         }
     }

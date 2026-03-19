@@ -2,35 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
+
+internal sealed class BlankLineInGeneratedMethodFormattingRule : AbstractFormattingRule
 {
-    internal sealed class BlankLineInGeneratedMethodFormattingRule : AbstractFormattingRule
+    public static readonly BlankLineInGeneratedMethodFormattingRule Instance = new();
+
+    private BlankLineInGeneratedMethodFormattingRule()
     {
-        public static readonly BlankLineInGeneratedMethodFormattingRule Instance = new BlankLineInGeneratedMethodFormattingRule();
+    }
 
-        private BlankLineInGeneratedMethodFormattingRule()
+    public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+    {
+        // case: insert blank line in empty method body.
+        if (previousToken.Kind() == SyntaxKind.OpenBraceToken &&
+            currentToken.Kind() == SyntaxKind.CloseBraceToken)
         {
-        }
-
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
-        {
-            // case: insert blank line in empty method body.
-            if (previousToken.Kind() == SyntaxKind.OpenBraceToken &&
-                currentToken.Kind() == SyntaxKind.CloseBraceToken)
+            if (currentToken.Parent.Kind() == SyntaxKind.Block &&
+                currentToken.Parent.Parent.Kind() == SyntaxKind.MethodDeclaration)
             {
-                if (currentToken.Parent.Kind() == SyntaxKind.Block &&
-                    currentToken.Parent.Parent.Kind() == SyntaxKind.MethodDeclaration)
-                {
-                    return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines);
-                }
+                return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines);
             }
-
-            return nextOperation.Invoke();
         }
+
+        return nextOperation.Invoke(in previousToken, in currentToken);
     }
 }

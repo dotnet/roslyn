@@ -2,41 +2,37 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
-#Else
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
+    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
     Partial Public Class RemoveUnusedValueExpressionStatementTests
         Inherits RemoveUnusedValuesTestsBase
 
-        Protected Overrides ReadOnly Property PreferNone As IDictionary(Of OptionKey, Object)
+        Private Protected Overrides ReadOnly Property PreferNone As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
-                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.None))
+                                New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.None))
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property PreferDiscard As IDictionary(Of OptionKey, Object)
+        Private Protected Overrides ReadOnly Property PreferDiscard As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
-                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption.Silent))
+                                New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent))
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property PreferUnusedLocal As IDictionary(Of OptionKey, Object)
+        Private Protected Overrides ReadOnly Property PreferUnusedLocal As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
-                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Silent))
+                                New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent))
             End Get
         End Property
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ExpressionStatement_PreferNone() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
@@ -50,7 +46,7 @@ $"Class C
 End Class", options:=PreferNone)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ExpressionStatement_PreferDiscard() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -70,10 +66,10 @@ $"Class C
     Private Function M2() As Integer
         Return 0
     End Function
-End Class", options:=PreferDiscard)
+End Class", New TestParameters(options:=PreferDiscard))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ExpressionStatement_PreferUnusedLocal() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -93,10 +89,10 @@ $"Class C
     Private Function M2() As Integer
         Return 0
     End Function
-End Class", options:=PreferUnusedLocal)
+End Class", New TestParameters(options:=PreferUnusedLocal))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function CallStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -21,6 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MessageID.IDS_SK_TYPE.Localize();
                 case SymbolKind.TypeParameter:
                     return MessageID.IDS_SK_TYVAR.Localize();
+                case SymbolKind.ArrayType:
+                    return MessageID.IDS_SK_ARRAY.Localize();
+                case SymbolKind.PointerType:
+                    return MessageID.IDS_SK_POINTER.Localize();
+                case SymbolKind.FunctionPointerType:
+                    return MessageID.IDS_SK_FUNCTION_POINTER.Localize();
+                case SymbolKind.DynamicType:
+                    return MessageID.IDS_SK_DYNAMIC.Localize();
                 case SymbolKind.Method:
                     return MessageID.IDS_SK_METHOD.Localize();
                 case SymbolKind.Property:

@@ -9,7 +9,8 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
@@ -19,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     ''' <remarks></remarks>
     Partial Friend NotInheritable Class VisualBasicProject
         Friend NotInheritable Class OptionsProcessor
-            Inherits VisualStudioProjectOptionsProcessor
+            Inherits AbstractLegacyProjectSystemProjectOptionsProcessor
 
             Private _rawOptions As VBCompilerOptions
             Private ReadOnly _imports As New List(Of GlobalImport)
@@ -29,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ''' It is expected that most projects in a solution will have similar (if not identical)
             ''' sets of conditional compilation symbols. We expect the total set of these to be small, which is why we never evict anything from this cache.
             ''' </summary>
-            Private Shared s_conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
+            Private Shared ReadOnly s_conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
                 New Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object)))
 
             ''' <summary>
@@ -38,9 +39,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ''' caching these rather than parsing them anew for each project. It is expected that the total
             ''' number of imports will be rather small, which is why we never evict anything from this cache.
             ''' </summary>
-            Private Shared s_importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
+            Private Shared ReadOnly s_importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
 
-            Public Sub New(project As VisualStudioProject, workspaceServices As HostWorkspaceServices)
+            Public Sub New(project As ProjectSystemProject, workspaceServices As SolutionServices)
                 MyBase.New(project, workspaceServices)
             End Sub
 
@@ -220,7 +221,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             Private Shared Function GetConditionalCompilationSymbols(kind As OutputKind, str As String) As ImmutableArray(Of KeyValuePair(Of String, Object))
                 Debug.Assert(str IsNot Nothing)
-                Dim key = KeyValuePairUtil.Create(str, kind)
+                Dim key = KeyValuePair.Create(str, kind)
 
                 Dim result As ImmutableArray(Of KeyValuePair(Of String, Object)) = Nothing
                 If s_conditionalCompilationSymbolsCache.TryGetValue(key, result) Then

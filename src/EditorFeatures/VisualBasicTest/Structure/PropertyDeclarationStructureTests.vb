@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class PropertyDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of PropertyStatementSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New PropertyDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestReadOnlyProperty() As Task
             Const code = "
 Class C1
@@ -30,7 +31,7 @@ End Class
                 Region("span", "ReadOnly Property P1 As Integer ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestWriteOnlyProperty() As Task
             Const code = "
 Class C1

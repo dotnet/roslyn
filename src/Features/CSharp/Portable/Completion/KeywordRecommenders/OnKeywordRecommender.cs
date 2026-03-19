@@ -7,43 +7,37 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class OnKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.OnKeyword)
 {
-    internal class OnKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public OnKeywordRecommender()
-            : base(SyntaxKind.OnKeyword)
+        // cases:
+        //   join a in expr |
+        //   join a in expr o|
+        //   join a.b c in expr |
+        //   join a.b c in expr o|
+
+        var token = context.TargetToken;
+
+        var join = token.GetAncestor<JoinClauseSyntax>();
+        if (join == null)
         {
-        }
-
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            // cases:
-            //   join a in expr |
-            //   join a in expr o|
-            //   join a.b c in expr |
-            //   join a.b c in expr o|
-
-            var token = context.TargetToken;
-
-            var join = token.GetAncestor<JoinClauseSyntax>();
-            if (join == null)
-            {
-                return false;
-            }
-
-            // join a in expr |
-            // join a.b c in expr |
-
-            var lastToken = join.InExpression.GetLastToken(includeSkipped: true);
-
-            if (join.InExpression.Width() > 0 &&
-                token == lastToken)
-            {
-                return true;
-            }
-
             return false;
         }
+
+        // join a in expr |
+        // join a.b c in expr |
+
+        var lastToken = join.InExpression.GetLastToken(includeSkipped: true);
+
+        if (join.InExpression.Width() > 0 &&
+            token == lastToken)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

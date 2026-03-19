@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -89,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             get { return false; }
         }
 
+        bool IPropertySymbol.IsRequired => _underlying.IsRequired;
+
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
             get { return _underlying.TypeWithAnnotations.CustomModifiers; }
@@ -105,6 +109,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind IPropertySymbol.RefKind => _underlying.RefKind;
 
+#nullable enable
+        IPropertySymbol? IPropertySymbol.PartialDefinitionPart => _underlying.PartialDefinitionPart.GetPublicSymbol();
+
+        IPropertySymbol? IPropertySymbol.PartialImplementationPart => _underlying.PartialImplementationPart.GetPublicSymbol();
+
+        bool IPropertySymbol.IsPartialDefinition => (_underlying as SourcePropertySymbol)?.IsPartialDefinition ?? false;
+
+        IPropertySymbol? IPropertySymbol.ReduceExtensionMember(ITypeSymbol receiverType)
+        {
+            if (_underlying.IsExtensionBlockMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
+            {
+                var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
+                return (IPropertySymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
+            }
+
+            return null;
+        }
+#nullable disable
+
         #region ISymbol Members
 
         protected override void Accept(SymbolVisitor visitor)
@@ -115,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitProperty(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitProperty(this, argument);
         }
 
         #endregion

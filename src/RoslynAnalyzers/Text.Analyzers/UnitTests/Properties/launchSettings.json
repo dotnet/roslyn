@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TestSetup": {
+      "commandName": "Executable",
+      "executablePath": "$(NuGetPackageRoot)\\xunit.runner.console\\$(XUnitVersion)\\tools\\xunit.console.x86.exe",
+      "commandLineArgs": "$(AssemblyName).dll -noshadow -wait",
+      "workingDirectory": "$(OutDir)"
+    }
+  }
+}

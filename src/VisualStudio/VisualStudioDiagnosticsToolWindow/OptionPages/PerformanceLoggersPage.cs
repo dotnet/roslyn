@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
@@ -15,108 +18,90 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Roslyn.Utilities;
 
-namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
+namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
+
+[Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
+internal sealed class PerformanceLoggersPage : AbstractOptionPage
 {
-    [Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
-    internal class PerformanceLoggersPage : AbstractOptionPage
+    private IGlobalOptionService _globalOptions;
+    private IThreadingContext _threadingContext;
+    private SolutionServices _workspaceServices;
+
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
     {
-        private IGlobalOptionService _optionService;
-        private IThreadingContext _threadingContext;
-        private IRemoteHostClientService _remoteService;
-
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
+        if (_globalOptions == null)
         {
-            if (_optionService == null)
-            {
-                var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-                _optionService = componentModel.GetService<IGlobalOptionService>();
-                _threadingContext = componentModel.GetService<IThreadingContext>();
+            _globalOptions = componentModel.GetService<IGlobalOptionService>();
+            _threadingContext = componentModel.GetService<IThreadingContext>();
 
-                var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _remoteService = workspace.Services.GetService<IRemoteHostClientService>();
-            }
-
-            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _workspaceServices = workspace.Services.SolutionServices;
         }
 
-        protected override void OnApply(PageApplyEventArgs e)
-        {
-            base.OnApply(e);
+        return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
+    }
 
-            SetLoggers(_optionService, _threadingContext, _remoteService);
+    protected override void OnApply(PageApplyEventArgs e)
+    {
+        base.OnApply(e);
+
+        SetLoggers(_globalOptions, _threadingContext, _workspaceServices);
+    }
+
+    public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, SolutionServices workspaceServices)
+    {
+        var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
+
+        // update loggers in VS
+        var isEnabled = FunctionIdOptions.CreateFunctionIsEnabledPredicate(globalOptions);
+
+        SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
+        SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));
+        SetRoslynLogger(loggerTypeNames, () => new OutputWindowLogger(isEnabled));
+
+        // update loggers in remote process
+        var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
+        if (client != null)
+        {
+            var functionIds = Enum.GetValues<FunctionId>().WhereAsArray(isEnabled);
+
+            threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
+                CancellationToken.None).ConfigureAwait(false));
+        }
+    }
+
+    private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
+    {
+        if (globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey))
+        {
+            yield return nameof(EtwLogger);
         }
 
-        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, IRemoteHostClientService remoteService)
+        if (globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey))
         {
-            var loggerTypes = GetLoggerTypes(optionService).ToList();
-
-            // first set VS options
-            var options = Logger.GetLoggingChecker(optionService);
-
-            SetRoslynLogger(loggerTypes, () => new EtwLogger(options));
-            SetRoslynLogger(loggerTypes, () => new TraceLogger(options));
-            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options));
-
-            // second set RemoteHost options
-            var client = threadingContext.JoinableTaskFactory.Run(() => remoteService.TryGetRemoteHostClientAsync(CancellationToken.None));
-            if (client == null)
-            {
-                // Remote host is disabled
-                return;
-            }
-
-            var functionIds = GetFunctionIds(options).ToList();
-
-            threadingContext.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService,
-                nameof(IRemoteHostService.SetLoggingFunctionIds),
-                solution: null,
-                new object[] { loggerTypes, functionIds },
-                callbackTarget: null,
-                CancellationToken.None));
+            yield return nameof(TraceLogger);
         }
 
-        private static IEnumerable<string> GetFunctionIds(Func<FunctionId, bool> options)
+        if (globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey))
         {
-            foreach (var functionId in Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>())
-            {
-                if (options(functionId))
-                {
-                    yield return functionId.ToString();
-                }
-            }
+            yield return nameof(OutputWindowLogger);
         }
+    }
 
-        private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService optionService)
+    private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypeNames, Func<T> creator) where T : ILogger
+    {
+        if (loggerTypeNames.Contains(typeof(T).Name))
         {
-            if (optionService.GetOption(LoggerOptions.EtwLoggerKey))
-            {
-                yield return nameof(EtwLogger);
-            }
-
-            if (optionService.GetOption(LoggerOptions.TraceLoggerKey))
-            {
-                yield return nameof(TraceLogger);
-            }
-
-            if (optionService.GetOption(LoggerOptions.OutputWindowLoggerKey))
-            {
-                yield return nameof(OutputWindowLogger);
-            }
+            Logger.SetLogger(AggregateLogger.AddOrReplace(creator(), Logger.GetLogger(), l => l is T));
         }
-
-        private static void SetRoslynLogger<T>(List<string> loggerTypes, Func<T> creator) where T : ILogger
+        else
         {
-            if (loggerTypes.Contains(typeof(T).Name))
-            {
-                Logger.SetLogger(AggregateLogger.AddOrReplace(creator(), Logger.GetLogger(), l => l is T));
-            }
-            else
-            {
-                Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => l is T));
-            }
+            Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => l is T));
         }
     }
 }

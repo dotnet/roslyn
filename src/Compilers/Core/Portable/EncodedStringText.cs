@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -16,11 +14,16 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
+        // Note: CodePagesEncodingProvider.Instance may be null on .NET Framework.
+        private static volatile bool s_encodingProviderRegistered = CodePagesEncodingProvider.Instance == null;
+
         /// <summary>
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
         /// if the stream contains invalid UTF-8 bytes.
         /// </summary>
         private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+        private static readonly Lazy<Encoding> s_fallbackEncoding = new(CreateFallbackEncoding);
 
         /// <summary>
         /// Encoding to use when UTF-8 fails. We try to find the following, in order, if available:
@@ -28,27 +31,66 @@ namespace Microsoft.CodeAnalysis.Text
         ///     2. CodePage 1252.
         ///     3. Latin1.
         /// </summary>
-        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(GetFallbackEncoding);
-
-        private static Encoding GetFallbackEncoding()
+        internal static Encoding CreateFallbackEncoding()
         {
+            // Try to get the default ANSI code page in the operating system's
+            // regional and language settings, and fall back to 1252 otherwise
+            return TryGetCodePageEncoding(0)
+                ?? TryGetCodePageEncoding(1252)
+                ?? Encoding.GetEncoding(name: "Latin1");
+        }
+
+        internal static Encoding? TryGetCodePageEncoding(int codePage)
+        {
+            // Read to local to avoid race condition when multiple threads fail to get the encoding,
+            // only one of them executes the filter to retry, sets the static field and suppresses retry for the other threads.
+            var encodingProviderRegistered = s_encodingProviderRegistered;
+
             try
             {
-                if (CodePagesEncodingProvider.Instance != null)
+                return Encoding.GetEncoding(codePage);
+            }
+            catch (NotSupportedException) when (!encodingProviderRegistered)
+            {
+                // From documentation:
+                //   - 'GetEncoding' throws NotSupportedException when codepage is not supported by the underlying platform.
+                //   - 'EncodingProvider.Instance' gets an encoding provider for code pages supported
+                //     in the desktop .NET Framework but not by the current underlying platform.
+                //   - 'Encoding.RegisterProvider' makes character encodings available on a platform that does not otherwise support them.
+                //      * Once the encoding provider is registered, the encodings that it supports can be retrieved by calling any
+                //        Encoding.GetEncoding overload.
+                //      * Registering an encoding provider by using the 'RegisterProvider' method also affects the behavior of
+                //        GetEncoding(Int32) when passed an argument of 0.
+                //      * If multiple providers are registered, GetEncoding(Int32) attempts to retrieve the encoding from the most recently
+                //        registered provider first.
+                //      * If the 'RegisterProvider' method is called to register multiple providers that handle the same encoding,
+                //        the last registered provider is the used for all encoding and decoding operations. Any previously registered providers are ignored.
+                //      * If the same encoding provider is used in multiple calls to the 'RegisterProvider' method,
+                //        only the first method call registers the provider. Subsequent calls are ignored.
+                //      
+                //  Given all that:
+                //   - We don't call 'Encoding.RegisterProvider' unconditionally to avoid changing environment
+                //     that is already configured to support the requested codepage. We call it only when we encounter
+                //     a 'NotSupportedException'.
+                //   - We also do not attempt to call 'Encoding.RegisterProvider' more than once.
+                try
                 {
-                    // If we're running on CoreCLR we have to register the CodePagesEncodingProvider
-                    // first
+                    // Ignore any exceptions from an attempt to register the provider.
                     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 }
+                catch
+                {
+                }
 
-                // Try to get the default ANSI code page in the operating system's
-                // regional and language settings, and fall back to 1252 otherwise
-                return Encoding.GetEncoding(0)
-                    ?? Encoding.GetEncoding(1252);
+                s_encodingProviderRegistered = true;
+
+                // Try to get the encoding again after attempting to register the provider.
+                // Since we set `s_registeredEncodingProvider` to true, we won't get here again.
+                return TryGetCodePageEncoding(codePage);
             }
-            catch (NotSupportedException)
+            catch (Exception)
             {
-                return Encoding.GetEncoding(name: "Latin1");
+                return null;
             }
         }
 
@@ -56,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Initializes an instance of <see cref="SourceText"/> from the provided stream. This version differs
         /// from <see cref="SourceText.From(Stream, Encoding, SourceHashAlgorithm, bool)"/> in two ways:
         /// 1. It attempts to minimize allocations by trying to read the stream into a byte array.
-        /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF8 and, if that fails, it will
+        /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF-8 and, if that fails, it will
         ///    try CodePage 1252. If CodePage 1252 is not available on the system, then it will try Latin1.
         /// </summary>
         /// <param name="stream">The stream containing encoded text.</param>
@@ -84,7 +126,8 @@ namespace Microsoft.CodeAnalysis.Text
                 canBeEmbedded: canBeEmbedded);
         }
 
-        private static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
+        internal static SourceText Create(Stream stream,
+            Lazy<Encoding> getEncoding,
             Encoding? defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
@@ -141,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Text
                 data.Seek(0, SeekOrigin.Begin);
 
                 // For small streams, see if we can read the byte buffer directly.
-                if (encoding.GetMaxCharCountOrThrowIfHuge(data) < LargeObjectHeapLimitInChars)
+                if (encoding.TryGetMaxCharCount(data.Length, out int maxCharCount) && maxCharCount < LargeObjectHeapLimitInChars)
                 {
                     if (TryGetBytesFromStream(data, out ArraySegment<byte> bytes) && bytes.Offset == 0 && bytes.Array is object)
                     {

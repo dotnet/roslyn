@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Generic;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 {
@@ -158,7 +161,7 @@ class TestClass
         {
             get
             {
-                return TestReferences.NetFx.v4_0_21006.mscorlib;
+                return Net40.References.mscorlib;
             }
         }
 
@@ -166,7 +169,7 @@ class TestClass
         {
             get
             {
-                return TestReferences.NetFx.v4_0_30319.mscorlib;
+                return NetFramework.mscorlib;
             }
         }
 
@@ -318,6 +321,78 @@ public class C
             Assert.True(named["F"].IsNull);
             Assert.Equal("int[]", named["F"].Type.ToDisplayString());
             Assert.Throws<InvalidOperationException>(() => named["F"].Value);
+        }
+
+        [Fact]
+        [WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")]
+        public void MissingAttributeType()
+        {
+            var source1 = @"
+using System;
+
+public class A : Attribute
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+
+            var source2 = @"
+[A]
+public class C1
+{}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var comp3 = CreateCompilation("", references: new[] { comp2.ToMetadataReference() }, options: TestOptions.DebugDll);
+
+            var c1 = comp3.GetTypeByMetadataName("C1");
+            var a = c1.GetAttributes().Single();
+            Assert.Equal("A[missing]", a.ToString());
+            Assert.IsAssignableFrom<MissingMetadataTypeSymbol>(a.AttributeClass);
+            Assert.Null(a.AttributeConstructor);
+        }
+
+        [Fact]
+        [WorkItem(65048, "https://github.com/dotnet/roslyn/issues/65048")]
+        public void MissingAttributeConstructor()
+        {
+            var source1_1 = @"
+using System;
+
+public class A : Attribute
+{
+}
+";
+
+            var comp1_1 = CreateCompilation(source1_1, options: TestOptions.DebugDll, assemblyName: "Lib65048");
+
+            var source2 = @"
+[A]
+public class C1
+{}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1_1.ToMetadataReference() }, options: TestOptions.DebugDll);
+
+            var source1_2 = @"
+using System;
+
+public class A : Attribute
+{
+    public A(int x) {}
+}
+";
+
+            var comp1_2 = CreateCompilation(source1_2, options: TestOptions.DebugDll, assemblyName: "Lib65048");
+
+            var comp3 = CreateCompilation("", references: new[] { comp2.ToMetadataReference(), comp1_2.ToMetadataReference() }, options: TestOptions.DebugDll);
+
+            var c1 = comp3.GetTypeByMetadataName("C1");
+            var a = c1.GetAttributes().Single();
+            Assert.Equal("A", a.ToString());
+            Assert.False(a.AttributeClass.IsErrorType());
+            Assert.Null(a.AttributeConstructor);
         }
     }
 }

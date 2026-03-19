@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                   undoHistoryRegistry As ITextUndoHistoryRegistry,
                   editorOperationsFactoryService As IEditorOperationsFactoryService)
 
-        Protected Sub SetIndentForFirstBlankLine(textView As ITextView, subjectBuffer As ITextBuffer, smartIndentationService As ISmartIndentationService, cursorLine As ITextSnapshotLine)
+        Protected Shared Sub SetIndentForFirstBlankLine(textView As ITextView, subjectBuffer As ITextBuffer, smartIndentationService As ISmartIndentationService, cursorLine As ITextSnapshotLine)
             For lineNumber = cursorLine.LineNumber To subjectBuffer.CurrentSnapshot.LineCount
                 Dim line = subjectBuffer.CurrentSnapshot.GetLineFromLineNumber(lineNumber)
 

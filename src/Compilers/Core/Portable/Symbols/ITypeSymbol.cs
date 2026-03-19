@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -28,8 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// and pointer types do not have a base type. The base type of a type parameter
-        /// is its effective base class.
+        /// pointer types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 
@@ -78,6 +76,20 @@ namespace Microsoft.CodeAnalysis
         bool IsTupleType { get; }
 
         /// <summary>
+        /// True if the type represents a native integer. In C#, the types represented
+        /// by language keywords 'nint' and 'nuint'.
+        /// </summary>
+        bool IsNativeIntegerType { get; }
+
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        bool IsExtension { get; }
+
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then <see cref="OriginalDefinition"/> gets the original symbol as it was defined in
         /// source or metadata.
@@ -121,6 +133,17 @@ namespace Microsoft.CodeAnalysis
         /// True if the type is readonly.
         /// </summary>
         bool IsReadOnly { get; }
+
+        /// <summary>
+        /// For source symbols, true if the type is a record.
+        /// For metadata symbols, true if the type is a record and a reference type.
+        /// </summary>
+        /// <remarks>
+        /// Returns false for record structs in metadata since they don't have any distinctive marker.
+        /// </remarks>
+        bool IsRecord { get; }
+
+        // https://github.com/dotnet/roslyn/issues/82636: Add bool IsUnion { get; } ?
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
@@ -185,7 +208,7 @@ namespace Microsoft.CodeAnalysis
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes
     // Once Default Interface Implementations are supported, we can move these methods into the interface. 
-    static internal class ITypeSymbolHelpers
+    internal static class ITypeSymbolHelpers
     {
         internal static bool IsNullableType([NotNullWhen(returnValue: true)] ITypeSymbol? typeOpt)
         {
@@ -233,7 +256,7 @@ namespace Microsoft.CodeAnalysis
             return (type as INamedTypeSymbol)?.EnumUnderlyingType;
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         internal static ITypeSymbol? GetEnumUnderlyingTypeOrSelf(ITypeSymbol? type)
         {
             return GetEnumUnderlyingType(type) ?? type;

@@ -6,317 +6,306 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class ParamsKeywordRecommenderTests : KeywordRecommenderTests
 {
-    public class ParamsKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAngle()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
+@"global using Goo = $$");
+
+    [Fact]
+    public Task TestNotAfterAngle()
+        => VerifyAbsenceAsync(
 @"interface IGoo<$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInterfaceTypeVarianceNotAfterIn()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestInterfaceTypeVarianceNotAfterIn()
+        => VerifyAbsenceAsync(
 @"interface IGoo<in $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInterfaceTypeVarianceNotAfterComma()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestInterfaceTypeVarianceNotAfterComma()
+        => VerifyAbsenceAsync(
 @"interface IGoo<Goo, $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInterfaceTypeVarianceNotAfterAttribute()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestInterfaceTypeVarianceNotAfterAttribute()
+        => VerifyAbsenceAsync(
 @"interface IGoo<[Goo]$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestDelegateTypeVarianceNotAfterAngle()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestDelegateTypeVarianceNotAfterAngle()
+        => VerifyAbsenceAsync(
 @"delegate void D<$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestDelegateTypeVarianceNotAfterComma()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestDelegateTypeVarianceNotAfterComma()
+        => VerifyAbsenceAsync(
 @"delegate void D<Goo, $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestDelegateTypeVarianceNotAfterAttribute()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestDelegateTypeVarianceNotAfterAttribute()
+        => VerifyAbsenceAsync(
 @"delegate void D<[Goo]$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotParamsBaseListAfterAngle()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotParamsBaseListAfterAngle()
+        => VerifyAbsenceAsync(
 @"interface IGoo : Bar<$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInGenericMethod()
-        {
-            await VerifyAbsenceAsync(
-@"interface IGoo {
-    void Goo<$$");
-        }
+    [Fact]
+    public Task TestNotInGenericMethod()
+        => VerifyAbsenceAsync(
+            """
+            interface IGoo {
+                void Goo<$$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterParams()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo(ref $$");
-        }
+    [Fact]
+    public Task TestNotAfterParams()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo(ref $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterOut()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo(out $$");
-        }
+    [Fact]
+    public Task TestNotAfterOut()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo(out $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterThis()
-        {
-            await VerifyAbsenceAsync(
-@"static class C {
-    static void Goo(this $$");
-        }
+    [Fact]
+    public Task TestNotAfterThis()
+        => VerifyAbsenceAsync(
+            """
+            static class C {
+                static void Goo(this $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMethodOpenParen()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    void Goo($$");
-        }
+    [Fact]
+    public Task TestAfterMethodOpenParen()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                void Goo($$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMethodComma()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    void Goo(int i, $$");
-        }
+    [Fact]
+    public Task TestAfterMethodComma()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                void Goo(int i, $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMethodAttribute()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    void Goo(int i, [Goo]$$");
-        }
+    [Fact]
+    public Task TestAfterMethodAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                void Goo(int i, [Goo]$$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterConstructorOpenParen()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    public C($$");
-        }
+    [Fact]
+    public Task TestAfterConstructorOpenParen()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                public C($$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterConstructorComma()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    public C(int i, $$");
-        }
+    [Fact]
+    public Task TestAfterConstructorComma()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                public C(int i, $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterConstructorAttribute()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    public C(int i, [Goo]$$");
-        }
+    [Fact]
+    public Task TestAfterConstructorAttribute()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                public C(int i, [Goo]$$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDelegateOpenParen()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterDelegateOpenParen()
+        => VerifyKeywordAsync(
 @"delegate void D($$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDelegateComma()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterDelegateComma()
+        => VerifyKeywordAsync(
 @"delegate void D(int i, $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDelegateAttribute()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAfterDelegateAttribute()
+        => VerifyKeywordAsync(
 @"delegate void D(int i, [Goo]$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterOperator()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    static int operator +($$");
-        }
+    [Fact]
+    public Task TestAfterLambdaOpenParen()
+        => VerifyKeywordAsync(
+@"var lam = ($$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDestructor()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    ~C($$");
-        }
+    [Fact]
+    public Task TestAfterLambdaComma()
+        => VerifyKeywordAsync(
+@"var lam = (int i, $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexer()
-        {
-            await VerifyKeywordAsync(
-@"class C {
-    int this[$$");
-        }
+    [Fact]
+    public Task TestNotAfterOperator()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                static int operator +($$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectCreationAfterOpenParen()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar($$");
-        }
+    [Fact]
+    public Task TestNotAfterDestructor()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                ~C($$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterParamsParam()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar(ref $$");
-        }
+    [Fact]
+    public Task TestAfterIndexer()
+        => VerifyKeywordAsync(
+            """
+            class C {
+                int this[$$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterOutParam()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar(out $$");
-        }
+    [Fact]
+    public Task TestNotInObjectCreationAfterOpenParen()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  new Bar($$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectCreationAfterComma()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar(baz, $$");
-        }
+    [Fact]
+    public Task TestNotAfterParamsParam()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  new Bar(ref $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectCreationAfterSecondComma()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar(baz, quux, $$");
-        }
+    [Fact]
+    public Task TestNotAfterOutParam()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  new Bar(out $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectCreationAfterSecondNamedParam()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar(baz: 4, quux: $$");
-        }
+    [Fact]
+    public Task TestNotInObjectCreationAfterComma()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  new Bar(baz, $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInvocationExpression()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      Bar($$");
-        }
+    [Fact]
+    public Task TestNotInObjectCreationAfterSecondComma()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  new Bar(baz, quux, $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInvocationAfterComma()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      Bar(baz, $$");
-        }
+    [Fact]
+    public Task TestNotInObjectCreationAfterSecondNamedParam()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  new Bar(baz: 4, quux: $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInvocationAfterSecondComma()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      Bar(baz, quux, $$");
-        }
+    [Fact]
+    public Task TestNotInInvocationExpression()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  Bar($$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInvocationAfterSecondNamedParam()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      Bar(baz: 4, quux: $$");
-        }
-    }
+    [Fact]
+    public Task TestNotInInvocationAfterComma()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  Bar(baz, $$
+            """);
+
+    [Fact]
+    public Task TestNotInInvocationAfterSecondComma()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  Bar(baz, quux, $$
+            """);
+
+    [Fact]
+    public Task TestNotInInvocationAfterSecondNamedParam()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                void Goo() {
+                  Bar(baz: 4, quux: $$
+            """);
 }

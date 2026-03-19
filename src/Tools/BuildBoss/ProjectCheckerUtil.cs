@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,9 +32,9 @@ namespace BuildBoss
         public bool Check(TextWriter textWriter)
         {
             var allGood = true;
-            if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
+            if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
-                if (!_projectUtil.IsNewSdk)
+                if (!_projectUtil.IsNewSdk())
                 {
                     textWriter.WriteLine($"Project must new .NET SDK based");
                     allGood = false;
@@ -62,7 +64,6 @@ namespace BuildBoss
 
                 allGood &= CheckTargetFrameworks(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
-                allGood &= CheckPackageReferences(textWriter);
 
                 if (_isPrimarySolution)
                 {
@@ -70,10 +71,6 @@ namespace BuildBoss
                 }
 
                 allGood &= CheckDeploymentSettings(textWriter);
-            }
-            else if (ProjectType == ProjectFileType.Tool)
-            {
-                allGood &= CheckPackageReferences(textWriter);
             }
 
             return allGood;
@@ -88,7 +85,6 @@ namespace BuildBoss
                     textWriter.WriteLine($"\tDo not use {propertyName}");
                     return false;
                 }
-
             }
 
             return true;
@@ -102,7 +98,6 @@ namespace BuildBoss
             var declaredList = declaredEntryList.Select(x => x.ProjectKey).ToList();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
-            allGood &= CheckTransitiveReferences(textWriter, declaredList);
             allGood &= CheckNoGuidsOnProjectReferences(textWriter, declaredEntryList);
 
             return allGood;
@@ -116,25 +111,6 @@ namespace BuildBoss
                 if (entry.Project != null)
                 {
                     textWriter.WriteLine($"Project reference for {entry.ProjectKey.FileName} should not have a GUID");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
-        private bool CheckPackageReferences(TextWriter textWriter)
-        {
-            var allGood = true;
-            foreach (var packageRef in _projectUtil.GetPackageReferences())
-            {
-                var name = packageRef.Name.Replace(".", "").Replace("-", "");
-                var floatingName = $"$({name}Version)";
-                var fixedName = $"$({name}FixedVersion)";
-                if (packageRef.Version != floatingName && packageRef.Version != fixedName)
-                {
-                    textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
                     allGood = false;
                 }
             }
@@ -198,7 +174,7 @@ namespace BuildBoss
 
         /// <summary>
         /// It's important that every reference be included in the solution.  MSBuild does not necessarily
-        /// apply all configuration entries to projects which are compiled via referenes but not included
+        /// apply all configuration entries to projects which are compiled via references but not included
         /// in the solution.
         /// </summary>
         private bool CheckProjectReferencesComplete(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
@@ -216,8 +192,8 @@ namespace BuildBoss
         }
 
         /// <summary>
-        /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be 
-        /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up 
+        /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be
+        /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up
         /// putting two copies of the unit test DLL into the UnitTest folder:
         ///
         ///     1. UnitTests\Current\TheUnitTest\TheUnitTest.dll
@@ -226,7 +202,7 @@ namespace BuildBoss
         ///             TheOtherTests.dll
         ///
         /// This is problematic as all of our tools do directory based searches for unit test DLLs.  Hence they end up
-        /// getting counted twice. 
+        /// getting counted twice.
         ///
         /// Consideration was given to fixing up all of the tools but it felt like fighting against the grain.  Pretty
         /// much every repo has this practice.
@@ -256,80 +232,39 @@ namespace BuildBoss
             return allGood;
         }
 
-        /// <summary>
-        /// In order to ensure all dependencies are properly copied on deployment projects, the declared reference
-        /// set much match the transitive dependency set.  When there is a difference it represents dependencies that
-        /// MSBuild won't deploy on build.
-        /// </summary>
-        private bool CheckTransitiveReferences(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
-        {
-            if (!_projectUtil.IsDeploymentProject)
-            {
-                return true;
-            }
-
-            var list = GetProjectReferencesTransitive(declaredReferences);
-            var set = new HashSet<ProjectKey>(declaredReferences);
-            var allGood = true;
-            foreach (var key in list)
-            {
-                if (!set.Contains(key))
-                {
-                    textWriter.WriteLine($"Missing project reference {key.FileName}");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
-        private List<ProjectKey> GetProjectReferencesTransitive(IEnumerable<ProjectKey> declaredReferences)
-        {
-            var list = new List<ProjectKey>();
-            var toVisit = new Queue<ProjectKey>(declaredReferences);
-            var seen = new HashSet<ProjectKey>();
-
-            while (toVisit.Count > 0)
-            {
-                var current = toVisit.Dequeue();
-                if (!seen.Add(current))
-                {
-                    continue;
-                }
-
-                if (!_solutionMap.TryGetValue(current, out var data))
-                {
-                    continue;
-                }
-
-                list.Add(current);
-                foreach (var dep in data.ProjectUtil.GetDeclaredProjectReferences())
-                {
-                    toVisit.Enqueue(dep.ProjectKey);
-                }
-            }
-
-            list.Sort((x, y) => x.FileName.CompareTo(y.FileName));
-            return list;
-        }
-
         private bool CheckTargetFrameworks(TextWriter textWriter)
         {
-            if (!_data.IsUnitTestProject)
-            {
-                return true;
-            }
-
             var allGood = true;
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
+                // !!!NOTE!!!
+                // This check ensures that projects match the target framework expectations laid out in 
+                // Target Framework Strategy.md. Before changing this list, even simply adding a new 
+                // tfm, please consult with the infrastructure team so they can validate the change is in
+                // line with how the product is constructed.
                 switch (targetFramework)
                 {
-                    case "net20":
                     case "net472":
-                    case "netcoreapp3.1":
-                    case "$(RoslynPortableTargetFrameworks)":
+                    case "netstandard2.0":
+                    case "$(NetRoslyn)":
+                    case "$(NetRoslynNext)":
+                    case "$(NetRoslynSourceBuild)":
+                    case "$(NetRoslynToolset)":
+                    case "$(NetRoslynAll)":
+                    case "$(NetVS)":
+                    case "$(NetVS)-windows":
+                    case "$(NetVSCode)":
+                    case "$(NetVSShared)":
                         continue;
+
+                    case "$(NetRoslynBuildHostNetCoreVersion)":
+                        {
+                            // This property should only be used in one specific project
+                            if (_data.FileName == "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj")
+                                continue;
+                            else
+                                break;
+                        }
                 }
 
                 textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

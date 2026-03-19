@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AccessorBody = 1 << 0,
             OperatorBody = 1 << 0,
 
-            NamedTypeBodyOrTypeParameters = 1 << 0,
-            NamedTypeBaseList = 1 << 1,
+            NamedTypeBodyOrTypeParameters = 1 << 1, // Cannot share the value with ConstructorBodyOrInitializer
+            NamedTypeBaseListOrParameterList = 1 << 2, // Cannot share the value with ConstructorBodyOrInitializer
 
             NamespaceBody = 1 << 0,
             NamespaceUsings = 1 << 1,
@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompilationUnitScriptUsings = 1 << 2,
 
             DocumentationCommentParameter = 1 << 0,
-            DocumentationCommentTypeParameter = 1 << 1,
-            DocumentationCommentTypeParameterReference = 1 << 2,
+            DocumentationCommentParameterReference = 1 << 1,
+            DocumentationCommentTypeParameter = 1 << 2,
+            DocumentationCommentTypeParameterReference = 1 << 3,
 
             CrefParameterOrReturnType = 1 << 0,
         }

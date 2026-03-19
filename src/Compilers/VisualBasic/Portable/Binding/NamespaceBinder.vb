@@ -72,9 +72,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             ' Look it up in the associated namespace.
-            originalBinder.LookupMember(lookupResult, _nsSymbol, name, arity, options Or LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics)
+            originalBinder.LookupMember(lookupResult, _nsSymbol, name, arity, options Or LookupOptions.IgnoreExtensionMethods, useSiteInfo)
         End Sub
 
         ''' <summary>

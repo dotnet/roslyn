@@ -2,34 +2,57 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal static class TestSources
     {
-        internal const string Span = @"
+        internal static readonly string Span = @"
 namespace System
 {
     public readonly ref struct Span<T>
     {
-        private readonly T[] arr;
+        internal readonly T[] arr;
+        internal readonly int start;
 
-        public ref T this[int i] => ref arr[i];
+        public ref T this[int i] => ref arr[start + i];
         public override int GetHashCode() => 1;
         public int Length { get; }
+        public bool IsEmpty => Length == 0;
 
         unsafe public Span(void* pointer, int length)
         {
             this.arr = Helpers.ToArray<T>(pointer, length);
+            this.start = 0;
             this.Length = length;
         }
 
         public Span(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.start = 0;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
-        public void CopyTo(Span<T> other) { }
+        public Span(T[] arr, int start, int length)
+        {
+            if (start + length > arr?.Length)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            this.arr = arr;
+            this.start = start;
+            this.Length = length;
+        }
+
+        public static Span<T> Empty => default;
+
+        public void CopyTo(Span<T> other)
+        {
+            Array.Copy(arr, start, other.arr, other.start, Length);
+        }
 
         /// <summary>Gets an enumerator for this span.</summary>
         public Enumerator GetEnumerator() => new Enumerator(this);
@@ -72,35 +95,55 @@ namespace System
 
         public static implicit operator Span<T>(T[] array) => new Span<T>(array);
 
-        public Span<T> Slice(int offset, int length)
-        {
-            var copy = new T[length];
-            Array.Copy(arr, offset, copy, 0, length);
-            return new Span<T>(copy);
-        }
+        public static implicit operator ReadOnlySpan<T>(Span<T> span) => new ReadOnlySpan<T>(span.arr);
+
+        public Span<T> Slice(int offset, int length) => new Span<T>(this.arr, offset, length);
+
+        public Span<T> Slice(int offset) => new Span<T>(this.arr, offset, Length - offset);
     }
 
     public readonly ref struct ReadOnlySpan<T>
     {
         private readonly T[] arr;
+        private readonly int start;
 
-        public ref readonly T this[int i] => ref arr[i];
+        public ref readonly T this[int i] => ref arr[start + i];
         public override int GetHashCode() => 2;
         public int Length { get; }
+        public bool IsEmpty => Length == 0;
 
         unsafe public ReadOnlySpan(void* pointer, int length)
         {
             this.arr = Helpers.ToArray<T>(pointer, length);
+            this.start = 0;
             this.Length = length;
         }
 
         public ReadOnlySpan(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.start = 0;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
-        public void CopyTo(Span<T> other) { }
+        public ReadOnlySpan(T[] arr, int start, int length)
+        {
+            if (start + length > arr?.Length)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            this.arr = arr;
+            this.start = start;
+            this.Length = length;
+        }
+
+        public static ReadOnlySpan<T> Empty => default;
+
+        public void CopyTo(Span<T> other)
+        {
+            Array.Copy(arr, start, other.arr, other.start, Length);
+        }
 
         /// <summary>Gets an enumerator for this span.</summary>
         public Enumerator GetEnumerator() => new Enumerator(this);
@@ -143,14 +186,19 @@ namespace System
 
         public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
 
+        // NOTE: This is defined on String in the BCL (and the target type is non-generic ReadOnlySpan<char>).
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
-        public ReadOnlySpan<T> Slice(int offset, int length)
+        public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
+
+        public ReadOnlySpan<T> Slice(int offset) => new ReadOnlySpan<T>(this.arr, offset, offset - Length);
+
+#nullable enable
+        public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class?, T
         {
-            var copy = new T[length];
-            Array.Copy(arr, offset, copy, 0, length);
-            return new ReadOnlySpan<T>(copy);
+            return new ReadOnlySpan<T>(items.arr, items.start, items.Length);
         }
+#nullable restore
     }
 
     public readonly ref struct SpanLike<T>
@@ -174,12 +222,12 @@ namespace System
                 return null;
             }
 
-            if (typeof(T) == typeof(int))
+            if (typeof(T) == typeof(sbyte))
             {
-                var arr = new int[count];
+                var arr = new sbyte[count];
                 for(int i = 0; i < count; i++)
                 {
-                    arr[i] = ((int*)ptr)[i];
+                    arr[i] = ((sbyte*)ptr)[i];
                 }
 
                 return (T[])(object)arr;
@@ -191,6 +239,72 @@ namespace System
                 for(int i = 0; i < count; i++)
                 {
                     arr[i] = ((byte*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(short))
+            {
+                var arr = new short[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((short*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(ushort))
+            {
+                var arr = new ushort[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((ushort*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(int))
+            {
+                var arr = new int[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((int*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(uint))
+            {
+                var arr = new uint[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((uint*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(long))
+            {
+                var arr = new long[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((long*)ptr)[i];
+                }
+
+                return (T[])(object)arr;
+            }
+
+            if (typeof(T) == typeof(ulong))
+            {
+                var arr = new ulong[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((ulong*)ptr)[i];
                 }
 
                 return (T[])(object)arr;
@@ -223,7 +337,7 @@ namespace System
     }
 }";
 
-        internal const string Index = @"
+        internal static readonly string Index = @"
 
 namespace System
 {
@@ -314,10 +428,12 @@ namespace System
         public override int GetHashCode() => _value;
 
         public static implicit operator Index(int value) => FromStart(value);
+
+        public override string ToString() => IsFromEnd ? ""^"" + Value.ToString() : Value.ToString();
     }
 }";
 
-        internal const string Range = @"
+        internal static readonly string Range = @"
 namespace System
 {
     using System.Runtime.CompilerServices;
@@ -382,10 +498,12 @@ namespace System
                 length = Length;
             }
         }
+
+        public override string ToString() => $""{Start}..{End}"";
     }
 }";
 
-        public const string GetSubArray = @"
+        public static readonly string GetSubArray = @"
 namespace System.Runtime.CompilerServices
 {
     public static class RuntimeHelpers
@@ -401,5 +519,71 @@ namespace System.Runtime.CompilerServices
         }
     }
 }";
+
+        public static readonly string ITuple = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
+    }
+}";
+
+        public static readonly string MemoryExtensions = @"
+namespace System
+{
+    public static class MemoryExtensions
+    {
+        public static bool SequenceEqual<T> (this ReadOnlySpan<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
+        {
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool SequenceEqual<T> (this Span<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
+        {
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public static ReadOnlySpan<char> AsSpan(this string text) => string.IsNullOrEmpty(text) ? default : new ReadOnlySpan<char>(text.ToCharArray());
+
+        public static Span<T> AsSpan<T>(this T[] array) => new Span<T>(array);
+    }
+}";
+
+        public static readonly string ParamsCollectionAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class ParamCollectionAttribute : Attribute
+                {
+                    public ParamCollectionAttribute() { }
+                }
+            }
+            """;
+
+        public static readonly string InterceptsLocationAttribute = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+            public sealed class InterceptsLocationAttribute : Attribute
+            {
+                public InterceptsLocationAttribute(string filePath, int line, int character) { }
+                public InterceptsLocationAttribute(int version, string data) { }
+            }
+            """;
     }
 }

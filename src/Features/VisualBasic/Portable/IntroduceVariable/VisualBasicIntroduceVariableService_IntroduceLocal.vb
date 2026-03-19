@@ -6,18 +6,19 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
-        Protected Overrides Async Function IntroduceLocalAsync(
+    Partial Friend Class VisualBasicIntroduceVariableService
+        Protected Overrides Function IntroduceLocal(
                 document As SemanticDocument,
+                options As CodeCleanupOptions,
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Document)
+                cancellationToken As CancellationToken) As Document
 
             Dim container = GetContainerToGenerateInfo(document, expression, cancellationToken)
             Dim newLocalNameToken = GenerateUniqueLocalName(
@@ -35,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     SyntaxFactory.VariableDeclarator(
                         SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier(newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()))),
                         asClause,
-                        SyntaxFactory.EqualsValue(value:=expression.WithoutTrailingTrivia().WithoutLeadingTrivia()))))
+                        SyntaxFactory.EqualsValue(value:=expression.Parenthesize().WithoutTrivia()))))
 
             If Not declarationStatement.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia) Then
                 declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
@@ -46,13 +47,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     document, DirectCast(container, SingleLineLambdaExpressionSyntax),
                     expression, newLocalName, declarationStatement, allOccurrences, cancellationToken)
             Else
-                Return Await IntroduceLocalDeclarationIntoBlockAsync(
+                Return IntroduceLocalDeclarationIntoBlock(
                     document, container, expression, newLocalName,
-                    declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(False)
+                    declarationStatement, allOccurrences, cancellationToken)
             End If
         End Function
 
-        Private Function GetContainerToGenerateInfo(
+        Private Shared Function GetContainerToGenerateInfo(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
                 cancellationToken As CancellationToken) As SyntaxNode
@@ -97,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
-        Private Function GetParentLambda(expression As ExpressionSyntax,
+        Private Shared Function GetParentLambda(expression As ExpressionSyntax,
                                          lambdas As ISet(Of SingleLineLambdaExpressionSyntax)) As SingleLineLambdaExpressionSyntax
             Dim current = expression
             While current IsNot Nothing
@@ -114,14 +115,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return Nothing
         End Function
 
-        Private Async Function IntroduceLocalDeclarationIntoBlockAsync(
+        Private Function IntroduceLocalDeclarationIntoBlock(
                 document As SemanticDocument,
                 container As SyntaxNode,
                 expression As ExpressionSyntax,
                 newLocalName As NameSyntax,
                 declarationStatement As LocalDeclarationStatementSyntax,
                 allOccurrences As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Document)
+                cancellationToken As CancellationToken) As Document
 
             Dim localAnnotation = New SyntaxAnnotation()
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation, localAnnotation)
@@ -131,20 +132,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 oldOutermostBlock = oldOutermostBlock.Parent
             End If
 
-            Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken)
-
-            Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
-            document = complexified.newSemanticDocument
-            matches = complexified.newMatches
-
-            ' Our original expression should have been one of the matches, which were tracked as part
-            ' of complexification, so we can retrieve the latest version of the expression here.
-            expression = document.Root.GetCurrentNodes(expression).First()
+            Dim matches = FindMatches(document, expression, document, {oldOutermostBlock}, allOccurrences, cancellationToken)
 
             Dim innermostStatements = New HashSet(Of StatementSyntax)(matches.Select(Function(expr) expr.GetAncestorOrThis(Of StatementSyntax)()))
             If innermostStatements.Count = 1 Then
                 Return IntroduceLocalForSingleOccurrenceIntoBlock(
-                    document, expression, newLocalName, declarationStatement, localAnnotation, allOccurrences, cancellationToken)
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken)
             End If
 
             Dim oldInnerMostCommonBlock = matches.FindInnermostCommonExecutableBlock()
@@ -165,7 +158,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 expression As ExpressionSyntax,
                 localName As NameSyntax,
                 localDeclaration As LocalDeclarationStatementSyntax,
-                localAnnotation As SyntaxAnnotation,
                 allOccurrences As Boolean,
                 cancellationToken As CancellationToken) As Document
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             // just a fact, not a requirement (VisitExpression would have rewritten otherwise)
-            Debug.Assert(node.ConstantValue == null);
+            Debug.Assert(node.ConstantValueOpt == null);
 
             var rewrittenCondition = VisitExpression(node.Condition);
             var rewrittenConsequence = VisitExpression(node.Consequence);
             var rewrittenAlternative = VisitExpression(node.Alternative);
 
-            if (rewrittenCondition.ConstantValue == null)
+            if (rewrittenCondition.ConstantValueOpt == null)
             {
-                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType,
             bool isRef)
         {
-            ConstantValue? conditionConstantValue = rewrittenCondition.ConstantValue;
+            ConstantValue? conditionConstantValue = rewrittenCondition.ConstantValueOpt;
             if (conditionConstantValue == ConstantValue.True)
             {
                 return rewrittenConsequence;
@@ -68,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenConsequence,
                     rewrittenAlternative,
                     constantValueOpt,
+                    rewrittenType,
+                    wasTargetTyped: false,
                     rewrittenType);
             }
         }

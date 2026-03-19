@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class DebuggerDisplayAttributeTests
         Inherits ExpressionCompilerTestBase
 
-        <Fact()>
+        <Fact>
         Public Sub VirtualMethod()
             Const source = "
 Imports System.Diagnostics

@@ -71,14 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetAttributes();
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-        }
+        internal abstract override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes);
 
-        internal sealed override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return _underlyingParameter.ExplicitDefaultConstantValue; }
+        }
+
+        internal sealed override ConstantValue? DefaultValueFromAttributes
+        {
+            get { return _underlyingParameter.DefaultValueFromAttributes; }
         }
 
         public override int Ordinal
@@ -86,9 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.Ordinal; }
         }
 
-        public override bool IsParams
+        public override bool IsParamsArray
         {
-            get { return _underlyingParameter.IsParams; }
+            get { return _underlyingParameter.IsParamsArray; }
+        }
+
+        public override bool IsParamsCollection
+        {
+            get { return _underlyingParameter.IsParamsCollection; }
         }
 
         internal override bool IsMetadataOptional
@@ -116,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.RefCustomModifiers; }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return _underlyingParameter.MarshallingInformation; }
         }
@@ -136,21 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsIUnknownConstant; }
         }
 
-        internal override bool IsCallerLineNumber
-        {
-            get { return _underlyingParameter.IsCallerLineNumber; }
-        }
-
-        internal override bool IsCallerFilePath
-        {
-            get { return _underlyingParameter.IsCallerFilePath; }
-        }
-
-        internal override bool IsCallerMemberName
-        {
-            get { return _underlyingParameter.IsCallerMemberName; }
-        }
-
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             // https://github.com/dotnet/roslyn/issues/30073: Consider moving to leaf types
@@ -162,10 +154,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.NotNullIfParameterNotNull; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
+
+        internal sealed override ScopedKind DeclaredScope => _underlyingParameter.DeclaredScope;
+
+        internal sealed override ScopedKind EffectiveScope => _underlyingParameter.EffectiveScope;
+
+        internal sealed override bool HasUnscopedRefAttribute => _underlyingParameter.HasUnscopedRefAttribute;
+
+        internal sealed override bool UseUpdatedEscapeRules => _underlyingParameter.UseUpdatedEscapeRules;
 
         #endregion
     }

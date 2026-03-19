@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -12,23 +14,18 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
-namespace Microsoft.CodeAnalysis.CSharp.Organizing
-{
-    [ExportLanguageService(typeof(IOrganizingService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpOrganizingService : AbstractOrganizingService
-    {
-        [ImportingConstructor]
-        public CSharpOrganizingService(
-            [ImportMany]IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers)
-            : base(organizers.Where(o => o.Metadata.Language == LanguageNames.CSharp).Select(o => o.Value))
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Organizing;
 
-        protected override async Task<Document> ProcessAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, organizers, await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
-            return document.WithSyntaxRoot(rewriter.Visit(root));
-        }
+[ExportLanguageService(typeof(IOrganizingService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpOrganizingService(
+    [ImportMany] IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers) : AbstractOrganizingService(organizers.Where(o => o.Metadata.Language == LanguageNames.CSharp).Select(o => o.Value))
+{
+    protected override async Task<Document> ProcessAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var rewriter = new Rewriter(this, organizers, await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+        return document.WithSyntaxRoot(rewriter.Visit(root));
     }
 }

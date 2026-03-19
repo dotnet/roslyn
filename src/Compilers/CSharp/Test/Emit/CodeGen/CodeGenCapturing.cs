@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
@@ -66,9 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
             public int CaptureNameIndex = 0;
         }
-
-        private static string MakeLocalFunc(int nameIndex, string captureExpression)
-            => $@"int Local_{nameIndex}() => {captureExpression};";
 
         private static string MakeCaptureExpression(IList<int> varsToCapture, CaptureContext ctx)
         {

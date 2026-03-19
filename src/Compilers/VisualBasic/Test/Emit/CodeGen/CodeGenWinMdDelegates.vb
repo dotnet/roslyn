@@ -6,8 +6,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports System.Xml.Linq
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenWinMdDelegates
@@ -38,7 +36,6 @@ End Namespace]]>
                                AssertEx.SetEqual((From s In actualMembers Select s.Name), expectedMembers)
                            End Sub
                 End Function
-
 
             Dim verify =
                 Sub(winmd As Boolean, expected As String())
@@ -163,7 +160,6 @@ Namespace WinRTDelegateLibrary
     Public Delegate Function interfaceDelegate(i As I1) As I1
 End Namespace
 ]]>
-
                     </file>
                 </compilation>
 

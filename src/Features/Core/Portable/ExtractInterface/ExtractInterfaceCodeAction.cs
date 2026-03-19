@@ -2,64 +2,66 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
-namespace Microsoft.CodeAnalysis.ExtractInterface
+namespace Microsoft.CodeAnalysis.ExtractInterface;
+
+internal sealed class ExtractInterfaceCodeAction(
+    AbstractExtractInterfaceService extractInterfaceService,
+    ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
+    : CodeActionWithOptions
 {
-    internal class ExtractInterfaceCodeAction : CodeActionWithOptions
+    private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult = typeAnalysisResult;
+    private readonly AbstractExtractInterfaceService _extractInterfaceService = extractInterfaceService;
+
+    // While Extract-Interface is supported on an interface (to pull out a base interface), this is as less
+    // common operation and something we want to lower the priority on against more common operations (like
+    // moving the interface to a matching file (or renaming a file to match an interface within).
+    protected override CodeActionPriority ComputePriority()
+        => _typeAnalysisResult.TypeToExtractFrom is { TypeKind: TypeKind.Interface }
+            ? CodeActionPriority.Low
+            : CodeActionPriority.Default;
+
+    public override object GetOptions(CancellationToken cancellationToken)
     {
-        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
-        private readonly AbstractExtractInterfaceService _extractInterfaceService;
-        private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+        var containingNamespaceDisplay = _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
+            ? string.Empty
+            : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-        public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
-        {
-            _extractInterfaceService = extractInterfaceService;
-            _typeAnalysisResult = typeAnalysisResult;
-        }
-
-        public override object GetOptions(CancellationToken cancellationToken)
-        {
-            var containingNamespaceDisplay = _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
-                ? string.Empty
-                : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
-
-            return _extractInterfaceService.GetExtractInterfaceOptionsAsync(
-                _typeAnalysisResult.DocumentToExtractFrom,
-                _typeAnalysisResult.TypeToExtractFrom,
-                _typeAnalysisResult.ExtractableMembers,
-                containingNamespaceDisplay,
-                cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-        }
-
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
-        {
-            var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-
-            if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
-            {
-                var extractInterfaceResult = await _extractInterfaceService
-                        .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
-
-                if (extractInterfaceResult.Succeeded)
-                {
-                    operations = new CodeActionOperation[]
-                    {
-                        new ApplyChangesOperation(extractInterfaceResult.UpdatedSolution),
-                        new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)
-                    };
-                }
-            }
-
-            return operations;
-        }
-
-        public override string Title => FeaturesResources.Extract_interface;
+        return AbstractExtractInterfaceService.GetExtractInterfaceOptions(
+            _typeAnalysisResult.DocumentToExtractFrom,
+            _typeAnalysisResult.TypeToExtractFrom,
+            _typeAnalysisResult.ExtractableMembers,
+            containingNamespaceDisplay,
+            _typeAnalysisResult.FormattingOptions,
+            cancellationToken);
     }
+
+    protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    {
+        var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+
+        if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
+        {
+            var extractInterfaceResult = await _extractInterfaceService.ExtractInterfaceFromAnalyzedTypeAsync(
+                _typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
+
+            if (extractInterfaceResult.Succeeded)
+            {
+                operations = [
+                    new ApplyChangesOperation(extractInterfaceResult.UpdatedSolution),
+                    new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)];
+            }
+        }
+
+        return operations;
+    }
+
+    public override string Title => FeaturesResources.Extract_interface;
 }

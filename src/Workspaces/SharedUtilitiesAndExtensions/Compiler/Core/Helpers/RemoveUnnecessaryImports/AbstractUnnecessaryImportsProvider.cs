@@ -5,35 +5,47 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+
+internal abstract class AbstractUnnecessaryImportsProvider<TSyntaxNode> :
+    IUnnecessaryImportsProvider<TSyntaxNode>,
+    IEqualityComparer<TSyntaxNode>
+    where TSyntaxNode : SyntaxNode
 {
-    internal abstract class AbstractUnnecessaryImportsProvider<T>
-        : IUnnecessaryImportsProvider, IEqualityComparer<T> where T : SyntaxNode
+    public abstract ImmutableArray<TSyntaxNode> GetUnnecessaryImports(
+        SemanticModel model, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken);
+
+    public ImmutableArray<TSyntaxNode> GetUnnecessaryImports(SemanticModel model, TextSpan? span, CancellationToken cancellationToken)
+        => GetUnnecessaryImports(model, span, predicate: null, cancellationToken: cancellationToken);
+
+    public ImmutableArray<TSyntaxNode> GetUnnecessaryImports(
+        SemanticModel model, TextSpan? span, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken)
     {
-        public ImmutableArray<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel model, CancellationToken cancellationToken)
+        // Bail out if there are no usings/imports in the filter span.
+        if (span.HasValue && !HasImportThatIntersectsWithSpan(span.Value))
+            return [];
+
+        return GetUnnecessaryImports(model, predicate, cancellationToken);
+
+        bool HasImportThatIntersectsWithSpan(TextSpan span)
         {
             var root = model.SyntaxTree.GetRoot(cancellationToken);
-            return GetUnnecessaryImports(model, root, predicate: null, cancellationToken: cancellationToken);
-        }
-
-        protected abstract ImmutableArray<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel model, SyntaxNode root,
-            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
-
-        ImmutableArray<SyntaxNode> IUnnecessaryImportsProvider.GetUnnecessaryImports(SemanticModel model, SyntaxNode root, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-            => GetUnnecessaryImports(model, root, predicate, cancellationToken);
-
-        bool IEqualityComparer<T>.Equals(T x, T y)
-        {
-            return x.Span == y.Span;
-        }
-
-        int IEqualityComparer<T>.GetHashCode(T obj)
-        {
-            return obj.Span.GetHashCode();
+            return root
+                .DescendantNodes(n => n.FullSpan.IntersectsWith(span))
+                .Where(n => n.FullSpan.IntersectsWith(span))
+                .OfType<TSyntaxNode>()
+                .Any();
         }
     }
+
+    bool IEqualityComparer<TSyntaxNode>.Equals([AllowNull] TSyntaxNode x, [AllowNull] TSyntaxNode y)
+        => x?.Span == y?.Span;
+
+    int IEqualityComparer<TSyntaxNode>.GetHashCode([DisallowNull] TSyntaxNode obj)
+        => obj.Span.GetHashCode();
 }

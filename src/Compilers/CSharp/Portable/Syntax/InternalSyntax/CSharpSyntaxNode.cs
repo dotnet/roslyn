@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
@@ -50,11 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             GreenStats.NoteGreen(this);
         }
 
-        internal CSharpSyntaxNode(ObjectReader reader)
-            : base(reader)
-        {
-        }
-
         public override string Language
         {
             get { return LanguageNames.CSharp; }
@@ -72,22 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get
             {
                 return this.RawKind;
-            }
-        }
-
-        public override bool IsStructuredTrivia
-        {
-            get
-            {
-                return this is StructuredTriviaSyntax;
-            }
-        }
-
-        public override bool IsDirective
-        {
-            get
-            {
-                return this is DirectiveTriviaSyntax;
             }
         }
 
@@ -193,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal virtual IList<DirectiveTriviaSyntax> GetDirectives()
         {
-            if ((this.flags & NodeFlags.ContainsDirectives) != 0)
+            if (this.ContainsDirectives)
             {
                 var list = new List<DirectiveTriviaSyntax>(32);
                 GetDirectives(this, list);
@@ -241,31 +224,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (context.IsInAsync)
             {
-                this.flags |= NodeFlags.FactoryContextIsInAsync;
+                SetFlags(NodeFlags.FactoryContextIsInAsync);
             }
 
             if (context.IsInQuery)
             {
-                this.flags |= NodeFlags.FactoryContextIsInQuery;
+                SetFlags(NodeFlags.FactoryContextIsInQuery);
+            }
+
+            if (context.IsInFieldKeywordContext)
+            {
+                SetFlags(NodeFlags.FactoryContextIsInFieldKeywordContext);
             }
         }
 
-        internal static NodeFlags SetFactoryContext(NodeFlags flags, SyntaxFactoryContext context)
-        {
-            if (context.IsInAsync)
-            {
-                flags |= NodeFlags.FactoryContextIsInAsync;
-            }
-
-            if (context.IsInQuery)
-            {
-                flags |= NodeFlags.FactoryContextIsInQuery;
-            }
-
-            return flags;
-        }
-
-        public override CodeAnalysis.SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        public sealed override CodeAnalysis.SyntaxToken CreateSeparator(SyntaxNode element)
         {
             return CSharp.SyntaxFactory.Token(SyntaxKind.CommaToken);
         }
@@ -277,8 +250,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Use conditional weak table so we always return same identity for structured trivia
-        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
-            = new ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>>();
+        //
+        // As there are commonly few structured trivia per parent, use a SmallDictionary for
+        // mapping from trivia to StructuredTriviaSyntax. Testing against roslyn, of parents
+        // containing structured trivia:
+        // 81.2% contain 1 structured trivia
+        // 96.5% contain 2 or fewer structured trivia
+        // 99.6% contain 4 or fewer structured trivia
+        // 100% contain 7 or fewer structured trivia
+        private static readonly ConditionalWeakTable<SyntaxNode, SmallDictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
+            = new ConditionalWeakTable<SyntaxNode, SmallDictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>>();
 
         /// <summary>
         /// Gets the syntax node represented the structure of this trivia, if any. The HasStructure property can be used to 
@@ -297,31 +278,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </remarks>
         public override SyntaxNode GetStructure(Microsoft.CodeAnalysis.SyntaxTrivia trivia)
         {
-            if (trivia.HasStructure)
+            if (!trivia.HasStructure)
             {
-                var parent = trivia.Token.Parent;
-                if (parent != null)
-                {
-                    SyntaxNode structure;
-                    var structsInParent = s_structuresTable.GetOrCreateValue(parent);
-                    lock (structsInParent)
-                    {
-                        if (!structsInParent.TryGetValue(trivia, out structure))
-                        {
-                            structure = CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
-                            structsInParent.Add(trivia, structure);
-                        }
-                    }
+                return null;
+            }
 
-                    return structure;
-                }
-                else
+            var parent = trivia.Token.Parent;
+            if (parent is null)
+            {
+                return CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
+            }
+
+            SyntaxNode structure;
+            var structsInParent = s_structuresTable.GetOrCreateValue(parent);
+            lock (structsInParent)
+            {
+                if (!structsInParent.TryGetValue(trivia, out structure))
                 {
-                    return CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
+                    structure = CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
+                    structsInParent.Add(trivia, structure);
                 }
             }
 
-            return null;
+            return structure;
         }
     }
 }

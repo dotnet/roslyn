@@ -3,18 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
-Imports System.Linq
 Imports System.Runtime.CompilerServices
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -83,7 +79,6 @@ End Class
 
     </file>
     </compilation>)
-
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim node = FindNodeFromText(tree, "read = create")
@@ -1265,7 +1260,6 @@ End Module
 
     </file>
     </compilation>)
-
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim node = FindNodeFromText(tree, "Module M1")
@@ -2958,7 +2952,6 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-
         <Fact()>
         Public Sub HandlesContainer_WithEventsHandlesInDerived()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -3023,7 +3016,6 @@ End Module
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub HandledEvent001()
@@ -3893,7 +3885,6 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-
 #Region "Diagnostics"
 
         <WorkItem(541269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541269")>
@@ -4492,7 +4483,7 @@ Module Program
     End Function
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.References.SystemCore})
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -4554,7 +4545,7 @@ Module Program
     End Sub
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.References.SystemCore})
             comp.AssertNoDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -5297,7 +5288,7 @@ End Namespace End Class
        apInitScenario("7. generic T_Method B ----------------------------
 
 }]]></file>
-    </compilation>, {SystemCoreRef, SystemRef, SystemDataRef}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
+    </compilation>, {Net40.References.SystemCore, Net40.References.System, Net40.References.SystemData}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
 
             compilation.GetDiagnostics()
 
@@ -5359,8 +5350,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.C", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.C", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5448,8 +5439,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5553,8 +5544,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Null(typeInfo.Type)
-                Assert.Null(typeInfo.ConvertedType)
+                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
+                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5984,7 +5975,7 @@ End Module
             Dim symbolInfo = model.GetSymbolInfo(node)
 
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
         End Sub
 
         <Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>
@@ -6395,7 +6386,7 @@ End Class
             Dim exceptionThrown = False
 
             Try
-                compilation.GetSpecialType(type)
+                DirectCast(compilation, Compilation).GetSpecialType(type)
             Catch ex As ArgumentOutOfRangeException
                 exceptionThrown = True
 

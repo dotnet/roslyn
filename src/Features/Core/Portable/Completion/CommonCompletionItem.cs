@@ -2,144 +2,121 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion
+namespace Microsoft.CodeAnalysis.Completion;
+
+internal static class CommonCompletionItem
 {
-    internal static class CommonCompletionItem
+    public const string DescriptionProperty = nameof(DescriptionProperty);
+
+    /// <summary>
+    /// Mark CompletionItem with this property to indicate the intention of keeping otherwise similar items separated in the completion list.
+    /// By default, when two items with identical texts are added to the completion list, unless both are marked with this property, 
+    /// only one of them will be shown (the one with this property will win, if exist). 
+    /// For example, when there are two items, a property `MyClass.MyMember` and an exntension method `ExtensionClass.MyMember(this MyClass c)`
+    /// they have same display text `MyMember` but we want to show both of them in the completion list.
+    /// </summary>
+    public const string DoNotMergeProperty = nameof(DoNotMergeProperty);
+
+    public static CompletionItem Create(
+        string displayText,
+        string? displayTextSuffix,
+        CompletionItemRules rules,
+        Glyph? glyph = null,
+        ImmutableArray<SymbolDisplayPart> description = default,
+        string? sortText = null,
+        string? filterText = null,
+        bool showsWarningIcon = false,
+        ImmutableArray<KeyValuePair<string, string>> properties = default,
+        ImmutableArray<string> tags = default,
+        string? inlineDescription = null,
+        string? displayTextPrefix = null,
+        bool isComplexTextEdit = false)
     {
-        [Obsolete("This is a compatibility shim for FSharp; please do not use it.", error: true)]
-        public static CompletionItem Create(
-            string displayText,
-            CompletionItemRules rules,
-            Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default,
-            string sortText = null,
-            string filterText = null,
-            bool showsWarningIcon = false,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+        tags = tags.NullToEmpty();
+
+        if (glyph != null)
         {
-            return Create(
-                displayText, displayTextSuffix: string.Empty, rules,
-                glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
+            // put glyph tags first
+            tags = GlyphTags.GetTags(glyph.Value).AddRange(tags);
         }
 
-        // Back compat overload for FSharp
-        public static CompletionItem Create(
-            string displayText,
-            string displayTextSuffix,
-            CompletionItemRules rules,
-            Glyph? glyph,
-            ImmutableArray<SymbolDisplayPart> description,
-            string sortText,
-            string filterText,
-            bool showsWarningIcon,
-            ImmutableDictionary<string, string> properties,
-            ImmutableArray<string> tags)
+        if (showsWarningIcon)
         {
-            return Create(
-                  displayText, displayTextSuffix, rules,
-                  glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
+            tags = tags.Add(WellKnownTags.Warning);
         }
 
-        public static CompletionItem Create(
-            string displayText,
-            string displayTextSuffix,
-            CompletionItemRules rules,
-            Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default,
-            string sortText = null,
-            string filterText = null,
-            bool showsWarningIcon = false,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default,
-            string inlineDescription = null)
+        if (!description.IsDefault && description.Length > 0)
         {
-            tags = tags.NullToEmpty();
-
-            if (glyph != null)
-            {
-                // put glyph tags first
-                tags = GlyphTags.GetTags(glyph.Value).AddRange(tags);
-            }
-
-            if (showsWarningIcon)
-            {
-                tags = tags.Add(WellKnownTags.Warning);
-            }
-
-            properties ??= ImmutableDictionary<string, string>.Empty;
-            if (!description.IsDefault && description.Length > 0)
-            {
-                properties = properties.Add("Description", EncodeDescription(description));
-            }
-
-            return CompletionItem.Create(
-                displayText: displayText,
-                displayTextSuffix: displayTextSuffix,
-                filterText: filterText,
-                sortText: sortText,
-                properties: properties,
-                tags: tags,
-                rules: rules,
-                inlineDescription: inlineDescription);
+            properties = properties.NullToEmpty().Add(KeyValuePair.Create(DescriptionProperty, EncodeDescription(description.ToTagsAndText())));
         }
 
-        public static bool HasDescription(CompletionItem item)
+        return CompletionItem.CreateInternal(
+            displayText: displayText,
+            displayTextSuffix: displayTextSuffix,
+            displayTextPrefix: displayTextPrefix,
+            filterText: filterText,
+            sortText: sortText,
+            properties: properties,
+            tags: tags,
+            rules: rules,
+            inlineDescription: inlineDescription,
+            isComplexTextEdit: isComplexTextEdit);
+    }
+
+    public static bool HasDescription(CompletionItem item)
+        => item.TryGetProperty(DescriptionProperty, out var _);
+
+    public static CompletionDescription GetDescription(CompletionItem item)
+    {
+        if (item.TryGetProperty(DescriptionProperty, out var encodedDescription))
         {
-            return item.Properties.ContainsKey("Description");
+            return DecodeDescription(encodedDescription);
+        }
+        else
+        {
+            return CompletionDescription.Empty;
+        }
+    }
+
+    private static readonly char[] s_descriptionSeparators = ['|'];
+
+    private static string EncodeDescription(ImmutableArray<(string tag, string text)> description)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+        foreach (var (tag, text) in description)
+        {
+            var escapedTag = tag.Escape('\\', s_descriptionSeparators);
+            var escapedText = text.Escape('\\', s_descriptionSeparators);
+
+            if (builder.Length > 0)
+                builder.Append('|');
+
+            builder.Append(escapedTag);
+            builder.Append('|');
+            builder.Append(escapedText);
         }
 
-        public static CompletionDescription GetDescription(CompletionItem item)
+        return builder.ToString();
+    }
+
+    private static CompletionDescription DecodeDescription(string encoded)
+    {
+        var parts = encoded.Split(s_descriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
+
+        var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
+        for (var i = 0; i < parts.Length; i += 2)
         {
-            if (item.Properties.TryGetValue("Description", out var encodedDescription))
-            {
-                return DecodeDescription(encodedDescription);
-            }
-            else
-            {
-                return CompletionDescription.Empty;
-            }
+            builder.Add(new TaggedText(parts[i], parts[i + 1]));
         }
 
-        private static readonly char[] s_descriptionSeparators = new char[] { '|' };
-
-        private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
-        {
-            return EncodeDescription(description.ToTaggedText());
-        }
-
-        private static string EncodeDescription(ImmutableArray<TaggedText> description)
-        {
-            if (description.Length > 0)
-            {
-                return string.Join("|",
-                    description
-                        .SelectMany(d => new string[] { d.Tag, d.Text })
-                        .Select(t => t.Escape('\\', s_descriptionSeparators)));
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private static CompletionDescription DecodeDescription(string encoded)
-        {
-            var parts = encoded.Split(s_descriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
-
-            var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
-            for (var i = 0; i < parts.Length; i += 2)
-            {
-                builder.Add(new TaggedText(parts[i], parts[i + 1]));
-            }
-
-            return CompletionDescription.Create(builder.ToImmutable());
-        }
+        return CompletionDescription.Create(builder.ToImmutable());
     }
 }

@@ -9,51 +9,47 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    public class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InitializerExpressionSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider()
-            => new InitializerExpressionStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestOuterInitializer()
-        {
-            await VerifyBlockSpansAsync(
-@"
-class C
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InitializerExpressionSyntax>
 {
-    void M()
-    {
-        var v = {|hint:new Dictionary<int, int>{|textspan: $${
-            { 1, 2 },
-            { 1, 2 },
-        }|}|};
-    }
-}
-",
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+    internal override AbstractSyntaxStructureProvider CreateProvider()
+        => new InitializerExpressionStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestInnerInitializer()
-        {
-            await VerifyBlockSpansAsync(
-@"
-class C
-{
-    void M()
-    {
-        var v = new Dictionary<int, int>{
-            {|hint:{|textspan:$${
-                1, 2
-            },|}|}
-            { 1, 2 },
-        };
-    }
-}
-",
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
-    }
+    [Fact]
+    public Task TestOuterInitializer()
+        => VerifyBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        var v = {|hint:new Dictionary<int, int>{|textspan: $${
+                            { 1, 2 },
+                            { 1, 2 },
+                        }|}|};
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestInnerInitializer()
+        => VerifyBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        var v = new Dictionary<int, int>{
+                            {|hint:{|textspan:$${
+                                1, 2
+                            },|}|}
+                            { 1, 2 },
+                        };
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 }

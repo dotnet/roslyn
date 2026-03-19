@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
 
             Private ReadOnly _destinationLine As Integer
             Private ReadOnly _document As Document
-            Private _token As SyntaxToken
+            Private ReadOnly _token As SyntaxToken
             Private ReadOnly _title As String
 
             Public Sub New(document As Document, token As SyntaxToken, destinationLine As Integer, title As String)
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             End Property
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
-                Dim text = Await _document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim text = Await _document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
                 Dim destinationLineSpan = text.Lines(_destinationLine).Start
 
                 Dim lineToMove = _token.GetLocation().GetLineSpan().StartLinePosition.Line

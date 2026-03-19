@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -9,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IDynamicInvocationExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -24,6 +26,10 @@ class C
     }
 
     public void M2(int i)
+    {
+    }
+
+    public void M2(long i)
     {
     }
 }
@@ -181,6 +187,10 @@ class C
     {
         j = 0;
     }
+    public void M2(ref object i, out int j, int c)
+    {
+        j = 0;
+    }
 }
 ";
             string expectedOperationTree = @"
@@ -214,17 +224,19 @@ using System;
 
 class C
 {
-    public Action<object> F;
+    public D F;
     void M(dynamic i)
     {
         var x = /*<bind>*/F(i)/*</bind>*/;
     }
 }
+
+delegate void D(params object[] x);
 ";
             string expectedOperationTree = @"
 IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'F(i)')
   Expression: 
-    IFieldReferenceOperation: System.Action<System.Object> C.F (OperationKind.FieldReference, Type: System.Action<System.Object>) (Syntax: 'F')
+    IFieldReferenceOperation: D C.F (OperationKind.FieldReference, Type: D) (Syntax: 'F')
       Instance Receiver: 
         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F')
   Arguments(1):
@@ -233,9 +245,9 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Sy
   ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0649: Field 'C.F' is never assigned to, and will always have its default value null
-                //     public Action<object> F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(6, 27)
+                // (6,14): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value null
+                //     public D F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(6, 14)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -390,6 +402,10 @@ class C
     public void M2(Action a, Action y)
     {
     }
+
+    public void M2(Action a, Action<int> y)
+    {
+    }
 }
 ";
             string expectedOperationTree = @"
@@ -446,7 +462,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'C.M2(int, int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'j' of 'C.M2(int, int)'
                 //         var x = /*<bind>*/c.M2(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("j", "C.M2(int, int)").WithLocation(6, 29),
                 // CS0815: Cannot assign void to an implicitly-typed variable
@@ -471,7 +487,11 @@ class C : B
 {
     C(dynamic x) : base((int)/*<bind>*/Goo(x)/*</bind>*/) { }
  
-    static object Goo(object x)
+    static object Goo(int x)
+    {
+        return x;
+    }
+    static object Goo(long x)
     {
         return x;
     }
@@ -507,6 +527,9 @@ class C
     }/*</bind>*/
 
     public void M2(int i)
+    {
+    }
+    public void M2(long i)
     {
     }
 }
@@ -555,6 +578,10 @@ class C
     }/*</bind>*/
 
     public static void M2<T>(int i)
+    {
+    }
+
+    public static void M2<T>(long i)
     {
     }
 }
@@ -647,6 +674,9 @@ class C
     }/*</bind>*/
 
     public void M2(int i)
+    {
+    }
+    public void M2(long i)
     {
     }
 }

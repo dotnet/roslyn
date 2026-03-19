@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -27,6 +28,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly Property INamedTypeReferenceMangleName As Boolean Implements Cci.INamedTypeReference.MangleName
             Get
                 Return m_UnderlyingNamedType.MangleName
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeReferenceAssociatedFileIdentifier As String Implements Cci.INamedTypeReference.AssociatedFileIdentifier
+            Get
+                Return Nothing
             End Get
         End Property
 
@@ -109,6 +116,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition Implements Cci.IReference.AsDefinition
             Return Nothing
+        End Function
+
+        Private Function IReferenceGetInternalSymbol() As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.GetInternalSymbol
+            Return m_UnderlyingNamedType
+        End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public NotOverridable Overrides Function GetHashCode() As Integer
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

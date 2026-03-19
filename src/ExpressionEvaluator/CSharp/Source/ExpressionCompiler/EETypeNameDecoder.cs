@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -57,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
         {
-            return container.LookupMetadataType(ref emittedName);
+            return container.LookupMetadataType(ref emittedName) ??
+                       new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)container, ref emittedName);
         }
 
         protected override TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName)
@@ -65,12 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var assembly = Module.GetReferencedAssemblySymbol(referencedAssemblyIndex);
             // GetReferencedAssemblySymbol should not return null since referencedAssemblyIndex
             // was obtained from GetIndexOfReferencedAssembly above.
-            return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
+            return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
         }
 
         protected override TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
-            return moduleSymbol.LookupTopLevelMetadataType(ref emittedName, out isNoPiaLocalType);
+            return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
         }
 
         private static AssemblyIdentity GetComponentAssemblyIdentity(ModuleSymbol module)

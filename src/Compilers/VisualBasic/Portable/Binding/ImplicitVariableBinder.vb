@@ -70,12 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _frozen = False
         End Sub
 
-        Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Need this for ImplicitVariableBinder created by SpeculativeBinder.
             Return Me.ContainingBinder.BindGroupAggregationExpression(group, diagnostics)
         End Function
 
-        Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Need this for ImplicitVariableBinder created by SpeculativeBinder.
             Return Me.ContainingBinder.BindFunctionAggregationExpression([function], diagnostics)
         End Function
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' and report delayed shadowing diagnostics.
         ''' </summary>
         ''' <remarks></remarks>
-        Public Overrides Sub DisallowFurtherImplicitVariableDeclaration(diagnostics As DiagnosticBag)
+        Public Overrides Sub DisallowFurtherImplicitVariableDeclaration(diagnostics As BindingDiagnosticBag)
 #If DEBUG Then
             CheckVariableDeclarationOnSingleThread()
 #End If
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Declare an implicit local variable. The type of the local is determined
         ''' by the type character (if any) on the variable.
         ''' </summary>
-        Public Overrides Function DeclareImplicitLocalVariable(nameSyntax As IdentifierNameSyntax, diagnostics As DiagnosticBag) As LocalSymbol
+        Public Overrides Function DeclareImplicitLocalVariable(nameSyntax As IdentifierNameSyntax, diagnostics As BindingDiagnosticBag) As LocalSymbol
 #If DEBUG Then
             Debug.Assert(Not _frozen)
             CheckVariableDeclarationOnSingleThread()
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 #If DEBUG Then
             CheckVariableDeclarationOnSingleThread()
 #End If
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim localSymbol As LocalSymbol = Nothing
             If _implicitLocals IsNot Nothing AndAlso (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
                 If _implicitLocals.TryGetValue(name, localSymbol) Then
-                    lookupResult.SetFrom(CheckViability(localSymbol, arity, options, Nothing, useSiteDiagnostics))
+                    lookupResult.SetFrom(CheckViability(localSymbol, arity, options, Nothing, useSiteInfo))
                 End If
             End If
 

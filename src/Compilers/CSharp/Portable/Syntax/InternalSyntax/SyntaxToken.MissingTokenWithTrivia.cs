@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Roslyn.Utilities;
 
@@ -9,29 +11,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class SyntaxToken
     {
-        internal class MissingTokenWithTrivia : SyntaxTokenWithTrivia
+        internal sealed class MissingTokenWithTrivia : SyntaxTokenWithTrivia
         {
             internal MissingTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing)
                 : base(kind, leading, trailing)
             {
-                this.flags &= ~NodeFlags.IsNotMissing;
+                ClearFlags(NodeFlags.IsNotMissing);
             }
 
             internal MissingTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
                 : base(kind, leading, trailing, diagnostics, annotations)
             {
-                this.flags &= ~NodeFlags.IsNotMissing;
-            }
-
-            internal MissingTokenWithTrivia(ObjectReader reader)
-                : base(reader)
-            {
-                this.flags &= ~NodeFlags.IsNotMissing;
-            }
-
-            static MissingTokenWithTrivia()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(MissingTokenWithTrivia), r => new MissingTokenWithTrivia(r));
+                ClearFlags(NodeFlags.IsNotMissing);
             }
 
             public override string Text

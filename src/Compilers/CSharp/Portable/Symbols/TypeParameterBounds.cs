@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeParameterBounds()
         {
+            EffectiveBaseClass = null!;
+            DeducedBaseType = null!;
         }
 
         /// <summary>

@@ -7,8 +7,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class DiagnosticDescriptorComparerTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub Id()
             Const description As String = "A description"
             Const messageFormat As String = "A message format"
@@ -37,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.True(result < 0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub Description()
             Const id As String = "TST0001"
             Const messageFormat As String = "A message format"
@@ -66,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.True(result < 0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub MessageFormat()
             Const id As String = "TST0001"
             Const description As String = "A description"

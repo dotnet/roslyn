@@ -2,30 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+/// <summary>
+/// operation status paired with data
+/// </summary>
+internal sealed class OperationStatus<T>(OperationStatus status, T data)
 {
-    /// <summary>
-    /// operation status paired with data
-    /// </summary>
-    internal class OperationStatus<T>
-    {
-        public OperationStatus(OperationStatus status, T data)
-        {
-            Status = status;
-            Data = data;
-        }
+    public OperationStatus Status { get; } = status;
+    public T Data { get; } = data;
 
-        public OperationStatus Status { get; }
-        public T Data { get; }
+    public OperationStatus<T> With(OperationStatus status)
+        => new(status, Data);
 
-        public OperationStatus<T> With(OperationStatus status)
-        {
-            return new OperationStatus<T>(status, Data);
-        }
-
-        public OperationStatus<TNew> With<TNew>(TNew data)
-        {
-            return new OperationStatus<TNew>(Status, data);
-        }
-    }
+    public OperationStatus<TNew> With<TNew>(TNew data)
+        => new(Status, data);
 }

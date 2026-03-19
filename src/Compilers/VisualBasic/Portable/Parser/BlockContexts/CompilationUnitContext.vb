@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Function
 
 #If DEBUG Then
-            ' NOTE: the logic is heavily relying on the fact that green nodes in 
+            ' NOTE: the logic is heavily relying on the fact that green nodes in
             ' NOTE: one single tree are not reused, the following code assert this
             Private ReadOnly _processedNodesWithoutDuplication As HashSet(Of VisualBasicSyntaxNode) = New HashSet(Of VisualBasicSyntaxNode)(ReferenceEqualityComparer.Instance)
 #End If
@@ -430,11 +430,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return rewritten
             End Function
 
-
             Private Function VerifyRegionPlacement(original As VisualBasicSyntaxNode, rewritten As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
                 Dim containingBlock = _declarationBlocksBeingVisited.Peek()
 
-                ' Ensure that the directive is inside the block, rather than is attached to it as a leading/trailing trivia 
+                ' Ensure that the directive is inside the block, rather than is attached to it as a leading/trailing trivia
                 Debug.Assert(_declarationBlocksBeingVisited.Count > 1 OrElse containingBlock.Kind = SyntaxKind.CompilationUnit)
 
                 If _declarationBlocksBeingVisited.Count > 1 Then

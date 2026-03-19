@@ -5,7 +5,6 @@
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -3993,7 +3992,6 @@ End Module
             Dim verifier = CompileAndVerify(compilationDef,
                              options:=TestOptions.DebugDll,
                              references:={SystemCoreRef})
-
 
             Dim _assembly = Assembly.Load(verifier.EmittedAssemblyData.ToArray())
             Assert.NotNull(_assembly)

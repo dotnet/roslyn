@@ -2,15 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
     Partial Public Class ProximityExpressionsGetterTests
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_0()
             ' Line 1
 
@@ -22,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"System.ComponentModel.Composition", "System.ComponentModel", "System", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_1()
             ' Line 2
 
@@ -35,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Microsoft.VisualStudio.Text", "Microsoft.VisualStudio", "Microsoft", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_2()
             ' Line 3
 
@@ -48,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Microsoft.VisualStudio.Text.Editor", "Microsoft.VisualStudio.Text", "Microsoft.VisualStudio", "Microsoft", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_3()
             ' Line 4
 
@@ -61,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Microsoft.VisualStudio.Utilities", "Microsoft.VisualStudio", "Microsoft", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_4()
             ' Line 5
 
@@ -74,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Compilers.Internal", "Roslyn.Compilers", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_5()
             ' Line 6
 
@@ -87,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Compilers.VisualBasic", "Roslyn.Compilers", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_6()
             ' Line 7
 
@@ -100,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.Commands", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_7()
             ' Line 8
 
@@ -113,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.Internal.Extensions", "Roslyn.Services.Internal", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_8()
             ' Line 9
 
@@ -126,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.Internal.Utilities", "Roslyn.Services.Internal", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_9()
             ' Line 10
 
@@ -139,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.VisualBasic.Commands", "Roslyn.Services.VisualBasic", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_10()
             ' Line 11
 
@@ -152,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.VisualBasic.Utilities", "Roslyn.Services.VisualBasic", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_11()
             ' Line 12
 
@@ -165,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"System.Text", "System", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_12()
             ' Line 13
 
@@ -178,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.Workspaces", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_13()
             ' Line 14
 
@@ -191,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.VisualBasic.Extensions", "Roslyn.Services.VisualBasic", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_14()
             ' Line 16
 
@@ -204,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.VisualBasic.DocumentationComments", "Roslyn.Services.VisualBasic", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_15()
             ' Line 16
 
@@ -217,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Roslyn.Services.VisualBasic.DocumentationComments", "Roslyn.Services.VisualBasic", "Roslyn.Services", "Roslyn", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_16()
             ' Line 17
 
@@ -230,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Export", "ICommandHandler", "Name", "VisualBasicCommandHandlerNames.DocumentationComments", "VisualBasicCommandHandlerNames", "Order", "VisualBasicCommandHandlerNames.IntelliSense", "ContentType", "ContentTypeNames.VisualBasicContentType", "ContentTypeNames", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_17()
             ' Line 17
 
@@ -243,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Export", "ICommandHandler", "Name", "VisualBasicCommandHandlerNames.DocumentationComments", "VisualBasicCommandHandlerNames", "Order", "VisualBasicCommandHandlerNames.IntelliSense", "ContentType", "ContentTypeNames.VisualBasicContentType", "ContentTypeNames", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_18()
             ' Line 22
 
@@ -256,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_19()
             ' Line 23
 
@@ -269,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_20()
             ' Line 24
 
@@ -282,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_21()
             ' Line 26
 
@@ -295,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_22()
             ' Line 28
 
@@ -308,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"ImportingConstructor", "workspace", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_23()
             ' Line 28
 
@@ -321,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"ImportingConstructor", "workspace", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_24()
             ' Line 30
 
@@ -334,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Contract.ThrowIfNull", "Contract", "workspace", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_25()
             ' Line 32
 
@@ -347,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace", "workspace", "Contract.ThrowIfNull", "Contract", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_26()
             ' Line 33
 
@@ -360,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace", "workspace", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_27()
             ' Line 35
 
@@ -373,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_28()
             ' Line 35
 
@@ -386,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_29()
             ' Line 36
 
@@ -399,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "args", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_30()
             ' Line 37
 
@@ -412,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "args", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_31()
             ' Line 39
 
@@ -425,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_32()
             ' Line 39
 
@@ -438,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_33()
             ' Line 40
 
@@ -451,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentOnContainingMember", "args.TextView", "args", "args.SubjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_34()
             ' Line 40
 
@@ -464,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentOnContainingMember", "args.TextView", "args", "args.SubjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_35()
             ' Line 41
 
@@ -477,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_36()
             ' Line 42
 
@@ -490,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_37()
             ' Line 43
 
@@ -503,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_38()
             ' Line 45
 
@@ -516,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_39()
             ' Line 45
 
@@ -529,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_40()
             ' Line 46
 
@@ -542,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "args", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_41()
             ' Line 47
 
@@ -555,7 +553,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "args", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_42()
             ' Line 49
 
@@ -568,7 +566,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_43()
             ' Line 49
 
@@ -581,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_44()
             ' Line 51
 
@@ -594,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "args", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_45()
             ' Line 53
 
@@ -607,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args.TypedChar", "args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_46()
             ' Line 53
 
@@ -620,7 +618,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args.TypedChar", "args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_47()
             ' Line 54
 
@@ -633,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentAfterTripleApostrophes", "args.TextView", "args", "args.SubjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_48()
             ' Line 55
 
@@ -646,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentAfterTripleApostrophes", "args.TextView", "args", "args.SubjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_49()
             ' Line 56
 
@@ -659,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_50()
             ' Line 58
 
@@ -672,7 +670,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_51()
             ' Line 58
 
@@ -685,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_52()
             ' Line 59
 
@@ -698,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "args", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_53()
             ' Line 60
 
@@ -711,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "args", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_54()
             ' Line 62
 
@@ -724,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_55()
             ' Line 62
 
@@ -737,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_56()
             ' Line 75
 
@@ -750,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SubjectBufferCaretPosition", "args.TextView", "args", "args.SubjectBuffer", "subjectBufferCaretPosition", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_57()
             ' Line 76
 
@@ -763,7 +761,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "SubjectBufferCaretPosition", "args.TextView", "args", "args.SubjectBuffer", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_58()
             ' Line 77
 
@@ -776,7 +774,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_59()
             ' Line 77
 
@@ -789,7 +787,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_60()
             ' Line 78
 
@@ -802,7 +800,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_61()
             ' Line 79
 
@@ -815,7 +813,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_62()
             ' Line 80
 
@@ -828,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_63()
             ' Line 82
 
@@ -841,7 +839,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args.SubjectBuffer.CurrentSnapshot", "args.SubjectBuffer", "args", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_64()
             ' Line 83
 
@@ -854,7 +852,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot", "args.SubjectBuffer.CurrentSnapshot", "args.SubjectBuffer", "args", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_65()
             ' Line 84
 
@@ -867,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "snapshot", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_66()
             ' Line 84
 
@@ -880,7 +878,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "snapshot", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_67()
             ' Line 85
 
@@ -893,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_68()
             ' Line 86
 
@@ -906,7 +904,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_69()
             ' Line 87
 
@@ -919,7 +917,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_70()
             ' Line 90
 
@@ -932,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GetDocumentationComment", "tree", "caretPosition", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_71()
             ' Line 91
 
@@ -945,7 +943,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "ExteriorTriviaStartsLine", "tree", "caretPosition", "documentationComment.Span.Start", "documentationComment.Span", "GetDocumentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_72()
             ' Line 91
 
@@ -958,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "ExteriorTriviaStartsLine", "tree", "caretPosition", "documentationComment.Span.Start", "documentationComment.Span", "GetDocumentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_73()
             ' Line 95
 
@@ -971,7 +969,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_74()
             ' Line 96
 
@@ -984,7 +982,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_75()
             ' Line 97
 
@@ -997,7 +995,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_76()
             ' Line 99
 
@@ -1010,7 +1008,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SpansSingleLine", "documentationComment", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_77()
             ' Line 99
 
@@ -1023,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SpansSingleLine", "documentationComment", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_78()
             ' Line 102
 
@@ -1036,7 +1034,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertLineBreakAndTripleApostrophesAtCaret", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_79()
             ' Line 103
 
@@ -1049,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertLineBreakAndTripleApostrophesAtCaret", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_80()
             ' Line 104
 
@@ -1062,7 +1060,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_81()
             ' Line 106
 
@@ -1075,7 +1073,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GetDocumentationCommentTargetMember", "documentationComment", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_82()
             ' Line 107
 
@@ -1088,7 +1086,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.SupportsDocumentationComments", "targetMember", "targetMember.Span.Start", "targetMember.Span", "documentationComment.Span.Start", "documentationComment.Span", "documentationComment", "GetDocumentationCommentTargetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_83()
             ' Line 107
 
@@ -1101,7 +1099,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.SupportsDocumentationComments", "targetMember", "targetMember.Span.Start", "targetMember.Span", "documentationComment.Span.Start", "documentationComment.Span", "documentationComment", "GetDocumentationCommentTargetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_84()
             ' Line 109
 
@@ -1114,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"IsRestOfLineWhitespace", "snapshot", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_85()
             ' Line 109
 
@@ -1127,7 +1125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"IsRestOfLineWhitespace", "snapshot", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_86()
             ' Line 111
 
@@ -1140,7 +1138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertLineBreakAndTripleApostrophesAtCaret", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_87()
             ' Line 112
 
@@ -1153,7 +1151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertLineBreakAndTripleApostrophesAtCaret", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_88()
             ' Line 114
 
@@ -1166,7 +1164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentAfterTripleApostrophesCore", "targetMember", "tree", "caretPosition", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_89()
             ' Line 115
 
@@ -1179,7 +1177,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentAfterTripleApostrophesCore", "targetMember", "tree", "caretPosition", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_90()
             ' Line 117
 
@@ -1192,7 +1190,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_91()
             ' Line 118
 
@@ -1205,7 +1203,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_92()
             ' Line 124
 
@@ -1218,7 +1216,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_93()
             ' Line 126
 
@@ -1231,7 +1229,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"args.SubjectBuffer.CurrentSnapshot", "args.SubjectBuffer", "args", "nextHandler", "postSnapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_94()
             ' Line 127
 
@@ -1244,7 +1242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"postSnapshot", "args.SubjectBuffer.CurrentSnapshot", "args.SubjectBuffer", "args", "postTree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_95()
             ' Line 128
 
@@ -1257,7 +1255,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "postSnapshot", "postTree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_96()
             ' Line 128
 
@@ -1270,7 +1268,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "postSnapshot", "postTree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_97()
             ' Line 129
 
@@ -1283,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_98()
             ' Line 130
 
@@ -1296,7 +1294,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_99()
             ' Line 135
 
@@ -1309,7 +1307,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GetDocumentationComment", "postTree", "caretPosition", "postDocumentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_100()
             ' Line 136
 
@@ -1322,7 +1320,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"postDocumentationComment", "GetDocumentationComment", "postTree", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_101()
             ' Line 136
 
@@ -1335,7 +1333,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"postDocumentationComment", "GetDocumentationComment", "postTree", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_102()
             ' Line 137
 
@@ -1348,7 +1346,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_103()
             ' Line 138
 
@@ -1361,7 +1359,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_104()
             ' Line 140
 
@@ -1374,7 +1372,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SpansSingleLine", "postDocumentationComment", "postSnapshot", "IsExteriorTriviaLeftOfPosition", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_105()
             ' Line 140
 
@@ -1387,7 +1385,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SpansSingleLine", "postDocumentationComment", "postSnapshot", "IsExteriorTriviaLeftOfPosition", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_106()
             ' Line 142
 
@@ -1400,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_107()
             ' Line 143
 
@@ -1413,7 +1411,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_108()
             ' Line 145
 
@@ -1426,7 +1424,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GetDocumentationCommentTargetMember", "postDocumentationComment", "postTargetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_109()
             ' Line 146
 
@@ -1439,7 +1437,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"postTargetMember.SupportsDocumentationComments", "postTargetMember", "caretPosition", "postTargetMember.Span.Start", "postTargetMember.Span", "GetDocumentationCommentTargetMember", "postDocumentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_110()
             ' Line 146
 
@@ -1452,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"postTargetMember.SupportsDocumentationComments", "postTargetMember", "caretPosition", "postTargetMember.Span.Start", "postTargetMember.Span", "GetDocumentationCommentTargetMember", "postDocumentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_111()
             ' Line 148
 
@@ -1465,7 +1463,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_112()
             ' Line 149
 
@@ -1478,7 +1476,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_113()
             ' Line 153
 
@@ -1491,7 +1489,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"postSnapshot.GetLeadingWhitespaceOfLineAtPosition", "postSnapshot", "caretPosition", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_114()
             ' Line 154
 
@@ -1504,7 +1502,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Span.FromBounds", "Span", "caretPosition", "postTargetMember.GetFirstToken().Span.Start", "postTargetMember.GetFirstToken().Span", "postTargetMember.GetFirstToken", "postTargetMember", "indent", "postSnapshot.GetLeadingWhitespaceOfLineAtPosition", "postSnapshot", "replaceSpan", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_115()
             ' Line 156
 
@@ -1517,7 +1515,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GenerateDocumentationCommentText", "postTargetMember", "postTree", "indent", "replaceSpan", "Span.FromBounds", "Span", "caretPosition", "postTargetMember.GetFirstToken().Span.Start", "postTargetMember.GetFirstToken().Span", "postTargetMember.GetFirstToken", "pair", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_116()
             ' Line 164
 
@@ -1530,7 +1528,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"ReplaceWithCommentText", "replaceSpan", "pair.Item1", "pair", "pair.Item2", "subjectBufferCaretPosition", "GenerateDocumentationCommentText", "postTargetMember", "postTree", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_117()
             ' Line 169
 
@@ -1543,7 +1541,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"ReplaceWithCommentText", "replaceSpan", "pair.Item1", "pair", "pair.Item2", "subjectBufferCaretPosition", "args", "nextHandler", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_118()
             ' Line 171
 
@@ -1556,7 +1554,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_119()
             ' Line 171
 
@@ -1569,7 +1567,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_120()
             ' Line 178
 
@@ -1582,7 +1580,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_121()
             ' Line 180
 
@@ -1595,7 +1593,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "textView", "subjectBuffer", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_122()
             ' Line 181
 
@@ -1608,7 +1606,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_123()
             ' Line 181
 
@@ -1621,7 +1619,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_124()
             ' Line 182
 
@@ -1634,7 +1632,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_125()
             ' Line 183
 
@@ -1647,7 +1645,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_126()
             ' Line 185
 
@@ -1660,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBuffer.CurrentSnapshot", "subjectBuffer", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_127()
             ' Line 187
 
@@ -1673,7 +1671,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"IsRestOfLineWhitespace", "snapshot", "caretPosition", "subjectBuffer.CurrentSnapshot", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_128()
             ' Line 187
 
@@ -1686,7 +1684,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"IsRestOfLineWhitespace", "snapshot", "caretPosition", "subjectBuffer.CurrentSnapshot", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_129()
             ' Line 188
 
@@ -1699,7 +1697,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_130()
             ' Line 189
 
@@ -1712,7 +1710,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_131()
             ' Line 191
 
@@ -1725,7 +1723,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_132()
             ' Line 192
 
@@ -1738,7 +1736,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "snapshot", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_133()
             ' Line 192
 
@@ -1751,7 +1749,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "snapshot", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_134()
             ' Line 193
 
@@ -1764,7 +1762,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_135()
             ' Line 194
 
@@ -1777,7 +1775,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_136()
             ' Line 196
 
@@ -1790,7 +1788,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GetDocumentationComment", "tree", "caretPosition", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_137()
             ' Line 197
 
@@ -1803,7 +1801,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "IsExteriorTriviaLeftOfPosition", "caretPosition", "SpansSingleLine", "snapshot", "GetDocumentationComment", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_138()
             ' Line 197
 
@@ -1816,7 +1814,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "IsExteriorTriviaLeftOfPosition", "caretPosition", "SpansSingleLine", "snapshot", "GetDocumentationComment", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_139()
             ' Line 201
 
@@ -1829,7 +1827,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_140()
             ' Line 202
 
@@ -1842,7 +1840,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_141()
             ' Line 204
 
@@ -1855,7 +1853,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GetDocumentationCommentTargetMember", "documentationComment", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_142()
             ' Line 205
 
@@ -1868,7 +1866,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.SupportsDocumentationComments", "targetMember", "GetDocumentationCommentTargetMember", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_143()
             ' Line 205
 
@@ -1881,7 +1879,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.SupportsDocumentationComments", "targetMember", "GetDocumentationCommentTargetMember", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_144()
             ' Line 206
 
@@ -1894,7 +1892,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_145()
             ' Line 207
 
@@ -1907,7 +1905,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_146()
             ' Line 209
 
@@ -1920,7 +1918,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "targetMember.Span.Start", "targetMember.Span", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_147()
             ' Line 209
 
@@ -1933,7 +1931,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "targetMember.Span.Start", "targetMember.Span", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_148()
             ' Line 210
 
@@ -1946,7 +1944,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_149()
             ' Line 211
 
@@ -1959,7 +1957,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_150()
             ' Line 213
 
@@ -1972,7 +1970,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentAfterTripleApostrophesCore", "targetMember", "tree", "caretPosition", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_151()
             ' Line 215
 
@@ -1985,7 +1983,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentAfterTripleApostrophesCore", "targetMember", "tree", "caretPosition", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_152()
             ' Line 216
 
@@ -1998,7 +1996,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_153()
             ' Line 218
 
@@ -2011,7 +2009,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember", "tree", "position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_154()
             ' Line 218
 
@@ -2024,7 +2022,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember", "tree", "position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_155()
             ' Line 224
 
@@ -2037,7 +2035,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree.Text.GetLeadingWhitespaceOfLineAtPosition", "tree.Text", "tree", "position", "indent", "targetMember", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_156()
             ' Line 226
 
@@ -2050,7 +2048,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GenerateDocumentationCommentText", "targetMember", "tree", "indent", "tree.Text.GetLeadingWhitespaceOfLineAtPosition", "tree.Text", "position", "pair", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_157()
             ' Line 231
 
@@ -2063,7 +2061,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentText", "position", "pair.Item1", "pair", "pair.Item2", "subjectBufferCaretPosition", "GenerateDocumentationCommentText", "targetMember", "tree", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_158()
             ' Line 236
 
@@ -2076,7 +2074,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentText", "position", "pair.Item1", "pair", "pair.Item2", "subjectBufferCaretPosition", "targetMember", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_159()
             ' Line 238
 
@@ -2089,7 +2087,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_160()
             ' Line 238
 
@@ -2102,7 +2100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_161()
             ' Line 243
 
@@ -2115,7 +2113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_162()
             ' Line 245
 
@@ -2128,7 +2126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "textView", "subjectBuffer", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_163()
             ' Line 246
 
@@ -2141,7 +2139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_164()
             ' Line 246
 
@@ -2154,7 +2152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_165()
             ' Line 247
 
@@ -2167,7 +2165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_166()
             ' Line 248
 
@@ -2180,7 +2178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_167()
             ' Line 250
 
@@ -2193,7 +2191,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBuffer.CurrentSnapshot", "subjectBuffer", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_168()
             ' Line 251
 
@@ -2206,7 +2204,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot", "subjectBuffer.CurrentSnapshot", "subjectBuffer", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_169()
             ' Line 252
 
@@ -2219,7 +2217,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "snapshot", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_170()
             ' Line 252
 
@@ -2232,7 +2230,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"_workspace.TryGetSyntaxTree", "_workspace", "snapshot", "tree", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_171()
             ' Line 253
 
@@ -2245,7 +2243,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_172()
             ' Line 254
 
@@ -2258,7 +2256,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_173()
             ' Line 256
 
@@ -2271,7 +2269,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree.Root.FindToken", "tree.Root", "tree", "caretPosition", "token", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_174()
             ' Line 258
 
@@ -2284,7 +2282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"token.GetContainingMember", "token", "tree.Root.FindToken", "tree.Root", "tree", "caretPosition", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_175()
             ' Line 259
 
@@ -2297,7 +2295,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.SupportsDocumentationComments", "targetMember", "targetMember.Span.Start", "targetMember.Span", "caretPosition", "targetMember.Span.End", "token.GetContainingMember", "token", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_176()
             ' Line 259
 
@@ -2310,7 +2308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.SupportsDocumentationComments", "targetMember", "targetMember.Span.Start", "targetMember.Span", "caretPosition", "targetMember.Span.End", "token.GetContainingMember", "token", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_177()
             ' Line 263
 
@@ -2323,7 +2321,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_178()
             ' Line 264
 
@@ -2336,7 +2334,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_179()
             ' Line 266
 
@@ -2349,7 +2347,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.HasDocumentationComment", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_180()
             ' Line 266
 
@@ -2362,7 +2360,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.HasDocumentationComment", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_181()
             ' Line 267
 
@@ -2375,7 +2373,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_182()
             ' Line 268
 
@@ -2388,7 +2386,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_183()
             ' Line 270
 
@@ -2401,7 +2399,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree.Text.GetLeadingWhitespaceOfLineAtPosition", "tree.Text", "tree", "targetMember.GetFirstToken().Span.Start", "targetMember.GetFirstToken().Span", "targetMember.GetFirstToken", "targetMember", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_184()
             ' Line 272
 
@@ -2414,7 +2412,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"GenerateDocumentationCommentText", "targetMember", "tree", "indent", "tree.Text.GetLeadingWhitespaceOfLineAtPosition", "tree.Text", "targetMember.GetFirstToken().Span.Start", "targetMember.GetFirstToken().Span", "targetMember.GetFirstToken", "pair", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_185()
             ' Line 277
 
@@ -2427,7 +2425,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentText", "targetMember.Span.Start", "targetMember.Span", "targetMember", "pair.Item1", "pair", "pair.Item2", "subjectBufferCaretPosition", "GenerateDocumentationCommentText", "tree", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_186()
             ' Line 283
 
@@ -2440,7 +2438,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"InsertCommentText", "targetMember.Span.Start", "targetMember.Span", "targetMember", "pair.Item1", "pair", "pair.Item2", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_187()
             ' Line 284
 
@@ -2453,7 +2451,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"textView", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_188()
             ' Line 286
 
@@ -2466,7 +2464,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_189()
             ' Line 286
 
@@ -2479,7 +2477,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_190()
             ' Line 287
 
@@ -2492,7 +2490,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "caretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_191()
             ' Line 288
 
@@ -2505,7 +2503,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_192()
             ' Line 288
 
@@ -2518,7 +2516,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"caretPosition", "subjectBufferCaretPosition.Position", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_193()
             ' Line 289
 
@@ -2531,7 +2529,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_194()
             ' Line 290
 
@@ -2544,7 +2542,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_195()
             ' Line 292
 
@@ -2557,7 +2555,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.SubjectBufferSnapshot.TextBuffer", "subjectBufferCaretPosition.SubjectBufferSnapshot", "subjectBufferCaretPosition", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_196()
             ' Line 294
 
@@ -2570,7 +2568,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBuffer.CurrentSnapshot", "subjectBuffer", "subjectBufferCaretPosition.SubjectBufferSnapshot.TextBuffer", "subjectBufferCaretPosition.SubjectBufferSnapshot", "subjectBufferCaretPosition", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_197()
             ' Line 295
 
@@ -2583,7 +2581,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot.GetLineNumberFromPosition", "snapshot", "caretPosition", "subjectBuffer.CurrentSnapshot", "subjectBuffer", "lineNumber", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_198()
             ' Line 297
 
@@ -2596,7 +2594,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.Empty", "lineNumber", "snapshot.GetLineNumberFromPosition", "snapshot", "caretPosition", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_199()
             ' Line 298
 
@@ -2609,7 +2607,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"lineNumber", "indent", "String.Empty", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_200()
             ' Line 298
 
@@ -2622,7 +2620,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"lineNumber", "indent", "String.Empty", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_201()
             ' Line 299
 
@@ -2635,7 +2633,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot.GetLineFromLineNumber", "snapshot", "lineNumber", "line", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_202()
             ' Line 300
 
@@ -2648,7 +2646,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"line.GetText", "line", "snapshot.GetLineFromLineNumber", "snapshot", "lineNumber", "lineText", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_203()
             ' Line 301
 
@@ -2661,7 +2659,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"lineText.IndexOf", "lineText", "line.GetText", "line", "slashesIndex", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_204()
             ' Line 302
 
@@ -2674,7 +2672,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"slashesIndex", "lineText.IndexOf", "lineText", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_205()
             ' Line 302
 
@@ -2687,7 +2685,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"slashesIndex", "lineText.IndexOf", "lineText", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_206()
             ' Line 303
 
@@ -2700,7 +2698,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"indent", "slashesIndex", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_207()
             ' Line 304
 
@@ -2713,7 +2711,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"indent", "slashesIndex", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_208()
             ' Line 305
 
@@ -2726,7 +2724,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_209()
             ' Line 307
 
@@ -2739,7 +2737,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"vbCrLf", "indent", "text", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_210()
             ' Line 309
 
@@ -2752,7 +2750,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBuffer.Insert", "subjectBuffer", "caretPosition", "text", "vbCrLf", "indent", "newSnapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_211()
             ' Line 310
 
@@ -2765,7 +2763,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SnapshotPoint", "newSnapshot", "caretPosition", "text.Length", "text", "subjectBuffer.Insert", "subjectBuffer", "caretPoint", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_212()
             ' Line 312
 
@@ -2778,7 +2776,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.TryMoveTo", "subjectBufferCaretPosition", "caretPoint", "SnapshotPoint", "newSnapshot", "caretPosition", "text.Length", "text", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_213()
             ' Line 313
 
@@ -2791,7 +2789,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.TryMoveTo", "subjectBufferCaretPosition", "caretPoint", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_214()
             ' Line 315
 
@@ -2804,7 +2802,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"position", "commentText", "caretOffset", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_215()
             ' Line 315
 
@@ -2817,7 +2815,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"position", "commentText", "caretOffset", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_216()
             ' Line 321
 
@@ -2830,7 +2828,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "commentText", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_217()
             ' Line 321
 
@@ -2843,7 +2841,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "commentText", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_218()
             ' Line 322
 
@@ -2856,7 +2854,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_219()
             ' Line 323
 
@@ -2869,7 +2867,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_220()
             ' Line 325
 
@@ -2882,7 +2880,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.SubjectBufferSnapshot.TextBuffer", "subjectBufferCaretPosition.SubjectBufferSnapshot", "subjectBufferCaretPosition", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_221()
             ' Line 326
 
@@ -2895,7 +2893,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBuffer.Insert", "subjectBuffer", "position", "commentText", "subjectBufferCaretPosition.SubjectBufferSnapshot.TextBuffer", "subjectBufferCaretPosition.SubjectBufferSnapshot", "subjectBufferCaretPosition", "newSnapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_222()
             ' Line 327
 
@@ -2908,7 +2906,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SnapshotPoint", "newSnapshot", "position", "caretOffset", "subjectBuffer.Insert", "subjectBuffer", "commentText", "caretPoint", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_223()
             ' Line 328
 
@@ -2921,7 +2919,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.TryMoveTo", "subjectBufferCaretPosition", "caretPoint", "SnapshotPoint", "newSnapshot", "position", "caretOffset", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_224()
             ' Line 329
 
@@ -2934,7 +2932,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.TryMoveTo", "subjectBufferCaretPosition", "caretPoint", "position", "commentText", "caretOffset", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_225()
             ' Line 331
 
@@ -2947,7 +2945,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"replaceSpan", "commentText", "caretOffset", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_226()
             ' Line 331
 
@@ -2960,7 +2958,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"replaceSpan", "commentText", "caretOffset", "subjectBufferCaretPosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_227()
             ' Line 337
 
@@ -2973,7 +2971,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "commentText", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_228()
             ' Line 337
 
@@ -2986,7 +2984,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "commentText", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_229()
             ' Line 338
 
@@ -2999,7 +2997,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_230()
             ' Line 339
 
@@ -3012,7 +3010,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_231()
             ' Line 341
 
@@ -3025,7 +3023,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.SubjectBufferSnapshot.TextBuffer", "subjectBufferCaretPosition.SubjectBufferSnapshot", "subjectBufferCaretPosition", "subjectBuffer", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_232()
             ' Line 342
 
@@ -3038,7 +3036,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBuffer.Replace", "subjectBuffer", "replaceSpan", "commentText", "subjectBufferCaretPosition.SubjectBufferSnapshot.TextBuffer", "subjectBufferCaretPosition.SubjectBufferSnapshot", "subjectBufferCaretPosition", "newSnapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_233()
             ' Line 343
 
@@ -3051,7 +3049,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"SnapshotPoint", "newSnapshot", "replaceSpan.Start", "replaceSpan", "caretOffset", "subjectBuffer.Replace", "subjectBuffer", "commentText", "caretPoint", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_234()
             ' Line 344
 
@@ -3064,7 +3062,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.TryMoveTo", "subjectBufferCaretPosition", "caretPoint", "SnapshotPoint", "newSnapshot", "replaceSpan.Start", "replaceSpan", "caretOffset", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_235()
             ' Line 345
 
@@ -3077,7 +3075,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"subjectBufferCaretPosition.TryMoveTo", "subjectBufferCaretPosition", "caretPoint", "replaceSpan", "commentText", "caretOffset", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_236()
             ' Line 347
 
@@ -3090,7 +3088,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_237()
             ' Line 347
 
@@ -3103,7 +3101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_238()
             ' Line 348
 
@@ -3116,7 +3114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot.GetLineFromPosition", "snapshot", "position", "line", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_239()
             ' Line 349
 
@@ -3129,7 +3127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"line.GetText().Substring", "line.GetText", "line", "position", "line.Start.Position", "line.Start", "snapshot.GetLineFromPosition", "snapshot", "lineTextToEnd", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_240()
             ' Line 350
 
@@ -3142,7 +3140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "lineTextToEnd", "line.GetText().Substring", "line.GetText", "line", "position", "line.Start.Position", "line.Start", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_241()
             ' Line 351
 
@@ -3155,7 +3153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "lineTextToEnd", "snapshot", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_242()
             ' Line 353
 
@@ -3168,7 +3166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_243()
             ' Line 353
 
@@ -3181,7 +3179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_244()
             ' Line 354
 
@@ -3194,7 +3192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree.Root.FindTrivia", "tree.Root", "tree", "position", "trivia", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_245()
             ' Line 355
 
@@ -3207,7 +3205,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.Kind", "trivia", "SyntaxKind.DocumentationComment", "SyntaxKind", "tree.Root.FindTrivia", "tree.Root", "tree", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_246()
             ' Line 355
 
@@ -3220,7 +3218,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.Kind", "trivia", "SyntaxKind.DocumentationComment", "SyntaxKind", "tree.Root.FindTrivia", "tree.Root", "tree", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_247()
             ' Line 356
 
@@ -3233,7 +3231,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.GetStructure", "trivia", "DocumentationCommentSyntax", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_248()
             ' Line 357
 
@@ -3246,7 +3244,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.GetStructure", "trivia", "DocumentationCommentSyntax", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_249()
             ' Line 358
 
@@ -3259,7 +3257,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_250()
             ' Line 359
 
@@ -3272,7 +3270,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_251()
             ' Line 360
 
@@ -3285,7 +3283,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_252()
             ' Line 362
 
@@ -3298,7 +3296,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree", "documentationComment", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_253()
             ' Line 362
 
@@ -3311,7 +3309,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree", "documentationComment", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_254()
             ' Line 363
 
@@ -3324,7 +3322,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"tree.Text.GetLineFromPosition", "tree.Text", "tree", "position", "line", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_255()
             ' Line 364
 
@@ -3337,7 +3335,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"line.GetFirstNonWhitespacePosition", "line", "tree.Text.GetLineFromPosition", "tree.Text", "tree", "position", "firstNonWhitespacePosition", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_256()
             ' Line 365
 
@@ -3350,7 +3348,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"firstNonWhitespacePosition.HasValue", "firstNonWhitespacePosition", "line.GetFirstNonWhitespacePosition", "line", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_257()
             ' Line 365
 
@@ -3363,7 +3361,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"firstNonWhitespacePosition.HasValue", "firstNonWhitespacePosition", "line.GetFirstNonWhitespacePosition", "line", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_258()
             ' Line 366
 
@@ -3376,7 +3374,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_259()
             ' Line 367
 
@@ -3389,7 +3387,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_260()
             ' Line 369
 
@@ -3402,7 +3400,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment.FindToken", "documentationComment", "firstNonWhitespacePosition.Value", "firstNonWhitespacePosition", "token", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_261()
             ' Line 370
 
@@ -3415,7 +3413,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"token.LeadingTrivia.FirstOrDefault", "token.LeadingTrivia", "token", "documentationComment.FindToken", "documentationComment", "firstNonWhitespacePosition.Value", "firstNonWhitespacePosition", "trivia", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_262()
             ' Line 371
 
@@ -3428,7 +3426,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.Kind", "trivia", "SyntaxKind.DocumentationCommentExteriorTrivia", "SyntaxKind", "token.LeadingTrivia.FirstOrDefault", "token.LeadingTrivia", "token", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_263()
             ' Line 372
 
@@ -3441,7 +3439,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.Kind", "trivia", "SyntaxKind.DocumentationCommentExteriorTrivia", "SyntaxKind", "tree", "documentationComment", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_264()
             ' Line 374
 
@@ -3454,7 +3452,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_265()
             ' Line 374
 
@@ -3467,7 +3465,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "position", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_266()
             ' Line 375
 
@@ -3480,7 +3478,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment.FindToken", "documentationComment", "position", "token", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_267()
             ' Line 376
 
@@ -3493,7 +3491,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"token.LeadingTrivia.FirstOrDefault", "token.LeadingTrivia", "token", "documentationComment.FindToken", "documentationComment", "position", "trivia", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_268()
             ' Line 377
 
@@ -3506,7 +3504,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.Kind", "trivia", "SyntaxKind.DocumentationCommentExteriorTrivia", "SyntaxKind", "trivia.Span.End", "trivia.Span", "position", "token.LeadingTrivia.FirstOrDefault", "token.LeadingTrivia", "token", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_269()
             ' Line 379
 
@@ -3519,7 +3517,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"trivia.Kind", "trivia", "SyntaxKind.DocumentationCommentExteriorTrivia", "SyntaxKind", "trivia.Span.End", "trivia.Span", "position", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_270()
             ' Line 381
 
@@ -3532,7 +3530,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_271()
             ' Line 381
 
@@ -3545,7 +3543,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_272()
             ' Line 382
 
@@ -3558,7 +3556,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment.ParentTrivia", "documentationComment", "parentTrivia", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_273()
             ' Line 383
 
@@ -3571,7 +3569,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"parentTrivia.Token.GetAncestor(Of StatementSyntax)", "parentTrivia.Token", "parentTrivia", "documentationComment.ParentTrivia", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_274()
             ' Line 384
 
@@ -3584,7 +3582,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"parentTrivia.Token.GetAncestor(Of StatementSyntax)", "parentTrivia.Token", "parentTrivia", "documentationComment", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_275()
             ' Line 386
 
@@ -3597,7 +3595,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_276()
             ' Line 386
 
@@ -3610,7 +3608,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_277()
             ' Line 388
 
@@ -3623,7 +3621,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot.GetLineNumberFromPosition", "snapshot", "documentationComment.FullSpan.Start", "documentationComment.FullSpan", "documentationComment", "startLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_278()
             ' Line 392
 
@@ -3636,7 +3634,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"documentationComment.GetLastToken", "documentationComment", "startLine", "snapshot.GetLineNumberFromPosition", "snapshot", "documentationComment.FullSpan.Start", "documentationComment.FullSpan", "lastToken", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_279()
             ' Line 393
 
@@ -3649,7 +3647,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"snapshot.GetLineNumberFromPosition", "snapshot", "lastToken.Span.Start", "lastToken.Span", "lastToken", "documentationComment.GetLastToken", "documentationComment", "endLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_280()
             ' Line 395
 
@@ -3662,7 +3660,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"startLine", "endLine", "snapshot.GetLineNumberFromPosition", "snapshot", "lastToken.Span.Start", "lastToken.Span", "lastToken", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_281()
             ' Line 396
 
@@ -3675,7 +3673,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"startLine", "endLine", "documentationComment", "snapshot", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_282()
             ' Line 402
 
@@ -3688,7 +3686,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember", "tree", "indent", "prependExteriorTrivia", "appendLineBreakAndIndent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_283()
             ' Line 402
 
@@ -3701,7 +3699,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember", "tree", "indent", "prependExteriorTrivia", "appendLineBreakAndIndent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_284()
             ' Line 409
 
@@ -3714,7 +3712,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder", "targetMember", "tree", "indent", "prependExteriorTrivia", "appendLineBreakAndIndent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_285()
             ' Line 411
 
@@ -3727,7 +3725,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"prependExteriorTrivia", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_286()
             ' Line 411
 
@@ -3740,7 +3738,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"prependExteriorTrivia", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_287()
             ' Line 412
 
@@ -3753,7 +3751,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_288()
             ' Line 413
 
@@ -3766,7 +3764,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_289()
             ' Line 416
 
@@ -3779,7 +3777,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.AppendLine", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_290()
             ' Line 417
 
@@ -3792,7 +3790,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "builder.AppendLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_291()
             ' Line 418
 
@@ -3805,7 +3803,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Length", "builder", "builder.Append", "indent", "offset", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_292()
             ' Line 419
 
@@ -3818,7 +3816,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.AppendLine", "builder", "offset", "builder.Length", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_293()
             ' Line 420
 
@@ -3831,7 +3829,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "builder.AppendLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_294()
             ' Line 423
 
@@ -3844,7 +3842,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.GetTypeParameterList", "targetMember", "builder.Append", "builder", "indent", "typeParameterList", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_295()
             ' Line 424
 
@@ -3857,7 +3855,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"typeParameterList", "targetMember.GetTypeParameterList", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_296()
             ' Line 424
 
@@ -3870,7 +3868,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"typeParameterList", "targetMember.GetTypeParameterList", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_297()
             ' Line 425
 
@@ -3883,7 +3881,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"typeParameter", "typeParameterList.Parameters", "typeParameterList", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_298()
             ' Line 425
 
@@ -3896,7 +3894,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"typeParameter", "typeParameterList.Parameters", "typeParameterList", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_299()
             ' Line 426
 
@@ -3909,7 +3907,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.AppendLine", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_300()
             ' Line 428
 
@@ -3922,7 +3920,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "builder.AppendLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_301()
             ' Line 430
 
@@ -3935,7 +3933,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"typeParameter.Name.GetText", "typeParameter.Name", "typeParameter", "builder.Append", "builder", "indent", "typeParameterName", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_302()
             ' Line 431
 
@@ -3948,7 +3946,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "typeParameterName", "typeParameter.Name.GetText", "typeParameter.Name", "typeParameter", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_303()
             ' Line 431
 
@@ -3961,7 +3959,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"String.IsNullOrWhiteSpace", "typeParameterName", "typeParameter.Name.GetText", "typeParameter.Name", "typeParameter", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_304()
             ' Line 432
 
@@ -3974,7 +3972,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "typeParameterName", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_305()
             ' Line 433
 
@@ -3987,7 +3985,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "typeParameterName", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_306()
             ' Line 434
 
@@ -4000,7 +3998,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_307()
             ' Line 435
 
@@ -4013,7 +4011,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_308()
             ' Line 437
 
@@ -4026,7 +4024,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_309()
             ' Line 438
 
@@ -4039,7 +4037,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_310()
             ' Line 439
 
@@ -4052,7 +4050,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_311()
             ' Line 442
 
@@ -4065,7 +4063,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.GetParameterList", "targetMember", "parameterList", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_312()
             ' Line 443
 
@@ -4078,7 +4076,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"parameterList", "targetMember.GetParameterList", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_313()
             ' Line 443
 
@@ -4091,7 +4089,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"parameterList", "targetMember.GetParameterList", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_314()
             ' Line 444
 
@@ -4104,7 +4102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"parameter", "parameterList.Parameters", "parameterList", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_315()
             ' Line 444
 
@@ -4117,7 +4115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"parameter", "parameterList.Parameters", "parameterList", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_316()
             ' Line 445
 
@@ -4130,7 +4128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.AppendLine", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_317()
             ' Line 447
 
@@ -4143,7 +4141,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "builder.AppendLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_318()
             ' Line 448
 
@@ -4156,7 +4154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "parameter.Name.GetText", "parameter.Name", "parameter", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_319()
             ' Line 449
 
@@ -4169,7 +4167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "parameter.Name.GetText", "parameter.Name", "parameter", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_320()
             ' Line 450
 
@@ -4182,7 +4180,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_321()
             ' Line 451
 
@@ -4195,7 +4193,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_322()
             ' Line 454
 
@@ -4208,7 +4206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"targetMember.GetReturnType", "targetMember", "returnType", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_323()
             ' Line 455
 
@@ -4221,7 +4219,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"returnType", "targetMember.GetReturnType", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_324()
             ' Line 455
 
@@ -4234,7 +4232,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"returnType", "targetMember.GetReturnType", "targetMember", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_325()
             ' Line 456
 
@@ -4247,7 +4245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.AppendLine", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_326()
             ' Line 457
 
@@ -4260,7 +4258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "builder.AppendLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_327()
             ' Line 458
 
@@ -4273,7 +4271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_328()
             ' Line 460
 
@@ -4286,7 +4284,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"appendLineBreakAndIndent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_329()
             ' Line 460
 
@@ -4299,7 +4297,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"appendLineBreakAndIndent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_330()
             ' Line 461
 
@@ -4312,7 +4310,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.AppendLine", "builder", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_331()
             ' Line 462
 
@@ -4325,7 +4323,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "builder.AppendLine", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_332()
             ' Line 463
 
@@ -4338,7 +4336,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"builder.Append", "builder", "indent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_333()
             ' Line 465
 
@@ -4351,7 +4349,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Tuple.Create", "Tuple", "builder.ToString", "builder", "offset", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_334()
             ' Line 466
 
@@ -4364,7 +4362,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Tuple.Create", "Tuple", "builder.ToString", "builder", "offset", "targetMember", "tree", "indent", "prependExteriorTrivia", "appendLineBreakAndIndent", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_335()
             ' Line 467
 
@@ -4377,7 +4375,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAtStartOfStatement_336()
             ' Line 468
 
@@ -4390,7 +4388,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             AssertEx.Equal({"Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAddHandler()
             Const source = "
 Class C
@@ -4409,7 +4407,7 @@ End Class
             AssertEx.Equal({"c.E", "c", "M", "x", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestRemoveHandler()
             Const source = "
 Class C
@@ -4428,7 +4426,7 @@ End Class
             AssertEx.Equal({"c.E", "c", "M", "x", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestRaiseEvent()
             Const source = "
 Class C
@@ -4446,7 +4444,7 @@ End Class
             AssertEx.Equal({"E", "x", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestYield()
             Const source = "
 Class C
@@ -4463,7 +4461,7 @@ End Class
             AssertEx.Equal({"x", "y", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestRedim()
             Const source = "
 Class C
@@ -4480,7 +4478,7 @@ End Class
             AssertEx.Equal({"intArray", "x", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestErase()
             Const source = "
 Class C
@@ -4497,7 +4495,7 @@ End Class
             AssertEx.Equal({"intArray", "x", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestAssignment()
             Const sourceTemplate = "
 Class C
@@ -4518,7 +4516,7 @@ End Class
             Next
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Sub TestMidAssignment()
             Const source = "
 Class C
@@ -4536,7 +4534,7 @@ End Class
             AssertEx.Equal({"s", "x", "y", "Me"}, terms)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions), WorkItem(903546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/903546")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/903546")>
         Public Sub Repro903546()
             Const source = "
 Module Module1

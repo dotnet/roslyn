@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Reflection;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         public void NestedArray()
         {
             var rootExpr = "new int[][] { new[] { 1, 2 }, new[] { 3 } }";
-            var value = CreateDkmClrValue(new int[][] { new[] { 1, 2 }, new[] { 3 } });
+            var value = CreateDkmClrValue(new int[][] { [1, 2], [3] });
             var evalResult = FormatResult(rootExpr, value);
             Verify(evalResult,
                 EvalResult(rootExpr, "{int[2][]}", "int[][]", rootExpr, DkmEvaluationResultFlags.Expandable));
@@ -153,8 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult("[1]", "2", "int", "((int[])(new C()).o)[1]"));
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void BaseElementType()
         {
             var source =
@@ -186,8 +188,7 @@ class B : A
                 EvalResult("P", "2", "object {int}", "((B)o[1]).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [WorkItem(1022157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022157")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022157")]
         public void Covariance()
         {
             var source =
@@ -228,8 +229,7 @@ class C
                 EvalResult("[0]", "{B}", "I {B}", "((B[])o.H)[0]", DkmEvaluationResultFlags.Expandable));
         }
 
-        [WorkItem(1001844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001844")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001844")]
         public void Interface()
         {
             var source =
@@ -260,7 +260,7 @@ class C
         public void NonZeroLowerBounds()
         {
             var rootExpr = "arrayExpr";
-            var array = (int[,])System.Array.CreateInstance(typeof(int), new[] { 2, 3 }, new[] { 3, 4 });
+            var array = (int[,])System.Array.CreateInstance(typeof(int), [2, 3], [3, 4]);
             array[3, 4] = 1;
             array[3, 5] = 2;
             array[3, 6] = 3;
@@ -300,7 +300,7 @@ class C
         [Fact]
         public void HexadecimalNonZeroLowerBounds()
         {
-            var array = (int[,])System.Array.CreateInstance(typeof(int), new[] { 2, 1 }, new[] { -3, 4 });
+            var array = (int[,])System.Array.CreateInstance(typeof(int), [2, 1], [-3, 4]);
             array[-3, 4] = 1;
             array[-2, 4] = 2;
             var value = CreateDkmClrValue(array);
@@ -343,6 +343,59 @@ class C
                     EvalResult(string.Format("[{0}]", indices1), "0", "byte", string.Format("{0}[{1}]", parenthesizedExpr, indices1)),
                     EvalResult(string.Format("[{0}]", indices2), "0", "byte", string.Format("{0}[{1}]", parenthesizedExpr, indices2)));
             }
+        }
+
+        /// <summary>
+        /// Validate that our helper is able to identify the compiler-generated fixed buffer types.
+        /// </summary>
+        [Fact]
+        public void IdentifyFixedBuffer()
+        {
+            // The mock DkmClrValue.GetArrayElement relies on casting RawValue `object` to `Array` but fixed buffers are not `Array`.
+            // We can get the first element of the generated type via the single defined field,
+            // but everything gets boxed coming out of reflection so we can't do unsafe reads to get at the rest of the elements.
+            // We can't cast `object` to our known SampleFixedBuffer type because that is the enclosing type that defines the field;
+            // the actual type that shows up in the `GetArrayElement` mock is the generated field type, something like SampleFixedBuffer+<Buffer>e__Buffer.
+            // All we can do with these testing limitations is to validate that our helper returns accurate information when it encounters a fixed buffer.
+            var instance = SampleFixedBuffer.Create();
+            var fixedBuffer = CreateDkmClrValue(instance)
+                .GetMemberValue(nameof(SampleFixedBuffer.Buffer), (int)MemberTypes.Field, null, DefaultInspectionContext);
+
+            // Validate the actual ResultProvider gives back an ArrayExpansion for our fixed buffer field
+            var dataItem = FormatResult("instance.Buffer", fixedBuffer).GetDataItem<EvalResultDataItem>();
+            Assert.IsAssignableFrom<ArrayExpansion>(dataItem.Expansion);
+
+            // Directly validate the values are computed correctly
+            Assert.True(InlineArrayHelpers.TryGetFixedBufferInfo(fixedBuffer.Type.GetLmrType(), out var length, out var elementType));
+            Assert.Equal(4, length);
+            Assert.Equal(typeof(byte).FullName, elementType.FullName);
+
+            // Validate fixed buffer identification / expansion does not kick in for a nearly identical shape
+            var source =
+@"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+public unsafe struct Enclosing
+{
+    [CompilerGenerated]
+    [UnsafeValueType]
+    [StructLayout(LayoutKind.Sequential, Size = 256)]
+    public struct e__FixedBuffer
+    {
+        public byte FixedElementField;
+    }
+
+    public e__FixedBuffer Buffer;
+}";
+
+            var assembly = GetUnsafeAssembly(source);
+            var type = assembly.GetType("Enclosing");
+            var fakeValue = CreateDkmClrValue(Activator.CreateInstance(type));
+            var fakeBuffer = fakeValue.GetMemberValue("Buffer", (int)MemberTypes.Field, null, DefaultInspectionContext);
+            var fakeDataItem = FormatResult("fake.Buffer", fakeBuffer).GetDataItem<EvalResultDataItem>();
+            Assert.IsNotAssignableFrom<ArrayExpansion>(fakeDataItem.Expansion);
+            Assert.False(InlineArrayHelpers.TryGetFixedBufferInfo(fakeBuffer.Type.GetLmrType(), out _, out _));
         }
     }
 }

@@ -82,6 +82,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Public Overloads Function Equals(other As AnonymousTypeDescriptor) As Boolean Implements IEquatable(Of AnonymousTypeDescriptor).Equals
+            Return Equals(other, TypeCompareKind.ConsiderEverything)
+        End Function
+
+        Public Overloads Function Equals(other As AnonymousTypeDescriptor, compareKind As TypeCompareKind) As Boolean
             ' Comparing keys ensures field count, field names and keyness are equal
             If Not Me.Key.Equals(other.Key) Then
                 Return False
@@ -92,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim count As Integer = myFields.Length
             Dim otherFields As ImmutableArray(Of AnonymousTypeField) = other.Fields
             For i = 0 To count - 1
-                If Not myFields(i).Type.Equals(otherFields(i).Type) Then
+                If Not myFields(i).Type.Equals(otherFields(i).Type, compareKind) Then
                     Return False
                 End If
             Next

@@ -1,0 +1,72 @@
+﻿<vs:DialogWindow x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass.ExtractClassDialog"
+             x:Uid="PullMemberUpDialog"
+             x:Name="dialog"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:controls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
+             mc:Ignorable="d" 
+             Title="{Binding ElementName=dialog, Path=ExtractClassTitle}"
+             WindowStartupLocation="CenterOwner"
+             Height="498"
+             Width="500"
+             MinHeight="498"
+             MinWidth="510"
+             HasDialogFrame="True"
+             ShowInTaskbar="False"
+             ResizeMode="CanResizeWithGrip"
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="11,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <controls:NewTypeDestinationSelection Grid.Row="0" ViewModel="{Binding ElementName=dialog, Path=ViewModel.DestinationViewModel}" />
+
+        <GroupBox x:Uid="MemberSelectionGroupBox"
+                  x:Name="MemberSelectionGroupBox"
+                  Margin="0, 9, 0, 0"
+                  BorderThickness="0"
+                  Grid.Row="1"
+                  Header="{Binding ElementName=dialog, Path=SelectMembers}">
+            <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" Margin="9, 9, 9, 7" />
+        </GroupBox>
+
+        <StackPanel Grid.Row="2" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button x:Uid="OkButton" 
+                    Name="OKButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
+                    Content="{Binding ElementName=dialog, Path=Cancel}"
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

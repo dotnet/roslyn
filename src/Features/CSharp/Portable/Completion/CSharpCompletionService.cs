@@ -5,76 +5,84 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion
+namespace Microsoft.CodeAnalysis.CSharp.Completion;
+
+internal sealed class CSharpCompletionService : CommonCompletionService
 {
     [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
-    internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class Factory(IAsynchronousOperationListenerProvider listenerProvider) : ILanguageServiceFactory
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCompletionServiceFactory()
-        {
-        }
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
-        }
+            => new CSharpCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
     }
 
-    internal class CSharpCompletionService : CommonCompletionService
+    private CompletionRules _latestRules = CompletionRules.Default;
+
+    private CSharpCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
+        : base(services, listenerProvider)
     {
-        private readonly Workspace _workspace;
+    }
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public CSharpCompletionService(Workspace workspace)
-            : base(workspace)
+    public override string Language => LanguageNames.CSharp;
+
+    public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
+        => CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
+
+    internal override CompletionRules GetRules(CompletionOptions options)
+    {
+        var enterRule = options.EnterKeyBehavior;
+        var snippetRule = options.SnippetsBehavior;
+
+        // Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# and VB
+        // In C# the default means Never to maintain previous behavior
+        if (enterRule == EnterKeyRule.Default)
         {
-            _workspace = workspace;
+            enterRule = EnterKeyRule.Never;
         }
 
-        public override string Language => LanguageNames.CSharp;
-
-        public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
+        if (snippetRule == SnippetsRule.Default)
         {
-            return CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
+            snippetRule = SnippetsRule.AlwaysInclude;
         }
 
-        private CompletionRules _latestRules = CompletionRules.Default;
+        // use interlocked + stored rules to reduce # of times this gets created when option is different than default
+        var newRules = _latestRules.WithDefaultEnterKeyRule(enterRule)
+                                   .WithSnippetsRule(snippetRule);
 
-        public override CompletionRules GetRules()
-        {
-            var options = _workspace.Options;
+        Interlocked.Exchange(ref _latestRules, newRules);
 
-            var enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp);
-            var snippetRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.CSharp);
+        return newRules;
+    }
 
-            // Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# and VB
-            // In C# the default means Never to maintain previous behavior
-            if (enterRule == EnterKeyRule.Default)
-            {
-                enterRule = EnterKeyRule.Never;
-            }
+    internal override async Task<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            if (snippetRule == SnippetsRule.Default)
-            {
-                snippetRule = SnippetsRule.AlwaysInclude;
-            }
-
-            // use interlocked + stored rules to reduce # of times this gets created when option is different than default
-            var newRules = _latestRules.WithDefaultEnterKeyRule(enterRule)
-                                       .WithSnippetsRule(snippetRule);
-
-            Interlocked.Exchange(ref _latestRules, newRules);
-
-            return newRules;
-        }
+        // Because it's less likely the user wants to type a (undeclared) type parameter when they are inside a method body, treating them so
+        // might intefere with user intention. For example, while it's fine to provide a speculative `T` item in a statement context,
+        // since typing 2 characters would filter it out, but for selection, we don't want to soft-select item `TypeBuilder`after `TB`
+        // is typed in the example below (as if user want to add `TBuilder` to method declaration later):
+        //
+        // class C
+        // {
+        //     void M()
+        //     {
+        //         TB$$
+        //     }
+        return CompletionUtilities.IsSpeculativeTypeParameterContext(syntaxTree, position, semanticModel: null, includeStatementContexts: false, cancellationToken);
     }
 }

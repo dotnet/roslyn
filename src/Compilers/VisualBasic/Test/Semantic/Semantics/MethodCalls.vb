@@ -2,8 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -3001,9 +3002,7 @@ Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 True
 ]]>)
 
-
         End Sub
-
 
         <Fact>
         Public Sub ByRefParametersOnProperties1()
@@ -3125,7 +3124,6 @@ set_P1(129)
 129
 ]]>)
 
-
         End Sub
 
         <Fact>
@@ -3163,7 +3161,6 @@ PassByRef: 2, 1.
 set_P1(1)
 1
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
@@ -3235,7 +3232,6 @@ set_P1(1)
 1
 ]]>)
 
-
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
 {
@@ -3304,7 +3300,6 @@ PassByRef: 2, 1.
 set_P1(1)
 1
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
@@ -3379,7 +3374,6 @@ set_P1(1)
 1
 ]]>)
 
-
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
 {
@@ -3451,7 +3445,6 @@ PassByRef: 2, 1.
 set_P1(1)
 1
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
@@ -4084,7 +4077,6 @@ set_P1(123)
 123
 ]]>)
 
-
         End Sub
 
         <Fact>
@@ -4224,7 +4216,6 @@ End Module
 0
 ]]>)
 
-
         End Sub
 
         <Fact>
@@ -4303,7 +4294,6 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
 </expected>)
         End Sub
 
-
         <Fact>
         Public Sub NamedArgumentsAndOverriding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -4344,10 +4334,16 @@ Namespace GenMethod4140
             Overridable Function fun1(Of T)(ByRef t1 As T) As Object
                 Return Nothing
             End Function
+            Overridable Function fun2(ByRef t1 As UShort) As Object
+                Return Nothing
+            End Function
         End Class
         Class Derived
             Inherits Base
             Overrides Function fun1(Of T)(ByRef t2 As T) As Object
+                Return Nothing
+            End Function
+            Overrides Function fun2(ByRef t2 As UShort) As Object
                 Return Nothing
             End Function
         End Class
@@ -4356,6 +4352,7 @@ Namespace GenMethod4140
             Dim c3 As New Derived
 
             c3.fun1(t1:=3US)
+            c3.fun2(t1:=3US)
 
         End Sub
     End Module
@@ -4383,6 +4380,12 @@ BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function
                ~~~~
 BC30272: 't1' is not a parameter of 'Public Overrides Function fun1(Of T)(ByRef t2 As T) As Object'.
             c3.fun1(t1:=3US)
+                    ~~
+BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function fun2(ByRef t2 As UShort) As Object'.
+            c3.fun2(t1:=3US)
+               ~~~~
+BC30272: 't1' is not a parameter of 'Public Overrides Function fun2(ByRef t2 As UShort) As Object'.
+            c3.fun2(t1:=3US)
                     ~~
 </expected>)
         End Sub
@@ -4765,7 +4768,6 @@ End Module
 98
 ]]>)
 
-
             compilationVerifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
@@ -4795,7 +4797,6 @@ End Module
 97
 98
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.Test1",
             <![CDATA[
@@ -4882,7 +4883,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4922,7 +4923,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5251,7 +5252,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5454,8 +5455,6 @@ Class Module1
 End Class
     ]]></file>
 </compilation>, {library.EmitToImageReference()}, TestOptions.ReleaseDll)
-
-
 
             Dim verifier = CompileAndVerify(compilation)
 

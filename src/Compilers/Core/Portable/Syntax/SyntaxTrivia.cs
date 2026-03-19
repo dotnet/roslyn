@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis
 {
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Represents a trivia in the syntax tree. This is the language agnostic equivalent of <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxTrivia"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxTrivia"/>.
+    /// Represents a trivia in the syntax tree.
     /// </summary>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines whether this trivia has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return UnderlyingNode?.HasAnnotation(annotation) ?? false;
         }
@@ -411,8 +410,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            // https://github.com/dotnet/roslyn/issues/40773
-            return this.SyntaxTree!.GetLocation(this.Span);
+            return this.SyntaxTree?.GetLocation(this.Span) ?? Location.None;
         }
 
         /// <summary>
@@ -422,8 +420,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            // https://github.com/dotnet/roslyn/issues/40773
-            return this.SyntaxTree!.GetDiagnostics(this);
+            if (UnderlyingNode is null)
+            {
+                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            }
+
+            if (this.SyntaxTree is { } syntaxTree)
+            {
+                return syntaxTree.GetDiagnostics(this);
+            }
+            else
+            {
+                var diagnostics = UnderlyingNode.GetDiagnostics();
+
+                return diagnostics.Length == 0
+                    ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
+                    : diagnostics.Select(Diagnostic.Create);
+            }
         }
 
         /// <summary>

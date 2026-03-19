@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -54,10 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Throws<NotSupportedException>(() => default(SyntaxTokenList.Reversed.Enumerator).Equals(default(SyntaxTokenList.Reversed.Enumerator)));
         }
 
-        [Fact]
-        public void TestAddInsertRemoveReplace()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemoveReplace(bool collectionExpression)
         {
-            var list = SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
+            var list = collectionExpression
+                ? [SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C ")]
+                : SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
 
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
@@ -190,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void TestAddInsertRemoveReplaceOnEmptyList()
         {
             DoTestAddInsertRemoveReplaceOnEmptyList(SyntaxFactory.TokenList());
+            DoTestAddInsertRemoveReplaceOnEmptyList([]);
             DoTestAddInsertRemoveReplaceOnEmptyList(default(SyntaxTokenList));
         }
 

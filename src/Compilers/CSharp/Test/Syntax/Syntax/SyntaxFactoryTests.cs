@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -23,6 +25,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken);
             Assert.Equal("$@\"", token.Text);
             Assert.Equal("$@\"", token.ValueText);
+        }
+
+        [Fact]
+        public void UsingDirective()
+        {
+            var someValidName = SyntaxFactory.ParseName("System.String");
+            var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.StaticKeyword), null, someValidName);
+            Assert.NotNull(usingDirective);
+            Assert.Equal(SyntaxKind.StaticKeyword, usingDirective.StaticKeyword.Kind());
+            Assert.Null(usingDirective.Alias);
+            Assert.Equal("System.String", usingDirective.Name.ToFullString());
+            Assert.Equal(SyntaxKind.SemicolonToken, usingDirective.SemicolonToken.Kind());
         }
 
         [Fact]
@@ -328,7 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(long.MinValue, @"-9223372036854775808L");
             CheckLiteralToString(long.MaxValue, @"9223372036854775807L");
 
-
             // float
             CheckLiteralToString(0F, @"0F");
             CheckLiteralToString(0.012345F, @"0.012345F");
@@ -411,9 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("1l", literal.Text);
             Assert.Equal(Location.None, literal.GetLocation());
 
-            literal.GetDiagnostics().Verify(
-                // warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix));
+            literal.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -441,10 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
             Assert.Equal(expectedLocation, expression.Token.GetLocation());
 
-            expression.Token.GetDiagnostics().Verify(
-                // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // 1l
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 2));
+            expression.Token.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -470,6 +478,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token.GetDiagnostics().Verify();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ConstructedSyntaxTrivia_NoLocationAndDiagnostics()
+        {
+            var trivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithoutDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("// Comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("/* Unclosed multiline comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify(
+                Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+        }
+
         [Fact]
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnNullableIntType()
@@ -491,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .NormalizeWhitespace();
 
             // no space between int and ?
-            Assert.Equal("class C\r\n{\r\n    int? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+            Assert.Equal("class C\r\n{\r\n    int? P { }\r\n}", syntaxNode.ToFullString());
         }
 
         [Fact]
@@ -514,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .NormalizeWhitespace();
 
             // no space between DateTime and ?
-            Assert.Equal("class C\r\n{\r\n    DateTime? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+            Assert.Equal("class C\r\n{\r\n    DateTime? P { }\r\n}", syntaxNode.ToFullString());
         }
 
         [Fact]
@@ -587,6 +620,140 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parameterList: SyntaxFactory.ParameterList(),
                 body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithoutMembers()
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default, default);
+            Assert.NotNull(record);
+            Assert.Equal("record R;", record.NormalizeWhitespace().ToFullString());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithMembers(bool collectionExpression)
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default,
+                collectionExpression
+                    ? [SyntaxFactory.ParseMemberDeclaration("private int i;")]
+                    : SyntaxFactory.SingletonList(SyntaxFactory.ParseMemberDeclaration("private int i;")));
+            Assert.NotNull(record);
+            Assert.Equal("record R\r\n{\r\n    private int i;\r\n}", record.NormalizeWhitespace().ToFullString());
+        }
+
+        [Fact]
+        public void TestParseNameWithOptions()
+        {
+            var type = "delegate*<void>";
+
+            var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
+            parsedWith8.GetDiagnostics().Verify();
+
+            var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular9);
+            parsedWithPreview.GetDiagnostics().Verify();
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,16): error CS1001: Identifier expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,16): error CS1001: Identifier expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
+
+            type = "unsafe class C { delegate*<void> x; }";
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                // (1,18): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 18),
+                // (1,34): warning CS0169: The field 'C.x' is never used
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                // (1,34): warning CS0169: The field 'C.x' is never used
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78510")]
+        public void TestParseMethodsKeepParseOptionsInTheTree()
+        {
+            var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+
+            var argList = SyntaxFactory.ParseArgumentList("", options: parseOptions);
+            Assert.Same(parseOptions, argList.SyntaxTree.Options);
+
+            var attrArgList = SyntaxFactory.ParseAttributeArgumentList("", options: parseOptions);
+            Assert.Same(parseOptions, attrArgList.SyntaxTree.Options);
+
+            var bracketedArgList = SyntaxFactory.ParseBracketedArgumentList("", options: parseOptions);
+            Assert.Same(parseOptions, bracketedArgList.SyntaxTree.Options);
+
+            var bracketedParamList = SyntaxFactory.ParseBracketedParameterList("", options: parseOptions);
+            Assert.Same(parseOptions, bracketedParamList.SyntaxTree.Options);
+
+            var compUnit = SyntaxFactory.ParseCompilationUnit("", options: parseOptions);
+            Assert.Same(parseOptions, compUnit.SyntaxTree.Options);
+
+            var expr = SyntaxFactory.ParseExpression("", options: parseOptions);
+            Assert.Same(parseOptions, expr.SyntaxTree.Options);
+
+            var memberDecl = SyntaxFactory.ParseMemberDeclaration("public", options: parseOptions);
+            Assert.Same(parseOptions, memberDecl.SyntaxTree.Options);
+
+            var paramList = SyntaxFactory.ParseParameterList("", options: parseOptions);
+            Assert.Same(parseOptions, paramList.SyntaxTree.Options);
+
+            var statement = SyntaxFactory.ParseStatement("", options: parseOptions);
+            Assert.Same(parseOptions, statement.SyntaxTree.Options);
+
+            var typeName = SyntaxFactory.ParseTypeName("", options: parseOptions);
+            Assert.Same(parseOptions, typeName.SyntaxTree.Options);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17637")]
+        public void Identifier_Null_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(text: null));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), text: null, SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: null, valueText: "value", SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: "text", valueText: null, SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: null, valueText: "value", SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: "text", valueText: null, SyntaxFactory.TriviaList()));
         }
     }
 }

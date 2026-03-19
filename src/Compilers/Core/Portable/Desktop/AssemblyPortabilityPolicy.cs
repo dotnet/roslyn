@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Xml;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Policy to be used when matching assembly reference to an assembly definition across platforms.
     /// </summary>
-    internal struct AssemblyPortabilityPolicy : IEquatable<AssemblyPortabilityPolicy>
+    internal readonly struct AssemblyPortabilityPolicy : IEquatable<AssemblyPortabilityPolicy>
     {
         // 7cec85d7bea7798e (System, System.Core)
         public readonly bool SuppressSilverlightPlatformAssembliesPortability;

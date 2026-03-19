@@ -4,11 +4,14 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
-Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.CompilerServices
+Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -31,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
         Private _lazyDocComment As Tuple(Of CultureInfo, String)
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         ' mutable because we only know this part after the property is constructed.
         ' Integer because we want to use CMPXCHG on it
@@ -41,6 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Const s_unsetAccessibility As Integer = -1
         Private _lazyDeclaredAccessibility As Integer = s_unsetAccessibility
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
+        Private _lazyIsRequired As ThreeState = ThreeState.Unknown
+        Private _lazyOverloadResolutionPriority As StrongBox(Of Integer)
 
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
@@ -70,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If propEx IsNot Nothing Then
-                result._lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(result))
+                result._lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(result)))
             End If
 
             Return result
@@ -114,8 +120,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _parameters = GetParameters(Me, _getMethod, _setMethod, propertyParams, parametersMatch)
 
             If Not signaturesMatch OrElse Not parametersMatch OrElse
-               getEx IsNot Nothing OrElse setEx IsNot Nothing OrElse mrEx IsNot Nothing Then
-                _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(Me))
+               getEx IsNot Nothing OrElse setEx IsNot Nothing OrElse mrEx IsNot Nothing OrElse
+               propertyParams.Any(Function(p) p.RefCustomModifiers.AnyRequired() OrElse p.CustomModifiers.AnyRequired()) Then
+                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(Me)))
             End If
 
             If _getMethod IsNot Nothing Then
@@ -148,6 +155,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -209,6 +222,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            If _lazyOverloadResolutionPriority Is Nothing Then
+
+                Dim priority As Integer
+                If Not _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) Then
+                    priority = 0
+                End If
+
+                Interlocked.CompareExchange(_lazyOverloadResolutionPriority, New StrongBox(Of Integer)(priority), Nothing)
+            End If
+
+            Return _lazyOverloadResolutionPriority.Value
+        End Function
+
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return (Me._getMethod Is Nothing OrElse Me._getMethod.IsShared) AndAlso
@@ -243,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Friend Sub SetIsWithEvents(value As Boolean)
             Dim newValue = If(value, ThreeState.True, ThreeState.False)
-            Dim origValue = Threading.Interlocked.CompareExchange(Me._isWithEvents, newValue, ThreeState.Unknown)
+            Dim origValue = Interlocked.CompareExchange(Me._isWithEvents, newValue, ThreeState.Unknown)
             Debug.Assert(origValue = ThreeState.Unknown OrElse origValue = newValue, "Tried changing already known IsWithEvent value.")
         End Sub
 
@@ -328,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCustomAttributes
         End Function
 
-        Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
             Return GetAttributes()
         End Function
 
@@ -533,13 +560,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return PEDocumentationCommentUtils.GetDocumentationComment(Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, _lazyDocComment)
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                Dim errorInfo = useSiteInfo.DiagnosticInfo
+                DeriveCompilerFeatureRequiredDiagnostic(errorInfo)
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
+
+        Private Sub DeriveCompilerFeatureRequiredDiagnostic(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
+            Dim containingModule = _containingType.ContainingPEModule
+            Dim decoder = New MetadataDecoder(containingModule, _containingType)
+            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(
+                Me,
+                containingModule,
+                Handle,
+                CompilerFeatureRequiredFeatures.None,
+                decoder)
+
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
+            For Each param In Parameters
+                errorInfo = DirectCast(param, PEParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
+                If errorInfo IsNot Nothing Then
+                    Return
+                End If
+            Next
+
+            errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
+        End Sub
 
         Friend ReadOnly Property Handle As PropertyDefinitionHandle
             Get
@@ -565,6 +625,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                If Not _lazyIsRequired.HasValue() Then
+                    _lazyIsRequired = _containingType.ContainingPEModule.Module.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute).ToThreeState()
+                End If
+
+                Return _lazyIsRequired.Value()
             End Get
         End Property
 

@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using Roslyn.Utilities;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
-    internal sealed class VtblGap : Cci.IMethodDefinition
+    internal sealed class VtblGap : Cci.IEmbeddedDefinition, Cci.IMethodDefinition
     {
         public readonly Cci.ITypeDefinition ContainingType;
         private readonly string _name;
@@ -19,7 +20,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             _name = name;
         }
 
-        Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
+        bool Cci.IMethodDefinition.HasBody
+            => false;
+
+        Cci.IMethodBody? Cci.IMethodDefinition.GetBody(EmitContext context)
         {
             return null;
         }
@@ -27,11 +34,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters
         {
             get { return SpecializedCollections.EmptyEnumerable<Cci.IGenericMethodParameter>(); }
-        }
-
-        bool Cci.IMethodDefinition.IsImplicitlyDeclared
-        {
-            get { return true; }
         }
 
         bool Cci.IMethodDefinition.HasDeclarativeSecurity
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         {
             get { return ImmutableArray<Cci.IParameterDefinition>.Empty; }
         }
-
+#nullable disable
         Cci.IPlatformInvokeInformation Cci.IMethodDefinition.PlatformInvokeData
         {
             get { return null; }
@@ -178,6 +180,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             visitor.Visit((Cci.IMethodDefinition)this);
         }
 
+        Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
         Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return this;
@@ -196,11 +200,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         ushort Cci.IMethodReference.GenericParameterCount
         {
             get { return 0; }
-        }
-
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get { return false; }
         }
 
         Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
@@ -256,6 +255,18 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             return context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

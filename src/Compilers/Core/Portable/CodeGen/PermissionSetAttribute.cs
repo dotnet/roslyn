@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'
-            ISymbol iSymbol = ((ISymbolInternal)_sourceAttribute.GetType(context)).GetISymbol();
+            ISymbol iSymbol = _sourceAttribute.GetType(context).GetInternalSymbol()!.GetISymbol();
             Debug.Assert(((INamedTypeSymbol)iSymbol).GetMembers(HexPropertyName).Any(
                 member => member.Kind == SymbolKind.Property && ((IPropertySymbol)member).Type.SpecialType == SpecialType.System_String));
 #endif
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool AllowMultiple => _sourceAttribute.AllowMultiple;
 
-        private struct HexPropertyMetadataNamedArgument : Cci.IMetadataNamedArgument
+        private readonly struct HexPropertyMetadataNamedArgument : Cci.IMetadataNamedArgument
         {
             private readonly Cci.ITypeReference _type;
             private readonly Cci.IMetadataExpression _value;

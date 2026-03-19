@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,54 +11,46 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
     internal abstract partial class MethodExtractor
     {
-        protected abstract class TriviaResult
+        protected abstract class TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
         {
-            private readonly int _endOfLineKind;
-            private readonly int _whitespaceKind;
+            private readonly int _endOfLineKind = endOfLineKind;
+            private readonly int _whitespaceKind = whitespaceKind;
 
-            private readonly ITriviaSavedResult _result;
-
-            public TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
-            {
-                SemanticDocument = document;
-
-                _result = result;
-                _endOfLineKind = endOfLineKind;
-                _whitespaceKind = whitespaceKind;
-            }
+            private readonly ITriviaSavedResult _result = result;
 
             protected abstract AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode methodDefinition);
             protected abstract TriviaResolver GetTriviaResolver(SyntaxNode methodDefinition);
 
-            public SemanticDocument SemanticDocument { get; }
+            public SemanticDocument SemanticDocument { get; } = document;
 
-            public async Task<OperationStatus<SemanticDocument>> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
+            public async Task<SemanticDocument> ApplyAsync(SemanticDocument document, CancellationToken cancellationToken)
             {
-                var document = generatedCode.SemanticDocument;
                 var root = document.Root;
 
-                var callsiteAnnotation = generatedCode.CallSiteAnnotation;
-                var methodDefinitionAnnotation = generatedCode.MethodDefinitionAnnotation;
+                var callsiteAnnotation = CallSiteAnnotation;
+                var methodDefinitionAnnotation = MethodDefinitionAnnotation;
 
                 var callsite = root.GetAnnotatedNodesAndTokens(callsiteAnnotation).SingleOrDefault().AsNode();
                 var method = root.GetAnnotatedNodesAndTokens(methodDefinitionAnnotation).SingleOrDefault().AsNode();
 
                 var annotationResolver = GetAnnotationResolver(callsite, method);
                 var triviaResolver = GetTriviaResolver(method);
-                if (annotationResolver == null || triviaResolver == null)
-                {
-                    // bug # 6644
-                    // this could happen in malformed code. return as it was.
-                    var status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.can_t_not_construct_final_tree);
-                    return status.With(document);
-                }
 
-                return OperationStatus.Succeeded.With(
-                    await document.WithSyntaxRootAsync(_result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
+                // Failed to restore the trivia.  Just return whatever best effort result is that we have so far.
+                if (annotationResolver == null || triviaResolver == null)
+                    return document;
+
+                return await document.WithSyntaxRootAsync(
+                    _result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false);
             }
 
             protected IEnumerable<SyntaxTrivia> FilterTriviaList(IEnumerable<SyntaxTrivia> list)

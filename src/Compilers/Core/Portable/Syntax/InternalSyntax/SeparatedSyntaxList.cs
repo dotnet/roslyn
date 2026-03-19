@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>> where TNode : GreenNode
+    internal readonly struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>> where TNode : GreenNode
     {
         private readonly SyntaxList<GreenNode> _list;
 
@@ -109,7 +107,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 #if DEBUG
         [Obsolete("For debugging only", true)]
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get
             {

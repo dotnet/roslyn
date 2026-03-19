@@ -2,21 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Debugging;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptDebugLocationInfoWrapper(string name, int lineOffset)
 {
-    internal readonly struct VSTypeScriptDebugLocationInfoWrapper
-    {
-        internal readonly DebugLocationInfo UnderlyingObject;
+    internal readonly DebugLocationInfo UnderlyingObject = new(name, lineOffset);
 
-        public VSTypeScriptDebugLocationInfoWrapper(string name, int lineOffset)
-            => UnderlyingObject = new DebugLocationInfo(name, lineOffset);
-
-        public readonly string Name => UnderlyingObject.Name;
-        public readonly int LineOffset => UnderlyingObject.LineOffset;
-        internal bool IsDefault => UnderlyingObject.IsDefault;
-    }
+    public readonly string Name => UnderlyingObject.Name;
+    public readonly int LineOffset => UnderlyingObject.LineOffset;
+    internal bool IsDefault => UnderlyingObject.IsDefault;
 }

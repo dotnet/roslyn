@@ -217,7 +217,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     If stmtError <> ERRID.ERR_None Then
                         statement = SyntaxFactory.ReturnStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.ReturnKeyword), Nothing)
-                        statement = statement.AddLeadingSyntax(SyntaxList.List(exitKeyword, CurrentToken), stmtError)
+                        statement = statement.AddLeadingSyntax(
+                            CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(exitKeyword, CurrentToken), stmtError)
                         GetNextToken()
                         Return statement
                     End If
@@ -1814,7 +1815,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return statement
         End Function
-
 
         Private Function ParseAwaitStatement() As ExpressionStatementSyntax
 

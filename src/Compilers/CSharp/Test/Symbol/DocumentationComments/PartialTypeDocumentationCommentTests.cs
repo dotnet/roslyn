@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -64,7 +66,11 @@ partial class Goo
         public void TestSummaryOfMethodWithNoImplementation()
         {
             var method = _gooClass.GetMembers("MethodWithNoImplementation").Single();
-            Assert.Equal(string.Empty, method.GetDocumentationCommentXml()); //Matches what would be written to an XML file.
+            Assert.Equal(
+@"<member name=""M:Goo.MethodWithNoImplementation"">
+    <summary>Summary on MethodWithNoImplementation.</summary>
+</member>
+", method.GetDocumentationCommentXml());
         }
 
         [Fact]

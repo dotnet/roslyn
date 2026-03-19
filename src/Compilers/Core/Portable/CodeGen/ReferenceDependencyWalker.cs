@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -72,10 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.IModifiedTypeReference? modifiedType = typeReference as Cci.IModifiedTypeReference;
             if (modifiedType != null)
             {
-                foreach (var custModifier in modifiedType.CustomModifiers)
-                {
-                    VisitTypeReference(custModifier.GetModifier(context), context);
-                }
+                VisitCustomModifiers(modifiedType.CustomModifiers, context);
                 VisitTypeReference(modifiedType.UnmodifiedType, context);
                 return;
             }
@@ -95,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     VisitTypeReference(arg, context);
                 }
+            }
+
+            if (typeReference is Cci.IFunctionPointerTypeReference functionPointer)
+            {
+                VisitSignature(functionPointer.Signature, context);
             }
         }
 
@@ -123,23 +123,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 methodReference = specializedMethod.UnspecializedVersion;
             }
 
-            // Visit parameter types
-            VisitParameters(methodReference.GetParameters(context), context);
+            VisitSignature(methodReference, context);
 
             if (methodReference.AcceptsExtraArguments)
             {
                 VisitParameters(methodReference.ExtraParameters, context);
             }
+        }
+
+        internal static void VisitSignature(Cci.ISignature signature, EmitContext context)
+        {
+            // Visit parameter types
+            VisitParameters(signature.GetParameters(context), context);
 
             // Visit return value type
-            VisitTypeReference(methodReference.GetType(context), context);
+            VisitTypeReference(signature.GetType(context), context);
 
-            foreach (var typeModifier in methodReference.RefCustomModifiers)
-            {
-                VisitTypeReference(typeModifier.GetModifier(context), context);
-            }
+            VisitCustomModifiers(signature.RefCustomModifiers, context);
 
-            foreach (var typeModifier in methodReference.ReturnValueCustomModifiers)
+            foreach (var typeModifier in signature.ReturnValueCustomModifiers)
             {
                 VisitTypeReference(typeModifier.GetModifier(context), context);
             }
@@ -151,15 +153,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 VisitTypeReference(param.GetType(context), context);
 
-                foreach (var typeModifier in param.RefCustomModifiers)
-                {
-                    VisitTypeReference(typeModifier.GetModifier(context), context);
-                }
+                VisitCustomModifiers(param.RefCustomModifiers, context);
 
-                foreach (var typeModifier in param.CustomModifiers)
-                {
-                    VisitTypeReference(typeModifier.GetModifier(context), context);
-                }
+                VisitCustomModifiers(param.CustomModifiers, context);
             }
         }
 
@@ -179,6 +175,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Visit field type
             VisitTypeReference(fieldReference.GetType(context), context);
+
+            VisitCustomModifiers(fieldReference.RefCustomModifiers, context);
+        }
+
+        private static void VisitCustomModifiers(ImmutableArray<Cci.ICustomModifier> customModifiers, in EmitContext context)
+        {
+            foreach (var typeModifier in customModifiers)
+            {
+                VisitTypeReference(typeModifier.GetModifier(context), context);
+            }
         }
     }
 }

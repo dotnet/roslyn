@@ -2,108 +2,111 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
+using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
-{
-    public class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTests
-    {
-        internal override IHighlighter CreateHighlighter()
-            => new RegionHighlighter();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-@"class C
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    {|Cursor:[|#region|]|} Main
-    static void Main()
-    {
-    }
-    [|#endregion|]
-}");
-        }
+    internal override Type GetHighlighterType()
+        => typeof(RegionHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_2()
-        {
-            await TestAsync(
-@"class C
-{
-    [|#region|] Main
-    static void Main()
-    {
-    }
-    {|Cursor:[|#endregion|]|}
-}");
-        }
+    [Fact]
+    public Task TestExample1_1()
+        => TestAsync(
+            """
+            class C
+            {
+                {|Cursor:[|#region|]|} Main
+                static void Main()
+                {
+                }
+                [|#endregion|]
+            }
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_1()
-        {
-            await TestAsync(
-@"class C
-{
-    {|Cursor:[|#region|]|} Main
-    static void Main()
-    {
-        #region body
-        #endregion
-    }
-    [|#endregion|]
-}");
-        }
+    [Fact]
+    public Task TestExample1_2()
+        => TestAsync(
+            """
+            class C
+            {
+                [|#region|] Main
+                static void Main()
+                {
+                }
+                {|Cursor:[|#endregion|]|}
+            }
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_2()
-        {
-            await TestAsync(
-@"class C
-{
-    #region Main
-    static void Main()
-    {
-        {|Cursor:[|#region|]|} body
-        [|#endregion|]
-    }
-    #endregion
-}");
-        }
+    [Fact]
+    public Task TestNestedExample1_1()
+        => TestAsync(
+            """
+            class C
+            {
+                {|Cursor:[|#region|]|} Main
+                static void Main()
+                {
+                    #region body
+                    #endregion
+                }
+                [|#endregion|]
+            }
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_3()
-        {
-            await TestAsync(
-@"class C
-{
-    #region Main
-    static void Main()
-    {
-        [|#region|] body
-        {|Cursor:[|#endregion|]|}
-    }
-    #endregion
-}");
-        }
+    [Fact]
+    public Task TestNestedExample1_2()
+        => TestAsync(
+            """
+            class C
+            {
+                #region Main
+                static void Main()
+                {
+                    {|Cursor:[|#region|]|} body
+                    [|#endregion|]
+                }
+                #endregion
+            }
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedExample1_4()
-        {
-            await TestAsync(
-@"class C
-{
-    [|#region|] Main
-    static void Main()
-    {
-        #region body
-        #endregion
-    }
-    {|Cursor:[|#endregion|]|}
-}");
-        }
-    }
+    [Fact]
+    public Task TestNestedExample1_3()
+        => TestAsync(
+            """
+            class C
+            {
+                #region Main
+                static void Main()
+                {
+                    [|#region|] body
+                    {|Cursor:[|#endregion|]|}
+                }
+                #endregion
+            }
+            """);
+
+    [Fact]
+    public Task TestNestedExample1_4()
+        => TestAsync(
+            """
+            class C
+            {
+                [|#region|] Main
+                static void Main()
+                {
+                    #region body
+                    #endregion
+                }
+                {|Cursor:[|#endregion|]|}
+            }
+            """);
 }

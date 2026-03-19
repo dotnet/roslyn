@@ -6,22 +6,10 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal sealed class ContentTypeLanguageMetadata(IDictionary<string, object> data) : ILanguageMetadata
 {
-    internal class ContentTypeLanguageMetadata : LanguageMetadata
-    {
-        public string DefaultContentType { get; }
-
-        public ContentTypeLanguageMetadata(IDictionary<string, object> data)
-            : base(data)
-        {
-            this.DefaultContentType = (string)data.GetValueOrDefault("DefaultContentType");
-        }
-
-        public ContentTypeLanguageMetadata(string defaultContentType, string language)
-            : base(language)
-        {
-            this.DefaultContentType = defaultContentType;
-        }
-    }
+    public string Language { get; } = (string)data[nameof(ExportLanguageServiceAttribute.Language)];
+    public string? DefaultContentType { get; } = (string?)data.GetValueOrDefault(nameof(ExportContentTypeLanguageServiceAttribute.DefaultContentType));
 }

@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -12,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct Directive
+    internal readonly struct Directive
     {
         private readonly DirectiveTriviaSyntax _node;
 
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return writer.ToString();
         }
 
-        internal string GetIdentifier()
+        internal string? GetIdentifier()
         {
             switch (_node.Kind)
             {
@@ -113,17 +115,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct DirectiveStack
+    internal readonly struct DirectiveStack
     {
-        public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty);
-        public static readonly DirectiveStack Null = new DirectiveStack(null);
+        public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty, seenAnyIfDirectives: false);
 
-        private readonly ConsList<Directive> _directives;
+        private readonly ConsList<Directive>? _directives;
+        private readonly bool _seenAnyIfDirectives;
 
-        private DirectiveStack(ConsList<Directive> directives)
+        private DirectiveStack(ConsList<Directive>? directives, bool seenAnyIfDirectives)
         {
             _directives = directives;
+            _seenAnyIfDirectives = seenAnyIfDirectives;
         }
+
+        public static void InterlockedInitialize(ref DirectiveStack location, DirectiveStack value)
+            => Interlocked.CompareExchange(ref Unsafe.AsRef(in location._directives), value._directives, null);
 
         public bool IsNull
         {
@@ -140,6 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return _directives == ConsList<Directive>.Empty;
             }
         }
+
+        public bool SeenAnyIfDirectives => _seenAnyIfDirectives;
 
         public DefineState IsDefined(string id)
         {
@@ -230,8 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         goto default; // no matching if directive !! leave directive alone
                     }
 
-                    bool tmp;
-                    return new DirectiveStack(CompleteIf(_directives, out tmp));
+                    RoslynDebug.AssertNotNull(_directives); // If 'prevIf' isn't null, then '_directives' wasn't null.
+                    return new DirectiveStack(CompleteIf(_directives, out _), seenAnyIfDirectives: _seenAnyIfDirectives);
                 case SyntaxKind.EndRegionDirectiveTrivia:
                     var prevRegion = GetPreviousRegion(_directives);
                     if (prevRegion == null || !prevRegion.Any())
@@ -239,9 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         goto default; // no matching region directive !! leave directive alone
                     }
 
-                    return new DirectiveStack(CompleteRegion(_directives)); // remove region directives from stack but leave everything else
+                    RoslynDebug.AssertNotNull(_directives); // If 'prevRegion' isn't null, then '_directives' wasn't null.
+                    return new DirectiveStack(CompleteRegion(_directives), seenAnyIfDirectives: _seenAnyIfDirectives); // remove region directives from stack but leave everything else
                 default:
-                    return new DirectiveStack(new ConsList<Directive>(directive, _directives != null ? _directives : ConsList<Directive>.Empty));
+                    return new DirectiveStack(new ConsList<Directive>(directive, _directives ?? ConsList<Directive>.Empty),
+                        seenAnyIfDirectives: _seenAnyIfDirectives || directive.Kind is SyntaxKind.IfDirectiveTrivia);
             }
         }
 
@@ -302,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return newStack;
         }
 
-        private static ConsList<Directive> GetPreviousIf(ConsList<Directive> directives)
+        private static ConsList<Directive>? GetPreviousIf(ConsList<Directive>? directives)
         {
             var current = directives;
             while (current != null && current.Any())
@@ -319,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return current;
         }
 
-        private static ConsList<Directive> GetPreviousIfElifElseOrRegion(ConsList<Directive> directives)
+        private static ConsList<Directive>? GetPreviousIfElifElseOrRegion(ConsList<Directive>? directives)
         {
             var current = directives;
             while (current != null && current.Any())
@@ -339,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return current;
         }
 
-        private static ConsList<Directive> GetPreviousRegion(ConsList<Directive> directives)
+        private static ConsList<Directive>? GetPreviousRegion(ConsList<Directive>? directives)
         {
             var current = directives;
             while (current != null && current.Any() && current.Head.Kind != SyntaxKind.RegionDirectiveTrivia)
@@ -350,8 +360,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return current;
         }
 
-        private string GetDebuggerDisplay()
+        internal string GetDebuggerDisplay()
         {
+            if (IsNull)
+            {
+                return "<null>";
+            }
+
+            if (IsEmpty)
+            {
+                return "[]";
+            }
+
             var sb = new StringBuilder();
             for (var current = _directives; current != null && current.Any(); current = current.Tail)
             {
@@ -374,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool theirsHasAny = theirs != null && theirs.Any();
             while (mineHasAny && theirsHasAny)
             {
-                if (!mine.Head.IncrementallyEquivalent(theirs.Head))
+                if (!mine!.Head.IncrementallyEquivalent(theirs!.Head))
                 {
                     return false;
                 }
@@ -388,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return mineHasAny == theirsHasAny;
         }
 
-        private static ConsList<Directive> SkipInsignificantDirectives(ConsList<Directive> directives)
+        private static ConsList<Directive>? SkipInsignificantDirectives(ConsList<Directive>? directives)
         {
             for (; directives != null && directives.Any(); directives = directives.Tail)
             {

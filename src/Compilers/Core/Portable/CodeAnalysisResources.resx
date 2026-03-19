@@ -120,9 +120,6 @@
   <data name="OutputKindNotSupported" xml:space="preserve">
     <value>Output kind not supported.</value>
   </data>
-  <data name="PathReturnedByResolveMetadataFileMustBeAbsolute" xml:space="preserve">
-    <value>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</value>
-  </data>
   <data name="AssemblyMustHaveAtLeastOneModule" xml:space="preserve">
     <value>Assembly must have at least one module.</value>
   </data>
@@ -137,18 +134,25 @@
   </data>
   <data name="Class1" xml:space="preserve">
     <value>class</value>
+    <comment>Refers to a class type in programming (noun), not the verb "to classify"</comment>
+  </data>
+  <data name="Attribute" xml:space="preserve">
+    <value>attribute</value>
+    <comment>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</comment>
   </data>
   <data name="Constructor" xml:space="preserve">
     <value>constructor</value>
   </data>
   <data name="Delegate1" xml:space="preserve">
     <value>delegate</value>
+    <comment>Refers to a delegate type in programming (noun), not the verb "to delegate"</comment>
   </data>
   <data name="Enum1" xml:space="preserve">
     <value>enum</value>
   </data>
   <data name="Event1" xml:space="preserve">
     <value>event</value>
+    <comment>Refers to a programming event member (noun), not "to occur" or other verb meanings</comment>
   </data>
   <data name="Field" xml:space="preserve">
     <value>field</value>
@@ -158,6 +162,7 @@
   </data>
   <data name="Interface1" xml:space="preserve">
     <value>interface</value>
+    <comment>Refers to an interface type in programming (noun), not the verb "to interface"</comment>
   </data>
   <data name="Method" xml:space="preserve">
     <value>method</value>
@@ -173,6 +178,7 @@
   </data>
   <data name="Return1" xml:space="preserve">
     <value>return</value>
+    <comment>Refers to a method return value/type (noun), not the verb "to return"</comment>
   </data>
   <data name="Struct1" xml:space="preserve">
     <value>struct</value>
@@ -192,9 +198,6 @@
   <data name="SizeHasToBePositive" xml:space="preserve">
     <value>Size has to be positive.</value>
   </data>
-  <data name="AssemblyFileNotFound" xml:space="preserve">
-    <value>Assembly file not found</value>
-  </data>
   <data name="CannotEmbedInteropTypesFromModule" xml:space="preserve">
     <value>Can't embed interop types from module.</value>
   </data>
@@ -203,15 +206,6 @@
   </data>
   <data name="InvalidAlias" xml:space="preserve">
     <value>Invalid alias.</value>
-  </data>
-  <data name="GetMetadataMustReturnInstance" xml:space="preserve">
-    <value>{0}.GetMetadata() must return an instance of {1}.</value>
-  </data>
-  <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
-    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
-  </data>
-  <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
-    <value>Arrays with more than one dimension cannot be serialized.</value>
   </data>
   <data name="InvalidAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: '{0}'</value>
@@ -224,9 +218,6 @@
   </data>
   <data name="NullValueInPathMap" xml:space="preserve">
     <value>A value in the pathMap is null.</value>
-  </data>
-  <data name="CompilationOptionsMustNotHaveErrors" xml:space="preserve">
-    <value>Compilation options must not have errors.</value>
   </data>
   <data name="ReturnTypeCannotBeValuePointerbyRefOrOpen" xml:space="preserve">
     <value>Return type can't be a value type, pointer, by-ref or open generic type</value>
@@ -264,17 +255,8 @@
   <data name="FileNotFound" xml:space="preserve">
     <value>File not found.</value>
   </data>
-  <data name="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute" xml:space="preserve">
-    <value>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</value>
-  </data>
-  <data name="TypeMustBeASubclassOfSyntaxAnnotation" xml:space="preserve">
-    <value>type must be a subclass of SyntaxAnnotation.</value>
-  </data>
   <data name="InvalidModuleName" xml:space="preserve">
     <value>Invalid module name specified in metadata module '{0}': '{1}'</value>
-  </data>
-  <data name="FileSizeExceedsMaximumAllowed" xml:space="preserve">
-    <value>File size exceeds maximum allowed size of a valid metadata file.</value>
   </data>
   <data name="NameCannotBeNull" xml:space="preserve">
     <value>Name cannot be null.</value>
@@ -298,22 +280,16 @@
     <value>'start' must not be negative</value>
   </data>
   <data name="EndMustNotBeLessThanStart" xml:space="preserve">
-    <value>'end' must not be less than 'start'</value>
+    <value>'end' must not be less than 'start'. start='{0}' end='{1}'.</value>
   </data>
   <data name="InvalidContentType" xml:space="preserve">
     <value>Invalid content type</value>
-  </data>
-  <data name="ExpectedNonEmptyPublicKey" xml:space="preserve">
-    <value>Expected non-empty public key</value>
   </data>
   <data name="InvalidSizeOfPublicKeyToken" xml:space="preserve">
     <value>Invalid size of public key token.</value>
   </data>
   <data name="InvalidCharactersInAssemblyName" xml:space="preserve">
     <value>Invalid characters in assembly name</value>
-  </data>
-  <data name="InvalidCharactersInAssemblyCultureName" xml:space="preserve">
-    <value>Invalid characters in assembly culture name</value>
   </data>
   <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
     <value>Stream must support read and seek operations.</value>
@@ -335,9 +311,6 @@
   </data>
   <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
     <value>Including private members should not be used when emitting to the secondary assembly output.</value>
-  </data>
-  <data name="MustIncludePrivateMembersUnlessRefAssembly" xml:space="preserve">
-    <value>Must include private members unless emitting a ref assembly.</value>
   </data>
   <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
     <value>Embedding PDB is not allowed when emitting metadata.</value>
@@ -375,45 +348,35 @@
   <data name="WinRTIdentityCantBeRetargetable" xml:space="preserve">
     <value>WindowsRuntime identity can't be retargetable</value>
   </data>
-  <data name="PEImageNotAvailable" xml:space="preserve">
-    <value>PE image not available.</value>
-  </data>
   <data name="AssemblySigningNotSupported" xml:space="preserve">
     <value>Assembly signing not supported.</value>
   </data>
   <data name="XmlReferencesNotSupported" xml:space="preserve">
     <value>References to XML documents are not supported.</value>
   </data>
-  <data name="FailedToResolveRuleSetName" xml:space="preserve">
-    <value>Could not locate the rule set file '{0}'.</value>
-  </data>
   <data name="InvalidRuleSetInclude" xml:space="preserve">
     <value>An error occurred while loading the included rule set file {0} - {1}</value>
   </data>
   <data name="CompilerAnalyzerFailure" xml:space="preserve">
     <value>Analyzer Failure</value>
+  </data>
+  <data name="CompilerAnalyzerThrows" xml:space="preserve">
+    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</value>
     <comment>{0}: Analyzer name
 {1}: Type name
 {2}: Localized exception message
 {3}: Localized detail message</comment>
   </data>
-  <data name="CompilerAnalyzerThrows" xml:space="preserve">
-    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
-{3}</value>
-  </data>
-  <data name="CompilerAnalyzerThrowsDescription" xml:space="preserve">
-    <value>Analyzer '{0}' threw the following exception:
-'{1}'.</value>
-  </data>
   <data name="AnalyzerDriverFailure" xml:space="preserve">
     <value>Analyzer Driver Failure</value>
   </data>
   <data name="AnalyzerDriverThrows" xml:space="preserve">
-    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.</value>
-  </data>
-  <data name="AnalyzerDriverThrowsDescription" xml:space="preserve">
-    <value>Analyzer driver threw the following exception:
-'{0}'.</value>
+    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</value>
+    <comment>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</comment>
   </data>
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
@@ -445,9 +408,6 @@
   <data name="ArgumentElementCannotBeNull" xml:space="preserve">
     <value>Argument cannot have a null element.</value>
   </data>
-  <data name="AsyncAnalyzerActionCannotBeRegistered" xml:space="preserve">
-    <value>Analyzer attempted to register an 'async' action, which is not supported.</value>
-  </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
@@ -472,15 +432,6 @@
   <data name="SupportedSuppressionsHasNullDescriptor" xml:space="preserve">
     <value>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</value>
   </data>
-  <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
-    <value>The type '{0}' is not understood by the serialization binder.</value>
-  </data>
-  <data name="Cannot_deserialize_type_0" xml:space="preserve">
-    <value>Cannot deserialize type '{0}'.</value>
-  </data>
-  <data name="Cannot_serialize_type_0" xml:space="preserve">
-    <value>Cannot serialize type '{0}'.</value>
-  </data>
   <data name="InvalidNodeToTrack" xml:space="preserve">
     <value>Node to track is not a descendant of the root.</value>
   </data>
@@ -492,6 +443,15 @@
   </data>
   <data name="MissingListItem" xml:space="preserve">
     <value>The item specified is not the element of a list.</value>
+  </data>
+  <data name="MissingTokenListItem" xml:space="preserve">
+    <value>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</value>
+  </data>
+  <data name="SeparatorTokenMustHaveSameRawKind" xml:space="preserve">
+    <value>New separator must have the same RawKind as the separator being replaced.</value>
+  </data>
+  <data name="SeparatorTokenMustHaveSameLanguage" xml:space="preserve">
+    <value>New separator must have the same Language as the separator being replaced.</value>
   </data>
   <data name="InvalidPublicKey" xml:space="preserve">
     <value>Invalid public key.</value>
@@ -510,6 +470,9 @@
   </data>
   <data name="SymWriterDoesNotSupportSourceLink" xml:space="preserve">
     <value>Windows PDB writer doesn't support SourceLink feature: '{0}'</value>
+  </data>
+  <data name="SymWriterMetadataOverLimit" xml:space="preserve">
+    <value>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</value>
   </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>
@@ -538,6 +501,15 @@
   <data name="MultithreadedAnalyzerExecutionNote" xml:space="preserve">
     <value>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</value>
   </data>
+  <data name="NonConcurrentAnalyzersHeader" xml:space="preserve">
+    <value>Analyzers that have not enabled concurrent execution:</value>
+  </data>
+  <data name="AllAnalyzersConcurrentMessage" xml:space="preserve">
+    <value>All analyzers have enabled concurrent execution.</value>
+  </data>
+  <data name="SuppressorsNonConcurrentCountMessage" xml:space="preserve">
+    <value>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</value>
+  </data>
   <data name="AnalyzerExecutionTimeColumnHeader" xml:space="preserve">
     <value>Time (s)</value>
   </data>
@@ -555,6 +527,9 @@
   </data>
   <data name="InvalidTree" xml:space="preserve">
     <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
+  </data>
+  <data name="InvalidAdditionalFile" xml:space="preserve">
+    <value>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</value>
   </data>
   <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
     <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
@@ -614,29 +589,14 @@
   <data name="EmbeddedTextsRequirePdb" xml:space="preserve">
     <value>Embedded texts are only supported when emitting a PDB.</value>
   </data>
-  <data name="TheStreamCannotBeWrittenTo" xml:space="preserve">
-    <value>The stream cannot be written to.</value>
-  </data>
   <data name="ElementIsExpected" xml:space="preserve">
     <value>element is expected</value>
   </data>
   <data name="SeparatorIsExpected" xml:space="preserve">
     <value>separator is expected</value>
   </data>
-  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
-    <value>The stream cannot be read from.</value>
-  </data>
-  <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
-    <value>Deserialization reader for '{0}' read incorrect number of values.</value>
-  </data>
-  <data name="Stream_contains_invalid_data" xml:space="preserve">
-    <value>Stream contains invalid data</value>
-  </data>
   <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
-  </data>
-  <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
-    <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
   </data>
   <data name="NotARootOperation" xml:space="preserve">
     <value>Given operation has a non-null parent.</value>
@@ -655,12 +615,6 @@
   </data>
   <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
     <value>The provided operation must not be part of a Control Flow Graph.</value>
-  </data>
-  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
-    <value>A language name cannot be specified for this option.</value>
-  </data>
-  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
-    <value>A language name must be specified for this option.</value>
   </data>
   <data name="WRN_InvalidSeverityInAnalyzerConfig" xml:space="preserve">
     <value>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</value>
@@ -686,5 +640,113 @@
   <data name="DisableAnalyzerDiagnosticsMessage" xml:space="preserve">
     <value>Suppress the following diagnostics to disable this analyzer: {0}</value>
     <comment>{0}: Comma-separated list of diagnostic IDs</comment>
+  </data>
+  <data name="Single_type_per_generator_0" xml:space="preserve">
+    <value>Only a single {0} can be registered per generator.</value>
+    <comment>{0}: type name</comment>
+  </data>
+  <data name="WRN_MultipleGlobalAnalyzerKeys" xml:space="preserve">
+    <value>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</value>
+  </data>
+  <data name="WRN_MultipleGlobalAnalyzerKeys_Title" xml:space="preserve">
+    <value>Multiple global analyzer config files set the same key. It has been unset.</value>
+  </data>
+  <data name="HintNameUniquePerGenerator" xml:space="preserve">
+    <value>The hintName '{0}' of the added source file must be unique within a generator.</value>
+    <comment>{0}: the provided hintname</comment>
+  </data>
+  <data name="HintNameInvalidChar" xml:space="preserve">
+    <value>The hintName '{0}' contains an invalid character '{1}' at position {2}.</value>
+    <comment>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</comment>
+  </data>
+  <data name="SourceTextRequiresEncoding" xml:space="preserve">
+    <value>The SourceText with hintName '{0}' must have an explicit encoding set.</value>
+    <comment>'SourceText' is not localizable. {0}: the provided hintname</comment>
+  </data>
+  <data name="AssemblyReferencesNetFramework" xml:space="preserve">
+    <value>The assembly containing type '{0}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="WRN_InvalidGlobalSectionName" xml:space="preserve">
+    <value>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</value>
+    <comment>{0}: invalid section name, {1} path to global config</comment>
+  </data>
+  <data name="WRN_InvalidGlobalSectionName_Title" xml:space="preserve">
+    <value>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</value>
+  </data>
+  <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
+    <value>Changes must be within bounds of SourceText</value>
+  </data>
+  <data name="EncCannotResumeSuspendedAsyncMethod" xml:space="preserve">
+    <value>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</value>
+  </data>
+  <data name="EncCannotResumeSuspendedIteratorMethod" xml:space="preserve">
+    <value>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</value>
+  </data>
+  <data name="EncDeletedMethodInvoked" xml:space="preserve">
+    <value>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</value>
+  </data>
+  <data name="EncDeletedLambdaInvoked" xml:space="preserve">
+    <value>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</value>
+  </data>
+  <data name="EncLambdaRudeEdit" xml:space="preserve">
+    <value>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</value>
+  </data>
+  <data name="EncLambdaRudeEdit_CapturedVariables" xml:space="preserve">
+    <value>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</value>
+  </data>
+  <data name="GeneratorNameColumnHeader" xml:space="preserve">
+    <value>Generator</value>
+  </data>
+  <data name="GeneratorTotalExecutionTime" xml:space="preserve">
+    <value>Total generator execution time: {0} seconds.</value>
+  </data>
+  <data name="BadBuiltInOps1" xml:space="preserve">
+    <value>Illegal built-in operator name '{0}'</value>
+  </data>
+  <data name="BadBuiltInOps2" xml:space="preserve">
+    <value>Unsupported built-in operator: {0}</value>
+  </data>
+  <data name="BadBuiltInOps3" xml:space="preserve">
+    <value>'{0}' was not a valid built-in operator name</value>
+  </data>
+  <data name="HintNameInvalidSegment" xml:space="preserve">
+    <value>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</value>
+    <comment>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</comment>
+  </data>
+  <data name="MethodSymbolExpected" xml:space="preserve">
+    <value>Method symbol expected</value>
+  </data>
+  <data name="InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="LineCannotBeGreaterThanEnd" xml:space="preserve">
+    <value>The requested line number {0} must be less than the number of lines {1}.</value>
+  </data>
+  <data name="InternalsVisibleToHeaderSummary" xml:space="preserve">
+    <value>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</value>
+  </data>
+  <data name="InternalsVisibleToCurrentAssembly" xml:space="preserve">
+    <value>Current assembly: '{0}'</value>
+  </data>
+  <data name="InternalsVisibleToReferencedAssembly" xml:space="preserve">
+    <value>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</value>
+  </data>
+  <data name="InternalsVisibleToReferencedAssemblyDetails" xml:space="preserve">
+    <value>    Assembly name: '{0}'
+    Public Keys:</value>
+  </data>
+  <data name="Nothing" xml:space="preserve">
+    <value>Nothing</value>
+  </data>
+  <data name="SigningTempPathUnavailable" xml:space="preserve">
+    <value>The temporary path for legacy file signing is unavailable.</value>
+  </data>
+  <data name="Type0DoesNotHaveExpectedConstructor" xml:space="preserve">
+    <value>'{0}' type does not have the expected constructor</value>
+  </data>
+  <data name="ExceptionMessage_FileMayBeLockedBy" xml:space="preserve">
+    <value>{0}; file may be locked by {1}</value>
   </data>
 </root>

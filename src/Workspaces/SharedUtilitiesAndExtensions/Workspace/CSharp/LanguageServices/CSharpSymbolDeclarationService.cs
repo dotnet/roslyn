@@ -2,24 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+[ExportLanguageService(typeof(ISymbolDeclarationService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSymbolDeclarationService() : ISymbolDeclarationService
 {
-    [ExportLanguageService(typeof(ISymbolDeclarationService), LanguageNames.CSharp), Shared]
-    internal class CSharpSymbolDeclarationService : ISymbolDeclarationService
-    {
-        [ImportingConstructor]
-        public CSharpSymbolDeclarationService()
-        {
-        }
-
-        public ImmutableArray<SyntaxReference> GetDeclarations(ISymbol symbol)
-            => symbol != null
-                ? symbol.DeclaringSyntaxReferences
-                : ImmutableArray<SyntaxReference>.Empty;
-    }
+    public ImmutableArray<SyntaxReference> GetDeclarations(ISymbol symbol)
+        => symbol != null
+            ? symbol.DeclaringSyntaxReferences
+            : [];
 }

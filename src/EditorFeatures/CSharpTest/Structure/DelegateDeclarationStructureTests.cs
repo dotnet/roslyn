@@ -9,22 +9,18 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+public sealed class DelegateDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DelegateDeclarationSyntax>
 {
-    public class DelegateDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DelegateDeclarationSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new DelegateDeclarationStructureProvider();
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new DelegateDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestDelegateWithComments()
-        {
-            const string code = @"
-{|span:// Goo
-// Bar|}
-$$public delegate void C();";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Goo ...", autoCollapse: true));
-        }
-    }
+    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    public Task TestDelegateWithComments()
+        => VerifyBlockSpansAsync("""
+                {|span:// Goo
+                // Bar|}
+                $$public delegate void C();
+                """,
+            Region("span", "// Goo ...", autoCollapse: true));
 }

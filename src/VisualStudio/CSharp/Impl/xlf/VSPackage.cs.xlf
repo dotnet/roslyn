@@ -33,13 +33,16 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
 Enable full solution analysis;
 Perform editor feature analysis in external process;
 Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
 Using directives;
 Place system directives first when sorting usings;
 Separate using directive groups;
@@ -50,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -78,15 +84,26 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">Zobrazit diagnostiku pro zavřené soubory;
-Vybarvit regulární výraz; 
-Zvýrazňovat související komponenty pod kurzorem; 
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Podtrhnout znovu přiřazené proměnné;
+Zobrazovat vložené nápovědy;
+Zobrazit diagnostiku pro zavřené soubory;
+Vybarvit regulární výraz;
+Zvýrazňovat související komponenty pod kurzorem;
 Nahlásit neplatné regulární výrazy;
 Povolit úplnou analýzu řešení;
 Provést analýzu funkcí editoru v externím procesu;
 Povolit navigaci na dekompilované zdroje;
+Pro navigaci vždy používat výchozí servery symbolů;
 Direktivy using;
 Při řazení direktiv using umístit systémové direktivy jako první;
 Oddělovat skupiny direktiv using;
@@ -97,6 +114,9 @@ Zvýrazňovat odkazy na symbol pod kurzorem;
 Zvýrazňovat související klíčová slova pod kurzorem;
 Sbalení;
 Po otevření souborů přejít do režimu osnovy;
+Sbalit #regions při otevření souboru;
+Sbalit použití při otevření souboru;
+Sbalit implementace metadat při otevření souboru;
 Zobrazovat oddělovače řádků procedur;
 Zobrazit sbalení pro konstrukty na úrovni deklarace;
 Zobrazit sbalení pro konstrukty na úrovni kódu;
@@ -123,9 +143,18 @@ na konec;
 Při generování vlastnosti;
 preferovat vyvolávací vlastnosti;
 preferovat automatické vlastnosti;
-reg. výr.;
+regex;
 regulární výraz;
-Používat rozšířené barvy;</target>
+Obarvit regulární výrazy;
+Zvýraznit související komponenty pod kurzorem;
+Nahlásit neplatné regulární výrazy;
+JSON;
+Obarvit řetězce JSON;
+Nahlásit neplatné řetězce JSON;
+Rozpoznat a nabízet funkce editoru pro řetězce JSON;
+ rozšířené barvy;
+Barevné schéma editoru;
+Okraj dědičnosti;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -269,37 +298,6 @@ Vložit mezeru před a za binární operátory;</target>
         <target state="translated">Změnit možnosti formátování pro obtékání;ponechat blok na stejném řádku;ponechat příkazy a deklarace členu na stejném řádku</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Highlight matching portions of completion list items;
-Show completion item filters;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku; Seznamy dokončení;
-Po zadání znaku zobrazit seznam dokončení;
-Po odstranění znaku zobrazit seznam dokončení;
-Zvýraznit odpovídající části položek seznamu dokončení;
-Zobrazit filtry položek dokončení;
-Chování fragmentů;
-Nikdy nezahrnovat fragmenty;
-Vždy zahrnovat fragmenty;
-Zahrnovat fragmenty po zadání ?-Tab za identifikátor;
-Chování klávesy Enter;
-Při stisknutí klávesy Enter nikdy nepřidávat nový řádek;
-Při stisknutí klávesy Enter přidat nový řádek jenom po dopsání celého slova;
-Při stisknutí klávesy Enter vždy přidat nový řádek;
-Zobrazovat návrhy názvů;</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">Formátování</target>
@@ -375,14 +373,34 @@ Zobrazovat návrhy názvů;</target>
         <target state="translated">Komponenty C# použité v IDE. V závislosti na typu vašeho projektu a nastavení se může použít jiná verze kompilátoru.</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">Prázdný soubor skriptu C#</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Při stisku Enter vždy přidat nový řádek</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Skript Visual C#</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Vždy zahrnovat fragmenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default">
+        <source>Default</source>
+        <target state="translated">Výchozí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when Tab is typed after an identifier</source>
+        <target state="translated">Zahrnout fragmenty kódu při zadání tabulátoru za identifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Při stisku Enter nikdy nepřidávat nový řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Nikdy nezahrnovat fragmenty</target>
         <note />
       </trans-unit>
     </body>

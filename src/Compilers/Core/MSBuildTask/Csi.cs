@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -27,6 +25,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #endregion
 
         #region Interactive Compiler Members
+
+        protected override void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
+        {
+            // Nothing to add
+        }
+
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis
         UInt32,
         Int64,
         UInt64,
+        NInt,
+        NUInt,
         Char,
         Boolean,
         Single,
@@ -31,11 +33,13 @@ namespace Microsoft.CodeAnalysis
         String,
         Decimal,
         DateTime,
+        // Note: new values may need handling in CryptographicHashProvider.ComputeSourceHash
     }
 
-    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>
+    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>, IFormattable
     {
         public abstract ConstantValueTypeDiscriminator Discriminator { get; }
+
         internal abstract SpecialType SpecialType { get; }
 
         public virtual string? StringValue { get { throw new InvalidOperationException(); } }
@@ -74,6 +78,7 @@ namespace Microsoft.CodeAnalysis
 
         // returns true if value is in its default (zero-inited) form.
         public virtual bool IsDefaultValue { get { return false; } }
+        public virtual bool IsOne { get { return false; } }
 
         // NOTE: We do not have IsNumericZero. 
         //       The reason is that integral zeroes are same as default values
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         //       It appears that in all cases so far we considered isDefaultValue, and not about value being 
         //       arithmetic zero (especially when definition is ambiguous).
 
-        public const ConstantValue NotAvailable = null;
+        public const ConstantValue? NotAvailable = null;
 
         public static ConstantValue Bad { get { return ConstantValueBad.Instance; } }
         public static ConstantValue Null { get { return ConstantValueNull.Instance; } }
@@ -114,6 +119,10 @@ namespace Microsoft.CodeAnalysis
             if (value == default(char))
             {
                 return ConstantValueDefault.Char;
+            }
+            else if (value == (char)1)
+            {
+                return ConstantValueOne.Char;
             }
 
             return new ConstantValueI16(value);
@@ -231,6 +240,34 @@ namespace Microsoft.CodeAnalysis
             return new ConstantValueI64(value);
         }
 
+        public static ConstantValue CreateNativeInt(Int32 value)
+        {
+            if (value == 0)
+            {
+                return ConstantValueDefault.NInt;
+            }
+            else if (value == 1)
+            {
+                return ConstantValueOne.NInt;
+            }
+
+            return new ConstantValueNativeInt(value);
+        }
+
+        public static ConstantValue CreateNativeUInt(UInt32 value)
+        {
+            if (value == 0)
+            {
+                return ConstantValueDefault.NUInt;
+            }
+            else if (value == 1)
+            {
+                return ConstantValueOne.NUInt;
+            }
+
+            return new ConstantValueNativeInt(value);
+        }
+
         public static ConstantValue Create(bool value)
         {
             if (value)
@@ -322,16 +359,14 @@ namespace Microsoft.CodeAnalysis
             return Create(value, discriminator);
         }
 
-        public static ConstantValue CreateSizeOf(SpecialType st)
+        public static ConstantValue? CreateSizeOf(SpecialType st)
         {
             int size = st.SizeInBytes();
-            return (size == 0) ? ConstantValue.NotAvailable : ConstantValue.Create(size);
+            return (size == 0) ? null : ConstantValue.Create(size);
         }
 
         public static ConstantValue Create(object value, ConstantValueTypeDiscriminator discriminator)
         {
-            Debug.Assert(BitConverter.IsLittleEndian);
-
             switch (discriminator)
             {
                 case ConstantValueTypeDiscriminator.Null: return Null;
@@ -343,6 +378,8 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt32: return Create((uint)value);
                 case ConstantValueTypeDiscriminator.Int64: return Create((long)value);
                 case ConstantValueTypeDiscriminator.UInt64: return Create((ulong)value);
+                case ConstantValueTypeDiscriminator.NInt: return CreateNativeInt((int)value);
+                case ConstantValueTypeDiscriminator.NUInt: return CreateNativeUInt((uint)value);
                 case ConstantValueTypeDiscriminator.Char: return Create((char)value);
                 case ConstantValueTypeDiscriminator.Boolean: return Create((bool)value);
                 case ConstantValueTypeDiscriminator.Single:
@@ -380,6 +417,8 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt32: return ConstantValueDefault.UInt32;
                 case ConstantValueTypeDiscriminator.Int64: return ConstantValueDefault.Int64;
                 case ConstantValueTypeDiscriminator.UInt64: return ConstantValueDefault.UInt64;
+                case ConstantValueTypeDiscriminator.NInt: return ConstantValueDefault.NInt;
+                case ConstantValueTypeDiscriminator.NUInt: return ConstantValueDefault.NUInt;
                 case ConstantValueTypeDiscriminator.Char: return ConstantValueDefault.Char;
                 case ConstantValueTypeDiscriminator.Boolean: return ConstantValueDefault.Boolean;
                 case ConstantValueTypeDiscriminator.Single: return ConstantValueDefault.Single;
@@ -406,6 +445,8 @@ namespace Microsoft.CodeAnalysis
                 case SpecialType.System_UInt32: return ConstantValueTypeDiscriminator.UInt32;
                 case SpecialType.System_Int64: return ConstantValueTypeDiscriminator.Int64;
                 case SpecialType.System_UInt64: return ConstantValueTypeDiscriminator.UInt64;
+                case SpecialType.System_IntPtr: return ConstantValueTypeDiscriminator.NInt;
+                case SpecialType.System_UIntPtr: return ConstantValueTypeDiscriminator.NUInt;
                 case SpecialType.System_Char: return ConstantValueTypeDiscriminator.Char;
                 case SpecialType.System_Boolean: return ConstantValueTypeDiscriminator.Boolean;
                 case SpecialType.System_Single: return ConstantValueTypeDiscriminator.Single;
@@ -416,6 +457,32 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ConstantValueTypeDiscriminator.Bad;
+        }
+
+        public string GetPrimitiveTypeName()
+        {
+            return Discriminator switch
+            {
+                ConstantValueTypeDiscriminator.SByte => "sbyte",
+                ConstantValueTypeDiscriminator.Byte => "byte",
+                ConstantValueTypeDiscriminator.Int16 => "short",
+                ConstantValueTypeDiscriminator.UInt16 => "ushort",
+                ConstantValueTypeDiscriminator.Int32 => "int",
+                ConstantValueTypeDiscriminator.NInt => "nint",
+                ConstantValueTypeDiscriminator.UInt32 => "uint",
+                ConstantValueTypeDiscriminator.NUInt => "nuint",
+                ConstantValueTypeDiscriminator.Int64 => "long",
+                ConstantValueTypeDiscriminator.UInt64 => "ulong",
+                ConstantValueTypeDiscriminator.Char => "char",
+                ConstantValueTypeDiscriminator.Boolean => "bool",
+                ConstantValueTypeDiscriminator.Single => "float",
+                ConstantValueTypeDiscriminator.Double => "double",
+                ConstantValueTypeDiscriminator.String => "string",
+                ConstantValueTypeDiscriminator.Decimal => "decimal",
+                ConstantValueTypeDiscriminator.DateTime => "DateTime",
+                ConstantValueTypeDiscriminator.Null or ConstantValueTypeDiscriminator.Bad => throw ExceptionUtilities.UnexpectedValue(Discriminator),
+                _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
+            };
         }
 
         private static SpecialType GetSpecialType(ConstantValueTypeDiscriminator discriminator)
@@ -430,6 +497,8 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt32: return SpecialType.System_UInt32;
                 case ConstantValueTypeDiscriminator.Int64: return SpecialType.System_Int64;
                 case ConstantValueTypeDiscriminator.UInt64: return SpecialType.System_UInt64;
+                case ConstantValueTypeDiscriminator.NInt: return SpecialType.System_IntPtr;
+                case ConstantValueTypeDiscriminator.NUInt: return SpecialType.System_UIntPtr;
                 case ConstantValueTypeDiscriminator.Char: return SpecialType.System_Char;
                 case ConstantValueTypeDiscriminator.Boolean: return SpecialType.System_Boolean;
                 case ConstantValueTypeDiscriminator.Single: return SpecialType.System_Single;
@@ -457,6 +526,8 @@ namespace Microsoft.CodeAnalysis
                     case ConstantValueTypeDiscriminator.UInt32: return Boxes.Box(UInt32Value);
                     case ConstantValueTypeDiscriminator.Int64: return Boxes.Box(Int64Value);
                     case ConstantValueTypeDiscriminator.UInt64: return Boxes.Box(UInt64Value);
+                    case ConstantValueTypeDiscriminator.NInt: return Boxes.Box(Int32Value);
+                    case ConstantValueTypeDiscriminator.NUInt: return Boxes.Box(UInt32Value);
                     case ConstantValueTypeDiscriminator.Char: return Boxes.Box(CharValue);
                     case ConstantValueTypeDiscriminator.Boolean: return Boxes.Box(BooleanValue);
                     case ConstantValueTypeDiscriminator.Single: return Boxes.Box(SingleValue);
@@ -481,6 +552,8 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt32:
                 case ConstantValueTypeDiscriminator.Int64:
                 case ConstantValueTypeDiscriminator.UInt64:
+                case ConstantValueTypeDiscriminator.NInt:
+                case ConstantValueTypeDiscriminator.NUInt:
                     return true;
 
                 default:
@@ -507,6 +580,7 @@ namespace Microsoft.CodeAnalysis
                     case ConstantValueTypeDiscriminator.Int16:
                         return Int16Value < 0;
                     case ConstantValueTypeDiscriminator.Int32:
+                    case ConstantValueTypeDiscriminator.NInt:
                         return Int32Value < 0;
                     case ConstantValueTypeDiscriminator.Int64:
                         return Int64Value < 0;
@@ -540,6 +614,8 @@ namespace Microsoft.CodeAnalysis
                     case ConstantValueTypeDiscriminator.UInt16:
                     case ConstantValueTypeDiscriminator.UInt32:
                     case ConstantValueTypeDiscriminator.UInt64:
+                    case ConstantValueTypeDiscriminator.NInt:
+                    case ConstantValueTypeDiscriminator.NUInt:
                         return true;
 
                     default:
@@ -556,6 +632,7 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt16:
                 case ConstantValueTypeDiscriminator.UInt32:
                 case ConstantValueTypeDiscriminator.UInt64:
+                case ConstantValueTypeDiscriminator.NUInt:
                     return true;
 
                 default:
@@ -602,7 +679,7 @@ namespace Microsoft.CodeAnalysis
             return discriminator == ConstantValueTypeDiscriminator.String;
         }
 
-        // See https://github.com/dotnet/roslyn/issues/41964: when this property is true, that implies StringValue is non-null.
+        [MemberNotNullWhen(true, nameof(StringValue))]
         public bool IsString
         {
             get
@@ -735,9 +812,50 @@ namespace Microsoft.CodeAnalysis
             return String.Format("{0}({1}: {2})", this.GetType().Name, valueToDisplay, this.Discriminator);
         }
 
+        public virtual string ToString(string? format, IFormatProvider? provider)
+        {
+            return Discriminator switch
+            {
+                ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
+                ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
+                ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
+                ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
+                ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
+                ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
+                ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Single => SingleValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(provider),
+                ConstantValueTypeDiscriminator.DateTime => DateTimeValue.ToString(provider),
+                _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
+            };
+        }
+
         internal virtual string? GetValueToDisplay()
         {
             return this.Value?.ToString();
+        }
+
+        internal bool IsIntegralValueZeroOrOne(out bool isOne)
+        {
+            if (IsDefaultValue)
+            {
+                isOne = false;
+            }
+            else if (IsOne)
+            {
+                isOne = true;
+            }
+            else
+            {
+                isOne = default;
+                return false;
+            }
+
+            return IsIntegral || IsBoolean || IsChar;
         }
 
         // equal constants must have matching discriminators
@@ -780,7 +898,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return this.Discriminator.GetHashCode();
+            return ((int)this.Discriminator).GetHashCode();
         }
 
         public override bool Equals(object? obj)

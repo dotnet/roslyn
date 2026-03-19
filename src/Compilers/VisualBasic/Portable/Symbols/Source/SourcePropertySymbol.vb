@@ -9,8 +9,10 @@ Imports System.Diagnostics
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -54,6 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Flags>
         Private Enum StateFlags As Integer
             SymbolDeclaredEvent = &H1           ' Bit value for generating SymbolDeclaredEvent
+
+            TypeConstraintsChecked = &H2
         End Enum
 
         Private Sub New(container As SourceMemberContainerTypeSymbol,
@@ -115,14 +119,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If getMethod Is Nothing Then
                             getMethod = accessorMethod
                         Else
-                            diagnostics.Add(ERRID.ERR_DuplicatePropertyGet, accessorMethod.Locations(0))
+                            diagnostics.Add(ERRID.ERR_DuplicatePropertyGet, accessorMethod.GetFirstLocation())
                         End If
                     ElseIf accessorKind = SyntaxKind.SetAccessorStatement Then
                         Dim accessorMethod = CreateAccessor(prop, SourceMemberFlags.MethodKindPropertySet, accessorFlags, bodyBinder, accessor, diagnostics)
                         If setMethod Is Nothing Then
                             setMethod = accessorMethod
                         Else
-                            diagnostics.Add(ERRID.ERR_DuplicatePropertySet, accessorMethod.Locations(0))
+                            diagnostics.Add(ERRID.ERR_DuplicatePropertySet, accessorMethod.GetFirstLocation())
                         End If
                     End If
                 Next
@@ -141,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_ReadOnlyHasNoGet, location)
                     End If
                     If setMethod IsNot Nothing Then
-                        diagnostics.Add(ERRID.ERR_ReadOnlyHasSet, setMethod.Locations(0))
+                        diagnostics.Add(ERRID.ERR_ReadOnlyHasSet, setMethod.GetFirstLocation())
                     End If
                 End If
 
@@ -154,14 +158,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_WriteOnlyHasNoWrite, location)
                     End If
                     If getMethod IsNot Nothing Then
-                        diagnostics.Add(ERRID.ERR_WriteOnlyHasGet, getMethod.Locations(0))
+                        diagnostics.Add(ERRID.ERR_WriteOnlyHasGet, getMethod.GetFirstLocation())
                     End If
                 End If
 
                 If (getMethod IsNot Nothing) AndAlso (setMethod IsNot Nothing) Then
                     If (getMethod.LocalAccessibility <> Accessibility.NotApplicable) AndAlso (setMethod.LocalAccessibility <> Accessibility.NotApplicable) Then
                         ' Both accessors have explicit accessibility. Report an error on the second.
-                        Dim accessor = If(getMethod.Locations(0).SourceSpan.Start < setMethod.Locations(0).SourceSpan.Start, setMethod, getMethod)
+                        Dim accessor = If(getMethod.GetFirstLocation().SourceSpan.Start < setMethod.GetFirstLocation().SourceSpan.Start, setMethod, getMethod)
                         diagnostics.Add(ERRID.ERR_OnlyOneAccessorForGetSet, GetAccessorBlockBeginLocation(accessor))
                     ElseIf prop.IsOverridable AndAlso
                         ((getMethod.LocalAccessibility = Accessibility.Private) OrElse (setMethod.LocalAccessibility = Accessibility.Private)) Then
@@ -231,12 +235,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                              syntaxRef As SyntaxReference,
                              modifiers As MemberModifiers,
                              firstFieldDeclarationOfType As Boolean,
-                             diagnostics As DiagnosticBag) As SourcePropertySymbol
+                             diagnostics As BindingDiagnosticBag) As SourcePropertySymbol
 
             Dim name = identifier.ValueText
 
             ' we will require AccessedThroughPropertyAttribute
-            bodyBinder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
+            bodyBinder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
                                                     DirectCast(identifier.Parent, VisualBasicSyntaxNode),
                                                     diagnostics)
 
@@ -288,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim overriddenMethod As MethodSymbol = method.OverriddenMethod
 
             For Each parameter In Me.Parameters
-                Dim clone As ParameterSymbol = New SourceClonedParameterSymbol(DirectCast(parameter, SourceParameterSymbol), method, parameter.Ordinal)
+                Dim clone As ParameterSymbol = New SourcePropertyClonedParameterSymbolForAccessors(DirectCast(parameter, SourceParameterSymbol), method)
 
                 If overriddenMethod IsNot Nothing Then
                     CustomModifierUtils.CopyParameterCustomModifiers(overriddenMethod.Parameters(parameter.Ordinal), clone)
@@ -333,8 +337,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeType(diagnostics As DiagnosticBag) As TypeSymbol
-            Dim binder = CreateBinderForTypeDeclaration()
+        Private Function ComputeType(diagnostics As BindingDiagnosticBag) As TypeSymbol
+            Dim binder = BinderBuilder.CreateBinderForType(DirectCast(ContainingModule, SourceModuleSymbol), _syntaxRef.SyntaxTree, _containingType)
+            binder = New LocationSpecificBinder(BindingLocation.PropertyType, Me, binder)
 
             If IsWithEvents Then
                 Dim syntax = DirectCast(_syntaxRef.GetSyntax(), ModifiedIdentifierSyntax)
@@ -544,6 +549,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Return boundAttribute
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                If Not CanHaveOverloadResolutionPriority Then
+                    'Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                    Return Nothing
+                End If
+
+                Dim hasAnyDiagnostics As Boolean = False
+                Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
+                If Not attrdata.HasErrors Then
+                    Dim priority As Integer = attrdata.GetConstructorArgument(Of Integer)(0, SpecialType.System_Int32)
+                    arguments.GetOrCreateData(Of CommonPropertyEarlyWellKnownAttributeData)().OverloadResolutionPriority = priority
+                    Return If(Not hasAnyDiagnostics, attrdata, Nothing)
+                Else
+                    Return Nothing
+                End If
             End If
 
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
@@ -553,20 +574,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
+                diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
-                Dim isMarshalAs = attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute)
+                Dim isMarshalAs = attrData.IsTargetAttribute(AttributeDescription.MarshalAsAttribute)
 
                 ' write-only property doesn't accept any return type attributes other than MarshalAs
                 ' MarshalAs is applied on the "Value" parameter of the setter if the property has no parameters and the containing type is an interface .
                 If _getMethod Is Nothing AndAlso _setMethod IsNot Nothing AndAlso
                     (Not isMarshalAs OrElse Not SynthesizedParameterSymbol.IsMarshalAsAttributeApplicable(_setMethod)) Then
 
-                    arguments.Diagnostics.Add(ERRID.WRN_ReturnTypeAttributeOnWriteOnlyProperty, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.WRN_ReturnTypeAttributeOnWriteOnlyProperty, arguments.AttributeSyntaxOpt.GetLocation())
                     Return
                 End If
 
@@ -577,18 +599,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return
                 End If
             Else
-                If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+                If attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                     arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasSpecialNameAttribute = True
                     Return
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
                     arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasExcludeFromCodeCoverageAttribute = True
                     Return
-                ElseIf Not IsWithEvents AndAlso attrData.IsTargetAttribute(Me, AttributeDescription.DebuggerHiddenAttribute) Then
+                ElseIf Not IsWithEvents AndAlso attrData.IsTargetAttribute(AttributeDescription.DebuggerHiddenAttribute) Then
                     ' if neither getter or setter is marked by DebuggerHidden Dev11 reports a warning
                     If Not (_getMethod IsNot Nothing AndAlso DirectCast(_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
                             _setMethod IsNot Nothing AndAlso DirectCast(_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then
-                        arguments.Diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
+                        diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
+                    Return
+                ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                    If Not CanHaveOverloadResolutionPriority Then
+                        diagnostics.Add(If(IsOverrides,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember),
+                                    arguments.AttributeSyntaxOpt.GetLocation())
+                    Else
+                        InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                   arguments.AttributeSyntaxOpt.GetLocation(),
+                                                   DirectCast(arguments.AttributeSyntaxOpt.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                   InternalSyntax.Feature.OverloadResolutionPriority)
+                    End If
+
                     Return
                 End If
             End If
@@ -689,6 +726,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Dim data As CommonPropertyEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
+            Return If(data?.OverloadResolutionPriority, 0)
+        End Function
+
+        Private Function GetEarlyDecodedWellKnownAttributeData() As CommonPropertyEarlyWellKnownAttributeData
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            If attributesBag Is Nothing OrElse Not attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
+                attributesBag = Me.GetAttributesBag()
+            End If
+
+            Return DirectCast(attributesBag.EarlyDecodedWellKnownAttributeData, CommonPropertyEarlyWellKnownAttributeData)
+        End Function
+
         Public Overrides ReadOnly Property IsWithEvents As Boolean
             Get
                 Return (_flags And SourceMemberFlags.WithEvents) <> 0
@@ -730,7 +781,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub EnsureSignature()
             If _lazyParameters.IsDefault Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
 
                 Dim params As ImmutableArray(Of ParameterSymbol) = ComputeParameters(diagnostics)
@@ -795,8 +846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 sourceModule.AtomicStoreArrayAndDiagnostics(
                     _lazyParameters,
                     params,
-                    diagnostics,
-                    CompilationStage.Declare)
+                    diagnostics)
 
                 diagnostics.Free()
             End If
@@ -819,7 +869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeParameters(diagnostics As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+        Private Function ComputeParameters(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
 
             If Me.IsWithEvents Then
                 ' no parameters
@@ -837,7 +887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' 'touch' System_Reflection_DefaultMemberAttribute__ctor to make sure all diagnostics are reported
-                binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
+                binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                                                                      syntax,
                                                                      diagnostics)
             End If
@@ -862,12 +912,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
             Get
                 If _lazyImplementedProperties.IsDefault Then
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),
-                                                                diagnostics,
-                                                                CompilationStage.Declare)
+                                                                diagnostics)
                     diagnostics.Free()
                 End If
 
@@ -875,7 +924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeExplicitInterfaceImplementations(diagnostics As DiagnosticBag) As ImmutableArray(Of PropertySymbol)
+        Private Function ComputeExplicitInterfaceImplementations(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of PropertySymbol)
             Dim binder = CreateBinderForTypeDeclaration()
             Dim syntax = DirectCast(_syntaxRef.GetSyntax(), PropertyStatementSyntax)
             Return BindImplementsClause(_containingType, binder, Me, syntax, diagnostics)
@@ -1101,7 +1150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                      bodyBinder As Binder,
                                                      prop As SourcePropertySymbol,
                                                      syntax As PropertyStatementSyntax,
-                                                     diagnostics As DiagnosticBag) As ImmutableArray(Of PropertySymbol)
+                                                     diagnostics As BindingDiagnosticBag) As ImmutableArray(Of PropertySymbol)
             If syntax.ImplementsClause IsNot Nothing Then
                 If prop.IsShared And Not containingType.IsModuleType Then
                     ' Implementing with shared methods is illegal.
@@ -1190,10 +1239,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             ' Ensure return type attributes are bound
-            Dim unusedType = Me.Type
+            Dim type = Me.Type
             Dim unusedParameters = Me.Parameters
             Me.GetReturnTypeAttributesBag()
             Dim unusedImplementations = Me.ExplicitInterfaceImplementations
+
+            If (_lazyState And StateFlags.TypeConstraintsChecked) = 0 Then
+                Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                type.CheckAllConstraints(DeclaringCompilation.LanguageVersion,
+                                     GetFirstLocation(), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
+                sourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.TypeConstraintsChecked, 0, diagnostics)
+                diagnostics.Free()
+            End If
 
             If DeclaringCompilation.EventQueue IsNot Nothing Then
                 DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
@@ -1206,13 +1264,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If Me.Type.ContainsTupleNames() Then
                 AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
             End If
         End Sub
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
 

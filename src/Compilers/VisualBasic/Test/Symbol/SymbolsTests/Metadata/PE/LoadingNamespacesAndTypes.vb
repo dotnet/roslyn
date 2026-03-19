@@ -4,9 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(Net40.Resources.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace1(assembly.Modules(0).GlobalNamespace)
 
             Dim baseLine = XElement.Load(New MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes))
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test2()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(Net40.Resources.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace2(assembly.Modules(0).GlobalNamespace)
 
             Dim baseLine = XElement.Load(New MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes))
@@ -38,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             dumpXML = LoadChildNamespace2(assembly.Modules(0).GlobalNamespace)
             Assert.Equal(dumpXML.ToString(), baseLine.ToString())
         End Sub
-
 
         Private Function LoadChildNamespace1(n As NamespaceSymbol) As XElement
             Dim elem As XElement = New XElement(If(n.Name.Length = 0, "Global", n.Name))
@@ -102,10 +101,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Return elem
         End Function
 
-
         <Fact>
         Public Sub Test3()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(Net40.Resources.mscorlib)
             Dim module0 = assembly.Modules(0)
             Dim globalNS = module0.GlobalNamespace
 
@@ -147,10 +145,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Same(collectionsNS, collectionsNS.ConstituentNamespaces(0))
         End Sub
 
-
         <Fact()>
         Public Sub Test4()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(Net40.Resources.mscorlib)
             TestGetMembersOfName(assembly.Modules(0))
 
             Dim assembly2 = LoadFromBytes(TestResources.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase)
@@ -201,7 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal("SomeName3", SomeName3(1).Name)
 
         End Sub
-
 
         Private Sub TestGetMembersOfName(module0 As ModuleSymbol)
 

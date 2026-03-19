@@ -2,68 +2,51 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
+namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference;
+
+internal abstract class AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<TLocalDeclaration> : CodeRefactoringProvider where TLocalDeclaration : SyntaxNode
 {
-    internal abstract class AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<TLocalDeclaration> : CodeRefactoringProvider where TLocalDeclaration : SyntaxNode
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        [ImportingConstructor]
-        public AbstractMoveDeclarationNearReferenceCodeRefactoringProvider()
-        {
-        }
+        var (document, _, cancellationToken) = context;
+        var declaration = await context.TryGetRelevantNodeAsync<TLocalDeclaration>().ConfigureAwait(false);
+        if (declaration == null)
+            return;
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var (document, _, cancellationToken) = context;
-            var declaration = await context.TryGetRelevantNodeAsync<TLocalDeclaration>().ConfigureAwait(false);
-            if (declaration == null)
-            {
-                return;
-            }
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(declaration);
+        if (variables.Count != 1)
+            return;
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(declaration);
-            if (variables.Count != 1)
-            {
-                return;
-            }
+        var service = document.GetRequiredLanguageService<IMoveDeclarationNearReferenceService>();
+        var (canMove, mayChangeSemantics) = await service.CanMoveDeclarationNearReferenceAsync(document, declaration, cancellationToken).ConfigureAwait(false);
+        if (!canMove)
+            return;
 
-            var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
-            if (!await service.CanMoveDeclarationNearReferenceAsync(document, declaration, cancellationToken).ConfigureAwait(false))
-            {
-                return;
-            }
+        var (title, equivalenceKey) = mayChangeSemantics
+            ? (FeaturesResources.Move_declaration_near_reference_may_change_semantics, nameof(FeaturesResources.Move_declaration_near_reference_may_change_semantics))
+            : (FeaturesResources.Move_declaration_near_reference, nameof(FeaturesResources.Move_declaration_near_reference));
 
-            context.RegisterRefactoring(
-                new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, declaration, c)),
-                declaration.Span);
-        }
+        context.RegisterRefactoring(
+            CodeAction.Create(
+                title,
+                cancellationToken => MoveDeclarationNearReferenceAsync(document, declaration, cancellationToken),
+                equivalenceKey,
+                CodeActionPriority.Low),
+            declaration.Span);
+    }
 
-        private async Task<Document> MoveDeclarationNearReferenceAsync(
-            Document document, SyntaxNode statement, CancellationToken cancellationToken)
-        {
-            var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
-            return await service.MoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Move_declaration_near_reference, createChangedDocument)
-            {
-            }
-
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-        }
+    private static async Task<Document> MoveDeclarationNearReferenceAsync(
+        Document document, SyntaxNode statement, CancellationToken cancellationToken)
+    {
+        var service = document.GetRequiredLanguageService<IMoveDeclarationNearReferenceService>();
+        return await service.MoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
@@ -11,6 +13,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class ArrayBuilderTests
     {
+        [Fact]
+        public void RemoveAll()
+        {
+            var builder = new ArrayBuilder<int> { 6, 5, 1, 2, 3, 2, 4, 5, 1, 7 };
+
+            builder.RemoveAll((_, _) => false, arg: 0);
+            AssertEx.Equal([6, 5, 1, 2, 3, 2, 4, 5, 1, 7], builder);
+
+            builder.RemoveAll((i, arg) => i == arg, arg: 6);
+            AssertEx.Equal([5, 1, 2, 3, 2, 4, 5, 1, 7], builder);
+
+            builder.RemoveAll((i, arg) => i == arg, arg: 7);
+            AssertEx.Equal([5, 1, 2, 3, 2, 4, 5, 1], builder);
+
+            builder.RemoveAll((i, arg) => i < arg, arg: 3);
+            AssertEx.Equal([5, 3, 4, 5], builder);
+
+            builder.RemoveAll((_, _) => true, arg: 0);
+            AssertEx.Equal([], builder);
+
+            builder.RemoveAll((_, _) => true, arg: 0);
+            AssertEx.Equal([], builder);
+        }
+
         [Fact]
         public void RemoveDuplicates1()
         {

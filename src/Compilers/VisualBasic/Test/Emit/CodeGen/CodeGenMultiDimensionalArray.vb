@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1434,7 +1433,7 @@ End Class
 0]]>)
         End Sub
 
-        ' Parse an Attribute instance that takes a generic type with an generic argument that is a multi-dimensional array
+        ' Parse an Attribute instance that takes a generic type with a generic argument that is a multi-dimensional array
         <Fact>
         Public Sub Generic()
             CompileAndVerify(
@@ -1454,7 +1453,6 @@ End Class
     </file>
 </compilation>).VerifyDiagnostics()
         End Sub
-
 
         <Fact()>
         Public Sub MDArrayTypeRef()
@@ -1483,7 +1481,6 @@ SM
 ]]>)
             vbVerifier.VerifyDiagnostics()
         End Sub
-
 
     End Class
 

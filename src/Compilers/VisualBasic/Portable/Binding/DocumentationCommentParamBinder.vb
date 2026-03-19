@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             If Me.CommentedSymbol Is Nothing Then
                 Return ImmutableArray(Of Symbol).Empty
             End If
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      arity As Integer,
                                                      options As LookupOptions,
                                                      originalBinder As Binder,
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             If (options And s_invalidLookupOptions) <> 0 OrElse arity > 0 Then
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each parameter In Me.Parameters
                 If IdentifierComparison.Equals(parameter.Name, name) Then
-                    lookupResult.SetFrom(CheckViability(parameter, arity, options, Nothing, useSiteDiagnostics))
+                    lookupResult.SetFrom(CheckViability(parameter, arity, options, Nothing, useSiteInfo))
                 End If
             Next
         End Sub

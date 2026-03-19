@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Full type name possibly with generic name mangling.
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        ''' Symbol for the type, or Nothing if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
         Friend MustOverride Function LookupTopLevelMetadataType(
@@ -293,16 +293,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property MightContainExtensionMethods As Boolean
 
-        ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        ''' </summary>
-        Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-            Get
-                Return Nothing
-            End Get
-        End Property
-
 #Region "IModuleSymbol"
         Private ReadOnly Property IModuleSymbol_GlobalNamespace As INamespaceSymbol Implements IModuleSymbol.GlobalNamespace
             Get
@@ -326,6 +316,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitModule(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitModule(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

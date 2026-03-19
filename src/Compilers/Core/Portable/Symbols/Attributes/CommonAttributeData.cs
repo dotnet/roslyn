@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +21,6 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
         /// <summary>
         /// The attribute class.
         /// </summary>
@@ -43,13 +40,13 @@ namespace Microsoft.CodeAnalysis
         /// Constructor arguments on the attribute.
         /// </summary>
         public ImmutableArray<TypedConstant> ConstructorArguments { get { return CommonConstructorArguments; } }
-        internal protected abstract ImmutableArray<TypedConstant> CommonConstructorArguments { get; }
+        protected internal abstract ImmutableArray<TypedConstant> CommonConstructorArguments { get; }
 
         /// <summary>
         /// Named (property value) arguments on the attribute. 
         /// </summary>
         public ImmutableArray<KeyValuePair<string, TypedConstant>> NamedArguments { get { return CommonNamedArguments; } }
-        internal protected abstract ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments { get; }
+        protected internal abstract ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments { get; }
 
         /// <summary>
         /// Attribute is conditionally omitted if it is a source attribute and both the following are true:
@@ -61,9 +58,15 @@ namespace Microsoft.CodeAnalysis
             get { return false; }
         }
 
+        // Uncommenting portion of the attribute is tracked by https://github.com/dotnet/roslyn/issues/70592
+        [MemberNotNullWhen(false, nameof(AttributeClass)/*, nameof(AttributeConstructor)*/)]
         internal virtual bool HasErrors
         {
-            get { return false; }
+            get
+            {
+                Debug.Assert(AttributeClass is not null);
+                return false;
+            }
         }
 
         /// <summary>
@@ -141,8 +144,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the value of a constructor argument as type <typeparamref name="T"/>.
         /// Throws if no constructor argument exists or the argument cannot be converted to the type.
         /// </summary>
-        [return: MaybeNull]
-        internal T GetConstructorArgument<T>(int i, SpecialType specialType)
+        internal T? GetConstructorArgument<T>(int i, SpecialType specialType)
         {
             var constructorArgs = this.CommonConstructorArguments;
             return constructorArgs[i].DecodeValue<T>(specialType);
@@ -160,14 +162,12 @@ namespace Microsoft.CodeAnalysis
         /// For user defined attributes VB allows duplicate named arguments and uses the last value.
         /// Dev11 reports an error for pseudo-custom attributes when emitting metadata. We don't.
         /// </remarks>
-        [return: MaybeNull]
-        internal T DecodeNamedArgument<T>(string name, SpecialType specialType, T defaultValue = default)
+        internal T? DecodeNamedArgument<T>(string name, SpecialType specialType, T? defaultValue = default)
         {
             return DecodeNamedArgument<T>(CommonNamedArguments, name, specialType, defaultValue);
         }
 
-        [return: MaybeNull]
-        private static T DecodeNamedArgument<T>(ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, string name, SpecialType specialType, T defaultValue = default)
+        private static T? DecodeNamedArgument<T>(ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, string name, SpecialType specialType, T? defaultValue = default)
         {
             int index = IndexOfNamedArgument(namedArguments, name);
             return index >= 0 ? namedArguments[index].Value.DecodeValue<T>(specialType) : defaultValue;
@@ -260,11 +260,48 @@ namespace Microsoft.CodeAnalysis
                     return DecodeObsoleteAttribute();
                 case ObsoleteAttributeKind.Deprecated:
                     return DecodeDeprecatedAttribute();
+                case ObsoleteAttributeKind.WindowsExperimental:
+                    return DecodeWindowsExperimentalAttribute();
                 case ObsoleteAttributeKind.Experimental:
                     return DecodeExperimentalAttribute();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
+        }
+
+        internal ObsoleteAttributeData DecodeExperimentalAttribute()
+        {
+            // ExperimentalAttribute(string diagnosticId)
+            Debug.Assert(this.CommonConstructorArguments.Length == 1);
+            string? diagnosticId = this.CommonConstructorArguments[0].ValueInternal as string;
+
+            if (string.IsNullOrWhiteSpace(diagnosticId))
+            {
+                diagnosticId = null;
+            }
+
+            string? urlFormat = null;
+            string? message = null;
+
+            foreach (var (name, value) in this.CommonNamedArguments)
+            {
+                if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
+                {
+                    urlFormat = value.ValueInternal as string;
+                }
+
+                if (message is null && name == ObsoleteAttributeData.MessagePropertyName && IsStringProperty(ObsoleteAttributeData.MessagePropertyName))
+                {
+                    message = value.ValueInternal as string;
+                }
+
+                if (urlFormat is not null && message is not null)
+                {
+                    break;
+                }
+            }
+
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: message, isError: false, diagnosticId, urlFormat);
         }
 
         /// <summary>
@@ -284,16 +321,45 @@ namespace Microsoft.CodeAnalysis
                 // ObsoleteAttribute(string, bool)
 
                 Debug.Assert(args.Length <= 2);
-                message = (string)args[0].ValueInternal;
+                message = (string?)args[0].ValueInternal;
 
                 if (args.Length == 2)
                 {
-                    isError = (bool)args[1].ValueInternal;
+                    Debug.Assert(args[1].ValueInternal is object);
+                    isError = (bool)args[1].ValueInternal!;
                 }
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError);
+            string? diagnosticId = null;
+            string? urlFormat = null;
+            foreach (var (name, value) in this.CommonNamedArguments)
+            {
+                if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName && IsStringProperty(ObsoleteAttributeData.DiagnosticIdPropertyName))
+                {
+                    diagnosticId = value.ValueInternal as string;
+                }
+                else if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
+                {
+                    urlFormat = value.ValueInternal as string;
+                }
+
+                if (diagnosticId is object && urlFormat is object)
+                {
+                    break;
+                }
+            }
+
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
         }
+
+        // Note: it is disallowed to declare a property and a field
+        // with the same name in C# or VB source, even if it is allowed in IL.
+        //
+        // We use a virtual method and override to prevent having to realize the public symbols just to decode obsolete attributes.
+        // Ideally we would use an abstract method, but that would require making the method visible to
+        // public consumers who inherit from this class, which we don't want to do.
+        // Therefore we just make it a 'private protected virtual' method instead.
+        private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable();
 
         /// <summary>
         /// Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.
@@ -312,26 +378,28 @@ namespace Microsoft.CodeAnalysis
                 // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
                 // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
 
-                message = (string)args[0].ValueInternal;
-                isError = ((int)args[1].ValueInternal == 1);
+                Debug.Assert(args[1].ValueInternal is object);
+                message = (string?)args[0].ValueInternal;
+                isError = ((int)args[1].ValueInternal! == 1);
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError, diagnosticId: null, urlFormat: null);
         }
 
         /// <summary>
         /// Decode the arguments to ExperimentalAttribute. ExperimentalAttribute has 0 arguments.
         /// </summary>
-        private ObsoleteAttributeData DecodeExperimentalAttribute()
+        private ObsoleteAttributeData DecodeWindowsExperimentalAttribute()
         {
             // ExperimentalAttribute() 
             Debug.Assert(this.CommonConstructorArguments.Length == 0);
-            return ObsoleteAttributeData.Experimental;
+            return ObsoleteAttributeData.WindowsExperimental;
         }
 
         internal static void DecodeMethodImplAttribute<T, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
             ref DecodeWellKnownAttributeArguments<TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            ITypeSymbolInternal appliedToSymbol)
             where T : CommonMethodWellKnownAttributeData, new()
             where TAttributeSyntaxNode : SyntaxNode
             where TAttributeData : AttributeData
@@ -358,6 +426,18 @@ namespace Microsoft.CodeAnalysis
                     messageProvider.ReportInvalidAttributeArgument(arguments.Diagnostics, arguments.AttributeSyntaxOpt, 0, attribute);
                     options = options & ~(MethodImplOptions)3;
                 }
+
+                if ((options & MethodImplOptions.Async) != 0)
+                {
+                    // Error if [MethodImpl(MethodImplOptions.Async)] is used directly on a method
+                    // We give an exception to the AsyncHelpers special type, as it manually implements the pattern as part of the
+                    // runtime's async support
+                    if ((InternalSpecialType)appliedToSymbol.ExtendedSpecialType != InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)
+                    {
+                        arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MethodImplAttributeAsyncCannotBeUsed, arguments.AttributeSyntaxOpt.Location));
+                        options &= ~MethodImplOptions.Async;
+                    }
+                }
             }
             else
             {
@@ -365,7 +445,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             MethodImplAttributes codeType = MethodImplAttributes.IL;
-            int position = 1;
+            int position = attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in attribute.CommonNamedArguments)
             {
                 if (namedArg.Key == "MethodCodeType")
@@ -421,7 +501,7 @@ namespace Microsoft.CodeAnalysis
                     break;
             }
 
-            int position = 1;
+            int position = attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in attribute.CommonNamedArguments)
             {
                 switch (namedArg.Key)
@@ -508,6 +588,7 @@ namespace Microsoft.CodeAnalysis
             //   
             //   See Roslyn Bug 8603: ETA crashes with InvalidOperationException on duplicate attributes for details.
 
+            Debug.Assert(positionalArg.ValueInternal is object);
             var validOn = (AttributeTargets)positionalArg.ValueInternal;
             bool allowMultiple = DecodeNamedArgument(namedArgs, "AllowMultiple", SpecialType.System_Boolean, false);
             bool inherited = DecodeNamedArgument(namedArgs, "Inherited", SpecialType.System_Boolean, true);

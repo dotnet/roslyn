@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,212 +13,332 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+[DesignerCategory("code")] // this must be fully qualified
+public abstract class AbstractOptionPageControl : UserControl
 {
-    [System.ComponentModel.DesignerCategory("code")] // this must be fully qualified
-    public abstract class AbstractOptionPageControl : UserControl
+    internal readonly OptionStore OptionStore;
+    private readonly List<BindingExpressionBase> _bindingExpressions = [];
+    private readonly List<OptionPageSearchHandler> _searchHandlers = [];
+
+    private protected AbstractOptionPageControl(OptionStore optionStore)
     {
-        internal readonly OptionStore OptionStore;
-        private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
+        InitializeStyles();
 
-        public AbstractOptionPageControl(OptionStore optionStore)
+        if (DesignerProperties.GetIsInDesignMode(this))
         {
-            InitializeStyles();
-
-            if (DesignerProperties.GetIsInDesignMode(this))
-            {
-                return;
-            }
-
-            this.OptionStore = optionStore;
+            return;
         }
 
-        private void InitializeStyles()
+        this.OptionStore = optionStore;
+    }
+
+    private void InitializeStyles()
+    {
+        var groupBoxStyle = new System.Windows.Style(typeof(GroupBox));
+        groupBoxStyle.Setters.Add(new Setter(GroupBox.PaddingProperty, new Thickness() { Left = 7, Right = 7, Top = 7 }));
+        groupBoxStyle.Setters.Add(new Setter(GroupBox.MarginProperty, new Thickness() { Bottom = 3 }));
+        groupBoxStyle.Setters.Add(new Setter(GroupBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+        Resources.Add(typeof(GroupBox), groupBoxStyle);
+
+        var checkBoxStyle = new System.Windows.Style(typeof(CheckBox));
+        checkBoxStyle.Setters.Add(new Setter(CheckBox.MarginProperty, new Thickness() { Bottom = 7 }));
+        checkBoxStyle.Setters.Add(new Setter(CheckBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+        Resources.Add(typeof(CheckBox), checkBoxStyle);
+
+        var textBoxStyle = new System.Windows.Style(typeof(TextBox));
+        textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
+        textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+        Resources.Add(typeof(TextBox), textBoxStyle);
+
+        var radioButtonStyle = new System.Windows.Style(typeof(RadioButton));
+        radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
+        radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+        Resources.Add(typeof(RadioButton), radioButtonStyle);
+
+        var comboBoxStyle = new System.Windows.Style(typeof(ComboBox));
+        comboBoxStyle.Setters.Add(new Setter(ComboBox.MarginProperty, new Thickness() { Bottom = 7 }));
+        comboBoxStyle.Setters.Add(new Setter(ComboBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+        Resources.Add(typeof(ComboBox), comboBoxStyle);
+    }
+
+    private protected void BindToOption(CheckBox checkbox, Option2<bool> optionKey)
+    {
+        var binding = new Binding()
         {
-            var groupBoxStyle = new System.Windows.Style(typeof(GroupBox));
-            groupBoxStyle.Setters.Add(new Setter(GroupBox.PaddingProperty, new Thickness() { Left = 7, Right = 7, Top = 7 }));
-            groupBoxStyle.Setters.Add(new Setter(GroupBox.MarginProperty, new Thickness() { Bottom = 3 }));
-            groupBoxStyle.Setters.Add(new Setter(GroupBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
-            Resources.Add(typeof(GroupBox), groupBoxStyle);
+            Source = new OptionBinding<bool>(OptionStore, optionKey),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default
+        };
 
-            var checkBoxStyle = new System.Windows.Style(typeof(CheckBox));
-            checkBoxStyle.Setters.Add(new Setter(CheckBox.MarginProperty, new Thickness() { Bottom = 7 }));
-            checkBoxStyle.Setters.Add(new Setter(CheckBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
-            Resources.Add(typeof(CheckBox), checkBoxStyle);
+        AddSearchHandler(checkbox);
 
-            var textBoxStyle = new System.Windows.Style(typeof(TextBox));
-            textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
-            textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
-            Resources.Add(typeof(TextBox), textBoxStyle);
+        var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
 
-            var radioButtonStyle = new System.Windows.Style(typeof(RadioButton));
-            radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
-            radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
-            Resources.Add(typeof(RadioButton), radioButtonStyle);
-
-            var comboBoxStyle = new System.Windows.Style(typeof(ComboBox));
-            comboBoxStyle.Setters.Add(new Setter(ComboBox.MarginProperty, new Thickness() { Bottom = 7 }));
-            comboBoxStyle.Setters.Add(new Setter(ComboBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
-            Resources.Add(typeof(ComboBox), comboBoxStyle);
-        }
-
-        protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
+    private protected void BindToOption(CheckBox checkbox, Option2<bool?> nullableOptionKey, Func<bool> onNullValue)
+    {
+        var binding = new Binding()
         {
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<bool>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
+            Source = new OptionBinding<bool?>(OptionStore, nullableOptionKey),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default,
+            Converter = new NullableBoolOptionConverter(onNullValue)
+        };
 
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
+        AddSearchHandler(checkbox);
 
-        protected void BindToOption(CheckBox checkbox, PerLanguageOption<bool> optionKey, string languageName)
+        var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool> optionKey, string languageName)
+    {
+        var binding = new Binding()
         {
-            var binding = new Binding()
-            {
-                Source = new PerLanguageOptionBinding<bool>(OptionStore, optionKey, languageName),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
+            Source = new PerLanguageOptionBinding<bool>(OptionStore, optionKey, languageName),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default
+        };
 
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
+        AddSearchHandler(checkbox);
 
-        protected void BindToOption(TextBox textBox, Option<int> optionKey)
+        var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool?> nullableOptionKey, string languageName, Func<bool> onNullValue)
+    {
+        var binding = new Binding()
         {
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<int>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
+            Source = new PerLanguageOptionBinding<bool?>(OptionStore, nullableOptionKey, languageName),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default,
+            Converter = new NullableBoolOptionConverter(onNullValue)
+        };
 
-            var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
+        AddSearchHandler(checkbox);
 
-        protected void BindToOption(TextBox textBox, PerLanguageOption<int> optionKey, string languageName)
+        var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    private protected void BindToOption(TextBox textBox, Option2<int> optionKey)
+    {
+        var binding = new Binding()
         {
-            var binding = new Binding()
-            {
-                Source = new PerLanguageOptionBinding<int>(OptionStore, optionKey, languageName),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
+            Source = new OptionBinding<int>(OptionStore, optionKey),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default
+        };
 
-            var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
+        var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
 
-        protected void BindToOption<T>(ComboBox comboBox, Option<T> optionKey)
+    private protected void BindToOption(TextBox textBox, PerLanguageOption2<int> optionKey, string languageName)
+    {
+        var binding = new Binding()
         {
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<T>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter(),
-                ConverterParameter = comboBox
-            };
+            Source = new PerLanguageOptionBinding<int>(OptionStore, optionKey, languageName),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default
+        };
 
-            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
+        var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
 
-        protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption<T> optionKey, string languageName)
+    private protected void BindToOption<T>(ComboBox comboBox, Option2<T> optionKey, ContentControl label = null)
+    {
+        var binding = new Binding()
         {
-            var binding = new Binding()
-            {
-                Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
-                Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter(),
-                ConverterParameter = comboBox
-            };
+            Source = new OptionBinding<T>(OptionStore, optionKey),
+            Path = new PropertyPath("Value"),
+            Converter = new ComboBoxItemTagToIndexConverter(),
+            ConverterParameter = comboBox
+        };
 
-            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
+        AddSearchHandler(comboBox);
 
-        protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption<T> optionKey, T optionValue, string languageName)
+        if (label is not null)
+            AddSearchHandler(label);
+
+        var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName, ContentControl label = null)
+    {
+        var binding = new Binding()
         {
-            var binding = new Binding()
-            {
-                Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new RadioButtonCheckedConverter(),
-                ConverterParameter = optionValue
-            };
+            Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
+            Path = new PropertyPath("Value"),
+            Converter = new ComboBoxItemTagToIndexConverter(),
+            ConverterParameter = comboBox
+        };
 
-            var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
+        AddSearchHandler(comboBox);
 
-        internal virtual void OnLoad()
+        if (label is not null)
+            AddSearchHandler(label);
+
+        var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    private protected void BindToOption<T>(RadioButton radiobutton, Option2<T> optionKey, T optionValue)
+    {
+        var binding = new Binding()
         {
-            foreach (var bindingExpression in _bindingExpressions)
-            {
-                bindingExpression.UpdateTarget();
-            }
-        }
+            Source = new OptionBinding<T>(OptionStore, optionKey),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default,
+            Converter = new RadioButtonCheckedConverter(),
+            ConverterParameter = optionValue
+        };
 
-        internal virtual void OnSave()
-        {
-        }
+        AddSearchHandler(radiobutton);
 
-        internal virtual void Close()
+        var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    private protected void BindToOption<T>(RadioButton radioButton, Option2<T?> nullableOptionKey, T optionValue, Func<bool> onNullValue) where T : struct
+    {
+        var binding = new Binding()
         {
+            Source = new OptionBinding<T?>(OptionStore, nullableOptionKey),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default,
+            Converter = new RadioButtonCheckedConverter<T>(onNullValue),
+            ConverterParameter = optionValue,
+        };
+
+        AddSearchHandler(radioButton);
+
+        var bindingExpression = radioButton.SetBinding(RadioButton.IsCheckedProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
+    {
+        var binding = new Binding()
+        {
+            Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
+            Path = new PropertyPath("Value"),
+            UpdateSourceTrigger = UpdateSourceTrigger.Default,
+            Converter = new RadioButtonCheckedConverter(),
+            ConverterParameter = optionValue
+        };
+
+        AddSearchHandler(radiobutton);
+
+        var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
+        _bindingExpressions.Add(bindingExpression);
+    }
+
+    internal virtual void OnLoad()
+    {
+        foreach (var bindingExpression in _bindingExpressions)
+        {
+            bindingExpression.UpdateTarget();
         }
     }
 
-    public class RadioButtonCheckedConverter : IValueConverter
+    internal virtual void OnSave()
     {
-        public object Convert(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
-        {
-            return value.Equals(parameter);
-        }
+    }
 
-        public object ConvertBack(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
+    internal virtual void Close()
+    {
+    }
+
+    internal virtual void OnSearch(string searchString)
+    {
+        var shouldScrollIntoView = true;
+        foreach (var handler in _searchHandlers)
         {
-            return value.Equals(true) ? parameter : Binding.DoNothing;
+            if (handler.TryHighlightSearchString(searchString) && shouldScrollIntoView)
+            {
+                handler.EnsureVisible();
+                shouldScrollIntoView = false;
+            }
         }
     }
 
-    public class ComboBoxItemTagToIndexConverter : IValueConverter
+    private protected void AddSearchHandler(ComboBox comboBox)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        foreach (ComboBoxItem item in comboBox.Items)
         {
-            var comboBox = (ComboBox)parameter;
-
-            for (var index = 0; index < comboBox.Items.Count; index++)
-            {
-                var item = (ComboBoxItem)comboBox.Items[index];
-                if (item.Tag.Equals(value))
-                {
-                    return index;
-                }
-            }
-
-            return -1;
+            AddSearchHandler(item);
         }
+    }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    private protected void AddSearchHandler(ContentControl control)
+    {
+        Debug.Assert(control.Content is string, $"I don't know how to add keyword search support for the '{control.GetType().Name}' control with content type '{control.Content?.GetType().Name ?? "null"}'");
+        if (control.Content is string content)
         {
-            var index = (int)value;
-            if (index == -1)
-            {
-                return null;
-            }
+            _searchHandlers.Add(new OptionPageSearchHandler(control, content));
+        }
+    }
+}
 
-            var comboBox = (ComboBox)parameter;
+public sealed class RadioButtonCheckedConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value.Equals(parameter);
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => value.Equals(true) ? parameter : Binding.DoNothing;
+}
+
+public sealed class RadioButtonCheckedConverter<T>(Func<bool> onNullValue) : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value switch
+        {
+            null => onNullValue(),
+            _ => value.Equals(parameter),
+        };
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => value.Equals(true) ? parameter : Binding.DoNothing;
+}
+
+public class ComboBoxItemTagToIndexConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var comboBox = (ComboBox)parameter;
+
+        for (var index = 0; index < comboBox.Items.Count; index++)
+        {
             var item = (ComboBoxItem)comboBox.Items[index];
-            return item.Tag;
+            if (item.Tag.Equals(value))
+            {
+                return index;
+            }
         }
+
+        return -1;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var index = (int)value;
+        if (index == -1)
+        {
+            return null;
+        }
+
+        var comboBox = (ComboBox)parameter;
+        var item = (ComboBoxItem)comboBox.Items[index];
+        return item.Tag;
     }
 }

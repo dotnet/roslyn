@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -14,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [CompilerTrait(CompilerFeature.AsyncMain)]
+    [CompilerTrait(CompilerFeature.AsyncMain, CompilerFeature.Async)]
     public class CodeGenAsyncMainTests : EmitMetadataTestBase
     {
         [Fact]
@@ -364,7 +366,7 @@ namespace System {
 namespace System.Threading.Tasks {
     public class Task<T>{}
 }";
-            var taskCompilation = CreateCompilationWithMscorlib45(taskAssembly, options: TestOptions.DebugDll);
+            var taskCompilation = CreateCompilationWithMscorlib461(taskAssembly, options: TestOptions.DebugDll);
             taskCompilation.VerifyDiagnostics();
 
             var source = @"
@@ -404,7 +406,7 @@ namespace System {
 namespace System.Threading.Tasks {
     public class Task{}
 }";
-            var taskCompilation = CreateCompilationWithMscorlib45(taskAssembly, options: TestOptions.DebugDll);
+            var taskCompilation = CreateCompilationWithMscorlib461(taskAssembly, options: TestOptions.DebugDll);
             taskCompilation.VerifyDiagnostics();
 
             var source = @"
@@ -444,7 +446,7 @@ class Program {
         Console.Write(""async main"");
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
         }
 
@@ -462,7 +464,7 @@ class Program {
         Console.WriteLine(""async main"");
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             c.VerifyEmitDiagnostics(
                 // (6,28): error CS0161: 'Program.Main()': not all code paths return a value
                 //     static async Task<int> Main() {
@@ -484,7 +486,7 @@ class Program {
         return 10;
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
         }
 
@@ -503,7 +505,7 @@ class Program {
         return 10;
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
         }
 
@@ -521,7 +523,7 @@ class Program {
         Console.Write(""async main"");
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
         }
 
@@ -539,7 +541,7 @@ class Program {
         Console.WriteLine(""async main"");
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             c.VerifyEmitDiagnostics(
                 // (6,28): error CS0161: 'Program.Main()': not all code paths return a value
                 //     static async Task<int> Main() {
@@ -561,7 +563,7 @@ class Program {
         return 10;
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10, args: new string[] { "async main" });
         }
 
@@ -579,7 +581,7 @@ class Program {
         Console.Write(args[0]);
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0, args: new string[] { "async main" });
         }
 
@@ -596,7 +598,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -618,7 +620,7 @@ class A
         return Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -640,7 +642,7 @@ class A
         throw new System.Exception();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
                 // (6,21): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
                 //     static ref Task Main(string[] args)
@@ -662,7 +664,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async static Task Main(string[] args)
@@ -685,7 +687,7 @@ class A
         return Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task Main(string[] args)
@@ -707,7 +709,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -784,7 +786,7 @@ class A
         return Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -804,11 +806,11 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,23): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static void Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -826,14 +828,14 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
                 // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
                 // (6,22): error CS4009: A void or int returning entry point cannot be async
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
             var entry = compilation.GetEntryPoint(CancellationToken.None);
@@ -853,14 +855,14 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
                 // (6,22): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -878,7 +880,7 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -898,7 +900,7 @@ class A
         return Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -918,7 +920,7 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task<int> Main(string[] args)
@@ -940,7 +942,7 @@ class A
         return Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task<int> Main(string[] args)
@@ -962,7 +964,7 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -982,7 +984,7 @@ class A
         return Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics();
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
@@ -1002,7 +1004,7 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task<int> Main()
@@ -1024,7 +1026,7 @@ class A
         return Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task<int> Main()
@@ -1047,7 +1049,7 @@ class A
         return 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
                 // (6,30): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
                 //     async static Task<float> Main()
@@ -1069,7 +1071,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
                 // (6,23): warning CS0402: 'A.Main<T>()': an entry point cannot be generic or in a generic type
                 //     async static void Main<T>()
                 Diagnostic(ErrorCode.WRN_MainCantBeGeneric, "Main").WithArguments("A.Main<T>()").WithLocation(6, 23),
@@ -1090,7 +1092,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (6,23): warning CS0028: 'A.Main(bool)' has the wrong signature to be an entry point
                 //     async static void Main(bool truth)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(bool)").WithLocation(6, 23),
@@ -1111,7 +1113,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (6,23): warning CS0028: 'A.Main<T>(bool)' has the wrong signature to be an entry point
                 //     async static void Main<T>(bool truth)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>(bool)").WithLocation(6, 23),
@@ -1137,7 +1139,7 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
@@ -1159,7 +1161,11 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (10,23): warning CS8892: Method 'A.Main(string[])' will not be used as an entry point because a synchronous entry point 'A.Main()' was found.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("A.Main(string[])", "A.Main()").WithLocation(10, 23)
+                );
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
@@ -1183,16 +1189,16 @@ class A
         return 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (11,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(11, 22),
                 // (11,22): error CS4009: A void or int returning entry point cannot be async
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(11, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(11, 22),
                 // (6,23): error CS4009: A void or int returning entry point cannot be async
                 //     async static void Main(string[] args)
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1211,10 +1217,10 @@ class A
         System.Console.WriteLine(""Async Void Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
                 // (6,23): error CS4009: A void or int returning entry point cannot be async
                 //     static async void Main(string[] args)
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1237,7 +1243,10 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics(
+                // (10,23): warning CS8892: Method 'A.Main(string[])' will not be used as an entry point because a synchronous entry point 'A.Main()' was found.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("A.Main(string[])", "A.Main()").WithLocation(10, 23));
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
@@ -1261,13 +1270,7 @@ class A
         return 0.0F;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task<int> Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 28),
-                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task<float> Main(string[] args)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(12, 30),
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task<int> Main()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task<int>").WithArguments("async main", "7.1").WithLocation(6, 18),
@@ -1298,7 +1301,7 @@ class A
         return Task.FromResult(0.0F);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (6,12): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     static Task<int> Main()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task<int>").WithArguments("async main", "7.1").WithLocation(6, 12),
@@ -1329,7 +1332,7 @@ class A
         return 0.0f;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (10,30): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
                 //     async static Task<float> Main(string[] args)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(11, 30));
@@ -1356,7 +1359,7 @@ class A
         return 0.0f;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
@@ -2059,6 +2062,429 @@ class Program
                 // (43,25): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static async MyTask Main()
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(43, 25));
+        }
+
+        // Removal is tracked by https://github.com/dotnet/roslyn/issues/81097.
+        private const string MinimalAsyncCorelibWithAsyncHelpers = """
+            namespace System
+            {
+                public class Object { }
+                public class Void { }
+                public abstract class ValueType { }
+                public struct Int32 { }
+                public struct Boolean { }
+                public class String { }
+                public class Exception { }
+                public class Attribute { }
+                public abstract class Enum : ValueType { }
+                public abstract class Delegate { }
+                public abstract class MulticastDelegate : Delegate { }
+                public delegate void Action();
+                public class Type { }
+                public struct IntPtr { }
+                public struct RuntimeTypeHandle { }
+                public struct RuntimeFieldHandle { }
+
+                public static class Console
+                {
+                    public static void Write(int value) { }
+                }
+
+                namespace Threading.Tasks
+                {
+                    public class Task
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => default;
+                        public static Task Delay(int millisecondsDelay) => default;
+                    }
+
+                    public class Task<TResult>
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter<TResult> GetAwaiter() => default;
+                    }
+                }
+
+                namespace Runtime.CompilerServices
+                {
+                    public interface INotifyCompletion
+                    {
+                        void OnCompleted(Action continuation);
+                    }
+
+                    public interface ICriticalNotifyCompletion : INotifyCompletion
+                    {
+                        void UnsafeOnCompleted(Action continuation);
+                    }
+
+                    public interface IAsyncStateMachine
+                    {
+                        void MoveNext();
+                        void SetStateMachine(IAsyncStateMachine stateMachine);
+                    }
+
+                    public class AsyncTaskMethodBuilder
+                    {
+                        public static AsyncTaskMethodBuilder Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void SetResult() { }
+                        public void SetException(Exception exception) { }
+                        public Threading.Tasks.Task Task => default;
+                    }
+
+                    public class AsyncTaskMethodBuilder<T>
+                    {
+                        public static AsyncTaskMethodBuilder<T> Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                            where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+                        public void SetResult(T result) { }
+                        public void SetException(Exception exception) { }
+                        public Threading.Tasks.Task<T> Task => default;
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static void HandleAsyncEntryPoint(Threading.Tasks.Task task)
+                        {
+                            task.GetAwaiter().GetResult();
+                        }
+
+                        public static int HandleAsyncEntryPoint(Threading.Tasks.Task<int> task)
+                        {
+                            return task.GetAwaiter().GetResult();
+                        }
+                    }
+
+                    public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
+                    {
+                        public bool IsCompleted => true;
+                        public TResult GetResult() => default;
+                        public void OnCompleted(Action continuation) { }
+                        public void UnsafeOnCompleted(Action continuation) { }
+                    }
+
+                    public struct TaskAwaiter : ICriticalNotifyCompletion
+                    {
+                        public bool IsCompleted => true;
+                        public void GetResult() { }
+                        public void OnCompleted(Action continuation) { }
+                        public void UnsafeOnCompleted(Action continuation) { }
+                    }
+                }
+
+                public enum AttributeTargets { All = ~0 }
+
+                [AttributeUsage(AttributeTargets.All)]
+                public sealed class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+            }
+
+            namespace System.Diagnostics
+            {
+                public class DebuggerStepThroughAttribute : Attribute { }
+            }
+            """;
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainWithHandleAsyncEntryPoint_Task()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task)"
+                  IL_000a:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainWithHandleAsyncEntryPoint_TaskOfInt()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task<int> Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                        return 42;
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
+                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.HandleAsyncEntryPoint(System.Threading.Tasks.Task<int>)"
+                  IL_000a:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_Task()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_TaskOfInt()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task<int> Main()
+                    {
+                        await Task.Delay(1);
+                        Console.Write(1);
+                        return 42;
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<int> V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_RedefinedTask()
+        {
+            var source = """
+                #pragma warning disable CS0436
+
+                class Program
+                {
+                    static async System.Threading.Tasks.Task Main()
+                    {
+                        await System.Threading.Tasks.Task.Delay(1);
+                        System.Console.Write(1);
+                    }
+                }
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null;
+                        public static Task Delay(int millisecondsDelay) => throw null;
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder
+                    {
+                        public System.Threading.Tasks.Task Task => null;
+                        public static AsyncTaskMethodBuilder Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static void HandleAsyncEntryPoint(Threading.Tasks.Task task)
+                        {
+                            task.GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
+        public void AsyncMainFallbackToOldPattern_RedefinedTaskT()
+        {
+            var source = """
+                #pragma warning disable CS0436
+
+                class Program
+                {
+                    static async System.Threading.Tasks.Task<int> Main()
+                    {
+                        await System.Threading.Tasks.Task.Delay(1);
+                        System.Console.Write(1);
+                        return 42;
+                    }
+                }
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task<TResult>
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter<TResult> GetAwaiter() => throw null;
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder<TResult>
+                    {
+                        public System.Threading.Tasks.Task<TResult> Task => null;
+                        public static AsyncTaskMethodBuilder<TResult> Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(TResult result){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static int HandleAsyncEntryPoint(Threading.Tasks.Task<int> task)
+                        {
+                            return task.GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
+
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<int> V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
         }
     }
 }

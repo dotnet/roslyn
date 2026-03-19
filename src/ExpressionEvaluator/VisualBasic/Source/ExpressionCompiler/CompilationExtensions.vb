@@ -21,29 +21,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
-        Friend Function [GetType](compilation As VisualBasicCompilation, moduleVersionId As Guid, typeToken As Integer) As PENamedTypeSymbol
-            Return [GetType](compilation.GetModule(moduleVersionId), CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle))
+        Friend Function [GetType](compilation As VisualBasicCompilation, moduleId As ModuleId, typeToken As Integer) As PENamedTypeSymbol
+            Return [GetType](compilation.GetModule(moduleId), CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle))
         End Function
 
         <Extension>
-        Friend Function GetSourceMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
-            Dim method = GetMethod(compilation, moduleVersionId, methodHandle)
+        Friend Function GetSourceMethod(compilation As VisualBasicCompilation, moduleId As ModuleId, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
+            Dim method = GetMethod(compilation, moduleId, methodHandle)
             Dim metadataDecoder = New MetadataDecoder(DirectCast(method.ContainingModule, PEModuleSymbol))
             Dim containingType = method.ContainingType
             Dim sourceMethodName As String = Nothing
-            If GeneratedNames.TryParseStateMachineTypeName(containingType.Name, sourceMethodName) Then
+            If GeneratedNameParser.TryParseStateMachineTypeName(containingType.Name, sourceMethodName) Then
                 For Each member In containingType.ContainingType.GetMembers(sourceMethodName)
                     Dim candidateMethod = TryCast(member, PEMethodSymbol)
                     If candidateMethod IsNot Nothing Then
-                        Dim [module] = metadataDecoder.Module
-                        methodHandle = candidateMethod.Handle
                         Dim stateMachineTypeName As String = Nothing
-                        If [module].HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, stateMachineTypeName) OrElse
-                            [module].HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, stateMachineTypeName) _
-                        Then
-                            If metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType) Then
-                                Return candidateMethod
-                            End If
+                        If metadataDecoder.Module.HasStateMachineAttribute(candidateMethod.Handle, stateMachineTypeName) AndAlso
+                            metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType) Then
+                            Return candidateMethod
                         End If
                     End If
                 Next
@@ -52,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
-        Friend Function GetMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
-            Dim [module] = compilation.GetModule(moduleVersionId)
+        Friend Function GetMethod(compilation As VisualBasicCompilation, moduleId As ModuleId, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
+            Dim [module] = compilation.GetModule(moduleId)
             Dim reader = [module].Module.MetadataReader
             Dim typeHandle = reader.GetMethodDefinition(methodHandle).GetDeclaringType()
             Dim type = [GetType]([module], typeHandle)
@@ -62,35 +57,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
-        Friend Function GetModule(compilation As VisualBasicCompilation, moduleVersionId As Guid) As PEModuleSymbol
+        Friend Function GetModule(compilation As VisualBasicCompilation, moduleId As ModuleId) As PEModuleSymbol
             For Each pair In compilation.GetBoundReferenceManager().GetReferencedAssemblies()
                 Dim assembly = DirectCast(pair.Value, AssemblySymbol)
                 For Each [module] In assembly.Modules
                     Dim m = DirectCast([module], PEModuleSymbol)
                     Dim id = m.Module.GetModuleVersionIdOrThrow()
-                    If id = moduleVersionId Then
+                    If id = moduleId.Id Then
                         Return m
                     End If
                 Next
             Next
 
-            Throw New ArgumentException($"No module found with MVID '{moduleVersionId}'", NameOf(moduleVersionId))
+            Throw New BadMetadataModuleException(moduleId)
         End Function
 
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
-            Return ToCompilation(metadataBlocks, moduleVersionId:=Nothing, MakeAssemblyReferencesKind.AllAssemblies)
+            Return ToCompilation(metadataBlocks, moduleId:=Nothing, MakeAssemblyReferencesKind.AllAssemblies)
         End Function
 
         <Extension>
-        Friend Function ToCompilationReferencedModulesOnly(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid) As VisualBasicCompilation
-            Return ToCompilation(metadataBlocks, moduleVersionId, MakeAssemblyReferencesKind.DirectReferencesOnly)
+        Friend Function ToCompilationReferencedModulesOnly(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleId As ModuleId) As VisualBasicCompilation
+            Return ToCompilation(metadataBlocks, moduleId, MakeAssemblyReferencesKind.DirectReferencesOnly)
         End Function
 
         <Extension>
-        Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid, kind As MakeAssemblyReferencesKind) As VisualBasicCompilation
+        Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleId As ModuleId, kind As MakeAssemblyReferencesKind) As VisualBasicCompilation
             Dim referencesBySimpleName As IReadOnlyDictionary(Of String, ImmutableArray(Of (AssemblyIdentity, MetadataReference))) = Nothing
-            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, referencesBySimpleName)
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleId, IdentityComparer, kind, referencesBySimpleName)
             Dim options = s_compilationOptions
             If referencesBySimpleName IsNot Nothing Then
                 Debug.Assert(kind = MakeAssemblyReferencesKind.AllReferences)

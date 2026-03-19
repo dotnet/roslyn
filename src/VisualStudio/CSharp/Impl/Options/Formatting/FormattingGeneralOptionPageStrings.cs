@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+#nullable disable
+
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+internal static class FormattingGeneralOptionPageStrings
 {
-    internal static class FormattingGeneralOptionPageStrings
-    {
-        public static string General => CSharpVSResources.General;
-    }
+    public static string General => CSharpVSResources.General;
 }

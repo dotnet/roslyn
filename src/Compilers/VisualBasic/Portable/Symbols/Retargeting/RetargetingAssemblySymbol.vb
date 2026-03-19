@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
     ''' - Symbols from referenced assemblies that must be retargeted are substituted with result of retargeting.
     ''' </summary>
     Friend NotInheritable Class RetargetingAssemblySymbol
-        Inherits NonMissingAssemblySymbol
+        Inherits MetadataOrSourceOrRetargetingAssemblySymbol
 
         ''' <summary>
         ''' The underlying AssemblySymbol, it leaks symbols that should be retargeted.
@@ -172,13 +172,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return _underlyingAssembly.HasImportedFromTypeLibAttribute
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return _underlyingAssembly.HasPrimaryInteropAssemblyAttribute
+            End Get
+        End Property
+
         ''' <summary>
         ''' Lookup declaration for FX type in this Assembly.
         ''' </summary>
         ''' <param name="type"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
             ' Cor library should not have any references and, therefore, should never be
             ' wrapped by a RetargetingAssemblySymbol.
             Throw ExceptionUtilities.Unreachable
@@ -222,8 +234,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return _underlyingAssembly.GetInternalsVisibleToAssemblyNames()
+        End Function
+
         Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
-            Return _underlyingAssembly.AreInternalsVisibleToThisAssembly(potentialGiverOfAccess)
+            Dim conclusion As IVTConclusion = IVTConclusion.NoRelationshipClaimed
+            If Not AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, conclusion) Then
+                conclusion = _underlyingAssembly.MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver:=False)
+
+                If IsDirectlyOrIndirectlyReferenced(potentialGiverOfAccess) Then
+                    AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, conclusion)
+                Else
+                    Debug.Fail("We are performing a check for an unrelated assembly which likely indicates a bug.")
+                End If
+            End If
+
+            Return conclusion = IVTConclusion.Match
+            ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function
 
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
@@ -255,8 +283,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
         End Function
 
+        Friend Overrides Iterator Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+            For Each underlying As NamedTypeSymbol In UnderlyingAssembly.GetAllTopLevelForwardedTypes()
+                Yield Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
+            Next
+        End Function
+
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _underlyingAssembly.GetMetadata()
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return _underlyingAssembly.ObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

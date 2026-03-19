@@ -6,233 +6,225 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class CaseKeywordRecommenderTests : KeywordRecommenderTests
 {
-    public class CaseKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
+@"global using Goo = $$");
+
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterExpr()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterExpr()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = goo $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDottedName()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterDottedName()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = goo.Current $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterSwitch()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterSwitch()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterCase()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    case 0:
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterCase()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                case 0:
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDefault()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterDefault()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPatternCase()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    case String s:
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterPatternCase()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                case String s:
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOneStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-      Console.WriteLine();
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterOneStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                  Console.WriteLine();
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOneStatementPatternCase()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    case String s:
-      Console.WriteLine();
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterOneStatementPatternCase()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                case String s:
+                  Console.WriteLine();
+                $$
+            """));
 
+    [Fact]
+    public Task TestAfterTwoStatements()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                  Console.WriteLine();
+                  Console.WriteLine();
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterTwoStatements()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-      Console.WriteLine();
-      Console.WriteLine();
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default: {
+                }
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterBlock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default: {
-    }
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterBlockPatternCase()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                case String s: {
+                }
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterBlockPatternCase()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    case String s: {
-    }
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterIfElse()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                  if (goo) {
+                  } else {
+                  }
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIfElse()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-      if (goo) {
-      } else {
-      }
-    $$"));
-        }
+    [Fact]
+    public Task TestNotAfterIncompleteStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                   Console.WriteLine(
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterIncompleteStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-       Console.WriteLine(
-    $$"));
-        }
+    [Fact]
+    public Task TestNotInsideBlock()
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default: {
+                  $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInsideBlock()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"switch (expr) {
-    default: {
-      $$"));
-        }
+    [Fact]
+    public Task TestAfterIf()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                  if (goo)
+                    Console.WriteLine();
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIf()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-      if (goo)
-        Console.WriteLine();
-    $$"));
-        }
+    [Fact]
+    public Task TestNotAfterIf()
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                  if (goo)
+                    $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterIf()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-      if (goo)
-        $$"));
-        }
+    [Fact]
+    public Task TestAfterWhile()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                  while (true) {
+                  }
+                $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterWhile()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-      while (true) {
-      }
-    $$"));
-        }
+    [Fact]
+    public Task TestAfterGotoInSwitch()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch (expr) {
+                default:
+                  goto $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGotoInSwitch()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch (expr) {
-    default:
-      goto $$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGotoOutsideSwitch()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterGotoOutsideSwitch()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"goto $$"));
-        }
-    }
 }

@@ -2,44 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-using System;
-using Roslyn.Utilities;
-
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+/// <summary>
+/// Like Span, except it has a start/end line instead of a start/end position.
+/// </summary>
+/// <param name="Start">Inclusive</param>
+/// <param name="End">Exclusive</param>
+internal readonly record struct LineSpan(int Start, int End)
 {
-    // Like Span, except it has a start/end line instead of a start/end position.
-    internal struct LineSpan : IEquatable<LineSpan>
-    {
-        // inclusive
-        public int Start { get; private set; }
-
-        // exclusive
-        public int End { get; private set; }
-
-        public static LineSpan FromBounds(int start, int end)
-        {
-            var result = new LineSpan();
-            result.Start = start;
-            result.End = end;
-            return result;
-        }
-
-        public bool Equals(LineSpan other)
-        {
-            return this.Start == other.Start && this.End == other.End;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is LineSpan other
-                && this.Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(this.Start, this.End);
-        }
-    }
+    public static LineSpan FromBounds(int start, int end)
+        => new(start, end);
 }

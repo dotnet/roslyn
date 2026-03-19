@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Public Class SyntaxFacts
+    Partial Public NotInheritable Class SyntaxFacts
 
         ''' <summary>
         ''' Determine if the token instance represents a syntax trivia such as comment, whitespace, etc...
@@ -1059,7 +1059,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CloseParenToken,
                      SyntaxKind.PercentGreaterThanToken
 
-                    Return True
                     Return True
 
                 ' After an open curly brace ({) or before a closing curly brace (})

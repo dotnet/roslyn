@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    internal struct BinaryOperatorAnalysisResult
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    internal readonly struct BinaryOperatorAnalysisResult : IMemberResolutionResultWithPriority<MethodSymbol>
     {
         public readonly Conversion LeftConversion;
         public readonly Conversion RightConversion;
@@ -33,16 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Kind != OperatorAnalysisResultKind.Undefined; }
         }
 
+        bool IMemberResolutionResultWithPriority<MethodSymbol>.IsApplicable => IsValid;
+        MethodSymbol IMemberResolutionResultWithPriority<MethodSymbol>.MemberWithPriority => Signature.Method;
+
         public override bool Equals(object obj)
         {
             // implement if needed
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override int GetHashCode()
         {
             // implement if needed
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public static BinaryOperatorAnalysisResult Applicable(BinaryOperatorSignature signature, Conversion leftConversion, Conversion rightConversion)
@@ -58,6 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BinaryOperatorAnalysisResult Worse()
         {
             return new BinaryOperatorAnalysisResult(OperatorAnalysisResultKind.Worse, this.Signature, this.LeftConversion, this.RightConversion);
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return $"{Signature.Kind} {Kind} {Signature.Method?.ToDisplayString()}";
         }
     }
 }

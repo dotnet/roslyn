@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -63,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal BasicBlock(ILBuilder builder)
             {
-                Debug.Assert(BitConverter.IsLittleEndian);
                 Initialize(builder);
             }
 
@@ -147,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             //reachability analysis uses this flag to indicate that the block is reachable.
             internal Reachability Reachability;
-
 
             //nearest enclosing exception handler if any
             public virtual ExceptionHandlerScope EnclosingHandler => null;

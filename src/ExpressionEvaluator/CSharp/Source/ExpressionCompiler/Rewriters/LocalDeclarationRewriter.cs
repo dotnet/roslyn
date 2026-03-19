@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.CodeAnalysis.PooledObjects;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -15,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         internal static BoundStatement Rewrite(
             CSharpCompilation compilation,
-            EENamedTypeSymbol container,
             HashSet<LocalSymbol> declaredLocals,
             BoundStatement node,
             ImmutableArray<LocalSymbol> declaredLocalsArray,
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             if ((object)method == null)
             {
-                diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, local.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, local.GetFirstLocation());
                 return;
             }
 
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: method,
                 arguments: ImmutableArray.Create(type, name, customTypeInfoPayloadId, customTypeInfoPayload));
             statements.Add(new BoundExpressionStatement(syntax, call));
@@ -129,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundObjectCreationExpression(
                 syntax,
                 guidConstructor,
-                null,
                 new BoundLiteral(syntax, value, guidConstructor.ContainingType));
         }
 
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create<BoundExpression>(lengthExpr),
-                new BoundArrayInitialization(syntax, initializerExprs.ToImmutableAndFree()),
+                new BoundArrayInitialization(syntax, isInferred: false, initializerExprs.ToImmutableAndFree()),
                 byteArrayType);
         }
     }

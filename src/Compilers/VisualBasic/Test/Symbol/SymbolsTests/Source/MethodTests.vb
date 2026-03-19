@@ -2,15 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1421,7 +1417,6 @@ Interface Interface1
     Overloads Sub Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, so all methods should match methods in base
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")
@@ -1463,7 +1458,6 @@ Interface Interface1
     Overloads Sub Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, but base methods have multiple casing, so don't use it.
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")
@@ -1591,7 +1585,7 @@ Module M2
 
 End Module
 ]]></file>
-</compilation>, references:={SystemCoreRef, SystemRef}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
+</compilation>, references:={Net40.References.SystemCore, Net40.References.System}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim sourceMod = DirectCast(compilation.SourceModule, SourceModuleSymbol)
@@ -1657,7 +1651,6 @@ End Module
             Dim badext6 = DirectCast(modM2.GetMembers("badext6").Single(), MethodSymbol)
             Assert.False(badext6.IsExtensionMethod)
             Assert.True(badext6.MayBeReducibleExtensionMethod)
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                <expected>
@@ -1732,5 +1725,56 @@ BC32065: Type parameters cannot be specified on this declaration.
 ]]></errors>)
         End Sub
 
+        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        Public Sub IsPartialDefinitionOnNonPartial()
+            Dim source = <![CDATA[
+Public Class C
+    Sub M()
+    End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics()
+            Dim m As IMethodSymbol = comp.GetMember(Of MethodSymbol)("C.M")
+            Assert.False(m.IsPartialDefinition)
+        End Sub
+
+        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        Public Sub IsPartialDefinitionOnPartialDefinitionOnly()
+            Dim source = <![CDATA[
+Public Class C
+    Private Partial Sub M()
+    End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics()
+            Dim m As IMethodSymbol = comp.GetMember(Of MethodSymbol)("C.M")
+            Assert.True(m.IsPartialDefinition)
+            Assert.Null(m.PartialDefinitionPart)
+            Assert.Null(m.PartialImplementationPart)
+        End Sub
+
+        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        Public Sub IsPartialDefinitionWithPartialImplementation()
+            Dim source = <![CDATA[
+Public Class C
+    Private Partial Sub M()
+    End Sub
+
+    Private Sub M()
+    End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics()
+            Dim m As IMethodSymbol = comp.GetMember(Of MethodSymbol)("C.M")
+            Assert.True(m.IsPartialDefinition)
+            Assert.Null(m.PartialDefinitionPart)
+            Assert.False(m.PartialImplementationPart.IsPartialDefinition)
+        End Sub
     End Class
 End Namespace

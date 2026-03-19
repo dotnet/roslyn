@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports System.Text
 Imports System.Threading
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -127,10 +127,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim node As InternalSyntax.CompilationUnitSyntax
             Using scanner
-                node = New Parser(scanner).ParseCompilationUnit()
+                Using parser = New Parser(scanner)
+                    node = parser.ParseCompilationUnit()
+                End Using
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
+            ' Diagnostic options are obsolete, but preserved for compat
+#Disable Warning BC40000
             Dim tree = New ParsedSyntaxTree(
                 newText,
                 newText.Encoding,
@@ -140,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 root,
                 isMyTemplate:=False,
                 DiagnosticOptions)
+#Enable Warning BC40000
 
             tree.VerifySource(changes)
             Return tree
@@ -154,6 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new syntax tree from a syntax node.
         ''' </summary>
+        ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         Public Shared Function Create(root As VisualBasicSyntaxNode,
                                       Optional options As VisualBasicParseOptions = Nothing,
                                       Optional path As String = "",
@@ -174,15 +180,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnosticOptions)
         End Function
 
+        Friend Shared Function Create(root As VisualBasicSyntaxNode,
+                                      options As VisualBasicParseOptions,
+                                      path As String,
+                                      encoding As Encoding,
+                                      checksumAlgorithm As SourceHashAlgorithm) As SyntaxTree
+            Return New ParsedSyntaxTree(
+                textOpt:=Nothing,
+                encodingOpt:=encoding,
+                checksumAlgorithm:=checksumAlgorithm,
+                path:=path,
+                options:=options,
+                syntaxRoot:=root,
+                isMyTemplate:=False,
+                diagnosticOptions:=Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
+        ''' </summary>
+        ''' <remarks>This is used by the ExpressionEvaluator.</remarks>
+        Friend Shared Function CreateForDebugger(root As VisualBasicSyntaxNode, text As SourceText, options As VisualBasicParseOptions) As SyntaxTree
+            Debug.Assert(root IsNot Nothing)
+            Return New DebuggerSyntaxTree(root, text, options)
+        End Function
+
         ''' <summary>
         ''' <para>
         ''' Internal helper for <see cref="VisualBasicSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
         ''' This method does not create a clone of the given root, but instead preserves its reference identity.
         ''' </para>
-        ''' <para>NOTE: This method is only intended to be used from <see cref="SyntaxNode.SyntaxTree"/> property.</para>
+        ''' <para>NOTE: This method is only intended to be used from <see cref="SyntaxNode.SyntaxTree"/> property and <c>SyntaxFactory.Parse*</c> methods.</para>
         ''' <para>NOTE: Do not use this method elsewhere, instead use <see cref="Create"/> method for creating a syntax tree.</para>
         ''' </summary>
-        Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode) As SyntaxTree
+        Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode, options As VisualBasicParseOptions) As SyntaxTree
             Debug.Assert(root IsNot Nothing)
 
             Return New ParsedSyntaxTree(
@@ -190,13 +221,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 path:="",
                 encodingOpt:=Nothing,
                 checksumAlgorithm:=SourceHashAlgorithm.Sha1,
-                options:=VisualBasicParseOptions.Default,
+                options:=options,
                 syntaxRoot:=root,
                 isMyTemplate:=False,
                 diagnosticOptions:=Nothing,
                 cloneRoot:=False)
         End Function
 
+        Friend Shared Function ParseTextLazy(text As SourceText,
+                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "") As SyntaxTree
+            Return New LazySyntaxTree(text, If(options, VisualBasicParseOptions.Default), path, Nothing)
+        End Function
+
+        ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         Public Shared Function ParseText(text As String,
                                          Optional options As VisualBasicParseOptions = Nothing,
                                          Optional path As String = "",
@@ -376,6 +414,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return InDocumentationComment(CType(trivia.Token, SyntaxToken))
         End Function
 
+        Private Function GetDirectiveMap() As VisualBasicLineDirectiveMap
+            If _lineDirectiveMap Is Nothing Then
+                ' Create the line directive map on demand.
+                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
+            End If
+
+            Return _lineDirectiveMap
+        End Function
+
         ''' <summary>
         ''' Gets the location in terms of path, line and column for a given <paramref name="span"/>.
         ''' </summary>
@@ -402,39 +449,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the location path is not mapped the resulting path is <see cref="String.Empty"/>.
         ''' </returns>
         Public Overrides Function GetMappedLineSpan(span As TextSpan, Optional cancellationToken As CancellationToken = Nothing) As FileLinePositionSpan
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
-
-            Return _lineDirectiveMap.TranslateSpan(Me.GetText(cancellationToken), Me.FilePath, span)
+            Return GetDirectiveMap().TranslateSpan(GetText(cancellationToken), FilePath, span)
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function GetLineVisibility(position As Integer, Optional cancellationToken As CancellationToken = Nothing) As LineVisibility
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
-
-            Return _lineDirectiveMap.GetLineVisibility(Me.GetText(cancellationToken), position)
+            Return GetDirectiveMap().GetLineVisibility(Me.GetText(cancellationToken), position)
         End Function
 
         Friend Overrides Function GetMappedLineSpanAndVisibility(span As TextSpan, ByRef isHiddenPosition As Boolean) As FileLinePositionSpan
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
+            Return GetDirectiveMap().TranslateSpanAndVisibility(Me.GetText(), Me.FilePath, span, isHiddenPosition)
+        End Function
 
-            Return _lineDirectiveMap.TranslateSpanAndVisibility(Me.GetText(), Me.FilePath, span, isHiddenPosition)
+        ''' <inheritdoc/>
+        Public Overrides Function GetLineMappings(Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of LineMapping)
+            Dim map = GetDirectiveMap()
+            Debug.Assert(map.Entries.Length >= 1)
+            Return If(map.Entries.Length = 1, Array.Empty(Of LineMapping)(), map.GetLineMappings(GetText(cancellationToken).Lines))
         End Function
 
         Public Overrides Function HasHiddenRegions() As Boolean
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
-
-            Return _lineDirectiveMap.HasAnyHiddenRegions()
+            Return GetDirectiveMap().HasAnyHiddenRegions()
         End Function
 
         ' Gets the reporting state for a warning (diagnostic) at a given source location based on warning directives.
@@ -581,7 +616,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          path As String,
                                          encoding As Encoding,
                                          cancellationToken As CancellationToken) As SyntaxTree
+#Disable Warning RS0030 ' Do not used banned APIs
             Return ParseText(text, options, path, encoding, diagnosticOptions:=Nothing, cancellationToken)
+#Enable Warning RS0030
         End Function
 
         ' 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
@@ -599,7 +636,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       options As VisualBasicParseOptions,
                                       path As String,
                                       encoding As Encoding) As SyntaxTree
+#Disable Warning RS0030 ' Do not used banned APIs
             Return Create(root, options, path, encoding, diagnosticOptions:=Nothing)
+#Enable Warning RS0030
         End Function
     End Class
 End Namespace

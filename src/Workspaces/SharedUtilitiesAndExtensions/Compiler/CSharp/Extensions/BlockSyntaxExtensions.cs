@@ -2,143 +2,237 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-#endif
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+internal static class BlockSyntaxExtensions
 {
-    internal static class BlockSyntaxExtensions
+    /// <summary>
+    /// The conditional directives must be of the form `if elif* else endif`.  This ensures that no matter what the
+    /// conditional values evaluate to, there is code that will run in the final expression body.
+    /// </summary>
+    private static readonly Matcher<DirectiveTriviaSyntax> s_conditionalDirectivesMatches =
+        Matcher<DirectiveTriviaSyntax>.Sequence(
+            Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.IfDirectiveTrivia), nameof(IfDirectiveTriviaSyntax)),
+            Matcher<DirectiveTriviaSyntax>.Repeat(
+                Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.ElifDirectiveTrivia), nameof(ElifDirectiveTriviaSyntax))),
+            Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.ElseDirectiveTrivia), nameof(ElseDirectiveTriviaSyntax)),
+            Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.EndIfDirectiveTrivia), nameof(EndIfDirectiveTriviaSyntax)));
+
+    public static bool TryConvertToExpressionBody(
+        this BlockSyntax? block,
+        LanguageVersion languageVersion,
+        ExpressionBodyPreference preference,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ExpressionSyntax? expression,
+        out SyntaxToken semicolonToken)
     {
-        public static bool TryConvertToExpressionBody(
-            this BlockSyntax block, SyntaxKind declarationKind,
-            ParseOptions options, ExpressionBodyPreference preference,
-            out ExpressionSyntax expression,
-            out SyntaxToken semicolonToken)
+        if (preference != ExpressionBodyPreference.Never &&
+            block is { Statements: [var statement] } &&
+            TryGetExpression(statement, languageVersion, out expression, out semicolonToken) &&
+            MatchesPreference(expression, preference) &&
+            HasAcceptableDirectiveShape(statement, block.CloseBraceToken))
         {
-            if (preference != ExpressionBodyPreference.Never &&
-                block != null && block.Statements.Count == 1)
-            {
-                var firstStatement = block.Statements[0];
-
-                var version = ((CSharpParseOptions)options).LanguageVersion;
-                if (TryGetExpression(version, firstStatement, out expression, out semicolonToken) &&
-                    MatchesPreference(expression, preference))
-                {
-                    // The close brace of the block may have important trivia on it (like 
-                    // comments or directives).  Preserve them on the semicolon when we
-                    // convert to an expression body.
-                    semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
-                        block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
-                    return true;
-                }
-            }
-
-            expression = null;
-            semicolonToken = default;
-            return false;
-        }
-
-        public static bool TryConvertToArrowExpressionBody(
-            this BlockSyntax block, SyntaxKind declarationKind,
-            ParseOptions options, ExpressionBodyPreference preference,
-            out ArrowExpressionClauseSyntax arrowExpression,
-            out SyntaxToken semicolonToken)
-        {
-            var version = ((CSharpParseOptions)options).LanguageVersion;
-
-            // We can always use arrow-expression bodies in C# 7 or above.
-            // We can also use them in C# 6, but only a select set of member kinds.
-            var acceptableVersion =
-                version >= LanguageVersion.CSharp7 ||
-                (version >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
-
-            if (!acceptableVersion ||
-                !block.TryConvertToExpressionBody(
-                    declarationKind, options, preference,
-                    out var expression, out semicolonToken))
-            {
-                arrowExpression = null;
-                semicolonToken = default;
-                return false;
-            }
-
-            arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+            // The close brace of the block may have important trivia on it (like 
+            // comments or directives).  Preserve them on the semicolon when we
+            // convert to an expression body.
+            semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
             return true;
         }
 
-        private static bool IsSupportedInCSharp6(SyntaxKind declarationKind)
+        expression = null;
+        semicolonToken = default;
+        return false;
+
+        static bool IsAnyCodeDirective(SyntaxTrivia trivia)
+            => trivia.GetStructure() is ConditionalDirectiveTriviaSyntax;
+
+        // We can have an ifdef'ed section around the statement, as long as each segment of the ifdef
+        // contains an expression-statement or throw-statement.
+        bool HasAcceptableDirectiveShape(StatementSyntax statement, SyntaxToken closeBrace)
         {
-            switch (declarationKind)
+            var leadingDirectives = statement.GetLeadingTrivia().WhereAsArray(IsAnyCodeDirective);
+            var closeBraceLeadingDirectives = block.CloseBraceToken.LeadingTrivia.WhereAsArray(IsAnyCodeDirective);
+
+            if (leadingDirectives.Length == 0)
             {
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
+                // If we don't have any leading directives, our close brace token better not have any as well.
+                return closeBraceLeadingDirectives.Length == 0;
+            }
+
+            // Ok, we have some if/elif/else/endif pp directives above us.  If we're one of hte branches, and all
+            // the rest of the branches are ok as well, we can convert this.
+
+            if (leadingDirectives.Any(t => t.Kind() == SyntaxKind.EndIfDirectiveTrivia))
+                return false;
+
+            var firstDirective = (DirectiveTriviaSyntax)leadingDirectives.First().GetStructure()!;
+            var conditionalDirectives = firstDirective.GetMatchingConditionalDirectives(cancellationToken);
+
+            // The sequence of conditionals have to all be within the method body.
+            if (conditionalDirectives.First().SpanStart <= block.OpenBraceToken.SpanStart ||
+                conditionalDirectives.Last().Span.End >= block.CloseBraceToken.Span.End)
+            {
+                return false;
+            }
+
+            // Last directive has to come after our statement.
+            if (conditionalDirectives.Last().Span.End <= statement.Span.Start)
+                return false;
+
+            // Ensure the directives we found are actually of the right form.  That way when we convert to an expression
+            // form, it will remain that way.
+            var matchIndex = 0;
+            if (!s_conditionalDirectivesMatches.TryMatch(conditionalDirectives, ref matchIndex) ||
+                matchIndex != conditionalDirectives.Length)
+            {
+                return false;
+            }
+
+            // Now, check each part of the conditional chain
+            foreach (var conditionalDirective in conditionalDirectives)
+            {
+                var parentTrivia = conditionalDirective.ParentTrivia;
+                var parentToken = parentTrivia.Token;
+                var triviaIndex = parentToken.LeadingTrivia.IndexOf(parentTrivia);
+                if (triviaIndex + 1 < parentToken.LeadingTrivia.Count)
+                {
+                    var nextTrivia = parentToken.LeadingTrivia[triviaIndex + 1];
+                    if (nextTrivia.Kind() == SyntaxKind.DisabledTextTrivia)
+                    {
+                        // This was a conditional before a disabled section.  Parse out the disabled section and make
+                        // sure it can legally become the body of a expression-bodied member.
+                        var parsed = SyntaxFactory.ParseStatement(nextTrivia.ToFullString());
+                        if (parsed.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+                            return false;
+                    }
+                }
+            }
+
+            // Make sure there aren't any *new* pp directives before the close brace.
+            foreach (var closeBraceDirective in closeBraceLeadingDirectives)
+            {
+                if (!conditionalDirectives.Contains((DirectiveTriviaSyntax)closeBraceDirective.GetStructure()!))
                     return false;
             }
 
             return true;
         }
+    }
 
-        public static bool MatchesPreference(
-            ExpressionSyntax expression, ExpressionBodyPreference preference)
+    public static bool TryConvertToArrowExpressionBody(
+        this BlockSyntax block,
+        SyntaxKind declarationKind,
+        LanguageVersion languageVersion,
+        ExpressionBodyPreference preference,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
+        out SyntaxToken semicolonToken)
+    {
+        // We can always use arrow-expression bodies in C# 7 or above.
+        // We can also use them in C# 6, but only a select set of member kinds.
+        var acceptableVersion =
+            languageVersion >= LanguageVersion.CSharp7 ||
+            (languageVersion >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
+
+        if (acceptableVersion &&
+            block.TryConvertToExpressionBody(languageVersion, preference, cancellationToken, out var expression, out semicolonToken))
         {
-            if (preference == ExpressionBodyPreference.WhenPossible)
-            {
-                return true;
-            }
+            arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
 
-            Contract.ThrowIfFalse(preference == ExpressionBodyPreference.WhenOnSingleLine);
-            return CSharpSyntaxFacts.Instance.IsOnSingleLine(expression, fullSpan: false);
-        }
+            var parent = block.GetRequiredParent();
 
-        private static bool TryGetExpression(
-            LanguageVersion version, StatementSyntax firstStatement,
-            out ExpressionSyntax expression, out SyntaxToken semicolonToken)
-        {
-            if (firstStatement is ExpressionStatementSyntax exprStatement)
+            if (parent.Kind() == SyntaxKind.GetAccessorDeclaration)
             {
-                expression = exprStatement.Expression;
-                semicolonToken = exprStatement.SemicolonToken;
-                return true;
-            }
-            else if (firstStatement is ReturnStatementSyntax returnStatement)
-            {
-                if (returnStatement.Expression != null)
+                var comments = parent.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine());
+                if (!comments.IsEmpty())
                 {
-                    // If there are any comments or directives on the return keyword, move them to
-                    // the expression.
-                    expression = firstStatement.GetLeadingTrivia().Any(t => t.IsDirective || t.IsSingleOrMultiLineComment())
-                        ? returnStatement.Expression.WithLeadingTrivia(returnStatement.GetLeadingTrivia())
-                        : returnStatement.Expression;
-                    semicolonToken = returnStatement.SemicolonToken;
-                    return true;
-                }
-            }
-            else if (firstStatement is ThrowStatementSyntax throwStatement)
-            {
-                if (version >= LanguageVersion.CSharp7 && throwStatement.Expression != null)
-                {
-                    expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
-                    semicolonToken = throwStatement.SemicolonToken;
-                    return true;
+                    arrowExpression = arrowExpression.WithLeadingTrivia(
+                        parent.GetLeadingTrivia());
                 }
             }
 
-            expression = null;
-            semicolonToken = default;
-            return false;
+            return true;
         }
+
+        arrowExpression = null;
+        semicolonToken = default;
+        return false;
+    }
+
+    private static bool IsSupportedInCSharp6(SyntaxKind declarationKind)
+    {
+        switch (declarationKind)
+        {
+            case SyntaxKind.ConstructorDeclaration:
+            case SyntaxKind.DestructorDeclaration:
+            case SyntaxKind.AddAccessorDeclaration:
+            case SyntaxKind.RemoveAccessorDeclaration:
+            case SyntaxKind.GetAccessorDeclaration:
+            case SyntaxKind.SetAccessorDeclaration:
+                return false;
+        }
+
+        return true;
+    }
+
+    public static bool MatchesPreference(
+        ExpressionSyntax expression, ExpressionBodyPreference preference)
+    {
+        if (preference == ExpressionBodyPreference.WhenPossible)
+        {
+            return true;
+        }
+
+        Contract.ThrowIfFalse(preference == ExpressionBodyPreference.WhenOnSingleLine);
+        return CSharpSyntaxFacts.Instance.IsOnSingleLine(expression, fullSpan: false);
+    }
+
+    private static bool TryGetExpression(StatementSyntax firstStatement, LanguageVersion languageVersion, [NotNullWhen(true)] out ExpressionSyntax? expression, out SyntaxToken semicolonToken)
+    {
+        if (firstStatement is ExpressionStatementSyntax exprStatement)
+        {
+            expression = exprStatement.Expression;
+            semicolonToken = exprStatement.SemicolonToken;
+            return true;
+        }
+        else if (firstStatement is ReturnStatementSyntax returnStatement)
+        {
+            if (returnStatement.Expression != null)
+            {
+                // If there are any comments or directives on the return keyword, move them to
+                // the expression.
+                expression = firstStatement.GetLeadingTrivia().Any(t => t.IsDirective || t.IsSingleOrMultiLineComment())
+                    ? returnStatement.Expression.WithLeadingTrivia(returnStatement.GetLeadingTrivia())
+                    : returnStatement.Expression;
+                semicolonToken = returnStatement.SemicolonToken;
+                return true;
+            }
+        }
+        else if (firstStatement is ThrowStatementSyntax throwStatement)
+        {
+            if (languageVersion >= LanguageVersion.CSharp7 && throwStatement.Expression != null)
+            {
+                expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+                semicolonToken = throwStatement.SemicolonToken;
+                return true;
+            }
+        }
+
+        expression = null;
+        semicolonToken = default;
+        return false;
     }
 }

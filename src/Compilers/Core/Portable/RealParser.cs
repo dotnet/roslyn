@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// as that is not part of the C# or VB floating-point literal lexical syntax.
     /// 
     /// If you change this code, please run the set of long-running random tests in the solution
-    /// RandomRealParserTests.sln. That solution is not included in Roslyn.sln as it is Windows-specific.
+    /// RandomRealParserTests.sln. That solution is not included in Roslyn.slnx as it is Windows-specific.
     /// </summary>
     internal static class RealParser
     {
@@ -59,10 +57,10 @@ namespace Microsoft.CodeAnalysis
             return status != Status.Overflow;
         }
 
-        private readonly static BigInteger s_bigZero = BigInteger.Zero;
-        private readonly static BigInteger s_bigOne = BigInteger.One;
-        private readonly static BigInteger s_bigTwo = new BigInteger(2);
-        private readonly static BigInteger s_bigTen = new BigInteger(10);
+        private static readonly BigInteger s_bigZero = BigInteger.Zero;
+        private static readonly BigInteger s_bigOne = BigInteger.One;
+        private static readonly BigInteger s_bigTwo = new BigInteger(2);
+        private static readonly BigInteger s_bigTen = new BigInteger(10);
 
         /// <summary>
         /// Properties of an IEEE floating-point representation.

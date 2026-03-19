@@ -16,12 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overrides Function FormatSourceSpan(span As LinePositionSpan, formatter As IFormatProvider) As String
-            Return "(" & (span.Start.Line + 1).ToString() & ") "
+            Return "(" & (span.Start.Line + 1).ToString(Globalization.CultureInfo.InvariantCulture) & ") "
         End Function
 
         ''' <summary>
         ''' Gets the current DiagnosticFormatter instance.
         ''' </summary>
         Public Shared Shadows ReadOnly Property Instance As New VisualBasicDiagnosticFormatter()
+
+        Friend Overrides Function HasDefaultHelpLinkUri(diagnostic As Diagnostic) As Boolean
+            Return diagnostic.Descriptor.HelpLinkUri = ErrorFactory.GetHelpLink(CType(diagnostic.Code, ERRID))
+        End Function
     End Class
 End Namespace

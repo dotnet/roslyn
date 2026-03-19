@@ -15,22 +15,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Or the current anonymous type object being initialized if we're visiting an anonymous type object initializer.
         /// Or the target of a VB With statement.
         /// </summary>
-        private struct ImplicitInstanceInfo
+        private readonly struct ImplicitInstanceInfo
         {
             /// <summary>
             /// Holds the current object instance being initialized if we're visiting an object initializer.
             /// </summary>
-            public IOperation ImplicitInstance { get; }
+            public IOperation? ImplicitInstance { get; }
 
             /// <summary>
             /// Holds the current anonymous type instance being initialized if we're visiting an anonymous object initializer.
             /// </summary>
-            public INamedTypeSymbol AnonymousType { get; }
+            public INamedTypeSymbol? AnonymousType { get; }
 
             /// <summary>
             /// Holds the captured values for initialized anonymous type properties in an anonymous object initializer.
             /// </summary>
-            public PooledDictionary<IPropertySymbol, IOperation> AnonymousTypePropertyValues { get; }
+            public PooledDictionary<IPropertySymbol, IOperation>? AnonymousTypePropertyValues { get; }
 
             public ImplicitInstanceInfo(IOperation currentImplicitInstance)
             {

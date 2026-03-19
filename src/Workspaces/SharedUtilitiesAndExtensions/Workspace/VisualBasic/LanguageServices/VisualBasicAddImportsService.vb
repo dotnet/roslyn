@@ -5,11 +5,12 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -23,10 +24,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             ImportsStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Private Shared ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
+        Private Shared ReadOnly ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
+
+        Protected Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
 
         Protected Overrides Function IsEquivalentImport(a As SyntaxNode, b As SyntaxNode) As Boolean
             Dim importsA = TryCast(a, ImportsStatementSyntax)
@@ -36,13 +40,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             End If
 
             Return ImportsStatementComparer.Compare(importsA, importsB) = 0
-
         End Function
 
-        Protected Overrides Function GetGlobalImports(compilation As Compilation, generator As SyntaxGenerator) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Function GetGlobalImports(
+                semanticModel As SemanticModel,
+                contextLocation As SyntaxNode,
+                generator As SyntaxGenerator,
+                CancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
 
-            For Each import In compilation.MemberImports()
+            For Each import In semanticModel.Compilation.MemberImports()
                 If TypeOf import Is INamespaceSymbol Then
                     result.Add(generator.NamespaceImportDeclaration(import.ToDisplayString()))
                 End If
@@ -55,6 +62,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             Return usingOrAlias.ImportsClauses.OfType(Of SimpleImportsClauseSyntax).
                                                Where(Function(c) c.Alias IsNot Nothing).
                                                FirstOrDefault()?.Alias
+        End Function
+
+        Public Overrides Function GetUsingDirectivePlacementCodeStyleOption(configOptions As IOptionsReader) As CodeStyleOption2(Of AddImportPlacement)
+            ' Visual Basic doesn't support imports inside namespaces
+            Return AddImportPlacementOptions.Default.UsingDirectivePlacement
         End Function
 
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean
@@ -83,19 +95,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 usingContainer As SyntaxNode,
                 staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
-                placeSystemNamespaceFirst As Boolean,
+                options As AddImportPlacementOptions,
                 root As SyntaxNode,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
 
-            If Not compilationUnit.CanAddImportsStatements(cancellationToken) Then
+            If Not compilationUnit.CanAddImportsStatements(options.AllowInHiddenRegions, cancellationToken) Then
                 Return compilationUnit
             End If
 
             Return compilationUnit.AddImportsStatements(
                 usingDirectives.Concat(aliasDirectives).ToList(),
-                placeSystemNamespaceFirst,
+                options.PlaceSystemNamespaceFirst,
                 Array.Empty(Of SyntaxAnnotation))
         End Function
 

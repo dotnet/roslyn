@@ -4,59 +4,49 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
-using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
+
+[Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DestructorDeclarationSyntax>
 {
-    public class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DestructorDeclarationSyntax>
-    {
-        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new MetadataDestructorDeclarationStructureProvider();
+    protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new DestructorDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task NoCommentsOrAttributes()
-        {
-            const string code = @"
-class Goo
-{
-    $$~Goo();
-}";
+    [Fact]
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
+                class Goo
+                {
+                    $$~Goo();
+                }
+                """);
 
-            await VerifyNoBlockSpansAsync(code);
-        }
+    [Fact]
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
+                class Goo
+                {
+                    {|hint:{|textspan:[Bar]
+                    |}$$~Goo();|}
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task WithAttributes()
-        {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:[Bar]
-    |}$$~Goo();|}
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task WithCommentsAndAttributes()
-        {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Bar]
-    |}$$~Goo();|}
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-    }
+    [Fact]
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
+                class Goo
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Bar]
+                    |}$$~Goo();|}
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
 }

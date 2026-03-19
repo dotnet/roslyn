@@ -3,37 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+
+internal static class ITextBufferEditExtensions
 {
-    internal static class ITextBufferEditExtensions
+#pragma warning disable IDE0052 // Remove unread private members - Used for debugging.
+    private static Exception? s_lastException = null;
+#pragma warning restore IDE0052 // Remove unread private members
+
+    /// <summary>
+    /// Logs exceptions thrown during <see cref="ITextBufferEdit.Apply"/> as we look for issues.
+    /// </summary>
+    /// <param name="edit"></param>
+    public static ITextSnapshot ApplyAndLogExceptions(this ITextBufferEdit edit)
     {
-        private static Exception s_lastException = null;
-
-        /// <summary>
-        /// Logs exceptions thrown during <see cref="ITextBufferEdit.Apply"/> as we look for issues.
-        /// </summary>
-        /// <param name="edit"></param>
-        /// <returns></returns>
-        public static ITextSnapshot ApplyAndLogExceptions(this ITextBufferEdit edit)
+        try
         {
-            try
-            {
-                return edit.Apply();
-            }
-            catch (Exception e) when (ErrorReporting.FatalError.ReportWithoutCrash(e))
-            {
-                s_lastException = e;
+            return edit.Apply();
+        }
+        catch (Exception e) when (ErrorReporting.FatalError.ReportAndCatch(e, ErrorReporting.ErrorSeverity.Critical))
+        {
+            s_lastException = e;
 
-                // Since we don't know what is causing this yet, I don't feel safe that catching
-                // will not cause some further downstream failure. So we'll continue to propagate.
-                throw;
-            }
+            // Since we don't know what is causing this yet, I don't feel safe that catching
+            // will not cause some further downstream failure. So we'll continue to propagate.
+            throw;
         }
     }
 }

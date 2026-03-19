@@ -3,47 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Formatting.Rules
+namespace Microsoft.CodeAnalysis.Formatting.Rules;
+
+[NonDefaultable]
+internal readonly struct NextGetAdjustSpacesOperation(
+    ImmutableArray<AbstractFormattingRule> formattingRules,
+    int index)
 {
-    internal readonly struct NextGetAdjustSpacesOperation
+    private NextGetAdjustSpacesOperation NextOperation
+        => new(formattingRules, index + 1);
+
+    public AdjustSpacesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly int _index;
-        private readonly SyntaxToken _previousToken;
-        private readonly SyntaxToken _currentToken;
-        private readonly AnalyzerConfigOptions _options;
-
-        public NextGetAdjustSpacesOperation(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
-            int index,
-            SyntaxToken previousToken,
-            SyntaxToken currentToken,
-            AnalyzerConfigOptions options)
+        // If we have no remaining handlers to execute, then we'll execute our last handler
+        if (index >= formattingRules.Length)
         {
-            _formattingRules = formattingRules;
-            _index = index;
-            _previousToken = previousToken;
-            _currentToken = currentToken;
-            _options = options;
+            return null;
         }
-
-        private NextGetAdjustSpacesOperation NextOperation
-            => new NextGetAdjustSpacesOperation(_formattingRules, _index + 1, _previousToken, _currentToken, _options);
-
-        public AdjustSpacesOperation Invoke()
+        else
         {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (_index >= _formattingRules.Length)
-            {
-                return null;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                return _formattingRules[_index].GetAdjustSpacesOperation(_previousToken, _currentToken, _options, NextOperation);
-            }
+            // Call the handler at the index, passing a continuation that will come back to here with index + 1
+            return formattingRules[index].GetAdjustSpacesOperation(in previousToken, in currentToken, NextOperation);
         }
     }
 }

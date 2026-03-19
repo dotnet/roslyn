@@ -2,175 +2,85 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal partial class CSharpMethodExtractor : MethodExtractor
+    internal sealed partial class CSharpMethodExtractor
     {
-        private class CSharpAnalyzer : Analyzer
+        private sealed class CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            : Analyzer(selectionResult, localFunction, cancellationToken)
         {
-            private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
+            protected override bool TreatOutAsRef
+                => false;
 
-            public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            protected override bool IsInPrimaryConstructorBaseType()
+                => this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>() != null;
+
+            protected override ITypeSymbol? GetRangeVariableType(IRangeVariableSymbol symbol)
             {
-                var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
-                return analyzer.AnalyzeAsync();
-            }
-
-            public CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-                : base(selectionResult, localFunction, cancellationToken)
-            {
-            }
-
-            protected override VariableInfo CreateFromSymbol(
-                Compilation compilation,
-                ISymbol symbol,
-                ITypeSymbol type,
-                VariableStyle style,
-                bool variableDeclared)
-            {
-                return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(compilation, symbol, type, style, s_nonNoisySyntaxKindSet);
-            }
-
-            protected override int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo)
-            {
-                var numberOfOutParameters = 0;
-                var numberOfRefParameters = 0;
-
-                var outSymbolIndex = -1;
-                var refSymbolIndex = -1;
-
-                for (var i = 0; i < variableInfo.Count; i++)
-                {
-                    var variable = variableInfo[i];
-
-                    // there should be no-one set as return value yet
-                    Contract.ThrowIfTrue(variable.UseAsReturnValue);
-
-                    if (!variable.CanBeUsedAsReturnValue)
-                    {
-                        continue;
-                    }
-
-                    // check modifier
-                    if (variable.ParameterModifier == ParameterBehavior.Ref)
-                    {
-                        numberOfRefParameters++;
-                        refSymbolIndex = i;
-                    }
-                    else if (variable.ParameterModifier == ParameterBehavior.Out)
-                    {
-                        numberOfOutParameters++;
-                        outSymbolIndex = i;
-                    }
-                }
-
-                // if there is only one "out" or "ref", that will be converted to return statement.
-                if (numberOfOutParameters == 1)
-                {
-                    return outSymbolIndex;
-                }
-
-                if (numberOfRefParameters == 1)
-                {
-                    return refSymbolIndex;
-                }
-
-                return -1;
-            }
-
-            protected override ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)
-            {
-                var info = model.GetSpeculativeTypeInfo(this.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
-                if (Microsoft.CodeAnalysis.Shared.Extensions.ISymbolExtensions.IsErrorType(info.Type))
-                {
+                var info = this.SemanticModel.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
+                if (info.Type is IErrorTypeSymbol)
                     return null;
-                }
 
-                return info.Type == null || info.Type.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object
+                return info.Type == null || info.Type.SpecialType == SpecialType.System_Object
                     ? info.Type
                     : info.ConvertedType;
             }
 
-            protected override Tuple<SyntaxNode, SyntaxNode> GetFlowAnalysisNodeRange()
+            protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation(
+                ControlFlowAnalysis controlFlowAnalysis)
             {
-                var csharpSelectionResult = this.SelectionResult as CSharpSelectionResult;
-
-                var first = csharpSelectionResult.GetFirstStatement();
-                var last = csharpSelectionResult.GetLastStatement();
-
-                // single statement case
-                if (first == last ||
-                    first.Span.Contains(last.Span))
-                {
-                    return new Tuple<SyntaxNode, SyntaxNode>(first, first);
-                }
-
-                // multiple statement case
-                var firstUnderContainer = csharpSelectionResult.GetFirstStatementUnderContainer();
-                var lastUnderContainer = csharpSelectionResult.GetLastStatementUnderContainer();
-                return new Tuple<SyntaxNode, SyntaxNode>(firstUnderContainer, lastUnderContainer);
-            }
-
-            protected override bool ContainsReturnStatementInSelectedCode(IEnumerable<SyntaxNode> jumpOutOfRegionStatements)
-            {
-                return jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
+                return ExtractMethodFlowControlInformation.Create(
+                    this.SemanticModel.Compilation,
+                    supportsComplexFlowControl: true,
+                    breakStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
+                    continueStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
+                    returnStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),
+                    endPointIsReachable: controlFlowAnalysis.EndPointIsReachable);
             }
 
             protected override bool ReadOnlyFieldAllowed()
             {
-                var scope = this.SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
+                var scope = SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
                 return scope == null;
             }
 
-            protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
+            protected override bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
             {
-                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope());
+                if (!base.IsReadOutside(symbol, readOutsideMap))
+                    return false;
 
-                switch (symbol)
-                {
-                    case ILocalSymbol localSymbol when localSymbol.NullableAnnotation == NullableAnnotation.Annotated:
-                    case IParameterSymbol parameterSymbol when parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated:
-
-                        // For local symbols and parameters, we can check what the flow state 
-                        // for refences to the symbols are and determine if we can change 
-                        // the nullability to a less permissive state.
-                        var references = selectionOperation.DescendantsAndSelf()
-                            .Where(IsSymbolReferencedByOperation);
-
-                        if (AreAllReferencesNotNull(references))
+                // Special case `using var v = ...` where the selection grabs the last statement that follows the local
+                // declaration.  The compiler here considers the local variable 'read outside' since it makes it to the
+                // implicit 'dispose' call that comes after the last statement.  However, as that implicit dispose would
+                // move if we move the `using var v` entirely into the new method, then it's still safe to move as there's
+                // no actual "explicit user read" that happens in the outer caller at all.
+                if (!this.SelectionResult.IsExtractMethodOnExpression &&
+                    symbol is ILocalSymbol { IsUsing: true, DeclaringSyntaxReferences: [var reference] } &&
+                    reference.GetSyntax(this.CancellationToken) is VariableDeclaratorSyntax
+                    {
+                        Parent: VariableDeclarationSyntax
                         {
-                            return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                            Parent: LocalDeclarationStatementSyntax
+                            {
+                                Parent: BlockSyntax { Statements: [.., var lastBlockStatement] },
+                            },
                         }
-
-                        return base.GetSymbolType(semanticModel, symbol);
-
-                    default:
-                        return base.GetSymbolType(semanticModel, symbol);
+                    })
+                {
+                    var lastStatement = this.SelectionResult.GetLastStatement();
+                    if (lastStatement == lastBlockStatement)
+                        return false;
                 }
 
-                bool AreAllReferencesNotNull(IEnumerable<IOperation> references)
-                => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
-
-                bool IsSymbolReferencedByOperation(IOperation operation)
-                    => operation switch
-                    {
-                        ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
-                        IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
-                        IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target),
-                        _ => false
-                    };
+                return true;
             }
         }
     }

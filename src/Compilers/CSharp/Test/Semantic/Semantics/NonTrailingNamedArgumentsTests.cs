@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -155,10 +158,10 @@ public class C
         c.M(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { SystemCoreRef });
+            var verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { Net40.References.SystemCore });
             verifier.VerifyDiagnostics();
 
-            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { Net40.References.SystemCore });
             comp.VerifyDiagnostics(
                 // (14,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.M(a: 1, 2);
@@ -636,7 +639,7 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (4,19): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     static void M(params int[] x, int y)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] x").WithLocation(4, 19),
                 // (9,14): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'
@@ -839,9 +842,9 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
-                // (7,9): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
+                // (7,21): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
                 //         local(x: 1, d); 
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "local(x: 1, d)").WithArguments("y", "local").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "d").WithArguments("y", "local").WithLocation(7, 21),
                 // (7,21): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
                 //         local(x: 1, d); 
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "d").WithLocation(7, 21)
@@ -849,7 +852,7 @@ class C
         }
 
         [Fact]
-        public void TestDynamicWhenNotInvocation()
+        public void TestDynamicWhenNotInvocation_01()
         {
             var source = @"
 class C
@@ -869,7 +872,40 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void TestDynamicWhenNotInvocation_02()
+        {
+            var source = @"
+class C
+{
+    int this[int a, int b]
+    {
+        get
+        {
+            System.Console.Write($""{a} {b}."");
+            return 0;
+        }
+    }
+    int this[int a, long b]
+    {
+        get
+        {
+            return 0;
+        }
+    }
+    void M(C c)
+    {
+        dynamic d = new object();
+        c[a: 1, d] = d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                );
         }
 
         [Fact]

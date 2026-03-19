@@ -2,62 +2,392 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagEvaluation
     {
-        public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
-        public virtual bool Equals([NotNullWhen(true)] BoundDagEvaluation? other)
+        public sealed override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
+        public virtual bool Equals(BoundDagEvaluation other)
         {
-            return !(other is null) &&
-                this.Kind == other.Kind &&
-                this.Input.Equals(other.Input) &&
-                this.Symbol.Equals(other.Symbol, TypeCompareKind.AllIgnoreOptions);
-        }
-        private Symbol Symbol
-        {
-            get
+            if (DecisionDagBuilder.IsEqualEvaluation(this, other))
             {
-                switch (this)
-                {
-                    case BoundDagFieldEvaluation e: return e.Field.CorrespondingTupleField ?? e.Field;
-                    case BoundDagPropertyEvaluation e: return e.Property;
-                    case BoundDagTypeEvaluation e: return e.Type;
-                    case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;
-                    case BoundDagIndexEvaluation e: return e.Property;
-                    default: throw ExceptionUtilities.UnexpectedValue(this.Kind);
-                }
+                Debug.Assert(other.GetHashCode() == this.GetHashCode());
+                Debug.Assert(DecisionDagBuilder.IsEqualEvaluation(other, this));
+                Debug.Assert(other is BoundDagIndexerEvaluation or BoundDagTypeEvaluation or BoundDagPassThroughEvaluation ||
+                             this is BoundDagIndexerEvaluation or BoundDagTypeEvaluation or BoundDagPassThroughEvaluation ||
+                             other.Input.Equals(this.Input));
+                return true;
             }
+
+            return false;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
+            return Hash.Combine((int)Kind, this.Symbol?.GetHashCode() ?? 0);
         }
 
-        public static bool operator ==(BoundDagEvaluation? left, BoundDagEvaluation? right)
+        /// <summary>
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the input.
+        /// </summary>
+        public virtual bool IsEquivalentTo(BoundDagEvaluation other)
         {
-            return (left is null) ? right is null : left.Equals(right);
+            return this == other ||
+               this.Kind == other.Kind &&
+               Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
         }
-        public static bool operator !=(BoundDagEvaluation? left, BoundDagEvaluation? right)
+
+        private Symbol? Symbol
         {
-            return !(left == right);
+            get
+            {
+                var result = this switch
+                {
+                    BoundDagFieldEvaluation e => e.Field.CorrespondingTupleField ?? e.Field,
+                    BoundDagPropertyEvaluation e => e.Property,
+                    BoundDagTypeEvaluation e => e.Type,
+                    BoundDagDeconstructEvaluation e => e.DeconstructMethod,
+                    BoundDagIndexEvaluation e => e.Property,
+                    BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
+                    BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
+                    BoundDagAssignmentEvaluation or BoundDagPassThroughEvaluation => null,
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
+                };
+
+                Debug.Assert(result is not null || this is BoundDagAssignmentEvaluation or BoundDagPassThroughEvaluation);
+                return result;
+
+                static Symbol? getSymbolFromIndexerAccess(BoundExpression indexerAccess)
+                {
+                    switch (indexerAccess)
+                    {
+                        // array[Range]
+                        case BoundArrayAccess arrayAccess:
+                            return arrayAccess.Expression.Type;
+
+                        // array[Index]
+                        case BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess arrayAccess }:
+                            return arrayAccess.Expression.Type;
+
+                        default:
+                            return Binder.GetIndexerOrImplicitIndexerSymbol(indexerAccess);
+                    }
+                }
+            }
+        }
+
+        public sealed override BoundDagTest UpdateTestImpl(BoundDagTemp input) => Update(input);
+
+        public abstract BoundDagTemp MakeResultTemp();
+        public new BoundDagEvaluation Update(BoundDagTemp input) => UpdateEvaluationImpl(input);
+        public abstract BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input);
+
+        public virtual OneOrMany<BoundDagTemp> AllOutputs()
+        {
+            return new OneOrMany<BoundDagTemp>(MakeResultTemp());
+        }
+
+#if DEBUG
+        private int _id = -1;
+
+        public int Id
+        {
+            get
+            {
+                return _id;
+            }
+            internal set
+            {
+                RoslynDebug.Assert(value > 0, "Id must be positive but was set to " + value);
+                RoslynDebug.Assert(_id == -1, $"Id was set to {_id} and set again to {value}");
+                _id = value;
+            }
+        }
+
+        internal string GetOutputTempDebuggerDisplay()
+        {
+            var id = Id;
+            return id switch
+            {
+                -1 => "<uninitialized>",
+
+                // Note that we never expect to create an evaluation with id 0
+                // To do so would imply that dag evaluation assigns to the original input
+                0 => "<error>",
+
+                _ => $"t{id}"
+            };
+        }
+#endif
+    }
+
+    partial class BoundDagTypeEvaluation
+    {
+        public override BoundDagTemp MakeResultTemp()
+        {
+            return new BoundDagTemp(Syntax, Type, this);
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagTypeEvaluation Update(BoundDagTemp input)
+        {
+            return Update(Type, input);
+        }
+
+        public override int GetHashCode()
+        {
+            BoundDagEvaluation? nonTypeEvaluation = DecisionDagBuilder.SkipAllTypeEvaluations(this);
+
+            if (DecisionDagBuilder.IsUnionTryGetValueEvaluation(nonTypeEvaluation, out _, out BoundDagTemp? unionInstance) ||
+                DecisionDagBuilder.IsUnionValueEvaluation(nonTypeEvaluation, out unionInstance))
+            {
+                return unionInstance.GetHashCode();
+            }
+
+            return nonTypeEvaluation?.GetHashCode() ?? 0;
+        }
+    }
+
+    partial class BoundDagFieldEvaluation
+    {
+        public override BoundDagTemp MakeResultTemp()
+        {
+            return new BoundDagTemp(Syntax, Field.Type, this);
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagFieldEvaluation Update(BoundDagTemp input)
+        {
+            return Update(Field, input);
+        }
+    }
+
+    partial class BoundDagPropertyEvaluation
+    {
+        public override BoundDagTemp MakeResultTemp()
+        {
+            return new BoundDagTemp(Syntax, Property.Type, this);
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagPropertyEvaluation Update(BoundDagTemp input)
+        {
+            return Update(Property, IsLengthOrCount, input);
         }
     }
 
     partial class BoundDagIndexEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public override bool Equals(BoundDagEvaluation? obj)
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return base.Equals(obj) &&
-                // base.Equals checks the kind field, so the following cast is safe
+            return base.IsEquivalentTo(obj) &&
+                // base.IsEquivalentTo checks the kind field, so the following cast is safe
                 this.Index == ((BoundDagIndexEvaluation)obj).Index;
         }
+
+        public override BoundDagTemp MakeResultTemp()
+        {
+            Debug.Assert(Property.Type.IsObjectType());
+            return new BoundDagTemp(Syntax, Property.Type, this);
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagIndexEvaluation Update(BoundDagTemp input)
+        {
+            return Update(Property, Index, input);
+        }
+    }
+
+    partial class BoundDagIndexerEvaluation
+    {
+        public override int GetHashCode()
+        {
+            var (input, _, index) = DecisionDagBuilder.GetCanonicalInput(this);
+            return Hash.Combine(DecisionDagBuilder.OriginalInput(input), Hash.Combine((int)Kind, index));
+        }
+
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Index == ((BoundDagIndexerEvaluation)obj).Index;
+        }
+
+        private partial void Validate()
+        {
+            Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+        }
+
+        public override BoundDagTemp MakeResultTemp()
+        {
+            return new BoundDagTemp(Syntax, IndexerType, this);
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagIndexerEvaluation Update(BoundDagTemp input)
+        {
+            return Update(IndexerType, LengthTemp, Index, IndexerAccess, ReceiverPlaceholder, ArgumentPlaceholder, input);
+        }
+
+        public BoundDagIndexerEvaluation Update(BoundDagTemp lengthTemp, BoundDagTemp input)
+        {
+            return Update(IndexerType, lengthTemp, Index, IndexerAccess, ReceiverPlaceholder, ArgumentPlaceholder, input);
+        }
+
+        public override OneOrMany<BoundDagTemp> AllInputs()
+        {
+            return new OneOrMany<BoundDagTemp>([Input, LengthTemp]);
+        }
+    }
+
+    partial class BoundDagSliceEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                (BoundDagSliceEvaluation)obj is var e &&
+                this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
+        }
+
+        private partial void Validate()
+        {
+            Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+        }
+
+        public override BoundDagTemp MakeResultTemp()
+        {
+            return new BoundDagTemp(Syntax, SliceType, this);
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagSliceEvaluation Update(BoundDagTemp input)
+        {
+            return Update(SliceType, LengthTemp, StartIndex, EndIndex, IndexerAccess, ReceiverPlaceholder, ArgumentPlaceholder, input);
+        }
+
+        public BoundDagSliceEvaluation Update(BoundDagTemp lengthTemp, BoundDagTemp input)
+        {
+            return Update(SliceType, lengthTemp, StartIndex, EndIndex, IndexerAccess, ReceiverPlaceholder, ArgumentPlaceholder, input);
+        }
+
+        public override OneOrMany<BoundDagTemp> AllInputs()
+        {
+            return new OneOrMany<BoundDagTemp>([Input, LengthTemp]);
+        }
+    }
+
+    partial class BoundDagAssignmentEvaluation
+    {
+        public override int GetHashCode() => Hash.Combine(base.GetHashCode(), this.Target.GetHashCode());
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
+        }
+
+        public override bool Equals(BoundDagEvaluation other)
+        {
+            return this == other ||
+               other is BoundDagAssignmentEvaluation assignment &&
+               this.Target.Equals(assignment.Target) &&
+               this.Input.Equals(assignment.Input);
+        }
+
+        public override BoundDagTemp MakeResultTemp()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagAssignmentEvaluation Update(BoundDagTemp input)
+        {
+            return Update(Target, input);
+        }
+    }
+
+    partial class BoundDagDeconstructEvaluation
+    {
+        public ArrayBuilder<BoundDagTemp> MakeOutParameterTemps()
+        {
+            MethodSymbol method = DeconstructMethod;
+            int extensionExtra = method.IsStatic ? 1 : 0;
+            int count = method.ParameterCount - extensionExtra;
+            var builder = ArrayBuilder<BoundDagTemp>.GetInstance(count);
+            for (int i = 0; i < count; i++)
+            {
+                ParameterSymbol parameter = method.Parameters[i + extensionExtra];
+                Debug.Assert(parameter.RefKind == RefKind.Out);
+                builder.Add(new BoundDagTemp(Syntax, parameter.Type, this, i));
+            }
+
+            return builder;
+        }
+
+        public BoundDagTemp MakeFirstOutParameterTemp()
+        {
+            MethodSymbol method = DeconstructMethod;
+            int extensionExtra = method.IsStatic ? 1 : 0;
+            ParameterSymbol parameter = method.Parameters[extensionExtra];
+            Debug.Assert(parameter.RefKind == RefKind.Out);
+            return new BoundDagTemp(Syntax, parameter.Type, this, 0);
+        }
+
+        public BoundDagTemp MakeReturnValueTemp()
+        {
+            Debug.Assert(!DeconstructMethod.ReturnsVoid);
+            return new BoundDagTemp(Syntax, DeconstructMethod.ReturnType, this, index: -1);
+        }
+
+        public override BoundDagTemp MakeResultTemp()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagDeconstructEvaluation Update(BoundDagTemp input)
+        {
+            return Update(DeconstructMethod, input);
+        }
+
+        public override OneOrMany<BoundDagTemp> AllOutputs()
+        {
+            var builder = MakeOutParameterTemps();
+            if (!DeconstructMethod.ReturnsVoid)
+            {
+                builder.Add(MakeReturnValueTemp());
+            }
+
+            if (builder is [var one])
+            {
+                builder.Free();
+                return new OneOrMany<BoundDagTemp>(one);
+            }
+
+            return new OneOrMany<BoundDagTemp>(builder.ToImmutableAndFree());
+        }
+    }
+
+    partial class BoundDagPassThroughEvaluation
+    {
+        public override int GetHashCode()
+        {
+            Debug.Assert(Input.Source is BoundDagTypeEvaluation);
+            return DecisionDagBuilder.NotTypeEvaluationInput(Input.Source).GetHashCode();
+        }
+
+        public override BoundDagTemp MakeResultTemp()
+        {
+            return Input;
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
     }
 }

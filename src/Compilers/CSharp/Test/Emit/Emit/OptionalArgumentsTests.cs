@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         System.Console.WriteLine(""{0}: {1}"", o.GetType(), value);
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib461, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"System.Reflection.Missing: System.Reflection.Missing
@@ -225,7 +227,7 @@ partial class C
                 var argument = attribute.ConstructorArguments.Last();
                 Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name);
                 Assert.Equal(expectedDefault, argument.Value);
-                Assert.Equal(hasDefault, ((Cci.IParameterDefinition)parameter).HasDefaultValue);
+                Assert.Equal(hasDefault, ((Cci.IParameterDefinition)parameter.GetCciAdapter()).HasDefaultValue);
             }
             if (hasDefault)
             {

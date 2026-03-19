@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Cci;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.Utilities
@@ -35,7 +38,7 @@ namespace Roslyn.Test.Utilities
             throw MakeException();
         }
 
-        public override void DefineCustomMetadata(byte[] metadata)
+        public override void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition)
         {
             throw MakeException();
         }
@@ -121,6 +124,11 @@ namespace Roslyn.Test.Utilities
         }
 
         public override void WriteTo(Stream stream)
+        {
+            throw MakeException();
+        }
+
+        public override void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
         {
             throw MakeException();
         }

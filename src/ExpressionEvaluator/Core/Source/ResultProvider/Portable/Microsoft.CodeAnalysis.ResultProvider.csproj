@@ -5,9 +5,19 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <!-- We need to support Windows OneCore, which runs Core CLR 1.0 (Windows OneCore) -->
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+
+    <!-- IPooled is not available in ResultProvider -->
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+
+    <!--
+      Workaround: https://github.com/dotnet/roslyn/issues/78392
+      We use NO_VALUE_TUPLE symbol to conditionally compile the code that
+      uses ValueTuple because remote debugger does not ship it.
+    -->
+    <DefineConstants>$(DefineConstants);NO_VALUE_TUPLE</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
@@ -19,20 +29,8 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs">
       <Link>Compiler\InternalUtilities\Debug.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
-      <Link>Compiler\InternalUtilities\FailFast.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
-      <Link>Compiler\InternalUtilities\FatalError.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumField.cs">
       <Link>Compiler\InternalUtilities\EnumField.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
-      <Link>Compiler\InternalUtilities\NullableAttributes.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
@@ -51,6 +49,9 @@
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
+      <Link>Compiler\Symbols\CommonGeneratedNames.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Xml\XmlCharType.cs">
       <Link>Compiler\Xml\XmlCharType.cs</Link>
@@ -76,8 +77,10 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" />
+    <PackageReference Include="System.Memory" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

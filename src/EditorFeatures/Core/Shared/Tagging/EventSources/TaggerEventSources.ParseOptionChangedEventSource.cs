@@ -2,47 +2,52 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private sealed class ParseOptionChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
-        private class ParseOptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
+        protected override void ConnectToWorkspace(Workspace workspace)
         {
-            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
-            {
-            }
+            Debug.Assert(_workspaceChangedDisposer == null);
+            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+        }
 
-            protected override void ConnectToWorkspace(Workspace workspace)
-            {
-                workspace.WorkspaceChanged += OnWorkspaceChanged;
-            }
+        protected override void DisconnectFromWorkspace(Workspace workspace)
+        {
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
+        }
 
-            protected override void DisconnectFromWorkspace(Workspace workspace)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
+        {
+            if (e.Kind == WorkspaceChangeKind.ProjectChanged)
             {
-                workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            }
+                RoslynDebug.AssertNotNull(e.ProjectId);
+                var oldProject = e.OldSolution.GetRequiredProject(e.ProjectId);
+                var newProject = e.NewSolution.GetRequiredProject(e.ProjectId);
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-            {
-                if (e.Kind == WorkspaceChangeKind.ProjectChanged)
+                if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                 {
-                    var oldProject = e.OldSolution.GetProject(e.ProjectId);
-                    var newProject = e.NewSolution.GetProject(e.ProjectId);
-
-                    if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
+                    var workspace = e.NewSolution.Workspace;
+                    var documentId = workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+                    if (documentId != null)
                     {
-                        var workspace = e.NewSolution.Workspace;
-                        var documentIds = workspace.GetRelatedDocumentIds(SubjectBuffer.AsTextContainer());
+                        var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
 
-                        if (documentIds.Any(d => d.ProjectId == e.ProjectId))
+                        if (relatedDocumentIds.Any(static (d, e) => d.ProjectId == e.ProjectId, e))
                         {
-                            this.RaiseChanged();
+                            RaiseChanged();
                         }
                     }
                 }

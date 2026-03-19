@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class RootSingleNamespaceDeclaration
         Inherits GlobalNamespaceDeclaration
 
-        Private _referenceDirectives As ImmutableArray(Of ReferenceDirective)
+        Private ReadOnly _referenceDirectives As ImmutableArray(Of ReferenceDirective)
         Private ReadOnly _hasAssemblyAttributes As Boolean
 
         Public ReadOnly Property ReferenceDirectives As ImmutableArray(Of ReferenceDirective)

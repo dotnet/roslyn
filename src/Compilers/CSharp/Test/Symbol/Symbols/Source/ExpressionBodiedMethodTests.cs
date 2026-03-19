@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -65,7 +67,7 @@ class C
         [Fact]
         public void Syntax02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int M() {} => 1;
@@ -86,7 +88,7 @@ class C
 interface C
 {
     int M() => 1;
-}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     int M() => 1;
@@ -97,7 +99,7 @@ interface C
         [Fact]
         public void Syntax04()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class C
 {
   public abstract int M() => 1;
@@ -111,7 +113,7 @@ abstract class C
         [Fact]
         public void Syntax05()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
    public abstract int M() => 1;
@@ -120,7 +122,7 @@ class C
     // (4,24): error CS0500: 'C.M()' cannot declare a body because it is marked abstract
     //    public abstract int M() => 1;
     Diagnostic(ErrorCode.ERR_AbstractHasBody, "M").WithArguments("C.M()").WithLocation(4, 24),
-    // (4,24): error CS0513: 'C.M()' is abstract but it is contained in non-abstract class 'C'
+    // (4,24): error CS0513: 'C.M()' is abstract but it is contained in non-abstract type 'C'
     //    public abstract int M() => 1;
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("C.M()", "C").WithLocation(4, 24));
         }
@@ -128,7 +130,7 @@ class C
         [Fact]
         public void Syntax06()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class C
 {
    abstract int M() => 1;
@@ -146,7 +148,7 @@ abstract class C
         [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void Syntax07()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 public class C {
     public bool IsNull<T>(T t) where T : class => t != null;
 }");
@@ -157,7 +159,7 @@ public class C {
         [WorkItem(1029117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029117")]
         public void Syntax08()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 namespace MyNamespace
 {
     public partial struct Goo
@@ -174,7 +176,7 @@ namespace MyNamespace
         [Fact]
         public void LambdaTest01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 using System;
 class C
 {
@@ -194,7 +196,7 @@ class C
     public static explicit operator C(int i) => new C();
     public static C operator++(C c) => (C)c.M();
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics();
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMember("C");
@@ -215,7 +217,7 @@ class C
         [Fact]
         public void Override01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class B
 {
     public virtual int M() { return 0; }
@@ -229,7 +231,7 @@ class C : B
         [Fact]
         public void VoidExpression()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public void M() => System.Console.WriteLine(""goo"");
@@ -239,7 +241,7 @@ class C
         [Fact]
         public void VoidExpression2()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int M() => System.Console.WriteLine(""goo"");
@@ -252,7 +254,7 @@ class C
         [Fact]
         public void InterfaceImplementation01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 interface I 
 {
     int M();
@@ -305,7 +307,7 @@ class C : I, J, K
         [ClrOnlyFact]
         public void Emit01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class A
 {
     protected abstract string Z();
@@ -348,7 +350,7 @@ goo8");
         [ClrOnlyFact]
         public void Emit02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public void M() { System.Console.WriteLine(""Hello""); }
@@ -374,7 +376,7 @@ World");
         [Fact]
         public void RefReturningExpressionBodiedMethod()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
@@ -387,7 +389,7 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedMethod()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerMemberCref:
                 case SyntaxKind.OperatorMemberCref:
                 case SyntaxKind.ConversionOperatorMemberCref:
+                case SyntaxKind.ExtensionMemberCref:
                     {
                         AddTypeParameters((MemberCrefSyntax)_crefSyntax, map);
                         break;
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddTypeParameters(qualifiedNameSyntax.Left, map);
                     break;
                 case SyntaxKind.GenericName:
-                    AddTypeParameters((GenericNameSyntax)typeSyntax, map);
+                    AddTypeParameters(((GenericNameSyntax)typeSyntax).TypeArgumentList.Arguments, map);
                     break;
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.PredefinedType:
@@ -101,20 +104,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddTypeParameters(MemberCrefSyntax memberSyntax, MultiDictionary<string, TypeParameterSymbol> map)
         {
             // Other members have arity 0.
-            if (memberSyntax.Kind() == SyntaxKind.NameMemberCref)
+            if (memberSyntax is NameMemberCrefSyntax nameMemberCref)
             {
-                AddTypeParameters(((NameMemberCrefSyntax)memberSyntax).Name, map);
+                AddTypeParameters(nameMemberCref.Name, map);
+            }
+            else if (memberSyntax is ExtensionMemberCrefSyntax extensionCref)
+            {
+                if (extensionCref.TypeArgumentList is { } extensionTypeArguments)
+                {
+                    AddTypeParameters(extensionTypeArguments.Arguments, map);
+                }
+
+                AddTypeParameters(extensionCref.Member, map);
             }
         }
 
-        private static void AddTypeParameters(GenericNameSyntax genericNameSyntax, MultiDictionary<string, TypeParameterSymbol> map)
+        private static void AddTypeParameters(SeparatedSyntaxList<TypeSyntax> typeArguments, MultiDictionary<string, TypeParameterSymbol> map)
         {
             // NOTE: Dev11 does not warn about duplication, it just matches parameter types to the
             // *last* type parameter with the same name.  That's why we're iterating backwards and
             // skipping subsequent symbols with the same name.  This can result in some surprising
             // behavior.  For example, both 'T's in "A<T>.B<T>" bind to the second implicitly
             // declared type parameter.
-            SeparatedSyntaxList<TypeSyntax> typeArguments = genericNameSyntax.TypeArgumentList.Arguments;
             for (int i = typeArguments.Count - 1; i >= 0; i--)
             {
                 // Other types (non-identifiers) are allowed in error scenarios, but they do not introduce new 
@@ -134,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (CanConsiderTypeParameters(options))
             {

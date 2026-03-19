@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -73,8 +72,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             public static readonly string[] SourceRootMetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
         }
 
+        [return: NotNullIfNotNull(nameof(path))]
+        private static string? NormalizePath(string? path)
+        {
+            return string.IsNullOrEmpty(path) ? path : EnsureEndsWithSlash(Utilities.GetFullPathNoThrow(path));
+        }
+
         private static string EnsureEndsWithSlash(string path)
-            => (path[path.Length - 1] == '/') ? path : path + '/';
+            => EndsWithDirectorySeparator(path) ? path : path + Path.DirectorySeparatorChar;
 
         private static bool EndsWithDirectorySeparator(string path)
         {
@@ -85,24 +90,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             char c = path[path.Length - 1];
             return c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar;
-        }
-
-        private void MergeSourceRootMetadata(ITaskItem left, ITaskItem right)
-        {
-            foreach (string? metadataName in right.MetadataNames)
-            {
-                var leftValue = left.GetMetadata(metadataName);
-                var rightValue = right.GetMetadata(metadataName);
-
-                if (!string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
-                {
-                    Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, right.ItemSpec, metadataName, leftValue, rightValue);
-                }
-                else if (string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
-                {
-                    left.SetMetadata(metadataName, rightValue);
-                }
-            }
         }
 
         public override bool Execute()
@@ -120,6 +107,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     Log.LogErrorFromResources("MapSourceRoots.PathMustEndWithSlashOrBackslash", Names.SourceRoot, sourceRoot.ItemSpec);
                 }
+
+                // Normalize the path.
+                sourceRoot.ItemSpec = NormalizePath(sourceRoot.ItemSpec);
 
                 if (rootByItemSpec.TryGetValue(sourceRoot.ItemSpec, out var existingRoot))
                 {
@@ -184,17 +174,29 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // finally, calculate mapped paths of nested roots:
                 foreach (var root in mappedSourceRoots)
                 {
-                    string nestedRoot = root.GetMetadata(Names.NestedRoot);
+                    string nestedRoot = Utilities.FixFilePath(root.GetMetadata(Names.NestedRoot));
                     if (!string.IsNullOrEmpty(nestedRoot))
                     {
-                        string containingRoot = root.GetMetadata(Names.ContainingRoot);
+                        string containingRoot = NormalizePath(Utilities.FixFilePath(root.GetMetadata(Names.ContainingRoot)));
 
                         // The value of ContainingRoot metadata is a file path that is compared with ItemSpec values of SourceRoot items.
                         // Since the paths in ItemSpec have backslashes replaced with slashes on non-Windows platforms we need to do the same for ContainingRoot.
-                        if (containingRoot != null && topLevelMappedPaths.TryGetValue(Utilities.FixFilePath(containingRoot), out var mappedTopLevelPath))
+                        if (containingRoot != null && topLevelMappedPaths.TryGetValue(containingRoot, out var mappedTopLevelPath))
                         {
+                            // Normalize nested root.
+                            if (Utilities.TryCombine(containingRoot, nestedRoot, out var combinedPath))
+                            {
+                                var fullOriginalPath = Utilities.GetFullPathNoThrow(combinedPath);
+                                if (fullOriginalPath.StartsWith(containingRoot, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    nestedRoot = fullOriginalPath.Substring(containingRoot.Length);
+                                }
+                            }
+
                             Debug.Assert(mappedTopLevelPath.EndsWith("/", StringComparison.Ordinal));
-                            root.SetMetadata(Names.MappedPath, mappedTopLevelPath + EnsureEndsWithSlash(nestedRoot.Replace('\\', '/')));
+                            root.SetMetadata(Names.MappedPath, mappedTopLevelPath + EnsureEndsWithSlash(nestedRoot).Replace('\\', '/'));
+                            root.SetMetadata(Names.ContainingRoot, containingRoot);
+                            root.SetMetadata(Names.NestedRoot, nestedRoot);
                         }
                         else
                         {

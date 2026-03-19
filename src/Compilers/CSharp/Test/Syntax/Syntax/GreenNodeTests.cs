@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
@@ -12,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static void AttachAndCheckDiagnostics(InternalSyntax.CSharpSyntaxNode node)
         {
-            var nodeWithDiags = node.SetDiagnostics(new DiagnosticInfo[] { new CSDiagnosticInfo(ErrorCode.ERR_AbstractAndExtern) });
+            var nodeWithDiags = node.SetDiagnostics(new DiagnosticInfo[] { new CSDiagnosticInfo(ErrorCode.ERR_NoBaseClass) });
             var diags = nodeWithDiags.GetDiagnostics();
 
             Assert.NotEqual(node, nodeWithDiags);
             Assert.Equal(1, diags.Length);
-            Assert.Equal(ErrorCode.ERR_AbstractAndExtern, (ErrorCode)diags[0].Code);
+            Assert.Equal(ErrorCode.ERR_NoBaseClass, (ErrorCode)diags[0].Code);
         }
 
         private class TokenDeleteRewriter : InternalSyntax.CSharpSyntaxRewriter

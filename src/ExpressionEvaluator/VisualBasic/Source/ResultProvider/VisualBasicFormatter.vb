@@ -4,7 +4,6 @@
 
 Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.VisualStudio.Debugger.ComponentInterfaces
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Microsoft.VisualStudio.Debugger.Metadata
 
@@ -47,6 +46,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             expression = RemoveComments(expression)
             expression = RemoveFormatSpecifiers(expression, formatSpecifiers)
             Return RemoveLeadingAndTrailingWhitespace(expression)
+        End Function
+
+        ' TODO https://github.com/dotnet/roslyn/issues/60581
+        Friend Overrides Function GetOriginalLocalVariableName(name As String) As String
+            Return name
+        End Function
+
+        ' TODO Implement this VB. https://github.com/dotnet/roslyn/issues/60581
+        Friend Overrides Function GetOriginalFieldName(name As String) As String
+            Return name
         End Function
 
         Private Shared Function RemoveComments(expression As String) As String

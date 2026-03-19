@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,13 +33,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>This is a cache of a subset of <seealso cref="_lazyFiles"/>. We don't include manifest resources in ref assemblies</summary>
         private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources;
 
-        private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
+        private NamedTypeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyRequiresLocationAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyParamCollectionAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
         private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
         private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
+        private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
+        private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
+        private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
+        private SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol _lazyMemorySafetyRulesAttribute;
+        private SynthesizedEmbeddedExtensionMarkerAttributeSymbol _lazyExtensionMarkerAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -56,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// In cases 1 and 2b, we expect (metadataName == sourceAssembly.MetadataName).
         /// </remarks>
         private readonly string _metadataName;
-
-        public PEAssemblyBuilderBase(
+#nullable enable
+        protected PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             OutputKind outputKind,
@@ -74,26 +84,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
-
+#nullable disable
         public sealed override ISourceAssemblySymbolInternal SourceAssemblyOpt
             => _sourceAssembly;
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
-            => _additionalTypes;
+        public sealed override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+            => _additionalTypes.Concat(base.GetAdditionalTopLevelTypes());
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
 
-            builder.AddIfNotNull(_lazyEmbeddedAttribute);
+            if (_lazyEmbeddedAttribute is SynthesizedEmbeddedAttributeSymbol)
+            {
+                builder.Add(_lazyEmbeddedAttribute);
+            }
+
             builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
+            builder.AddIfNotNull(_lazyRequiresLocationAttribute);
+            builder.AddIfNotNull(_lazyParamCollectionAttribute);
             builder.AddIfNotNull(_lazyIsUnmanagedAttribute);
             builder.AddIfNotNull(_lazyIsByRefLikeAttribute);
             builder.AddIfNotNull(_lazyNullableAttribute);
             builder.AddIfNotNull(_lazyNullableContextAttribute);
             builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
+            builder.AddIfNotNull(_lazyNativeIntegerAttribute);
+            builder.AddIfNotNull(_lazyScopedRefAttribute);
+            builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
+            builder.AddIfNotNull(_lazyMemorySafetyRulesAttribute);
+            builder.AddIfNotNull(_lazyExtensionMarkerAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -185,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
             // _lazyEmbeddedAttribute should have been created before calling this method.
-            return new SynthesizedAttributeData(
+            return SynthesizedAttributeData.Create(
+                Compilation,
                 _lazyEmbeddedAttribute.Constructors[0],
                 ImmutableArray<TypedConstant>.Empty,
                 ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -196,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyNullableAttribute != null)
             {
                 var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) ? 1 : 0;
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyNullableAttribute.Constructors[constructorIndex],
                     arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -209,7 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)_lazyNullableContextAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyNullableContextAttribute.Constructors[0],
                     arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -222,7 +246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)_lazyNullablePublicOnlyAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyNullablePublicOnlyAttribute.Constructors[0],
                     arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -231,11 +256,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNullablePublicOnlyAttribute(arguments);
         }
 
+        internal override SynthesizedAttributeData SynthesizeNativeIntegerAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyNativeIntegerAttribute != null)
+            {
+                var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags) ? 1 : 0;
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyNativeIntegerAttribute.Constructors[constructorIndex],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeNativeIntegerAttribute(member, arguments);
+        }
+
+        internal override SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
+        {
+            if ((object)_lazyScopedRefAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyScopedRefAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeScopedRefAttribute(member);
+        }
+
+        internal override SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyRefSafetyRulesAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyRefSafetyRulesAttribute.Constructors[0],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeRefSafetyRulesAttribute(arguments);
+        }
+
+        internal override SynthesizedAttributeData TrySynthesizeMemorySafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyMemorySafetyRulesAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyMemorySafetyRulesAttribute.Constructors[0],
+                    arguments,
+                    namedArguments: []);
+            }
+
+            return base.TrySynthesizeMemorySafetyRulesAttribute(arguments);
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyIsReadOnlyAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -244,11 +327,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
+        protected override SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
+        {
+            if ((object)_lazyRequiresLocationAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyRequiresLocationAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeRequiresLocationAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
+        {
+            if ((object)_lazyParamCollectionAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyParamCollectionAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeParamCollectionAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeExtensionMarkerAttribute(string markerName)
+        {
+            if ((object)_lazyExtensionMarkerAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyExtensionMarkerAttribute.Constructors[0],
+                    [new TypedConstant(Compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, markerName)],
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeExtensionMarkerAttribute(markerName);
+        }
+
+        internal override SynthesizedEmbeddedAttributeSymbol TryGetSynthesizedIsUnmanagedAttribute()
+        {
+            return _lazyIsUnmanagedAttribute;
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             if ((object)_lazyIsUnmanagedAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyIsUnmanagedAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -261,7 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)_lazyIsByRefLikeAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyIsByRefLikeAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -270,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsByRefLikeAttribute();
         }
 
-        private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
+        private void CreateEmbeddedAttributesIfNeeded(BindingDiagnosticBag diagnostics)
         {
             EmbeddableAttributes needsAttributes = GetNeedsGeneratedAttributes();
 
@@ -279,18 +411,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 needsAttributes |= EmbeddableAttributes.NullablePublicOnlyAttribute;
             }
-            else if (needsAttributes == 0)
+
+            var sourceModule = (SourceModuleSymbol)Compilation.SourceModule;
+
+            if (sourceModule.RequiresRefSafetyRulesAttribute() &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.RefSafetyRulesAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.RefSafetyRulesAttribute;
+            }
+
+            if (sourceModule.UseUpdatedMemorySafetyRules &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.MemorySafetyRulesAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.MemorySafetyRulesAttribute;
+            }
+
+            if (needsAttributes == 0)
             {
                 return;
             }
 
-            var createParameterlessEmbeddedAttributeSymbol = new Func<string, NamespaceSymbol, DiagnosticBag, SynthesizedEmbeddedAttributeSymbol>(CreateParameterlessEmbeddedAttributeSymbol);
+            var createParameterlessEmbeddedAttributeSymbol = new Func<string, NamespaceSymbol, BindingDiagnosticBag, SynthesizedEmbeddedAttributeSymbol>(CreateParameterlessEmbeddedAttributeSymbol);
 
             CreateAttributeIfNeeded(
                 ref _lazyEmbeddedAttribute,
                 diagnostics,
                 AttributeDescription.CodeAnalysisEmbeddedAttribute,
-                createParameterlessEmbeddedAttributeSymbol);
+                createParameterlessEmbeddedAttributeSymbol,
+                allowUserDefinedAttribute: true);
 
             if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
             {
@@ -298,6 +446,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RequiresLocationAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRequiresLocationAttribute,
+                    diagnostics,
+                    AttributeDescription.RequiresLocationAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.ParamCollectionAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyParamCollectionAttribute,
+                    diagnostics,
+                    AttributeDescription.ParamCollectionAttribute,
                     createParameterlessEmbeddedAttributeSymbol);
             }
 
@@ -345,16 +511,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     AttributeDescription.NullablePublicOnlyAttribute,
                     CreateNullablePublicOnlyAttributeSymbol);
             }
+
+            if ((needsAttributes & EmbeddableAttributes.NativeIntegerAttribute) != 0)
+            {
+                Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
+                CreateAttributeIfNeeded(
+                    ref _lazyNativeIntegerAttribute,
+                    diagnostics,
+                    AttributeDescription.NativeIntegerAttribute,
+                    CreateNativeIntegerAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.ScopedRefAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyScopedRefAttribute,
+                    diagnostics,
+                    AttributeDescription.ScopedRefAttribute,
+                    CreateScopedRefAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RefSafetyRulesAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRefSafetyRulesAttribute,
+                    diagnostics,
+                    AttributeDescription.RefSafetyRulesAttribute,
+                    CreateRefSafetyRulesAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.MemorySafetyRulesAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyMemorySafetyRulesAttribute,
+                    diagnostics,
+                    AttributeDescription.MemorySafetyRulesAttribute,
+                    CreateMemorySafetyRulesAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.ExtensionMarkerAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyExtensionMarkerAttribute,
+                    diagnostics,
+                    AttributeDescription.ExtensionMarkerAttribute,
+                    CreateExtensionMarkerAttributeSymbol);
+            }
         }
 
-        private SynthesizedEmbeddedAttributeSymbol CreateParameterlessEmbeddedAttributeSymbol(string name, NamespaceSymbol containingNamespace, DiagnosticBag diagnostics)
+        private SynthesizedEmbeddedAttributeSymbol CreateParameterlessEmbeddedAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
             => new SynthesizedEmbeddedAttributeSymbol(
                     name,
                     containingNamespace,
                     SourceModule,
                     baseType: GetWellKnownType(WellKnownType.System_Attribute, diagnostics));
 
-        private SynthesizedEmbeddedNullableAttributeSymbol CreateNullableAttributeSymbol(string name, NamespaceSymbol containingNamespace, DiagnosticBag diagnostics)
+        private SynthesizedEmbeddedNullableAttributeSymbol CreateNullableAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
             => new SynthesizedEmbeddedNullableAttributeSymbol(
                     name,
                     containingNamespace,
@@ -362,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Byte, diagnostics));
 
-        private SynthesizedEmbeddedNullableContextAttributeSymbol CreateNullableContextAttributeSymbol(string name, NamespaceSymbol containingNamespace, DiagnosticBag diagnostics)
+        private SynthesizedEmbeddedNullableContextAttributeSymbol CreateNullableContextAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
             => new SynthesizedEmbeddedNullableContextAttributeSymbol(
                     name,
                     containingNamespace,
@@ -370,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Byte, diagnostics));
 
-        private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol CreateNullablePublicOnlyAttributeSymbol(string name, NamespaceSymbol containingNamespace, DiagnosticBag diagnostics)
+        private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol CreateNullablePublicOnlyAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
             => new SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(
                     name,
                     containingNamespace,
@@ -378,16 +590,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Boolean, diagnostics));
 
+        private SynthesizedEmbeddedNativeIntegerAttributeSymbol CreateNativeIntegerAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedNativeIntegerAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_Boolean, diagnostics));
+
+        private SynthesizedEmbeddedScopedRefAttributeSymbol CreateScopedRefAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedScopedRefAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics));
+
+        private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol CreateRefSafetyRulesAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedRefSafetyRulesAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_Int32, diagnostics));
+
+        private SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol CreateMemorySafetyRulesAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    systemAttributeType: GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    int32Type: GetSpecialType(SpecialType.System_Int32, diagnostics));
+
+        private SynthesizedEmbeddedExtensionMarkerAttributeSymbol CreateExtensionMarkerAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedExtensionMarkerAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_String, diagnostics));
+
+#nullable enable
         private void CreateAttributeIfNeeded<T>(
             ref T symbol,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             AttributeDescription description,
-            Func<string, NamespaceSymbol, DiagnosticBag, T> factory)
-            where T : SynthesizedEmbeddedAttributeSymbolBase
+            Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory,
+            bool allowUserDefinedAttribute = false)
+            where T : NamedTypeSymbol
         {
+            Debug.Assert(!allowUserDefinedAttribute || typeof(T) == typeof(NamedTypeSymbol));
             if (symbol is null)
             {
-                AddDiagnosticsForExistingAttribute(description, diagnostics);
+                var userDefinedAttribute = getExistingType(description);
+
+                if (userDefinedAttribute is not null)
+                {
+                    if (allowUserDefinedAttribute)
+                    {
+                        symbol = (T)userDefinedAttribute;
+                        return;
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
+                    }
+                }
 
                 var containingNamespace = GetOrSynthesizeNamespace(description.Namespace);
 
@@ -401,21 +668,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 AddSynthesizedDefinition(containingNamespace, symbol);
             }
-        }
 
-        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, DiagnosticBag diagnostics)
-        {
-            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-
-            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            NamedTypeSymbol? getExistingType(AttributeDescription description)
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+                Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
+
+                return userDefinedAttribute;
             }
         }
+#nullable disable
 
-        private NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
+        protected NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
         {
             var result = SourceModule.GlobalNamespace;
 
@@ -434,21 +700,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        private NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetWellKnownType(WellKnownType type, BindingDiagnosticBag diagnostics)
         {
             var result = _sourceAssembly.DeclaringCompilation.GetWellKnownType(type);
-            Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
+            Binder.ReportUseSite(result, diagnostics, Location.None);
             return result;
         }
 
-        private NamedTypeSymbol GetSpecialType(SpecialType type, DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetSpecialType(SpecialType type, BindingDiagnosticBag diagnostics)
         {
             var result = _sourceAssembly.DeclaringCompilation.GetSpecialType(type);
-            Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
+            Binder.ReportUseSite(result, diagnostics, Location.None);
             return result;
         }
 
-        private void EnsureAttributeUsageAttributeMembersAvailable(DiagnosticBag diagnostics)
+        private void EnsureAttributeUsageAttributeMembersAvailable(BindingDiagnosticBag diagnostics)
         {
             var compilation = _sourceAssembly.DeclaringCompilation;
             Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__ctor, diagnostics, Location.None);
@@ -456,19 +722,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__Inherited, diagnostics, Location.None);
         }
     }
-
-    internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase
+#nullable enable
+    internal sealed class PEAssemblyBuilder(
+        SourceAssemblySymbol sourceAssembly,
+        EmitOptions emitOptions,
+        OutputKind outputKind,
+        Cci.ModulePropertiesForSerialization serializationProperties,
+        IEnumerable<ResourceDescription> manifestResources)
+        : PEAssemblyBuilderBase(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: [])
     {
-        public PEAssemblyBuilder(
-            SourceAssemblySymbol sourceAssembly,
-            EmitOptions emitOptions,
-            OutputKind outputKind,
-            Cci.ModulePropertiesForSerialization serializationProperties,
-            IEnumerable<ResourceDescription> manifestResources)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, ImmutableArray<NamedTypeSymbol>.Empty)
-        {
-        }
+        public override EmitBaseline? PreviousGeneration => null;
+        public override SymbolChanges? EncSymbolChanges => null;
+        public override bool FieldRvaSupported => true;
+        public override bool MethodImplSupported => true;
 
-        public override int CurrentGenerationOrdinal => 0;
+        public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
+            => null;
+
+        public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType()
+            => null;
     }
 }

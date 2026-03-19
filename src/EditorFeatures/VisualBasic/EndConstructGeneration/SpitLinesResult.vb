@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
@@ -49,8 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             ' in the buffer
             Dim joinedLines = If(_startOnCurrentLine, "", bufferNewLine) + String.Join(bufferNewLine, _lines)
 
-            document.Project.Solution.Workspace.ApplyTextChanges(
-                document.Id, SpecializedCollections.SingletonEnumerable(New TextChange(New TextSpan(caretPosition, 0), joinedLines)), CancellationToken.None)
+            subjectBuffer.ApplyChange(New TextChange(New TextSpan(caretPosition, 0), joinedLines))
 
             SetIndentForFirstBlankLine(textView, subjectBuffer, smartIndentationService, currentLine)
         End Sub

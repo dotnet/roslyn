@@ -3,13 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Debugging
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
@@ -44,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                                                              DisplayNameOptions.IncludeTypeParameters,
                                                              options.RootNamespace)
 
-                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
                 Dim lineNumber = text.Lines.GetLineFromPosition(position).LineNumber
                 Dim memberLine = text.Lines.GetLineFromPosition(memberDeclaration.GetMemberBlockBegin().SpanStart).LineNumber
                 Dim lineOffset = lineNumber - memberLine

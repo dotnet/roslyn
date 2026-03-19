@@ -6,45 +6,39 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class WhileKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.WhileKeyword)
 {
-    internal class WhileKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public WhileKeywordRecommender()
-            : base(SyntaxKind.WhileKeyword)
+        if (context.IsStatementContext ||
+            context.IsGlobalStatementContext)
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        // do {
+        // } |
+
+        // do {
+        // } w|
+
+        // Note: the case of
+        //   do 
+        //     Goo();
+        //   |
+        // is taken care of in the IsStatementContext case.
+
+        var token = context.TargetToken;
+
+        if (token.Kind() == SyntaxKind.CloseBraceToken &&
+            token.Parent.IsKind(SyntaxKind.Block) &&
+            token.Parent.IsParentKind(SyntaxKind.DoStatement))
         {
-            if (context.IsStatementContext ||
-                context.IsGlobalStatementContext)
-            {
-                return true;
-            }
-
-            // do {
-            // } |
-
-            // do {
-            // } w|
-
-            // Note: the case of
-            //   do 
-            //     Goo();
-            //   |
-            // is taken care of in the IsStatementContext case.
-
-            var token = context.TargetToken;
-
-            if (token.Kind() == SyntaxKind.CloseBraceToken &&
-                token.Parent.IsKind(SyntaxKind.Block) &&
-                token.Parent.IsParentKind(SyntaxKind.DoStatement))
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
+
+        return false;
     }
 }

@@ -7,40 +7,37 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    <ExportCompletionProvider(NameOf(ExtensionMethodImportCompletionProvider), LanguageNames.VisualBasic)>
+    <ExportCompletionProvider(NameOf(ExtensionMethodImportCompletionProvider), LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=NameOf(TypeImportCompletionProvider))>
     <ExtensionOrder(Before:=NameOf(LastBuiltInCompletionProvider))>
-    <[Shared]>
     Friend NotInheritable Class ExtensionMethodImportCompletionProvider
-        Inherits AbstractExtensionMethodImportCompletionProvider
+        Inherits AbstractExtensionMemberImportCompletionProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property GenericSuffix As String
-            Get
-                Return "(Of ...)"
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
+        Protected Overrides ReadOnly Property SupportsStaticExtensionMembers As Boolean = False
+        Protected Overrides ReadOnly Property GenericSuffix As String = "(Of ...)"
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
+            Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
-
-        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken)
+        Protected Overrides Function IsFinalSemicolonOfUsingOrExtern(directive As SyntaxNode, token As SyntaxToken) As Boolean
+            Return False
         End Function
 
-        Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
-            Return ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel, cancellationToken)
+        Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Return Task.FromResult(False)
         End Function
     End Class
 End Namespace

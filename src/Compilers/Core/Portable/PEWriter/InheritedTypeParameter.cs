@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -36,7 +33,7 @@ namespace Microsoft.Cci
 
         #region IGenericParameter Members
 
-        public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
+        public virtual IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
         {
             return _parentParameter.GetConstraints(context);
         }
@@ -49,6 +46,11 @@ namespace Microsoft.Cci
         public bool MustBeValueType
         {
             get { return _parentParameter.MustBeValueType; }
+        }
+
+        public bool AllowsRefLikeType
+        {
+            get { return _parentParameter.AllowsRefLikeType; }
         }
 
         public bool MustHaveDefaultConstructor
@@ -64,6 +66,9 @@ namespace Microsoft.Cci
         #endregion
 
         #region ITypeDefinition Members
+
+        public bool IsEncDeleted
+            => false;
 
         public ushort Alignment
         {
@@ -192,7 +197,9 @@ namespace Microsoft.Cci
 
         #region IReference Members
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+        CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
+
+        public virtual IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return _parentParameter.GetAttributes(context);
         }
@@ -225,7 +232,7 @@ namespace Microsoft.Cci
 
         public ITypeDefinition GetResolvedType(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public PrimitiveTypeCode TypeCode
@@ -246,7 +253,7 @@ namespace Microsoft.Cci
 
         #region INamedEntity Members
 
-        public string? Name
+        public virtual string? Name
         {
             get { return _parentParameter.Name; }
         }
@@ -273,27 +280,39 @@ namespace Microsoft.Cci
 
         public bool IsNested
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsSpecializedNested
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public ITypeReference UnspecializedVersion
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsNamespaceTypeReference
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsGenericTypeInstance
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
+        }
+
+        public sealed override bool Equals(object? obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+[ExportLanguageServiceFactory(typeof(ISemanticFactsService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpSemanticFactsServiceFactory : ILanguageServiceFactory
 {
-    [ExportLanguageServiceFactory(typeof(ISemanticFactsService), LanguageNames.CSharp), Shared]
-    internal class CSharpSemanticFactsServiceFactory : ILanguageServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSemanticFactsServiceFactory()
     {
-        [ImportingConstructor]
-        public CSharpSemanticFactsServiceFactory()
-        {
-        }
-
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => CSharpSemanticFactsService.Instance;
     }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => CSharpSemanticFactsService.Instance;
 }

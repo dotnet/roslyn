@@ -1,0 +1,61 @@
+name: "Copilot Setup Steps"
+
+# Allow testing of the setup steps from your repository's "Actions" tab.
+on: workflow_dispatch
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  # See https://docs.github.com/en/copilot/customizing-copilot/customizing-the-development-environment-for-copilot-coding-agent
+  copilot-setup-steps:
+    runs-on: 8-core-ubuntu-latest
+
+    permissions:
+      contents: read
+
+    # You can define any steps you want, and they will run before the agent starts.
+    # If you do not check out your code, Copilot will do this for you.
+    steps:
+      - uses: actions/checkout@v5
+
+      # Install .NET SDK as specified in global.json
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      # Restore dependencies - this is critical for Copilot to understand the project structure
+      - name: Restore dependencies
+        continue-on-error: true
+        env:
+          # Prevent GitInfo errors and other CI-specific issues
+          CI: false
+        # Use restore script, but don't fail on errors so Copilot can still attempt to work
+        run: ./restore.sh
+
+      # Install global tools that might be useful for Roslyn development
+      - name: Install useful .NET tools
+        continue-on-error: true
+        run: |
+          dotnet tool install --global dotnet-format
+          dotnet tool install --global complog
+
+      # Setup PATH to include .NET tools
+      - name: Setup PATH
+        run: |
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # Diagnostics in the log
+      - name: Show .NET info
+        run: dotnet --info
+
+      # Show build environment info that might be helpful for debugging
+      - name: Show environment info
+        run: |
+          echo "=== Git Status ==="
+          git status || true
+          echo "=== Directory structure ==="
+          ls -la
+          echo "=== Build artifacts ==="
+          ls -la artifacts/ || true
+          echo "=== Global.json ==="
+          cat global.json

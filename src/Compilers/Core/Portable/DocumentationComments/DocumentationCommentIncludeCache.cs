@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 using (XmlReader reader = XmlReader.Create(stream, s_xmlSettings))
                 {
                     var document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
-                    return KeyValuePairUtil.Create(resolvedPath, document);
+                    return KeyValuePair.Create(resolvedPath, document);
                 }
             }
         }

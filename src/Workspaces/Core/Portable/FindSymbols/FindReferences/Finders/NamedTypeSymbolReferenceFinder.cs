@@ -3,151 +3,237 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<INamedTypeSymbol>
 {
-    internal class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<INamedTypeSymbol>
+    protected override bool CanFind(INamedTypeSymbol symbol)
+        => symbol.TypeKind != TypeKind.Error;
+
+    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(INamedTypeSymbol symbol, Project project, CancellationToken cancellationToken)
     {
-        protected override bool CanFind(INamedTypeSymbol symbol)
+        return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, symbol.Arity, cancellationToken);
+    }
+
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        INamedTypeSymbol symbol,
+        Solution solution,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+
+        if (symbol.AssociatedSymbol != null)
+            Add(result, ImmutableArray.Create(symbol.AssociatedSymbol));
+
+        // cascade to constructors
+        Add(result, symbol.Constructors);
+
+        // cascade to destructor
+        Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
+
+        return result.ToImmutable();
+    }
+
+    private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
+    {
+        result.AddRange(enumerable.Cast<ISymbol>());
+    }
+
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        INamedTypeSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        await AddDocumentsToSearchAsync(symbol.Name, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        if (globalAliases != null)
         {
-            return symbol.TypeKind != TypeKind.Error;
+            foreach (var alias in globalAliases)
+                await AddDocumentsToSearchAsync(alias, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+        await FindDocumentsAsync(
+            project, documents, symbol.SpecialType.ToPredefinedType(), processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-            var symbol = symbolAndProjectId.Symbol;
-            if (symbol.AssociatedSymbol != null)
-            {
-                Add(result, symbolAndProjectId, ImmutableArray.Create(symbol.AssociatedSymbol));
-            }
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
+            project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+    }
 
-            // cascade to constructors
-            Add(result, symbolAndProjectId, symbol.Constructors);
+    /// <summary>
+    /// Looks for documents likely containing <paramref name="throughName"/> in them.  That name will either be the actual
+    /// name of the named type we're looking for, or it might be a global alias to it.
+    /// </summary>
+    private static async Task AddDocumentsToSearchAsync<TData>(
+        string throughName,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
 
-            // cascade to destructor
-            Add(result, symbolAndProjectId, symbol.GetMembers(WellKnownMemberNames.DestructorName));
+        await FindDocumentsAsync(
+            project, documents, processResult, processResultData, cancellationToken, throughName).ConfigureAwait(false);
 
-            return Task.FromResult(result.ToImmutableAndFree());
-        }
+        if (TryGetNameWithoutAttributeSuffix(throughName, syntaxFacts, out var simpleName))
+            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, simpleName).ConfigureAwait(false);
+    }
 
-        private void Add<TSymbol>(
-            ArrayBuilder<SymbolAndProjectId> result,
-            SymbolAndProjectId symbolAndProjectId,
-            ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
-        {
-            result.AddRange(enumerable.Select(
-                s => symbolAndProjectId.WithSymbol((ISymbol)s)));
-        }
+    private static bool IsPotentialReference(
+        PredefinedType predefinedType,
+        ISyntaxFactsService syntaxFacts,
+        SyntaxToken token)
+    {
+        return
+            syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
+            predefinedType == actualType;
+    }
 
-        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            INamedTypeSymbol symbol,
-            Project project,
-            IImmutableSet<Document> documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
-            var documentsWithType = await FindDocumentsAsync(project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(symbol.Name, project.LanguageServices.GetService<ISyntaxFactsService>(), out var simpleName)
-                ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+    protected override void FindReferencesInDocument<TData>(
+        INamedTypeSymbol namedType,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var tempReferences);
 
-            return documentsWithName.Concat(documentsWithType)
-                                    .Concat(documentsWithAttribute);
-        }
+        // First find all references to this type, using it's actual .Net name.
+        AddReferencesToTypeOrGlobalAliasToIt(
+            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
 
-        private static bool IsPotentialReference(
-            PredefinedType predefinedType,
-            ISyntaxFactsService syntaxFacts,
-            SyntaxToken token)
-        {
-            return
-                syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
-                predefinedType == actualType;
-        }
+        // Next, if this named type is a predefined type (like int/long), also search for it with the C# name,
+        // not the .Net one.
+        AddPredefinedTypeReferences(namedType, state, tempReferences, cancellationToken);
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            INamedTypeSymbol namedType,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
-            return nonAliasReferences.Concat(aliasReferences);
-        }
+        // The items in tempReferences need to be both reported and used later to calculate additional results.
+        foreach (var location in tempReferences)
+            processResult(location, processResultData);
 
-        internal static async Task<ImmutableArray<FinderLocation>> FindNonAliasReferencesAsync(
-            INamedTypeSymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
-        }
+        // This named type may end up being locally aliased as well.  If so, now find all the references to the local
+        // alias. Note: the local alias may be like `using X = System.Int32` or it could be `using X = int`.  Because
+        // we searched for both forms above, we'll find all references to the local aliases to either form here.
 
-        private static Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
-            INamedTypeSymbol namedType,
-            Document document,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
+        FindLocalAliasReferences(
+            tempReferences, state, processResult, processResultData, cancellationToken);
 
-            return FindReferencesInDocumentUsingIdentifierAsync(
-                namedType.Name, document, semanticModel, symbolsMatch, cancellationToken);
-        }
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            namedType, state, processResult, processResultData, cancellationToken);
+    }
 
-        private static Task<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
-            INamedTypeSymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            var predefinedType = symbol.SpecialType.ToPredefinedType();
-            if (predefinedType == PredefinedType.None)
-            {
-                return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
-            }
+    internal static void AddReferencesToTypeOrGlobalAliasToIt<TData>(
+        INamedTypeSymbol namedType,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        AddNonAliasReferences(
+            namedType, namedType.Name, state, processResult, processResultData, cancellationToken);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return FindReferencesInDocumentAsync(document, semanticModel, t =>
-                IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => (matched: true, reason: CandidateReason.None),
-                cancellationToken);
-        }
+        foreach (var globalAlias in state.GlobalAliases)
+            FindReferenceToAlias(namedType, state, processResult, processResultData, globalAlias, cancellationToken);
 
-        private static Task<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
-            INamedTypeSymbol namedType,
-            Document document,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
-                ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, semanticModel, symbolsMatch, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
-        }
+        foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(namedType.Name, namedType.Arity))
+            FindReferenceToAlias(namedType, state, processResult, processResultData, localAlias, cancellationToken);
+    }
+
+    private static void FindReferenceToAlias<TData>(
+        INamedTypeSymbol namedType, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the type name (i.e.
+        // global alias Console = System.Console).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(namedType.Name, alias))
+            return;
+
+        AddNonAliasReferences(
+            namedType, alias, state, processResult, processResultData, cancellationToken);
+    }
+
+    /// <summary>
+    /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but
+    /// only if it referenced though <paramref name="name"/> (which might be the actual name
+    /// of the type, or a global alias to it).
+    /// </summary>
+    private static void AddNonAliasReferences<TData>(
+        INamedTypeSymbol symbol,
+        string name,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        FindOrdinaryReferences(
+            symbol, name, state, processResult, processResultData, cancellationToken);
+
+        FindAttributeReferences(
+            symbol, name, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindOrdinaryReferences<TData>(
+        INamedTypeSymbol namedType,
+        string name,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        // Get the parent node that best matches what this token represents.  For example, if we have `new a.b()`
+        // then the parent node of `b` won't be `a.b`, but rather `new a.b()`.  This will actually cause us to bind
+        // to the constructor not the type.  That's a good thing as we don't want these object-creations to
+        // associate with the type, but rather with the constructor itself.
+
+        FindReferencesInDocumentUsingIdentifier(
+            namedType, name, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void AddPredefinedTypeReferences(
+        INamedTypeSymbol symbol,
+        FindReferencesDocumentState state,
+        ArrayBuilder<FinderLocation> tempReferences,
+        CancellationToken cancellationToken)
+    {
+        var predefinedType = symbol.SpecialType.ToPredefinedType();
+        if (predefinedType == PredefinedType.None)
+            return;
+
+        var tokens = state.Root
+            .DescendantTokens(descendIntoTrivia: true)
+            .WhereAsArray(
+                static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
+                (state, predefinedType));
+
+        FindReferencesInTokens(
+            symbol, state, tokens, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
+    }
+
+    private static void FindAttributeReferences<TData>(
+        INamedTypeSymbol namedType,
+        string name,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        if (TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix))
+            FindReferencesInDocumentUsingIdentifier(namedType, nameWithoutSuffix, state, processResult, processResultData, cancellationToken);
     }
 }

@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '-----------------------------------------------------------------------------------------------------------
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
-    Public Partial Class StructuredTriviaSyntax
+    Partial Public Class StructuredTriviaSyntax
         Inherits VisualBasicSyntaxNode
         Implements IStructuredTriviaSyntax
 

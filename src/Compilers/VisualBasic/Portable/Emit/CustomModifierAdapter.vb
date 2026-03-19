@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class VisualBasicCustomModifier
+    Partial Friend Class VisualBasicCustomModifier
         Implements Cci.ICustomModifier
 
         Private ReadOnly Property CciIsOptional As Boolean Implements Cci.ICustomModifier.IsOptional
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function CciGetModifier(context As EmitContext) As Cci.ITypeReference Implements Cci.ICustomModifier.GetModifier
-            Return DirectCast(context.Module, PEModuleBuilder).Translate(Me.ModifierSymbol, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
+            Return DirectCast(context.Module, PEModuleBuilder).Translate(Me.ModifierSymbol, DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), context.Diagnostics)
         End Function
     End Class
 End Namespace

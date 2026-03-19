@@ -6,7 +6,7 @@ function Write-PipelineTelemetryError {
   local function_args=()
   local message=''
   while [[ $# -gt 0 ]]; do
-    opt="$(echo "${1/#--/-}" | awk '{print tolower($0)}')"
+    opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
     case "$opt" in
       -category|-c)
         telemetry_category=$2
@@ -31,29 +31,24 @@ function Write-PipelineTelemetryError {
     return
   fi
 
-  message="(NETCORE_ENGINEERING_TELEMETRY=$telemetry_category) $message"
-  function_args+=("$message")
   if [[ $force == true ]]; then
     function_args+=("-force")
   fi
-
-  Write-PipelineTaskError $function_args
+  message="(NETCORE_ENGINEERING_TELEMETRY=$telemetry_category) $message"
+  function_args+=("$message")
+  Write-PipelineTaskError ${function_args[@]}
 }
 
 function Write-PipelineTaskError {
-  if [[ $force != true ]] && [[ "$ci" != true ]]; then
-    echo "$@" >&2
-    return
-  fi
-
   local message_type="error"
   local sourcepath=''
   local linenumber=''
   local columnnumber=''
   local error_code=''
+  local force=false
 
   while [[ $# -gt 0 ]]; do
-    opt="$(echo "${1/#--/-}" | awk '{print tolower($0)}')"
+    opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
     case "$opt" in
       -type|-t)
         message_type=$2
@@ -75,6 +70,9 @@ function Write-PipelineTaskError {
         error_code=$2
         shift
         ;;
+      -force|-f)
+        force=true
+        ;;
       *)
         break
         ;;
@@ -82,6 +80,11 @@ function Write-PipelineTaskError {
 
     shift
   done
+
+  if [[ $force != true ]] && [[ "$ci" != true ]]; then
+    echo "$@" >&2
+    return
+  fi
 
   local message="##vso[task.logissue"
 
@@ -119,7 +122,7 @@ function Write-PipelineSetVariable {
   local is_multi_job_variable=true
 
   while [[ $# -gt 0 ]]; do
-    opt="$(echo "${1/#--/-}" | awk '{print tolower($0)}')"
+    opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
     case "$opt" in
       -name|-n)
         name=$2
@@ -161,7 +164,7 @@ function Write-PipelinePrependPath {
   local prepend_path=''
 
   while [[ $# -gt 0 ]]; do
-    opt="$(echo "${1/#--/-}" | awk '{print tolower($0)}')"
+    opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
     case "$opt" in
       -path|-p)
         prepend_path=$2
@@ -175,5 +178,29 @@ function Write-PipelinePrependPath {
 
   if [[ "$ci" == true ]]; then
     echo "##vso[task.prependpath]$prepend_path"
+  fi
+}
+
+function Write-PipelineSetResult {
+  local result=''
+  local message=''
+
+  while [[ $# -gt 0 ]]; do
+    opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
+    case "$opt" in
+      -result|-r)
+        result=$2
+        shift
+        ;;
+      -message|-m)
+        message=$2
+        shift
+        ;;
+    esac
+    shift
+  done
+
+  if [[ "$ci" == true ]]; then
+    echo "##vso[task.complete result=$result;]$message"
   fi
 }

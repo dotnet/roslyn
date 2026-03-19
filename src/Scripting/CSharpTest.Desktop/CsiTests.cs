@@ -1,9 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias PortableTestUtils;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting;
@@ -54,7 +58,7 @@ Environment.Exit(0)
 ");
 
             var expected = $@"
-{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
 {CSharpScriptingResources.LogoLine2}
 
 {ScriptingResources.HelpPrompt}
@@ -69,8 +73,8 @@ Environment.Exit(0)
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, result.Output);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-(1,7): error CS1504: { string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile) }
-(1,1): error CS0006: { string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll") }
+(1,7): error CS1504: {string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile)}
+(1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll")}
 ", result.Errors);
 
             Assert.Equal(0, result.ExitCode);
@@ -88,7 +92,7 @@ Environment.Exit(0)
             var dir = Temp.CreateDirectory();
             dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
 
-            var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("LIB", dir.Path) });
+            var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePair.Create("LIB", dir.Path) });
 
             // error CS0006: Metadata file 'C.dll' could not be found
             Assert.True(result.Errors.StartsWith("error CS0006", StringComparison.Ordinal));

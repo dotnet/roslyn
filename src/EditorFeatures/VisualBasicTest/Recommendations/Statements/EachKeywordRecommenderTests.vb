@@ -3,60 +3,56 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class EachKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EachNotInMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Each")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EachAfterForKeywordTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>For |</MethodBody>, "Each")
-        End Function
+        Public Sub EachNotInMethodBodyTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Each")
+        End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EachNotAfterTouchingForTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>For|</MethodBody>, "Each")
-        End Function
+        Public Sub EachAfterForKeywordTest()
+            VerifyRecommendationsContain(<MethodBody>For |</MethodBody>, "Each")
+        End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EachTouchingLoopIdentifierTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>For i|</MethodBody>, "Each")
-        End Function
+        Public Sub EachNotAfterTouchingForTest()
+            VerifyRecommendationsMissing(<MethodBody>For|</MethodBody>, "Each")
+        End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        <Fact>
+        Public Sub EachTouchingLoopIdentifierTest()
+            VerifyRecommendationsContain(<MethodBody>For i|</MethodBody>, "Each")
+        End Sub
+
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>For 
 |</MethodBody>, "Each")
-        End Function
+        End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <MethodBody>For _
 |</MethodBody>, "Each")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        <Fact>
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <MethodBody>For _ ' Test
 |</MethodBody>, "Each")
-        End Function
+        End Sub
 
-        <WorkItem(4946, "http://github.com/dotnet/roslyn/issues/4946")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInForLoop() As Task
-            Await VerifyNoRecommendationsAsync(
+        <Fact, WorkItem("http://github.com/dotnet/roslyn/issues/4946")>
+        Public Sub NotInForLoop()
+            VerifyNoRecommendations(
 <MethodBody>For | = 1 To 100
 Next</MethodBody>)
-        End Function
+        End Sub
     End Class
 End Namespace

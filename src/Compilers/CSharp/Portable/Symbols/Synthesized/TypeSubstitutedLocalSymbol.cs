@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -19,8 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(originalVariable != null);
             Debug.Assert(type.HasType);
             Debug.Assert(containingSymbol != null);
+            Debug.Assert(containingSymbol.DeclaringCompilation is not null);
 
-            _originalVariable = originalVariable;
+            //avoid double wrapping
+            //this can happen e.g. if a local is substituted in ExtensionMethodBodyRewriter
+            //and later it is substituted for example in ClosureConversion again
+            _originalVariable = originalVariable switch
+            {
+                TypeSubstitutedLocalSymbol tsl => tsl._originalVariable,
+                var l => l
+            };
+
             _type = type;
             _containingSymbol = containingSymbol;
         }
@@ -65,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalVariable.GetDeclaratorSyntax();
         }
 
+        internal override bool HasSourceLocation
+            => _originalVariable.HasSourceLocation;
+
         public override ImmutableArray<Location> Locations
         {
             get { return _originalVariable.Locations; }
@@ -90,6 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.IsPinned; }
         }
 
+        internal override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return _originalVariable.IsKnownToReferToTempIfReferenceType; }
+        }
+
         public override RefKind RefKind
         {
             get { return _originalVariable.RefKind; }
@@ -99,29 +119,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal override ScopedKind Scope => throw new System.NotImplementedException();
 
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
-
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {
             return _originalVariable.GetConstantValue(node, inProgress, diagnostics);
         }
 
-        internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal LocalSymbol UnderlyingLocalSymbol => _originalVariable;
+
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             var origSynthesized = (SynthesizedLocal)_originalVariable;
             return new TypeSubstitutedLocalSymbol(
-                    origSynthesized.WithSynthesizedLocalKindAndSyntax(kind, syntax),
+                    origSynthesized.WithSynthesizedLocalKindAndSyntax(
+                        kind, syntax
+#if DEBUG
+                        ,
+                        createdAtLineNumber,
+                        createdAtFilePath
+#endif
+                        ),
                     _type,
                     _containingSymbol
                 );

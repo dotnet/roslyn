@@ -18,8 +18,124 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;</source>
-        <target state="needs-review-translation">Inserimento automatico di costrutti End;Modifica impostazioni di riformattazione;Modifica modalità struttura;Inserimento automatico di membri Interface e MustOverride;Mostra o nascondi separatori di riga routine;Attiva o disattiva i suggerimenti per la correzione degli errori;Attiva o disattiva evidenziazione di riferimenti e parole chiave;Regex;Colora espressioni regolari;Evidenzia componenti correlati sotto il cursore;Segnala espressioni regolari non valide;regex;espressione regolare;</target>
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression;
+Highlight related components under cursor;
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
+Import directives;
+Place System directives first when sorting imports;
+Separate import directive groups;
+Suggest imports for types in reference assemblies;
+Suggest imports for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused imports;
+Fade out unused members;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ''';
+Insert ' at the start of new lines when writing ' comments;
+Show preview for rename tracking;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Sottolineare variabili riassegnate;
+Visualizzare suggerimenti inline;
+Mostrare diagnostica per i file chiusi;
+Colorare l'espressione regolare;
+Evidenziare componenti correlati sotto il cursore;
+Segnalare espressioni regolari non valide;
+Abilitare analisi della soluzione completa;
+Eseguire analisi delle funzionalità dell'editor in processo esterno;
+Abilitare spostamento a origini decompilate;
+Usare sempre i server con simboli predefiniti per lo spostamento;
+Direttive import;
+Inserire prima le direttive 'System' durante l'ordinamento delle direttive import;
+Separare i gruppi di direttive import;
+Suggerire direttive import per i tipi nelle assembly di riferimento;
+Suggerire direttive import per i tipi nei pacchetti NuGet;
+Evidenziazione;
+Evidenziare riferimenti al simbolo sotto il cursore;
+Evidenziare parole chiave correlate sotto il cursore;
+Struttura;
+Attivare la modalità struttura all'apertura del file;
+Comprimere #regions all’apertura del file;
+Comprimere direttive import all'apertura del file;
+Comprimere le implementazioni di metadati all’apertura del file;
+Mostrare separatori di riga routine;
+Mostrare la struttura per i costrutti a livello di dichiarazione;
+Mostrare la struttura per i costrutti a livello di codice;
+Mostrare la struttura per i commenti e le regioni del preprocessore;
+Comprimere le regioni durante la compressione delle definizioni;
+Dissolvenza;
+Applicare la dissolvenza a chiudere alle direttive import non usate;
+Applicare la dissolvenza a chiudere alle direttive memeber non usate;
+Guide per strutture a blocchi;
+Mostrare le guide per i costrutti a livello di dichiarazione;
+Mostrare le guide per i costrutti a livello di codice;
+Guida dell'editor;
+Generare commenti relativi alla documentazione XML per ''';
+Inserire * all'inizio di nuove righe quando si scrivono commenti;
+Mostrare l'anteprima per la verifica della ridenominazione;
+Segnalare segnaposto non validi in chiamate string.Format;
+Estrarre metodo;
+Implementare interfaccia o classe astratta;
+Posizionare proprietà, eventi e metodi inseriti;
+con altri membri dello stesso tipo;
+alla fine;
+Durante la generazione della proprietà;
+preferire proprietà generate;
+preferire proprietà automatiche;
+regex;
+espressione regolare;
+Colorare espressioni regolari;
+Evidenziare componenti correlati sotto il cursore;
+Segnalare espressioni regolari non valide;
+JSON;
+Colorare le stringhe JSON;
+Segnalare le stringhe JSON non valide;
+Rilevare e offrire funzionalità dell'editor per le stringhe JSON;
+Usare colori migliorati;
+Combinazione colori nell'editor;
+Margine di ereditarietà;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -87,11 +203,6 @@
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Componenti di Visual Basic usati nell'IDE. A seconda del tipo e delle impostazioni del processo, è possibile che venga usata una versione diversa del compilatore.</target>
@@ -102,14 +213,34 @@
         <target state="translated">Strumenti di Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">File script di Visual Basic vuoto.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Aggiungi sempre una nuova riga dopo INVIO</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Script di Visual Basic</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Includi sempre i frammenti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Includi i frammenti quando si digita ?+TAB dopo un identificatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Non aggiungere mai una nuova riga dopo INVIO</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Non includere mai i frammenti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Aggiungi una nuova riga dopo INVIO solo alla fine della parola digitata</target>
         <note />
       </trans-unit>
     </body>

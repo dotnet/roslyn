@@ -2,14 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -17,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A source method that can have attributes, including a member method, accessor, or local function.
     /// </summary>
-    internal abstract class SourceMethodSymbolWithAttributes : SourceMethodSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceMethodSymbol : IAttributeTargetSymbol
     {
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
 
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
-        protected SourceMethodSymbolWithAttributes(SyntaxReference syntaxReferenceOpt)
+        protected SourceMethodSymbol(SyntaxReference syntaxReferenceOpt)
         {
             this.syntaxReferenceOpt = syntaxReferenceOpt;
         }
@@ -44,16 +50,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case AccessorDeclarationSyntax accessor:
                     return (CSharpSyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
                 case ArrowExpressionClauseSyntax arrowExpression:
-                    Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                    Debug.Assert(arrowExpression.Parent!.Kind() == SyntaxKind.PropertyDeclaration ||
                                  arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
                     return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
+                case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                    return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
+                case RecordDeclarationSyntax recordDecl:
+                    Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
+                    return recordDecl;
+                case ClassDeclarationSyntax classDecl:
+                    return classDecl;
                 default:
                     return null;
             }
         }
-#nullable restore
+
+        internal virtual Binder? OuterBinder => null;
+
+        internal virtual Binder? WithTypeParametersBinder => null;
+
+#nullable disable
 
         internal SyntaxReference SyntaxRef
         {
@@ -79,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
@@ -111,6 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual IAttributeTargetSymbol AttributeOwner
         {
             get { return this; }
+        }
+
+        protected virtual AttributeLocation AttributeLocationForLoadAndValidateAttributes
+        {
+            get { return AttributeLocation.None; }
         }
 
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
@@ -169,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonMethodEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
+        internal MethodEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
@@ -177,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonMethodEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
+            return (MethodEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -265,12 +288,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var (declarations, symbolPart) = forReturnType
                     ? (GetReturnTypeAttributeDeclarations(), AttributeLocation.Return)
-                    : (GetAttributeDeclarations(), AttributeLocation.None);
+                    : (GetAttributeDeclarations(), AttributeLocationForLoadAndValidateAttributes);
                 bagCreatedOnThisThread = LoadAndValidateAttributes(
                     declarations,
                     ref lazyCustomAttributesBag,
                     symbolPart,
-                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
+                    binderOpt: OuterBinder);
             }
 
             if (bagCreatedOnThisThread)
@@ -304,7 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+#nullable enable
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
 
@@ -314,38 +338,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
                 {
-                    var boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                    if (!boundAttribute.HasErrors)
+                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                    if (!attributeData.HasErrors)
                     {
-                        string name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
-                        arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
+                        string? name = attributeData.GetConstructorArgument<string>(0, SpecialType.System_String);
+                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
                         if (!hasAnyDiagnostics)
                         {
-                            return boundAttribute;
+                            return (attributeData, boundAttribute);
                         }
                     }
 
-                    return null;
+                    return (null, null);
                 }
-                else
+                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData? attributeData, out BoundAttribute? boundAttribute, out ObsoleteAttributeData? obsoleteData))
                 {
-                    CSharpAttributeData boundAttribute;
-                    ObsoleteAttributeData obsoleteData;
-
-                    if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+                    if (obsoleteData != null)
                     {
-                        if (obsoleteData != null)
-                        {
-                            arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
-                        }
-
-                        return boundAttribute;
+                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                     }
+
+                    return (attributeData, boundAttribute);
+                }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnmanagedCallersOnlyAttribute))
+                {
+                    arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().UnmanagedCallersOnlyAttributePresent = true;
+                    // We can't actually decode this attribute yet: CallConvs is an array, and it cannot be bound yet or we could hit a cycle
+                    // in error cases. We only detect whether or not the attribute is present for use in ensuring that we create as few lazily-computed
+                    // diagnostics that might later get thrown away as possible when binding method calls.
+                    return (null, null);
+                }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+                {
+                    if (!CanHaveOverloadResolutionPriority)
+                    {
+                        // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                        return (null, null);
+                    }
+
+                    (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+
+                    if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
+                    {
+                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
+
+                        if (!hasAnyDiagnostics)
+                        {
+                            return (attributeData, boundAttribute);
+                        }
+                    }
+
+                    return (null, null);
                 }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+
+        /// <summary>
+        /// Binds attributes applied to this method.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindMethodAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), OuterBinder);
+        }
+#nullable disable
 
         public override bool AreLocalsZeroed
         {
@@ -372,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
-                    var data = (CommonMethodEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
+                    var data = (MethodEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                     return data != null ? data.ObsoleteAttributeData : null;
                 }
 
@@ -386,13 +443,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+        {
+            if (syntaxReferenceOpt is null)
+            {
+                // no references -> no attributes
+                return null;
+            }
+
+            if (forceComplete)
+            {
+                _ = this.GetAttributes();
+            }
+
+            var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+            if (lazyCustomAttributesBag is null || !lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
+            {
+                Debug.Assert(!forceComplete);
+                return UnmanagedCallersOnlyAttributeData.Uninitialized;
+            }
+
+            if (lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+            {
+                var lateData = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+
+#if DEBUG
+                verifyDataConsistent((MethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, lateData);
+#endif
+
+                return lateData?.UnmanagedCallersOnlyAttributeData;
+            }
+
+            var earlyData = (MethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
+            Debug.Assert(!forceComplete);
+            return earlyData?.UnmanagedCallersOnlyAttributePresent == true
+                ? UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound
+                : null;
+
+#if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
+            static void verifyDataConsistent(MethodEarlyWellKnownAttributeData? earlyData, MethodWellKnownAttributeData? lateData)
+            {
+                if (lateData is { UnmanagedCallersOnlyAttributeData: not null })
+                {
+                    // We can't verify the symmetric case here. Error conditions (such as if a bad expression was provided to the array initializer)
+                    // can cause the attribute to be skipped during regular attribute binding. Early binding doesn't know that though, so
+                    // it still gets marked as present.
+                    Debug.Assert(earlyData is { UnmanagedCallersOnlyAttributePresent: true });
+                }
+                else if (earlyData is null or { UnmanagedCallersOnlyAttributePresent: false })
+                {
+                    Debug.Assert(lateData is null or { UnmanagedCallersOnlyAttributeData: null });
+                }
+            }
+#endif
+        }
+#nullable disable
+
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            CommonMethodEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+            MethodEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(!arguments.Attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
@@ -412,37 +526,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.PreserveSigAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().SetPreserveSignature(arguments.Index);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MethodImplAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MethodImplAttribute))
             {
-                AttributeData.DecodeMethodImplAttribute<MethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
+                AttributeData.DecodeMethodImplAttribute<MethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance, this.ContainingType);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DllImportAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DllImportAttribute))
             {
                 DecodeDllImportAttribute(ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SpecialNameAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ConditionalAttribute))
             {
-                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicSecurityMethodAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DynamicSecurityMethodAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDynamicSecurityMethodAttribute = true;
             }
@@ -452,55 +567,116 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.RequiresLocationAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.NullableContextAttribute |
+                ReservedAttributes.CaseSensitiveExtensionAttribute |
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
-                // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
-            {
-                // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
-            {
-                // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
-            {
-                // [Extension] attribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
-            {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
-                || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
+                || attribute.IsTargetAttribute(AttributeDescription.SecuritySafeCriticalAttribute))
             {
                 if (IsAsync)
                 {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<MethodWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DoesNotReturnAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDoesNotReturnAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MemberNotNullAttribute))
             {
-                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullWhenAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MemberNotNullWhenAttribute))
             {
-                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ModuleInitializerAttribute))
+            {
+                MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                DecodeModuleInitializerAttribute(arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.UnmanagedCallersOnlyAttribute))
+            {
+                DecodeUnmanagedCallersOnlyAttribute(ref arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
+            {
+                if (!this.UseUpdatedEscapeRules)
+                {
+                    diagnostics.Add(ErrorCode.WRN_UnscopedRefAttributeOldRules, arguments.AttributeSyntaxOpt.Location);
+                }
+
+                if (this.IsValidUnscopedRefAttributeTarget())
+                {
+                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+
+                    if (ContainingType.IsInterface || IsExplicitInterfaceImplementation)
+                    {
+                        MessageID.IDS_FeatureRefStructInterfaces.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                if (this.MethodKind is MethodKind.AnonymousFunction or MethodKind.Destructor or MethodKind.LambdaMethod or MethodKind.StaticConstructor)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+                else
+                {
+                    if (ContainingModule.UseUpdatedMemorySafetyRules)
+                    {
+                        MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, arguments.AttributeSyntaxOpt.Location);
+                    }
+
+                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasRequiresUnsafeAttribute = true;
+                }
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
+            {
+                DecodeInterceptsLocationAttribute(arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+            {
+                MessageID.IDS_FeatureOverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+
+                if (!CanHaveOverloadResolutionPriority)
+                {
+                    diagnostics.Add(IsOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+                            ? ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                            : ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember,
+                        arguments.AttributeSyntaxOpt);
+                }
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RuntimeAsyncMethodGenerationAttribute))
+            {
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().RuntimeAsyncMethodGenerationSetting =
+                    attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean)
+                        ? ThreeState.True
+                        : ThreeState.False;
             }
             else
             {
@@ -511,6 +687,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting
+            => GetDecodedWellKnownAttributeData()?.RuntimeAsyncMethodGenerationSetting ?? ThreeState.Unknown;
 
         internal override ImmutableArray<string> NotNullMembers =>
             GetDecodedWellKnownAttributeData()?.NotNullMembers ?? ImmutableArray<string>.Empty;
@@ -532,23 +711,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(MethodWellKnownAttributeData attributeData)
             => attributeData?.HasDoesNotReturnAttribute == true ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
 
+        internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
             AttributeDescription description)
         {
-            if (arguments.Attribute.IsTargetAttribute(this, description))
+            if (arguments.Attribute.IsTargetAttribute(description))
             {
                 if (this.IsAccessor())
                 {
+                    var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
                     if (this is SourceEventAccessorSymbol)
                     {
                         // CS1667: Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.
                         AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
-                        arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                        diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
                     }
                     else
                     {
-                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
 
@@ -558,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
 
@@ -580,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!this.CanBeReferencedByName || this.MethodKind == MethodKind.Destructor)
             {
-                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation
+                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 diagnostics.Add(ErrorCode.ERR_ConditionalOnSpecialMethod, node.Location, this);
             }
             else if (!this.ReturnsVoid)
@@ -604,8 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (name == null || !SyntaxFacts.IsValidIdentifier(name))
                 {
                     // CS0633: The argument to the '{0}' attribute must be a valid identifier
-                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, node);
-                    diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
+                    diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, attribute.GetAttributeArgumentLocation(0), node.GetErrorDisplayName());
                 }
             }
         }
@@ -628,51 +810,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.MarshalAsAttribute))
             {
                 // MarshalAs applied to the return value:
                 MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.DynamicAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.RequiresLocationAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.TupleElementNamesAttribute |
+                ReservedAttributes.NullableAttribute |
+                ReservedAttributes.NativeIntegerAttribute |
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
-                // DynamicAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
-            {
-                // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
-            {
-                // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
-            {
-                // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
-            {
-                // NullableAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MaybeNullAttribute))
             {
                 arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasMaybeNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.NotNullAttribute))
             {
                 arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasNotNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.NotNullIfNotNullAttribute))
             {
                 arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
             }
@@ -684,12 +850,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RoslynDebug.Assert(arguments.AttributeSyntaxOpt?.ArgumentList is object);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
-            if (!this.IsExtern || !this.IsStatic)
+            var implementationPart = this.PartialImplementationPart ?? this;
+            if (!implementationPart.IsExtern || (!implementationPart.IsStatic && !implementationPart.IsExtensionBlockMember()))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
             }
 
@@ -705,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isAnyNestedMethodGeneric || ContainingType?.IsGenericType == true)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
             }
 
@@ -713,8 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MetadataHelpers.IsValidMetadataIdentifier(moduleName))
             {
                 // Dev10 reports CS0647: "Error emitting attribute ..."
-                CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attribute.GetAttributeArgumentLocation(0), arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 hasErrors = true;
                 moduleName = null;
             }
@@ -743,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!MetadataHelpers.IsValidMetadataIdentifier(importName))
                         {
                             // Dev10 reports CS0647: "Error emitting attribute ..."
-                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
+                            diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
                             hasErrors = true;
                             importName = null;
                         }
@@ -802,9 +969,526 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     preserveSig);
             }
         }
-#nullable restore
 
-        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
+            if (MethodKind != MethodKind.Ordinary || this.IsExtensionBlockMember())
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                return;
+            }
+
+            Debug.Assert(ContainingType is object);
+            var hasError = false;
+
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+            if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteInfo))
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteInfo);
+
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid || IsAbstract || IsVirtual)
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            if (IsGenericMethod || ContainingType.IsGenericType)
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            // If this is an UnmanagedCallersOnly method, it means that this cannot be called by managed code, including the attempt by the CLR
+            // to run the module initializer.
+            if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is MethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributePresent: true })
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
+                hasError = true;
+            }
+
+            if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
+            {
+                DeclaringCompilation.AddModuleInitializerMethod(this);
+            }
+        }
+
+        private void DecodeInterceptsLocationAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(!arguments.Attribute.HasErrors);
+            var constructorArguments = arguments.Attribute.CommonConstructorArguments;
+            if (constructorArguments is [
+                { Type.SpecialType: SpecialType.System_String },
+                { Kind: not TypedConstantKind.Array, Value: int lineNumberOneBased },
+                { Kind: not TypedConstantKind.Array, Value: int characterNumberOneBased }])
+            {
+                DecodeInterceptsLocationAttributeExperimentalCompat(arguments, attributeFilePath: (string?)constructorArguments[0].Value, lineNumberOneBased, characterNumberOneBased);
+            }
+            else
+            {
+                Debug.Assert(arguments.Attribute.AttributeConstructor.Parameters is [{ Type.SpecialType: SpecialType.System_Int32 }, { Type.SpecialType: SpecialType.System_String }]);
+                DecodeInterceptsLocationChecksumBased(arguments, version: (int)constructorArguments[0].Value!, data: (string?)constructorArguments[1].Value);
+            }
+        }
+
+        private void DecodeInterceptsLocationChecksumBased(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, int version, string? data)
+        {
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+            var attributeNameSyntax = arguments.AttributeSyntaxOpt.Name; // used for reporting diagnostics
+            var attributeLocation = attributeNameSyntax.Location;
+
+            if (version != 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationUnsupportedVersion, attributeLocation, version);
+                return;
+            }
+
+            if (InterceptableLocation1.Decode(data) is not var (hash, position, displayFileName))
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, attributeLocation);
+                return;
+            }
+
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeNameSyntax.SyntaxTree.Options).InterceptorsNamespaces;
+            var thisNamespaceNames = getNamespaceNames(this);
+            var foundAnyMatch = interceptorsNamespaces.Any(static (ns, thisNamespaceNames) => isDeclaredInNamespace(thisNamespaceNames, ns), thisNamespaceNames);
+            if (!foundAnyMatch)
+            {
+                reportFeatureNotEnabled(diagnostics, attributeLocation, thisNamespaceNames);
+                thisNamespaceNames.Free();
+                return;
+            }
+            thisNamespaceNames.Free();
+
+            bool hadError = ReportBadInterceptsLocation(diagnostics, attributeLocation);
+            if (hadError)
+            {
+                return;
+            }
+
+            var matchingTrees = DeclaringCompilation.GetSyntaxTreesByContentHash(hash);
+            if (matchingTrees.Count > 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDuplicateFile, attributeLocation, displayFileName);
+                return;
+            }
+
+            if (matchingTrees.Count == 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationFileNotFound, attributeLocation, displayFileName);
+                return;
+            }
+
+            Debug.Assert(matchingTrees.Count == 1);
+            SyntaxTree? matchingTree = matchingTrees[0];
+
+            var root = matchingTree.GetRoot();
+            if (position < 0 || position > root.EndPosition)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, attributeLocation, displayFileName);
+                return;
+            }
+
+            var referencedLines = matchingTree.GetText().Lines;
+            var referencedLineCount = referencedLines.Count;
+            var referencedToken = root.FindToken(position);
+            switch (referencedToken)
+            {
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: MemberBindingExpressionSyntax { Parent: InvocationExpressionSyntax } memberBinding } rhs1 } when memberBinding.Name == rhs1:
+                case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
+                    // happy case
+                    break;
+                case { Parent: SimpleNameSyntax { Parent: not (MemberAccessExpressionSyntax or MemberBindingExpressionSyntax) } }:
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: MemberBindingExpressionSyntax memberBinding } rhs1 } when memberBinding.Name == rhs1:
+                    // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
+                    // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
+
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNameNotInvoked, attributeLocation, referencedToken.Text);
+                    return;
+                default:
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPositionBadToken, attributeLocation, referencedToken.Text);
+                    return;
+            }
+
+            if (position != referencedToken.Position)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, attributeLocation, displayFileName);
+                return;
+            }
+
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), position, attributeLocation, this);
+
+            // Caller must free the returned builder.
+            static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbol @this)
+            {
+                var namespaceNames = ArrayBuilder<string>.GetInstance();
+                for (var containingNamespace = @this.ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                    namespaceNames.Add(containingNamespace.Name);
+                // order outermost->innermost
+                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
+                namespaceNames.ReverseContents();
+                return namespaceNames;
+            }
+
+            static bool isDeclaredInNamespace(ArrayBuilder<string> thisNamespaceNames, ImmutableArray<string> namespaceSegments)
+            {
+                Debug.Assert(namespaceSegments.Length > 0);
+                if (namespaceSegments is ["global"])
+                {
+                    return true;
+                }
+
+                if (namespaceSegments.Length > thisNamespaceNames.Count)
+                {
+                    // the enabled NS has more components than interceptor's NS, so it will never match.
+                    return false;
+                }
+
+                for (var i = 0; i < namespaceSegments.Length; i++)
+                {
+                    if (namespaceSegments[i] != thisNamespaceNames[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, Location attributeLocation, ArrayBuilder<string> namespaceNames)
+            {
+                if (namespaceNames.Count == 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeLocation);
+                }
+                else
+                {
+                    var recommendedProperty = $"<InterceptorsNamespaces>$(InterceptorsNamespaces);{string.Join(".", namespaceNames)}</InterceptorsNamespaces>";
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeLocation, recommendedProperty);
+                }
+            }
+        }
+
+        private void DecodeInterceptsLocationAttributeExperimentalCompat(
+            DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
+            string? attributeFilePath,
+            int lineNumberOneBased,
+            int characterNumberOneBased)
+        {
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var attributeSyntax = arguments.AttributeSyntaxOpt;
+            Debug.Assert(attributeSyntax is object);
+            var attributeLocation = attributeSyntax.Location;
+            diagnostics.Add(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, attributeLocation);
+
+            const int filePathParameterIndex = 0;
+            const int lineNumberParameterIndex = 1;
+            const int characterNumberParameterIndex = 2;
+
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsNamespaces;
+            var thisNamespaceNames = getNamespaceNames();
+            var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
+            if (!foundAnyMatch)
+            {
+                reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
+                thisNamespaceNames.Free();
+                return;
+            }
+            thisNamespaceNames.Free();
+
+            var attributeData = arguments.Attribute;
+            if (attributeFilePath is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentLocation(filePathParameterIndex));
+                return;
+            }
+
+            bool hadError = ReportBadInterceptsLocation(diagnostics, attributeLocation);
+            if (hadError)
+            {
+                return;
+            }
+
+            var normalizedPath = FileUtilities.GetNormalizedPathOrOriginalPath(attributeFilePath, basePath: SyntaxTree.FilePath);
+            var matchingTrees = DeclaringCompilation.GetSyntaxTreesByPath(normalizedPath);
+            if (matchingTrees.Count > 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), normalizedPath);
+                return;
+            }
+
+            if (matchingTrees.Count == 0)
+            {
+                // Temporary compat behavior: check if 'attributeFilePath' is equivalent to a mapped path of one of the syntax trees in the compilation.
+                matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
+
+                if (matchingTrees.Count > 1)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), attributeFilePath);
+                    return;
+                }
+            }
+
+            // Neither the primary or compat methods of resolving the file path found any match.
+            if (matchingTrees.Count == 0)
+            {
+                // if we expect '/src/Program.cs':
+                // we might get: 'Program.cs' <-- suffix match
+                var syntaxTrees = DeclaringCompilation.SyntaxTrees;
+                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, attributeFilePathWithForwardSlashes)
+                    => tree.FilePath
+                        .Replace('\\', '/')
+                        .EndsWith(attributeFilePathWithForwardSlashes),
+                    attributeFilePath.Replace('\\', '/'));
+                if (suffixMatch != null)
+                {
+                    var recommendedPath = PathUtilities.IsAbsolute(SyntaxTree.FilePath)
+                        ? PathUtilities.GetRelativePath(PathUtilities.GetDirectoryName(SyntaxTree.FilePath), suffixMatch.FilePath)
+                        : suffixMatch.FilePath;
+                    diagnostics.Add(
+                        ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate,
+                        attributeData.GetAttributeArgumentLocation(filePathParameterIndex),
+                        attributeFilePath,
+                        recommendedPath);
+                    return;
+                }
+
+                diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), normalizedPath);
+
+                return;
+            }
+
+            Debug.Assert(matchingTrees.Count == 1);
+            SyntaxTree? matchingTree = matchingTrees[0];
+            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
+            int lineNumberZeroBased = lineNumberOneBased - 1;
+            int characterNumberZeroBased = characterNumberOneBased - 1;
+
+            if (lineNumberZeroBased < 0 || characterNumberZeroBased < 0)
+            {
+                var location = attributeData.GetAttributeArgumentLocation(lineNumberZeroBased < 0 ? lineNumberParameterIndex : characterNumberParameterIndex);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, location);
+                return;
+            }
+
+            var referencedLines = matchingTree.GetText().Lines;
+            var referencedLineCount = referencedLines.Count;
+
+            if (lineNumberZeroBased >= referencedLineCount)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeData.GetAttributeArgumentLocation(lineNumberParameterIndex), referencedLineCount, lineNumberOneBased);
+                return;
+            }
+
+            var line = referencedLines[lineNumberZeroBased];
+            var lineLength = line.End - line.Start;
+            if (characterNumberZeroBased >= lineLength)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeData.GetAttributeArgumentLocation(characterNumberParameterIndex), lineLength, characterNumberOneBased);
+                return;
+            }
+
+            var referencedPosition = line.Start + characterNumberZeroBased;
+            var root = matchingTree.GetRoot();
+            var referencedToken = root.FindToken(referencedPosition);
+            switch (referencedToken)
+            {
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
+                    // happy case
+                    break;
+                case { Parent: SimpleNameSyntax { Parent: not MemberAccessExpressionSyntax } }:
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
+                    // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
+                    // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNameNotInvoked, attributeLocation, referencedToken.Text);
+                    return;
+                default:
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPositionBadToken, attributeLocation, referencedToken.Text);
+                    return;
+            }
+
+            // Did they actually refer to the start of the token, not the middle, or in trivia?
+            // NB: here we don't want the provided position to refer to the start of token's leading trivia, in the checksum-based way we *do* want it to refer to the start of leading trivia (i.e. the Position)
+            if (referencedPosition != referencedToken.SpanStart)
+            {
+                var linePositionZeroBased = referencedToken.GetLocation().GetLineSpan().StartLinePosition;
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, linePositionZeroBased.Line + 1, linePositionZeroBased.Character + 1);
+                return;
+            }
+
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), referencedToken.Position, attributeLocation, this);
+
+            // Caller must free the returned builder.
+            ArrayBuilder<string> getNamespaceNames()
+            {
+                var namespaceNames = ArrayBuilder<string>.GetInstance();
+                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                    namespaceNames.Add(containingNamespace.Name);
+                // order outermost->innermost
+                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
+                namespaceNames.ReverseContents();
+                return namespaceNames;
+            }
+
+            static bool isDeclaredInNamespace(ArrayBuilder<string> thisNamespaceNames, ImmutableArray<string> namespaceSegments)
+            {
+                Debug.Assert(namespaceSegments.Length > 0);
+                if (namespaceSegments is ["global"])
+                {
+                    return true;
+                }
+
+                if (namespaceSegments.Length > thisNamespaceNames.Count)
+                {
+                    // the enabled NS has more components than interceptor's NS, so it will never match.
+                    return false;
+                }
+
+                for (var i = 0; i < namespaceSegments.Length; i++)
+                {
+                    if (namespaceSegments[i] != thisNamespaceNames[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
+            {
+                if (namespaceNames.Count == 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeSyntax);
+                }
+                else
+                {
+                    var recommendedProperty = $"<InterceptorsNamespaces>$(InterceptorsNamespaces);{string.Join(".", namespaceNames)}</InterceptorsNamespaces>";
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
+                }
+            }
+        }
+
+        private bool ReportBadInterceptsLocation(BindingDiagnosticBag diagnostics, Location attributeLocation)
+        {
+            if (!this.IsExtensionBlockMember() && ContainingType.IsGenericType)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
+                return true;
+            }
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
+                return true;
+            }
+
+            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
+            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
+            if (unmanagedCallersOnly != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt != null);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
+            arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
+                DecodeUnmanagedCallersOnlyAttributeData(this, arguments.Attribute, arguments.AttributeSyntaxOpt.Location, diagnostics);
+
+            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name, diagnostics);
+
+            var returnTypeSyntax = this.ExtractReturnTypeSyntax();
+
+            // If there is no return type (such as a property definition), Dummy.GetRoot() is returned.
+            if (ReferenceEquals(returnTypeSyntax, CSharpSyntaxTree.Dummy.GetRoot()))
+            {
+                // If there's no syntax for the return type, then we already errored because this isn't a valid
+                // unmanagedcallersonly target (it's a property getter/setter or some other non-regular-method).
+                // Any more errors would just be noise.
+                Debug.Assert(reportedError);
+                return;
+            }
+
+            checkAndReportManagedTypes(ReturnType, this.RefKind, returnTypeSyntax, isParam: false, diagnostics);
+            foreach (var param in Parameters)
+            {
+                checkAndReportManagedTypes(param.Type, param.RefKind, param.GetNonNullSyntaxNode(), isParam: true, diagnostics);
+            }
+
+            static void checkAndReportManagedTypes(TypeSymbol type, RefKind refKind, SyntaxNode syntax, bool isParam, BindingDiagnosticBag diagnostics)
+            {
+                if (refKind != RefKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, syntax.Location);
+                }
+
+                // use-site diagnostics will be reported at actual parameter declaration site, we're only interested
+                // in reporting managed types being used
+                switch (type.ManagedKindNoUseSiteDiagnostics)
+                {
+                    case ManagedKind.Unmanaged:
+                    case ManagedKind.UnmanagedWithGenerics:
+                        // Note that this will let through some things that are technically unmanaged, but not
+                        // actually blittable. However, we don't have a formal concept of blittable in C#
+                        // itself, so checking for purely unmanaged types is the best we can do here.
+                        return;
+
+                    case ManagedKind.Managed:
+                        // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
+                        diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());
+                        return;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.ManagedKindNoUseSiteDiagnostics);
+                }
+            }
+
+            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbol @this, CSharpAttributeData attribute, Location location, BindingDiagnosticBag diagnostics)
+            {
+                Debug.Assert(attribute.AttributeClass is not null);
+                ImmutableHashSet<CodeAnalysis.Symbols.INamedTypeSymbolInternal>? callingConventionTypes = null;
+                if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
+                {
+                    var systemType = @this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type);
+
+                    foreach (var (key, value) in attribute.CommonNamedArguments)
+                    {
+                        // Technically, CIL can define a field and a property with the same name. However, such a
+                        // member results in an Ambiguous Member error, and we never get to this piece of code at all.
+                        // See UnmanagedCallersOnly_PropertyAndFieldNamedCallConvs for an example
+                        bool isField = attribute.AttributeClass.GetMembers(key).Any(
+                            static (m, systemType) => m is FieldSymbol { Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol elementType } } && elementType.Equals(systemType, TypeCompareKind.ConsiderEverything),
+                            systemType);
+
+                        var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsField(key, value, isField, location, diagnostics);
+
+                        if (namedArgumentDecoded.IsCallConvs)
+                        {
+                            callingConventionTypes = namedArgumentDecoded.CallConvs;
+                        }
+                    }
+                }
+
+                return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
+            }
+        }
+
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -816,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_lazyCustomAttributesBag != null);
                 Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class })
+                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class or TypeKind.Interface })
                 {
                     switch (this.MethodKind)
                     {
@@ -825,7 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsImplicitlyDeclared)
                             {
                                 // CS0669: A class with the ComImport attribute cannot have a user-defined constructor
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithUserCtor, this.Locations[0]);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithUserCtor, this.GetFirstLocation());
                             }
 
                             break;
@@ -834,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsAbstract && !this.IsExtern)
                             {
                                 // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, ContainingType);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.GetFirstLocation(), this, ContainingType);
                             }
 
                             break;
@@ -843,7 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (IsExtern
                     && !IsAbstract
-                    && !this.IsPartialMethod()
+                    && !this.IsPartialMember()
                     && GetInMethodSyntaxNode() is null
                     && boundAttributes.IsEmpty
                     && !this.ContainingType.IsComImport)
@@ -851,51 +1535,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var errorCode = (this.MethodKind == MethodKind.Constructor || this.MethodKind == MethodKind.StaticConstructor) ?
                         ErrorCode.WRN_ExternCtorNoImplementation :
                         ErrorCode.WRN_ExternMethodNoImplementation;
-                    diagnostics.Add(errorCode, this.Locations[0], this);
+                    diagnostics.Add(errorCode, this.GetFirstLocation(), this);
                 }
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        protected void AsyncMethodChecks(DiagnosticBag diagnostics)
+        protected void AsyncMethodChecks(BindingDiagnosticBag diagnostics)
+        {
+            AsyncMethodChecks(verifyReturnType: true, this.GetFirstLocation(), diagnostics);
+        }
+
+        protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
             if (IsAsync)
             {
-                var errorLocation = this.Locations[0];
+                bool hasErrors = false;
 
-                if (this.RefKind != RefKind.None)
+                if (verifyReturnType)
                 {
-                    var returnTypeSyntax = this.SyntaxNode switch
+                    if (this.RefKind != RefKind.None)
                     {
-                        MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
-                        LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
-                        var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
-                    };
+                        var returnTypeSyntax = this.SyntaxNode switch
+                        {
+                            MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
+                            LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
+                            ParenthesizedLambdaExpressionSyntax { ReturnType: { } lambdaReturnType } => lambdaReturnType,
+                            var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
+                        };
 
-                    ReportBadRefToken(returnTypeSyntax, diagnostics);
-                }
-                else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-                }
-
-                for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-                {
-                    var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                    if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
+                        ReportBadRefToken(returnTypeSyntax, diagnostics);
+                        hasErrors = true;
+                    }
+                    else if (isBadAsyncReturn(this))
                     {
-                        diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
-                        break;
+                        diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
+                        hasErrors = true;
+                    }
+                }
+
+                if (this.HasAsyncMethodBuilderAttribute(out _))
+                {
+                    MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                }
+
+                // Avoid checking attributes on containing types to avoid a potential cycle when a lambda
+                // is used in an attribute argument - see https://github.com/dotnet/roslyn/issues/54074.
+                // (ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct was never reported
+                // for lambda expressions and is not a .NET Core scenario so it's not necessary to handle.)
+                if (this.MethodKind != MethodKind.LambdaMethod)
+                {
+                    for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
+                    {
+                        if (curr is SourceNamedTypeSymbol { HasSecurityCriticalAttributes: true })
+                        {
+                            diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
+                            hasErrors = true;
+                            break;
+                        }
                     }
                 }
 
                 if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
+                    hasErrors = true;
                 }
 
-                if (!diagnostics.HasAnyResolvedErrors())
+                if (!hasErrors)
                 {
                     ReportAsyncParameterErrors(diagnostics, errorLocation);
                 }
@@ -905,9 +1613,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     GetInMethodSyntaxNode() is object)
                 {
                     var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-                    var enumeratorCancellationCount = Parameters.Count(p => p.IsSourceParameterWithEnumeratorCancellationAttribute());
+                    var enumeratorCancellationCount = Parameters.Count(p => p.HasEnumeratorCancellationAttribute);
                     if (enumeratorCancellationCount == 0 &&
-                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
+                        ParameterTypesWithAnnotations.Any(static (p, cancellationTokenType) => p.Type.Equals(cancellationTokenType), cancellationTokenType))
                     {
                         // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
                         // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
@@ -920,6 +1628,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, errorLocation);
                     }
                 }
+            }
+
+            static bool isBadAsyncReturn(MethodSymbol methodSymbol)
+            {
+                var returnType = methodSymbol.ReturnType;
+                var declaringCompilation = methodSymbol.DeclaringCompilation;
+                return !returnType.IsErrorType() &&
+                    !returnType.IsVoidType() &&
+                    !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                    !returnType.IsIAsyncEnumeratorType(declaringCompilation) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningTask(declaringCompilation) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningGenericTask(declaringCompilation);
             }
         }
 
@@ -984,10 +1704,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasSpecialNameAttribute;
+                return HasSpecialNameAttribute;
             }
         }
+
+        internal sealed override bool HasSpecialNameAttribute =>
+            GetDecodedWellKnownAttributeData()?.HasSpecialNameAttribute == true;
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
@@ -1016,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var wellKnownData = (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
-                SecurityWellKnownAttributeData securityData = wellKnownData.SecurityInformation;
+                SecurityWellKnownAttributeData? securityData = wellKnownData.SecurityInformation;
                 if (securityData != null)
                 {
                     return securityData.GetSecurityAttributes(attributesBag.Attributes);
@@ -1026,13 +1748,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
         }
 
-        public override DllImportData GetDllImportData()
+        public override DllImportData? GetDllImportData()
         {
             var data = this.GetDecodedWellKnownAttributeData();
             return data != null ? data.DllImportPlatformInvokeData : null;
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
         {
             get
             {
@@ -1054,8 +1776,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result |= (System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall);
                 }
 
+                AddAsyncImplAttributeIfNeeded(ref result);
+
                 return result;
             }
         }
+
+        protected void AddAsyncImplAttributeIfNeeded(ref System.Reflection.MethodImplAttributes result)
+        {
+            if (this.IsAsync && this.DeclaringCompilation.IsRuntimeAsyncEnabledIn(this))
+            {
+                // When a method is emitted using runtime async, we add MethodImplAttributes.Async to indicate to the 
+                // runtime to generate the state machine
+                result |= System.Reflection.MethodImplAttributes.Async;
+            }
+        }
+
+        internal override int TryGetOverloadResolutionPriority()
+            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
     }
 }

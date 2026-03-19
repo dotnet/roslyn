@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis
@@ -47,11 +45,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Displays attributes names without the "Attribute" suffix, if possible.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// Has no effect outside <see cref="ISymbol.ToMinimalDisplayString"/> and only applies
         /// if the context location is one where an attribute ca be referenced without the suffix.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         RemoveAttributeSuffix = 1 << 4,
 
         /// <summary>
@@ -74,5 +72,17 @@ namespace Microsoft.CodeAnalysis
         /// Append '!' to non-nullable reference types.
         /// </summary>
         IncludeNotNullableReferenceTypeModifier = 1 << 8,
+
+        /// <summary>
+        /// Insert a tuple into the display parts as a single part instead of multiple parts (similar
+        /// to how anonymous types are inserted).
+        /// </summary>
+        CollapseTupleTypes = 1 << 9,
+
+        /// <summary>
+        /// Displays <see cref="System.ValueTuple"/> as a normal generic type, rather than with the special
+        /// parenthetical syntax (e.g. <code>ValueTuple&lt;int, string&gt;</code> instead of <code>(int, string)</code>)
+        /// </summary>
+        ExpandValueTuple = 1 << 10,
     }
 }

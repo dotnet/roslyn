@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -84,15 +87,15 @@ class Program { }
 class Program { }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute ' `'
+                // (3,21): warning CS1584: XML comment has syntactically incorrect cref attribute ' `'
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, " ").WithArguments(" `"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "`").WithArguments(" `").WithLocation(3, 21),
                 // (3,21): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "`").WithArguments("Identifier expected", "1001"),
-                // (3,20): warning CS1658: Unexpected character '`'. See also error CS1056.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "`").WithArguments("Identifier expected", "1001").WithLocation(3, 21),
+                // (3,21): warning CS1658: Unexpected character '`'. See also error CS1056.
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '`'", "1056"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '`'", "1056").WithLocation(3, 21));
         }
 
         [Fact]
@@ -275,25 +278,25 @@ class Program { }
             compilation.VerifyDiagnostics(
                 // (4,20): warning CS1584: XML comment has syntactically incorrect cref attribute ':'
                 // /// See <see cref=":"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments(":"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments(":").WithLocation(4, 20),
                 // (4,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=":"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ":").WithArguments("Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ":").WithArguments("Identifier expected", "1001").WithLocation(4, 20),
                 // (5,20): warning CS1584: XML comment has syntactically incorrect cref attribute '::'
                 // /// See <see cref="::"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments("::"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "::").WithArguments("::").WithLocation(5, 20),
                 // (5,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="::"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "::").WithArguments("Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "::").WithArguments("Identifier expected", "1001").WithLocation(5, 20),
                 // (6,20): warning CS1584: XML comment has syntactically incorrect cref attribute '&#58;&#58;Gibberish'
                 // /// See <see cref="&#58;&#58;Gibberish"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "&").WithArguments("&#58;&#58;Gibberish"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "&#58;&#58;").WithArguments("&#58;&#58;Gibberish").WithLocation(6, 20),
                 // (6,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="&#58;&#58;Gibberish"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "&#58;&#58;").WithArguments("Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "&#58;&#58;").WithArguments("Identifier expected", "1001").WithLocation(6, 20),
                 // (3,20): warning CS1574: XML comment has cref attribute 'A' that could not be resolved
                 // /// See <see cref="A"/> - only one character.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "A").WithArguments("A"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "A").WithArguments("A").WithLocation(3, 20));
 
             var crefSyntaxes = GetCrefSyntaxes(compilation);
             Assert.Equal(4, crefSyntaxes.Count());
@@ -2054,7 +2057,7 @@ class B
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void Ambiguous3()
         {
             var lib1Source = @"
@@ -2283,7 +2286,7 @@ class C
         }
 
         [Fact]
-        public void UnaryOperator_NoParameters()
+        public void UnaryOperator_NoParameters_01()
         {
             var source = @"
 /// <summary>
@@ -2304,6 +2307,33 @@ class C
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
+        }
+
+        [Fact]
+        public void UnaryOperator_NoParameters_02()
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator -""/>.
+/// </summary>
+class C
+{
+    public static C operator -(C c)
+    {
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var crefSyntax = GetCrefSyntaxes(compilation).Single();
+
+            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator -' that could not be resolved
+                // /// See <see cref="operator -"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator -").WithArguments("operator -").WithLocation(3, 20)
+                );
+
+            Assert.Null(actualSymbol);
         }
 
         [Fact]
@@ -3347,7 +3377,7 @@ class Outer
 
             int position = source.IndexOf("{U}", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString),
+            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolExtensions.ToTestDisplayString),
                 // Implicit type parameter
                 "U",
 
@@ -3355,17 +3385,17 @@ class Outer
                 "T",
                 "void C<T>.M()",
                 "C<T>",
-                "Outer",
 
                 // Boring
                 "System",
-                "Microsoft",
 
                 // Inaccessible and boring
                 "FXAssembly",
                 "ThisAssembly",
                 "AssemblyRef",
-                "SRETW");
+                "SRETW",
+                "Outer",
+                "Microsoft");
 
             // Consider inaccessible symbols, as in Dev11
             Assert.Equal(typeInner.GetPublicSymbol(), model.LookupSymbols(position, typeOuter.GetPublicSymbol(), typeInner.Name).Single());
@@ -3623,49 +3653,51 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (4,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (5,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
-                //     /// <param name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value"),
-                // (6,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int)' (but other parameters do)
-                //     void M(int x) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int)"),
-                // (8,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
-                //     /// <param name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x"),
-                // (11,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (12,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
-                //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int, int]"),
-                // (12,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
-                //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]"),
-                // (14,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (15,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
-                //     /// <param name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value"),
-                // (21,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
-                //     /// <param name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x"),
-                // (22,24): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
-                //     partial void M(int y);
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int)"),
-                // (27,22): warning CS1572: XML comment has a param tag for 'y', but there is no parameter by that name
-                //     /// <param name="y"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "y").WithArguments("y"),
-                // (28,24): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
                 //     partial void M(int x) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "P.M(int)"),
-
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
                 //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(16, 25),
+                // (4,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(4, 22),
+                // (5,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
+                //     /// <param name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value").WithLocation(5, 22),
+                // (6,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int)' (but other parameters do)
+                //     void M(int x) { }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int)").WithLocation(6, 16),
+                // (8,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
+                //     /// <param name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x").WithLocation(8, 22),
+                // (11,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(11, 22),
+                // (12,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
+                //     int this[int x, int y] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int, int]").WithLocation(12, 18),
+                // (12,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
+                //     int this[int x, int y] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]").WithLocation(12, 25),
+                // (14,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(14, 22),
+                // (15,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
+                //     /// <param name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value").WithLocation(15, 22),
+                // (27,22): warning CS1572: XML comment has a param tag for 'y', but there is no parameter by that name
+                //     /// <param name="y"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "y").WithArguments("y").WithLocation(27, 22),
+                // (28,24): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                //     partial void M(int x) { }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "P.M(int)").WithLocation(28, 24),
+                // (21,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
+                //     /// <param name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x").WithLocation(21, 22),
+                // (22,24): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                //     partial void M(int y);
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int)").WithLocation(22, 24));
         }
 
         [Fact]
@@ -3697,21 +3729,24 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (23,18): warning CS8826: Partial method declarations 'void P.M(int q, int r)' and 'void P.M(int x, int y)' have signature differences.
+                //     partial void M(int x, int y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int q, int r)", "void P.M(int x, int y)").WithLocation(23, 18),
                 // (5,23): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.M(int, int)' (but other parameters do)
                 //     void M(int x, int y) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)").WithLocation(5, 23),
                 // (8,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
                 //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]").WithLocation(8, 25),
                 // (11,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int]' (but other parameters do)
                 //     int this[int x] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int]"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int]").WithLocation(11, 18),
                 // (23,31): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int, int)' (but other parameters do)
                 //     partial void M(int x, int y) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int, int)"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int, int)").WithLocation(23, 31),
                 // (17,31): warning CS1573: Parameter 'r' has no matching param tag in the XML comment for 'P.M(int, int)' (but other parameters do)
                 //     partial void M(int q, int r);
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "r").WithArguments("r", "P.M(int, int)"));
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "r").WithArguments("r", "P.M(int, int)").WithLocation(17, 31));
         }
 
         [Fact]
@@ -3801,34 +3836,36 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (4,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.M(int)"),
-                // (5,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'value', but there is no parameter by that name
-                //     /// <paramref name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.M(int)"),
-                // (8,25): warning CS1734: XML comment on 'C.P' has a paramref tag for 'x', but there is no parameter by that name
-                //     /// <paramref name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "C.P"),
-                // (11,25): warning CS1734: XML comment on 'C.this[int, int]' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.this[int, int]"),
-                // (14,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.E"),
-                // (15,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'value', but there is no parameter by that name
-                //     /// <paramref name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.E"),
-                // (27,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'y', but there is no parameter by that name
-                //     /// <paramref name="y"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "y").WithArguments("y", "P.M(int)"),
-                // (21,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'x', but there is no parameter by that name
-                //     /// <paramref name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "P.M(int)"),
-
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
+                //     partial void M(int x) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
                 //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(16, 25),
+                // (4,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.M(int)").WithLocation(4, 25),
+                // (5,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'value', but there is no parameter by that name
+                //     /// <paramref name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.M(int)").WithLocation(5, 25),
+                // (8,25): warning CS1734: XML comment on 'C.P' has a paramref tag for 'x', but there is no parameter by that name
+                //     /// <paramref name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "C.P").WithLocation(8, 25),
+                // (11,25): warning CS1734: XML comment on 'C.this[int, int]' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.this[int, int]").WithLocation(11, 25),
+                // (14,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.E").WithLocation(14, 25),
+                // (15,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'value', but there is no parameter by that name
+                //     /// <paramref name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.E").WithLocation(15, 25),
+                // (27,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'y', but there is no parameter by that name
+                //     /// <paramref name="y"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "y").WithArguments("y", "P.M(int)").WithLocation(27, 25),
+                // (21,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'x', but there is no parameter by that name
+                //     /// <paramref name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "P.M(int)").WithLocation(21, 25));
         }
 
         [Fact]
@@ -4022,6 +4059,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,22): warning CS1711: XML comment has a typeparam tag for 'T', but there is no type parameter by that name
                 // /// <typeparam name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, "T").WithArguments("T"),
@@ -4155,6 +4195,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,25): warning CS1735: XML comment on 'C' has a typeparamref tag for 'T', but there is no type parameter by that name
                 // /// <typeparamref name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, "T").WithArguments("T", "C"),
@@ -4442,30 +4485,30 @@ class C
             // BREAK: dev11 doesn't report CS1581 for "Q[]" or "Q*" because it only checks for error
             // types and it finds an array type and a pointer type, respectively.
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (2,16): warning CS1581: Invalid return type in XML comment cref attribute
+                // (2,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithArguments("Q", "explicit operator Q"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithLocation(2, 34),
                 // (2,16): warning CS1574: XML comment has cref attribute 'explicit operator Q' that could not be resolved
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q"),
-                // (3,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q").WithLocation(2, 16),
+                // (3,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithArguments("C{Q}", "explicit operator C{Q}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithLocation(3, 34),
                 // (3,16): warning CS1574: XML comment has cref attribute 'explicit operator C{Q}' that could not be resolved
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}"),
-                // (4,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}").WithLocation(3, 16),
+                // (4,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithArguments("Q[]", "explicit operator Q[]"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithLocation(4, 34),
                 // (4,16): warning CS1574: XML comment has cref attribute 'explicit operator Q[]' that could not be resolved
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]"),
-                // (5,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]").WithLocation(4, 16),
+                // (5,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithArguments("Q*", "explicit operator Q*"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithLocation(5, 34),
                 // (5,16): warning CS1574: XML comment has cref attribute 'explicit operator Q*' that could not be resolved
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*").WithLocation(5, 16));
         }
 
         [Fact]
@@ -5350,9 +5393,9 @@ class Program
 
             var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
-                // (2,20): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
+                // (2,21): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
                 // /// <see cref="int" cref="long"/>
-                Diagnostic(ErrorCode.WRN_XMLParseError, @" cref=""long").WithArguments("cref"));
+                Diagnostic(ErrorCode.WRN_XMLParseError, @"cref=""long""").WithArguments("cref").WithLocation(2, 21));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntaxes = GetCrefSyntaxes(compilation).ToArray();
@@ -5470,7 +5513,7 @@ class C<T>
 
             Func<Symbol> lookupSymbol = () =>
             {
-                var factory = new BinderFactory(compilation, tree);
+                var factory = new BinderFactory(compilation, tree, ignoreAccessibility: false);
                 var binder = factory.GetBinder(cref);
                 var lookupResult = LookupResult.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -5521,7 +5564,7 @@ class C<T>
             Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam.GetSymbol());
 
             var sourceTypeParam = referencedType.TypeParameters.Single();
-            Assert.IsType<SourceTypeParameterSymbol>(sourceTypeParam.GetSymbol());
+            Assert.IsType<SourceTypeTypeParameterSymbol>(sourceTypeParam.GetSymbol());
 
             Assert.NotEqual(crefTypeParam, sourceTypeParam);
             Assert.NotEqual(sourceTypeParam, crefTypeParam);
@@ -5776,12 +5819,9 @@ class C { }
 
             // Just don't blow up.
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator }}='
+                // (2,16): warning CS1574: XML comment has cref attribute 'operator }}=' that could not be resolved
                 // /// <see cref="operator }}="/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator").WithArguments("operator }}="),
-                // (2,24): warning CS1658: Overloadable operator expected. See also error CS1037.
-                // /// <see cref="operator }}="/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, " }}").WithArguments("Overloadable operator expected", "1037"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator }}=").WithArguments("operator }}=").WithLocation(2, 16));
         }
 
         [WorkItem(554077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554077")]
@@ -6566,39 +6606,6 @@ class Cat { }
 
         #endregion Dev10 bugs from KevinH
 
-        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
-
-        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
-        {
-            return compilation.SyntaxTrees.SelectMany(tree =>
-            {
-                var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
-                return docComments.SelectMany(docComment => docComment.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Select(attr => attr.Cref));
-            });
-        }
-
-        private static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
-        {
-            Symbol ambiguityWinner;
-            var references = GetReferencedSymbols(crefSyntax, compilation, out ambiguityWinner, expectedDiagnostics);
-            Assert.Null(ambiguityWinner);
-            Assert.InRange(references.Length, 0, 1); //Otherwise, call GetReferencedSymbols
-
-            return references.FirstOrDefault();
-        }
-
-        private static ImmutableArray<Symbol> GetReferencedSymbols(CrefSyntax crefSyntax, CSharpCompilation compilation, out Symbol ambiguityWinner, params DiagnosticDescription[] expectedDiagnostics)
-        {
-            var binderFactory = compilation.GetBinderFactory(crefSyntax.SyntaxTree);
-            var binder = binderFactory.GetBinder(crefSyntax);
-
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            var references = binder.BindCref(crefSyntax, out ambiguityWinner, diagnostics);
-            diagnostics.Verify(expectedDiagnostics);
-            diagnostics.Free();
-            return references;
-        }
-
         private static ISymbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
             return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : symbol.OriginalDefinition).ToArray();
@@ -6660,9 +6667,203 @@ class Test
 
             var parameter = cref.Parameters.Parameters.Single();
             Assert.Equal(SyntaxKind.InKeyword, parameter.RefKindKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, parameter.ReadOnlyKeyword.Kind());
 
             var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
+        }
+
+        [Fact]
+        public void CRef_RefReadonlyParameter()
+        {
+            var source = """
+                class Test
+                {
+                    void M(ref readonly int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(ref readonly int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     void M(ref readonly int x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
+                // (8,26): warning CS1658: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.. See also error CS9058.
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.", "9058").WithLocation(8, 26)));
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+                var parameter = cref.Parameters.Parameters.Single();
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.RefKindKeyword.Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.ReadOnlyKeyword.Kind());
+
+                var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
+                Assert.Equal(RefKind.RefReadOnlyParameter, parameterSymbol.RefKind);
+            }
+        }
+
+        [Fact]
+        public void CRef_RefReadonlyParameter_ReadonlyRef()
+        {
+            var source = """
+                class Test
+                {
+                    void M(ref readonly int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(readonly ref int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     void M(ref readonly int x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+                Assert.Empty(cref.Parameters.Parameters);
+            }
+        }
+
+        [Fact]
+        public void CRef_ReadonlyRefParameter()
+        {
+            var source = """
+                class Test
+                {
+                    void M(readonly ref int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(readonly ref int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+                Assert.Empty(cref.Parameters.Parameters);
+            }
+        }
+
+        [Fact]
+        public void CRef_ReadonlyRefParameter_RefReadonly()
+        {
+            var source = """
+                class Test
+                {
+                    void M(readonly ref int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(ref readonly int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20),
+                // (8,26): warning CS1658: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.. See also error CS9058.
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.", "9058").WithLocation(8, 26)));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+                var parameter = cref.Parameters.Parameters.Single();
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.RefKindKeyword.Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.ReadOnlyKeyword.Kind());
+
+                Assert.True(model.GetSymbolInfo(cref).IsEmpty);
+            }
         }
 
         [Fact]
@@ -6711,6 +6912,227 @@ class C
             var cref = xml.Descendants("see").Single().Attribute("cref").Value;
 
             Assert.Equal("F:System.ValueTuple`2.Item1", cref);
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""RelativePathBase""/>.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record CacheContext(string RelativePathBase)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25),
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecordStruct(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""RelativePathBase""/>.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record struct CacheContext(string RelativePathBase)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25),
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecordStruct_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record struct CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        public void Record_TypeAndPropertyWithSameNameInScope(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// </summary>
+record CacheContext(string String)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
+
+            var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var crefSyntaxes = GetCrefSyntaxes(comp);
+            var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol.Kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4031")]
+        public void AmbiguousReferenceInDifferentNamespaces()
+        {
+            var source = """
+                namespace System
+                {
+                    class TypeA
+                    {
+                    }
+                }
+
+                namespace System.Goo
+                {
+                    class TypeA
+                    {
+                    }
+                }
+
+                namespace A
+                {
+                    using System;
+                    using System.Goo;
+
+                    /// <summary>
+                    ///     <see cref="TypeA"/>
+                    /// </summary>
+                    class Bar
+                    {
+                    }
+                }
+                """;
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (21,24): warning CS0419: Ambiguous reference in cref attribute: 'TypeA'. Assuming 'System.Goo.TypeA', but could have also matched other overloads including 'System.TypeA'.
+                //         <see cref="TypeA"/>
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "TypeA").WithArguments("TypeA", "System.Goo.TypeA", "System.TypeA").WithLocation(21, 24));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4031")]
+        public void AmbiguousReferenceInDifferentNamespaces_WithParameters()
+        {
+            var source = """
+                namespace System
+                {
+                    class TypeA
+                    {
+                    }
+                }
+                
+                namespace System.Goo
+                {
+                    class TypeA
+                    {
+                    }
+                }
+                
+                namespace A
+                {
+                    /// <summary>
+                    ///     <see cref="M{T}"/>
+                    /// </summary>
+                    class Bar
+                    {
+                        void M<T>(System.TypeA a) { }
+                        void M<T>(System.Goo.TypeA a) { }
+                    }
+                }
+                """;
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (18,24): warning CS0419: Ambiguous reference in cref attribute: 'M{T}'. Assuming 'A.Bar.M<T>(System.TypeA)', but could have also matched other overloads including 'A.Bar.M<T>(System.Goo.TypeA)'.
+                //     ///     <see cref="M{T}"/>
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M{T}").WithArguments("M{T}", "A.Bar.M<T>(System.TypeA)", "A.Bar.M<T>(System.Goo.TypeA)").WithLocation(18, 24));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81090")]
+        public void Cref_FunctionPointer()
+        {
+            var source = """
+                using unsafe FnPtr = delegate*<void>;
+                /// <summary>
+                /// <see cref="FnPtr"/>
+                /// </summary>
+                unsafe class C;
+                """;
+            var comp = CreateCompilation(source,
+                parseOptions: TestOptions.RegularWithDocumentationComments,
+                options: TestOptions.UnsafeDebugDll,
+                targetFramework: TargetFramework.NetCoreApp).VerifyEmitDiagnostics();
+
+            var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var crefSyntaxes = GetCrefSyntaxes(comp);
+            var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
+            Assert.Equal(SymbolKind.FunctionPointerType, symbol.Kind);
+
+            // Function pointers don't have doc ID: https://github.com/dotnet/roslyn/issues/48363
+            // Function pointers are ignored without any diagnostics: https://github.com/dotnet/roslyn/issues/46674
+            AssertEx.Equal("""
+                <member name="T:C">
+                    <summary>
+                    <see cref=""/>
+                    </summary>
+                </member>
+
+                """, comp.GetMember<NamedTypeSymbol>("C").GetDocumentationCommentXml());
         }
     }
 }

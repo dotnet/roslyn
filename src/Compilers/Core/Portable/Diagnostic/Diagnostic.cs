@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -24,9 +23,19 @@ namespace Microsoft.CodeAnalysis
         internal const string CompilerDiagnosticCategory = "Compiler";
 
         /// <summary>
-        /// Highest valid warning level for non-error diagnostics.
+        /// The default warning level, which is also used for non-error diagnostics.
         /// </summary>
-        internal const int HighestValidWarningLevel = 4;
+        internal const int DefaultWarningLevel = 4;
+
+        /// <summary>
+        /// The warning level used for hidden and info diagnostics. Because these diagnostics interact with other editor features, we want them to always be produced unless /warn:0 is set.
+        /// </summary>
+        internal const int InfoAndHiddenWarningLevel = 1;
+
+        /// <summary>
+        /// The maximum warning level represented by a large value of 9999.
+        /// </summary>
+        internal const int MaxWarningLevel = 9999;
 
         /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
@@ -37,8 +46,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
-            params object?[] messageArgs)
+            Location? location,
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, null, null, messageArgs);
         }
@@ -57,9 +66,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
-            ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            Location? location,
+            ImmutableDictionary<string, string?>? properties,
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, null, properties, messageArgs);
         }
@@ -78,9 +87,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             IEnumerable<Location>? additionalLocations,
-            params object?[] messageArgs)
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, additionalLocations, properties: null, messageArgs: messageArgs);
         }
@@ -104,10 +113,10 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             IEnumerable<Location>? additionalLocations,
-            ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            ImmutableDictionary<string, string?>? properties,
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
         }
@@ -132,11 +141,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             DiagnosticSeverity effectiveSeverity,
             IEnumerable<Location>? additionalLocations,
-            ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            ImmutableDictionary<string, string?>? properties,
+            params object?[]? messageArgs)
         {
             if (descriptor == null)
             {
@@ -163,7 +172,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
         /// <param name="helpLink">An optional hyperlink that provides more detailed information regarding the diagnostic.</param>
@@ -197,7 +206,7 @@ namespace Microsoft.CodeAnalysis
             Location? location = null,
             IEnumerable<Location>? additionalLocations = null,
             IEnumerable<string>? customTags = null,
-            ImmutableDictionary<string, string>? properties = null)
+            ImmutableDictionary<string, string?>? properties = null)
         {
             return Create(id, category, message, severity, defaultSeverity, isEnabledByDefault, warningLevel, false,
                 title, description, helpLink, location, additionalLocations, customTags, properties);
@@ -212,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
         /// <param name="isSuppressed">Flag indicating whether the diagnostic is suppressed by a source suppression.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
@@ -248,7 +257,7 @@ namespace Microsoft.CodeAnalysis
             Location? location = null,
             IEnumerable<Location>? additionalLocations = null,
             IEnumerable<string>? customTags = null,
-            ImmutableDictionary<string, string>? properties = null)
+            ImmutableDictionary<string, string?>? properties = null)
         {
             if (id == null)
             {
@@ -323,7 +332,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the warning level. This is 0 for diagnostics with severity <see cref="DiagnosticSeverity.Error"/>,
-        /// otherwise an integer between 1 and 4.
+        /// otherwise an integer greater than zero.
         /// </summary>
         public abstract int WarningLevel { get; }
 
@@ -347,13 +356,14 @@ namespace Microsoft.CodeAnalysis
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
             if (!suppressMessageState.IsDiagnosticSuppressed(
                     this,
-                    getSemanticModel: (compilation, tree) => compilation.GetSemanticModel(tree),
                     out attribute))
             {
                 attribute = null;
             }
 
-            return new SuppressionInfo(this.Id, attribute);
+            var programmaticSuppressions = this.ProgrammaticSuppressionInfo?.Suppressions ?? ImmutableArray<Suppression>.Empty;
+
+            return new SuppressionInfo(this.Id, attribute, programmaticSuppressions);
         }
 
         /// <summary>
@@ -391,15 +401,15 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets custom tags for the diagnostic.
         /// </summary>
-        internal virtual IReadOnlyList<string> CustomTags { get { return (IReadOnlyList<string>)this.Descriptor.CustomTags; } }
+        internal virtual ImmutableArray<string> CustomTags { get { return this.Descriptor.ImmutableCustomTags; } }
 
         /// <summary>
         /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> 
         /// if there is no entry. This can be used to put diagnostic specific information you want 
         /// to pass around. for example, to corresponding fixer.
         /// </summary>
-        public virtual ImmutableDictionary<string, string> Properties
-            => ImmutableDictionary<string, string>.Empty;
+        public virtual ImmutableDictionary<string, string?> Properties
+            => ImmutableDictionary<string, string?>.Empty;
 
         string IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
@@ -411,7 +421,8 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
-        public abstract override bool Equals(object? obj);
+        public sealed override bool Equals(object? obj)
+            => obj is Diagnostic diagnostic && Equals(diagnostic);
 
         public abstract override int GetHashCode();
 

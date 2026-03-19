@@ -13,7 +13,7 @@ There are two major categories of work that will happen here: active feature dev
 
 # Language Features
 * Discuss proposed language features for [C#](CSharp Language Design Notes) and [Visual Basic](Visual Basic Design Notes)
-* To see an overview of the features being discussed check out the [Language Feature Status](https://github.com/dotnet/roslyn/blob/master/docs/Language%20Feature%20Status.md)
+* To see an overview of the features being discussed check out the [Language Feature Status](https://github.com/dotnet/roslyn/blob/main/docs/Language%20Feature%20Status.md)
 
 # Diagnostics
 * Refine the Diagnostics API, which provides live code analysis as you type.

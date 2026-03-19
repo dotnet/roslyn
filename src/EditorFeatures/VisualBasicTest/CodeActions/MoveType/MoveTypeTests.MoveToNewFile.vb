@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
-    Partial Public Class MoveTypeTests
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+    Partial Public NotInheritable Class MoveTypeTests
         Inherits BasicMoveTypeTestsBase
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function TestMissing_OnMatchingFileName() As Task
             Dim code =
 "
@@ -17,7 +18,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function TestMissing_Nested_OnMatchingFileName_Simple() As Task
             Dim code =
 "
@@ -30,7 +31,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MultipleTypesInFileWithNoContainerNamespace() As Task
             Dim code =
 "
@@ -54,7 +55,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveNestedTypeToNewFile_Simple() As Task
             Dim code =
 "
@@ -80,7 +81,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveNestedTypeToNewFile_Simple_DottedName() As Task
             Dim code =
 "
@@ -106,8 +107,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index:=1)
         End Function
 
-        <WorkItem(14484, "https://github.com/dotnet/roslyn/issues/14484")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14484")>
         Public Async Function MoveNestedTypeToNewFile_RemoveComments() As Task
             Dim code =
 "
@@ -139,7 +139,7 @@ End Class
                 index:=1)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function TestImports() As Task
             Dim code =
 "
@@ -185,8 +185,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16282")>
         Public Async Function TestTypeInheritance() As Task
             Dim code =
 "
@@ -227,8 +226,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
         Public Async Function TestLeadingBlankLines1() As Task
             Dim code =
 "' Banner Text
@@ -271,8 +269,7 @@ end class
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
         Public Async Function TestLeadingBlankLines2() As Task
             Dim code =
 "' Banner Text
@@ -313,6 +310,38 @@ end class
 
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64066")>
+        Public Async Function MoveNestedTypeToNewFile_SiblingMethods() As Task
+            Dim code =
+"
+Public Class Class1
+    Class Class2[||]
+    End Class
+
+    Sub M1()
+    End Sub
+End Class
+"
+            Dim codeAfterMove =
+"
+Partial Public Class Class1
+
+    Sub M1()
+    End Sub
+End Class
+"
+            Dim expectedDocumentName = "Class2.vb"
+
+            Dim destinationDocumentText =
+"
+Partial Public Class Class1
+    Class Class2
+    End Class
+End Class
+"
+            Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
     End Class
 End Namespace

@@ -20,9 +20,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' callers that may want to create Location instances lazily or not at all.
     ''' </summary>
     Friend Structure TypeParameterDiagnosticInfo
-        Public Sub New(typeParameter As TypeParameterSymbol, diagnostic As DiagnosticInfo)
+
+        Public Sub New(typeParameter As TypeParameterSymbol, useSiteInfo As UseSiteInfo(Of AssemblySymbol))
             Me.TypeParameter = typeParameter
-            Me.DiagnosticInfo = diagnostic
+            Me.UseSiteInfo = useSiteInfo
+        End Sub
+
+        Public Sub New(typeParameter As TypeParameterSymbol, diagnostic As DiagnosticInfo)
+            Me.New(typeParameter, New UseSiteInfo(Of AssemblySymbol)(diagnostic))
         End Sub
 
         Public Sub New(typeParameter As TypeParameterSymbol, constraint As TypeParameterConstraint, diagnostic As DiagnosticInfo)
@@ -32,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly TypeParameter As TypeParameterSymbol
         Public ReadOnly Constraint As TypeParameterConstraint
-        Public ReadOnly DiagnosticInfo As DiagnosticInfo
+        Public ReadOnly UseSiteInfo As UseSiteInfo(Of AssemblySymbol)
     End Structure
 
     <Flags()>
@@ -303,11 +308,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim bad = False
 
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(typeParameter.ContainingAssembly)
 
                     If (pair1.TypeParameter Is typeParameter) AndAlso (pair2.TypeParameter Is typeParameter) Then
                         ' Check direct constraints to handle inherited constraints on overridden methods.
-                        If HasConflict(pair1.Constraint, pair2.Constraint, useSiteDiagnostics) Then
+                        If HasConflict(pair1.Constraint, pair2.Constraint, useSiteInfo) Then
                             ' "Constraint '{0}' conflicts with the constraint '{1}' already specified for type parameter '{2}'."
                             diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter,
                                                                                    pair2.Constraint,
@@ -324,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' parameter but not the current type parameter since those cases
                         ' will be reported directly on the other type parameter.
 
-                    ElseIf HasConflict(pair1.Constraint, pair2.Constraint, useSiteDiagnostics) Then
+                    ElseIf HasConflict(pair1.Constraint, pair2.Constraint, useSiteInfo) Then
                         If pair1.TypeParameter Is typeParameter Then
                             ' "Constraint '{0}' conflicts with the indirect constraint '{1}' obtained from the type parameter constraint '{2}'."
                             diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter,
@@ -362,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
                     End If
 
-                    If AppendUseSiteDiagnostics(useSiteDiagnostics, typeParameter, useSiteDiagnosticsBuilder) Then
+                    If AppendUseSiteInfo(useSiteInfo, typeParameter, useSiteDiagnosticsBuilder) Then
                         bad = True
                     End If
 
@@ -378,18 +383,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Sub CheckAllConstraints(
                                         type As TypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         loc As Location,
-                                        diagnostics As DiagnosticBag)
+                                        diagnostics As BindingDiagnosticBag,
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            type.CheckAllConstraints(languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
             End If
 
             For Each diagnostic In diagnosticsBuilder
-                diagnostics.Add(diagnostic.DiagnosticInfo, loc)
+                diagnostics.Add(diagnostic.UseSiteInfo, loc)
             Next
 
             diagnosticsBuilder.Free()
@@ -403,11 +410,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Sub CheckAllConstraints(
                                         type As TypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo))
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim diagnostics As New CheckConstraintsDiagnosticsBuilders()
             diagnostics.diagnosticsBuilder = diagnosticsBuilder
             diagnostics.useSiteDiagnosticsBuilder = useSiteDiagnosticsBuilder
+            diagnostics.template = template
+            diagnostics.languageVersion = languageVersion
 
             type.VisitType(s_checkConstraintsSingleTypeFunc, diagnostics)
 
@@ -417,13 +428,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Class CheckConstraintsDiagnosticsBuilders
             Public diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
             Public useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
+            Public template As CompoundUseSiteInfo(Of AssemblySymbol)
+            Public languageVersion As LanguageVersion
         End Class
 
         Private ReadOnly s_checkConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
 
         Private Function CheckConstraintsSingleType(type As TypeSymbol, diagnostics As CheckConstraintsDiagnosticsBuilders) As Boolean
             If type.Kind = SymbolKind.NamedType Then
-                DirectCast(type, NamedTypeSymbol).CheckConstraints(diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder)
+                DirectCast(type, NamedTypeSymbol).CheckConstraints(
+                    diagnostics.languageVersion, diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder, diagnostics.template)
             End If
             Return False ' continue walking types
         End Function
@@ -433,7 +447,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     tuple As TupleTypeSymbol,
                                     syntaxNode As SyntaxNode,
                                     elementLocations As ImmutableArray(Of Location),
-                                    diagnostics As DiagnosticBag)
+                                    diagnostics As BindingDiagnosticBag,
+                                    template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim type As NamedTypeSymbol = tuple.TupleUnderlyingType
             If Not RequiresChecking(type) Then
                 Return
@@ -450,7 +465,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim offset As Integer = 0
             For Each underlyingTuple In underlyingTupleTypeChain
                 Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+                CheckTypeConstraints(underlyingTuple,
+                                     DirectCast(syntaxNode.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                     diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
                 If useSiteDiagnosticsBuilder IsNot Nothing Then
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -462,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' If this is the TRest type parameter, we report it on 
                     ' the entire type syntax as it does not map to any tuple element.
                     Dim location = If(ordinal = TupleTypeSymbol.RestIndex, syntaxNode.Location, elementLocations(ordinal + offset))
-                    diagnostics.Add(diagnostic.DiagnosticInfo, location)
+                    diagnostics.Add(diagnostic.UseSiteInfo, location)
                 Next
 
                 diagnosticsBuilder.Clear()
@@ -477,8 +494,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraintsForNonTuple(
                                         type As NamedTypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         typeArgumentsSyntax As SeparatedSyntaxList(Of TypeSyntax),
-                                        diagnostics As DiagnosticBag) As Boolean
+                                        diagnostics As BindingDiagnosticBag,
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(Not type.IsTupleType)
             Debug.Assert(typeArgumentsSyntax.Count = type.Arity)
             If Not RequiresChecking(type) Then
@@ -487,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim result = CheckTypeConstraints(type, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -496,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each diagnostic In diagnosticsBuilder
                 Dim ordinal = diagnostic.TypeParameter.Ordinal
                 Dim location = typeArgumentsSyntax(ordinal).GetLocation()
-                diagnostics.Add(diagnostic.DiagnosticInfo, location)
+                diagnostics.Add(diagnostic.UseSiteInfo, location)
             Next
 
             diagnosticsBuilder.Free()
@@ -506,8 +525,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraints(
                                         type As NamedTypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             ' We do not report element locations in method parameters and return types
             ' so we will simply unwrap the type if it was a tuple. We are relying on
             ' TypeSymbolExtensions.VisitType to dig into the "Rest" tuple so that they
@@ -517,28 +538,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not RequiresChecking(type) Then
                 Return True
             End If
-            Return CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckTypeConstraints(type, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         <Extension()>
         Public Function CheckConstraints(
                                         method As MethodSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticLocation As Location,
-                                        diagnostics As DiagnosticBag) As Boolean
+                                        diagnostics As BindingDiagnosticBag,
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If Not RequiresChecking(method) Then
                 Return True
             End If
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim result = CheckMethodConstraints(method, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
             End If
 
             For Each diagnostic In diagnosticsBuilder
-                diagnostics.Add(diagnostic.DiagnosticInfo, diagnosticLocation)
+                diagnostics.Add(diagnostic.UseSiteInfo, diagnosticLocation)
             Next
 
             diagnosticsBuilder.Free()
@@ -548,28 +571,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraints(
                                         method As MethodSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If Not RequiresChecking(method) Then
                 Return True
             End If
-            Return CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckMethodConstraints(method, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         Private Function CheckTypeConstraints(
                                         type As NamedTypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim substitution = type.TypeSubstitution
-            Return CheckConstraints(type, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckConstraints(type, languageVersion, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         Private Function CheckMethodConstraints(
                                         method As MethodSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim substitution = DirectCast(method, SubstitutedMethodSymbol).TypeSubstitution
-            Return CheckConstraints(method, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckConstraints(method, languageVersion, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         ''' <summary>
@@ -583,11 +612,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraints(
                                          constructedSymbol As Symbol,
+                                         languageVersion As LanguageVersion,
                                          substitution As TypeSubstitution,
                                          typeParameters As ImmutableArray(Of TypeParameterSymbol),
                                          typeArguments As ImmutableArray(Of TypeSymbol),
                                          diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(typeParameters.Length = typeArguments.Length)
 
             Dim n = typeParameters.Length
@@ -596,12 +627,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i = 0 To n - 1
                 Dim typeArgument = typeArguments(i)
                 Dim typeParameter = typeParameters(i)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                If Not CheckConstraints(constructedSymbol, substitution, typeParameter, typeArgument, diagnosticsBuilder, useSiteDiagnostics) Then
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(template)
+                If Not CheckConstraints(constructedSymbol, languageVersion, substitution, typeParameter, typeArgument, diagnosticsBuilder, useSiteInfo) Then
                     succeeded = False
                 End If
 
-                If AppendUseSiteDiagnostics(useSiteDiagnostics, typeParameter, useSiteDiagnosticsBuilder) Then
+                If AppendUseSiteInfo(useSiteInfo, typeParameter, useSiteDiagnosticsBuilder) Then
                     succeeded = False
                 End If
             Next
@@ -611,11 +642,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Function CheckConstraints(
                                  constructedSymbol As Symbol,
+                                 languageVersion As LanguageVersion,
                                  substitution As TypeSubstitution,
                                  typeParameter As TypeParameterSymbol,
                                  typeArgument As TypeSymbol,
                                  diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+                                 <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             ' The type parameters must be original definitions of type parameters from the containing symbol.
             Debug.Assert(((constructedSymbol Is Nothing) AndAlso (substitution Is Nothing)) OrElse
                          (typeParameter.ContainingSymbol Is constructedSymbol.OriginalDefinition))
@@ -642,7 +674,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 succeeded = False
             End If
 
-            If typeParameter.HasValueTypeConstraint AndAlso Not SatisfiesValueTypeConstraint(constructedSymbol, typeParameter, typeArgument, diagnosticsBuilder, useSiteDiagnostics) Then
+            If typeParameter.HasUnmanagedTypeConstraint Then
+
+                If Not InternalSyntax.Parser.CheckFeatureAvailability(languageVersion, InternalSyntax.Feature.UnmanagedConstraint) Then
+                    useSiteInfo.AddDiagnosticInfo(InternalSyntax.Parser.GetFeatureAvailabilityError(InternalSyntax.Feature.UnmanagedConstraint, languageVersion))
+                    succeeded = False
+                End If
+
+                Dim managedKind = typeArgument.GetManagedKind(useSiteInfo)
+
+                If managedKind = ManagedKind.Managed Then
+                    If diagnosticsBuilder IsNot Nothing Then
+                        diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_UnmanagedConstraintNotSatisfied, typeArgument, typeParameter)))
+                    End If
+
+                    succeeded = False
+                End If
+            End If
+
+            If typeParameter.HasValueTypeConstraint AndAlso Not SatisfiesValueTypeConstraint(constructedSymbol, typeParameter, typeArgument, diagnosticsBuilder, useSiteInfo) Then
                 succeeded = False
             End If
 
@@ -651,10 +701,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' the type parameter for T in "C(Of Object, Integer)" has constraint "U", not "Integer". We need to
             ' substitute the type parameter constraints from the original definition of the type parameters
             ' using the TypeSubstitution from the constructed type/method.
-            For Each t In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+            For Each t In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                 Dim constraintType = t.InternalSubstituteTypeParameters(substitution).Type
 
-                If Not SatisfiesTypeConstraint(typeArgument, constraintType, useSiteDiagnostics) Then
+                If Not SatisfiesTypeConstraint(typeArgument, constraintType, useSiteInfo) Then
                     If diagnosticsBuilder IsNot Nothing Then
                         ' "Type argument '{0}' does not inherit from or implement the constraint type '{1}'."
                         diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_GenericConstraintNotSatisfied2, typeArgument, constraintType)))
@@ -666,12 +716,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return succeeded
         End Function
 
-        Private Function AppendUseSiteDiagnostics(
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+        Private Function AppendUseSiteInfo(
+            useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             typeParameter As TypeParameterSymbol,
             <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
         ) As Boolean
-            If useSiteDiagnostics.IsNullOrEmpty Then
+
+            Dim hasErrors As Boolean = useSiteInfo.AccumulatesDiagnostics AndAlso Not useSiteInfo.Diagnostics.IsNullOrEmpty
+
+            If Not hasErrors AndAlso (Not useSiteInfo.AccumulatesDependencies OrElse useSiteInfo.Dependencies.IsNullOrEmpty) Then
                 Return False
             End If
 
@@ -679,7 +732,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 useSiteDiagnosticsBuilder = New ArrayBuilder(Of TypeParameterDiagnosticInfo)()
             End If
 
-            For Each info In useSiteDiagnostics
+            If Not hasErrors Then
+                If useSiteInfo.AccumulatesDependencies AndAlso Not useSiteInfo.Dependencies.IsNullOrEmpty() Then
+                    useSiteDiagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter,
+                                                                              If(useSiteInfo.Dependencies.Count = 1,
+                                                                                  New UseSiteInfo(Of AssemblySymbol)(useSiteInfo.Dependencies.Single()),
+                                                                                  New UseSiteInfo(Of AssemblySymbol)(useSiteInfo.Dependencies.ToImmutableHashSet()))))
+                End If
+
+                Return False
+            End If
+
+            For Each info In useSiteInfo.Diagnostics
                 Debug.Assert(info.Severity = DiagnosticSeverity.Error)
                 useSiteDiagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, info))
             Next
@@ -695,10 +759,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' more or less derived. This method assumes there are no constraint cycles.
         ''' </summary>
         <Extension()>
-        Public Function GetNonInterfaceConstraint(typeParameter As TypeParameterSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
+        Public Function GetNonInterfaceConstraint(typeParameter As TypeParameterSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As TypeSymbol
             Dim result As TypeSymbol = Nothing
 
-            For Each constraint In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+            For Each constraint In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteInfo)
 
                 Dim candidate As TypeSymbol = Nothing
 
@@ -707,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Continue For
 
                     Case SymbolKind.TypeParameter
-                        candidate = DirectCast(constraint, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteDiagnostics)
+                        candidate = DirectCast(constraint, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteInfo)
 
                     Case Else
                         If Not constraint.IsInterfaceType() Then
@@ -719,13 +783,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     result = candidate
                 ElseIf candidate IsNot Nothing Then
                     ' Pick the most derived type
-                    If result.IsClassType AndAlso Conversions.IsDerivedFrom(candidate, result, useSiteDiagnostics) Then
+                    If result.IsClassType AndAlso Conversions.IsDerivedFrom(candidate, result, useSiteInfo) Then
                         result = candidate
                     End If
                 End If
             Next
 
             Return result
+        End Function
+
+        <Extension()>
+        Public Function HasInterfaceConstraint(typeParameter As TypeParameterSymbol) As Boolean
+            Dim result As TypeSymbol = Nothing
+
+            For Each constraint In typeParameter.ConstraintTypesNoUseSiteDiagnostics
+                Select Case constraint.Kind
+                    Case SymbolKind.ErrorType
+                        Continue For
+
+                    Case SymbolKind.TypeParameter
+                        If DirectCast(constraint, TypeParameterSymbol).HasInterfaceConstraint() Then
+                            Return True
+                        End If
+
+                    Case Else
+                        If constraint.IsInterfaceType() Then
+                            Return True
+                        End If
+                End Select
+            Next
+
+            Return False
         End Function
 
         ''' <summary>
@@ -738,8 +826,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' System.ValueType for value types, System.Array for arrays, and System.Enum for enums.
         ''' </summary>
         <Extension()>
-        Public Function GetClassConstraint(typeParameter As TypeParameterSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
-            Dim baseType = typeParameter.GetNonInterfaceConstraint(useSiteDiagnostics)
+        Public Function GetClassConstraint(typeParameter As TypeParameterSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As NamedTypeSymbol
+            Dim baseType = typeParameter.GetNonInterfaceConstraint(useSiteInfo)
 
             If baseType Is Nothing Then
                 Return Nothing
@@ -749,7 +837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case TypeKind.Array,
                     TypeKind.Enum,
                     TypeKind.Structure
-                    Return baseType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    Return baseType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
 
                 Case Else
                     Debug.Assert(Not baseType.IsInterfaceType())
@@ -830,14 +918,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function SatisfiesTypeConstraint(
             typeArgument As TypeSymbol,
             constraintType As TypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             If constraintType.IsErrorType() Then
-                constraintType.AddUseSiteDiagnostics(useSiteDiagnostics)
+                constraintType.AddUseSiteInfo(useSiteInfo)
                 Return False
             End If
 
-            Return Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(typeArgument, constraintType, useSiteDiagnostics)
+            Return Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(typeArgument, constraintType, useSiteInfo)
         End Function
 
         ' See Bindable::ValidateNewConstraintForType.
@@ -848,8 +936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(typeParameter.HasConstructorConstraint)
 
             Select Case typeArgument.TypeKind
-                Case TypeKind.Enum,
-                    TypeKind.Structure
+                Case TypeKind.Enum
                     Return True
 
                 Case TypeKind.TypeParameter
@@ -864,28 +951,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                 Case Else
-                    If typeArgument.TypeKind = TypeKind.Class Then
-                        Dim classType = DirectCast(typeArgument, NamedTypeSymbol)
+                    Dim isStructure As Boolean = typeArgument.TypeKind = TypeKind.Structure
 
-                        If HasPublicParameterlessConstructor(classType) Then
-                            If classType.IsMustInherit Then
-                                If diagnosticsBuilder IsNot Nothing Then
-                                    ' "Type argument '{0}' is declared 'MustInherit' and does not satisfy the 'New' constraint for type parameter '{1}'."
-                                    diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritForNewConstraint2, typeArgument, typeParameter)))
-                                End If
-                                Return False
-                            Else
-                                Return True
-                            End If
+                    Dim constraintError = ConstructorConstraintError.NoPublicParameterlessConstructor
+
+                    If typeArgument.TypeKind = TypeKind.Class OrElse isStructure Then
+                        Dim namedType = DirectCast(typeArgument, NamedTypeSymbol)
+                        constraintError = HasPublicParameterlessConstructor(namedType)
+
+                        If constraintError = ConstructorConstraintError.None AndAlso namedType.IsMustInherit Then
+                            constraintError = ConstructorConstraintError.MustInheritType
                         End If
-
                     End If
 
                     If diagnosticsBuilder IsNot Nothing Then
-                        ' "Type argument '{0}' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter '{1}'."
-                        diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NoSuitableNewForNewConstraint2, typeArgument, typeParameter)))
+                        Select Case constraintError
+                            Case ConstructorConstraintError.NoPublicParameterlessConstructor
+                                ' "Type argument '{0}' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter '{1}'."
+                                diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NoSuitableNewForNewConstraint2, typeArgument, typeParameter)))
+                            Case ConstructorConstraintError.MustInheritType
+                                ' "Type argument '{0}' is declared 'MustInherit' and does not satisfy the 'New' constraint for type parameter '{1}'."
+                                diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritForNewConstraint2, typeArgument, typeParameter)))
+                            Case ConstructorConstraintError.HasRequiredMembers
+                                ' '{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
+                                diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NewConstraintCannotHaveRequiredMembers, typeParameter.ContainingSymbol, typeParameter, typeArgument)))
+                            Case ConstructorConstraintError.None
+                            Case Else
+                                Throw ExceptionUtilities.UnexpectedValue(constraintError)
+                        End Select
                     End If
-                    Return False
+
+                    Return constraintError = ConstructorConstraintError.None
 
             End Select
         End Function
@@ -915,7 +1011,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                      typeParameter As TypeParameterSymbol,
                                                      typeArgument As TypeSymbol,
                                                      diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert((typeParameter Is Nothing) OrElse typeParameter.HasValueTypeConstraint)
 
             If Not typeArgument.IsValueType Then
@@ -933,7 +1029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Return False
 
-            ElseIf IsNullableTypeOrTypeParameter(typeArgument, useSiteDiagnostics) Then
+            ElseIf IsNullableTypeOrTypeParameter(typeArgument, useSiteInfo) Then
                 If diagnosticsBuilder IsNot Nothing Then
                     ' "'System.Nullable' does not satisfy the 'Structure' constraint for type parameter '{0}'. Only non-nullable 'Structure' types are allowed."
                     diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NullableDisallowedForStructConstr1, typeParameter)))
@@ -946,7 +1042,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ' See Bindable::ConstraintsConflict.
-        Private Function HasConflict(constraint1 As TypeParameterConstraint, constraint2 As TypeParameterConstraint, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Private Function HasConflict(constraint1 As TypeParameterConstraint, constraint2 As TypeParameterConstraint, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
 
             Dim constraintType1 = constraint1.TypeConstraint
             Dim constraintType2 = constraint2.TypeConstraint
@@ -960,11 +1056,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If constraint1.IsValueTypeConstraint Then
-                If HasValueTypeConstraintConflict(constraint2, useSiteDiagnostics) Then
+                If HasValueTypeConstraintConflict(constraint2, useSiteInfo) Then
                     Return True
                 End If
             ElseIf constraint2.IsValueTypeConstraint Then
-                If HasValueTypeConstraintConflict(constraint1, useSiteDiagnostics) Then
+                If HasValueTypeConstraintConflict(constraint1, useSiteInfo) Then
                     Return True
                 End If
             End If
@@ -981,15 +1077,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If (constraintType1 IsNot Nothing) AndAlso
                 (constraintType2 IsNot Nothing) AndAlso
-                Not SatisfiesTypeConstraint(constraintType1, constraintType2, useSiteDiagnostics) AndAlso
-                Not SatisfiesTypeConstraint(constraintType2, constraintType1, useSiteDiagnostics) Then
+                Not SatisfiesTypeConstraint(constraintType1, constraintType2, useSiteInfo) AndAlso
+                Not SatisfiesTypeConstraint(constraintType2, constraintType1, useSiteInfo) Then
                 Return True
             End If
 
             Return False
         End Function
 
-        Private Function HasValueTypeConstraintConflict(constraint As TypeParameterConstraint, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Private Function HasValueTypeConstraintConflict(constraint As TypeParameterConstraint, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim constraintType = constraint.TypeConstraint
             If constraintType Is Nothing Then
                 Return False
@@ -997,7 +1093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If SatisfiesValueTypeConstraint(constructedSymbol:=Nothing, typeParameter:=Nothing, typeArgument:=constraintType,
                                             diagnosticsBuilder:=Nothing,
-                                            useSiteDiagnostics:=useSiteDiagnostics) Then
+                                            useSiteInfo:=useSiteInfo) Then
                 Return False
             End If
 
@@ -1022,13 +1118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        Private Function IsNullableTypeOrTypeParameter(type As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Private Function IsNullableTypeOrTypeParameter(type As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If type.TypeKind = TypeKind.TypeParameter Then
                 Dim typeParameter = DirectCast(type, TypeParameterSymbol)
 
-                Dim constraintTypes = typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                Dim constraintTypes = typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                 For Each constraintType In constraintTypes
-                    If IsNullableTypeOrTypeParameter(constraintType, useSiteDiagnostics) Then
+                    If IsNullableTypeOrTypeParameter(constraintType, useSiteInfo) Then
                         Return True
                     End If
                 Next
@@ -1055,28 +1151,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New CompoundDiagnosticInfo(diagnostics)
         End Function
 
+        Public Enum ConstructorConstraintError
+            None
+            NoPublicParameterlessConstructor
+            MustInheritType
+            HasRequiredMembers
+        End Enum
+
         ''' <summary>
         ''' Return true if the class type has a public parameterless constructor.
         ''' </summary>
-        Public Function HasPublicParameterlessConstructor(type As NamedTypeSymbol) As Boolean
+        Public Function HasPublicParameterlessConstructor(type As NamedTypeSymbol) As ConstructorConstraintError
             type = type.OriginalDefinition
-            Debug.Assert(type.TypeKind = TypeKind.Class)
+            Debug.Assert(type.TypeKind = TypeKind.Class OrElse type.TypeKind = TypeKind.Structure)
 
-            Dim sourceNamedType = TryCast(type, SourceNamedTypeSymbol)
+            Dim sourceClass = If(type.TypeKind = TypeKind.Class, TryCast(type, SourceNamedTypeSymbol), Nothing)
 
-            If sourceNamedType IsNot Nothing AndAlso Not sourceNamedType.MembersHaveBeenCreated Then
+            If sourceClass IsNot Nothing AndAlso Not sourceClass.MembersHaveBeenCreated Then
                 ' When we are dealing with group classes and synthetic entry points,
                 ' we can end up here while we are building the set of members for the type.
                 ' Using InstanceConstructors property will send us into an infinite loop.
-                Return sourceNamedType.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor()
+                If sourceClass.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
+                    Return ConstructorConstraintError.None
+                Else
+                    Return ConstructorConstraintError.NoPublicParameterlessConstructor
+                End If
             End If
+
+            Dim hasRequiredMembers = type.AllRequiredMembers.Count > 0 OrElse type.HasRequiredMembersError
 
             For Each constructor In type.InstanceConstructors
                 If constructor.ParameterCount = 0 Then
-                    Return constructor.DeclaredAccessibility = Accessibility.Public
+                    If constructor.DeclaredAccessibility <> Accessibility.Public Then
+                        Return ConstructorConstraintError.NoPublicParameterlessConstructor
+                    ElseIf hasRequiredMembers AndAlso Not constructor.HasSetsRequiredMembers Then
+                        Return ConstructorConstraintError.HasRequiredMembers
+                    Else
+                        Return ConstructorConstraintError.None
+                    End If
                 End If
             Next
-            Return False
+
+            If Not type.TypeKind = TypeKind.Structure Then
+                Return ConstructorConstraintError.NoPublicParameterlessConstructor
+            ElseIf hasRequiredMembers Then
+                Return ConstructorConstraintError.HasRequiredMembers
+            Else
+                Return ConstructorConstraintError.None
+            End If
         End Function
 
         ''' <summary>

@@ -2,91 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static partial class ImmutableArrayExtensions
 {
-    internal static class ImmutableArrayExtensions
+    public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
     {
-        internal static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
-            => items.IndexOf(item, 0, equalityComparer) >= 0;
+        // [.. set] currently allocates, even for the empty case.  Workaround that until that is solved by the compiler.
+        if (set.Count == 0)
+            return [];
 
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[]? items)
+        return [.. set];
+    }
+
+    public static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
+        => items.IndexOf(item, 0, equalityComparer) >= 0;
+
+    public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[]? items)
+    {
+        if (items == null)
         {
-            if (items == null)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return ImmutableArray.Create<T>(items);
+            return [];
         }
 
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
-        {
-            if (items == null)
-            {
-                return ImmutableArray.Create<T>();
-            }
+        return ImmutableArray.Create<T>(items);
+    }
 
-            if (items is ImmutableArray<T> array)
-            {
-                return array.NullToEmpty();
-            }
+    public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)
+    {
+        if (builder.Count == 0)
+            return [];
 
-            return ImmutableArray.CreateRange<T>(items);
-        }
+        if (builder.Count == builder.Capacity)
+            return builder.MoveToImmutable();
 
-        internal static IReadOnlyList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
-        {
-            if (items is null)
-            {
-                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
-            }
-
-            if (items is ImmutableArray<T> array)
-            {
-                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyBoxedImmutableArray<T>() : (IReadOnlyList<T>)items;
-            }
-
-            if (items is ICollection<T> collection && collection.Count == 0)
-            {
-                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
-            }
-
-            return ImmutableArray.CreateRange(items);
-        }
-
-        /// <summary>
-        /// Use to validate public API input for properties that are exposed as <see cref="IReadOnlyList{T}"/>.
-        /// 
-        /// Pattern:
-        /// <code>
-        /// argument.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(argument)),
-        /// </code>
-        /// </summary>
-        internal static IReadOnlyList<T>? AsBoxedImmutableArrayWithNonNullItems<T>(this IEnumerable<T>? sequence) where T : class
-        {
-            var list = sequence.ToBoxedImmutableArray();
-
-            foreach (var item in list)
-            {
-                if (item is null)
-                {
-                    return null;
-                }
-            }
-
-            return list;
-        }
-
-        internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-        {
-            return new ConcatImmutableArray<T>(first, second);
-        }
+        var result = builder.ToImmutable();
+        builder.Clear();
+        return result;
     }
 }

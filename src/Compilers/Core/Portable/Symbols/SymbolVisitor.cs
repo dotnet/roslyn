@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     public abstract class SymbolVisitor
@@ -92,6 +90,11 @@ namespace Microsoft.CodeAnalysis
             DefaultVisit(symbol);
         }
 
+        public virtual void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
+
         public virtual void VisitProperty(IPropertySymbol symbol)
         {
             DefaultVisit(symbol);
@@ -103,6 +106,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public virtual void VisitTypeParameter(ITypeParameterSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
+
+        internal virtual void VisitPreprocessing(IPreprocessingSymbol symbol)
         {
             DefaultVisit(symbol);
         }

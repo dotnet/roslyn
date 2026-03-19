@@ -2,40 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private sealed class DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
-        private class DocumentActiveContextChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        private WorkspaceEventRegistration? _documentActiveContextChangedDisposer;
+
+        protected override void ConnectToWorkspace(Workspace workspace)
+            => _documentActiveContextChangedDisposer = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChanged);
+
+        protected override void DisconnectFromWorkspace(Workspace workspace)
+            => _documentActiveContextChangedDisposer?.Dispose();
+
+        private void OnDocumentActiveContextChanged(DocumentActiveContextChangedEventArgs e)
         {
-            public DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
-            {
-            }
+            var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
-            protected override void ConnectToWorkspace(Workspace workspace)
-            {
-                workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-            }
-
-            protected override void DisconnectFromWorkspace(Workspace workspace)
-            {
-                workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
-            }
-
-            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
-            {
-                var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-
-                if (document != null && document.Id == e.NewActiveContextDocumentId)
-                {
-                    this.RaiseChanged();
-                }
-            }
+            if (document != null && document.Id == e.NewActiveContextDocumentId)
+                this.RaiseChanged();
         }
     }
 }

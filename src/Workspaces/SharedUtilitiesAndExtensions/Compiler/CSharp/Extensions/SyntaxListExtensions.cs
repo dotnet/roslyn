@@ -2,33 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class SyntaxListExtensions
 {
-    internal static class SyntaxListExtensions
+    public static SyntaxList<T> RemoveRange<T>(this SyntaxList<T> syntaxList, int index, int count) where T : SyntaxNode
     {
-        public static SyntaxList<T> RemoveRange<T>(this SyntaxList<T> syntaxList, int index, int count) where T : SyntaxNode
-        {
-            var result = new List<T>(syntaxList);
-            result.RemoveRange(index, count);
-            return SyntaxFactory.List(result);
-        }
-
-        public static SyntaxList<T> ToSyntaxList<T>(this IEnumerable<T> sequence) where T : SyntaxNode
-        {
-            return SyntaxFactory.List(sequence);
-        }
-
-        public static SyntaxList<T> Insert<T>(this SyntaxList<T> list, int index, T item) where T : SyntaxNode
-        {
-            return list.Take(index).Concat(item).Concat(list.Skip(index)).ToSyntaxList();
-        }
+        var result = new List<T>(syntaxList);
+        result.RemoveRange(index, count);
+        return [.. result];
     }
+
+    public static SyntaxList<T> Insert<T>(this SyntaxList<T> list, int index, T item) where T : SyntaxNode
+        => [.. list.Take(index).Concat(item).Concat(list.Skip(index))];
 }

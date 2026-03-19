@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -79,33 +77,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
-            if (node.ExceptionFilterOpt == null)
-            {
-                return base.VisitCatchBlock(node);
-            }
-
-            if (node.ExceptionFilterOpt.ConstantValue?.BooleanValue == false)
+            if (node.ExceptionFilterOpt?.ConstantValueOpt?.BooleanValue == false)
             {
                 return null;
             }
 
             BoundExpression? rewrittenExceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
+            BoundStatementList? rewrittenFilterPrologue = (BoundStatementList?)this.Visit(node.ExceptionFilterPrologueOpt);
             BoundExpression? rewrittenFilter = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
             BoundBlock? rewrittenBody = (BoundBlock?)this.Visit(node.Body);
             Debug.Assert(rewrittenBody is { });
             TypeSymbol? rewrittenExceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
 
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
-            // the containing method is edited while methods invoked in the condition are being executed.
-            if (rewrittenFilter != null && !node.WasCompilerGenerated && this.Instrument)
+            if (Instrument)
             {
-                rewrittenFilter = _instrumenter.InstrumentCatchClauseFilter(node, rewrittenFilter, _factory);
+                Instrumenter.InstrumentCatchBlock(
+                    node,
+                    ref rewrittenExceptionSourceOpt,
+                    ref rewrittenFilterPrologue,
+                    ref rewrittenFilter,
+                    ref rewrittenBody,
+                    ref rewrittenExceptionTypeOpt,
+                    _factory);
             }
 
             return node.Update(
                 node.Locals,
                 rewrittenExceptionSourceOpt,
                 rewrittenExceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBody,
                 node.IsSynthesizedAsyncCatchAll);

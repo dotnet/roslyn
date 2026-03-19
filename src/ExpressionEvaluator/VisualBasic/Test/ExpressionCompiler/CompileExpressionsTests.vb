@@ -14,8 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class CompileExpressionsTests
         Inherits ExpressionCompilerTestBase
 
-        <WorkItem(482753, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")>
-        <Fact>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")>
         Public Sub LocalsInAsync()
             Const source =
 "Imports System
@@ -40,7 +39,7 @@ End Class"
             ' Test with CompileExpression rather than CompileExpressions
             ' so field references in IL are named.
             ' Debug build.
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib461AndVBRuntime(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 options:=TestOptions.DebugDll,
                 references:={SystemCoreRef})
@@ -75,7 +74,7 @@ End Class"
 }")
                 End Sub)
             ' Release build.
-            comp = CreateCompilationWithMscorlib45AndVBRuntime(
+            comp = CreateCompilationWithMscorlib461AndVBRuntime(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 options:=TestOptions.ReleaseDll,
                 references:={SystemCoreRef})

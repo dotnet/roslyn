@@ -1,18 +1,19 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Runtime.CompilerServices;
 
 namespace Roslyn.Test.Performance.Utilities
 {
     public class RelativeDirectory
     {
         private string _workingDir;
-
 
         public RelativeDirectory()
         {
@@ -67,7 +68,6 @@ namespace Roslyn.Test.Performance.Utilities
         /// Returns the directory that contains built roslyn binaries.  Usually this will be 
         /// Binaries/Debug or Binaries/Release.
         /// </summary>
-        /// <returns></returns>
         public string MyBinaries()
         {
             ThrowIfNotSetup();

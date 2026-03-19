@@ -5,37 +5,43 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers;
+
+internal abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
 {
-    abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
+    protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
+
+    internal override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+        Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
     {
-        protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
+        var position = SymbolCompletionItem.GetContextPosition(item);
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+        // What EditorBrowsable settings were we previously passed in (if it mattered)?
+        if (item.TryGetProperty(HideAdvancedMembers, out var hideAdvancedMembersString) &&
+            bool.TryParse(hideAdvancedMembersString, out var hideAdvancedMembers))
         {
-            var position = SymbolCompletionItem.GetContextPosition(item);
-
-            // What EditorBrowsable settings were we previously passed in (if it mattered)?
-            var hideAdvancedMembers = false;
-            if (item.Properties.TryGetValue(HideAdvancedMembers, out var hideAdvancedMembersString))
+            options = options with
             {
-                bool.TryParse(hideAdvancedMembersString, out hideAdvancedMembers);
-            }
-
-            var options = document.Project.Solution.Workspace.Options
-                .WithChangedOption(new OptionKey(CompletionOptions.HideAdvancedMembers, document.Project.Language), hideAdvancedMembers);
-
-            var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
-            var name = SymbolCompletionItem.GetSymbolName(item);
-            var kind = SymbolCompletionItem.GetKind(item);
-            var bestSymbols = symbols.WhereAsArray(s => s.Kind == kind && s.Name == name);
-            return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                MemberDisplayOptions = new() { HideAdvancedMembers = hideAdvancedMembers }
+            };
         }
 
-        protected abstract Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbolsAsync(
-            Document document, int position, OptionSet options, CancellationToken cancellationToken);
+        var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
+        if (symbols.Length == 0)
+        {
+            return CompletionDescription.Empty;
+        }
+
+        Contract.ThrowIfNull(semanticModel);
+
+        var name = SymbolCompletionItem.GetSymbolName(item);
+        var kind = SymbolCompletionItem.GetKind(item);
+        var bestSymbols = symbols.WhereAsArray(s => s.Kind == kind && s.Name == name);
+        return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, semanticModel, displayOptions, cancellationToken).ConfigureAwait(false);
     }
+
+    protected abstract Task<(SyntaxToken, SemanticModel?, ImmutableArray<ISymbol>)> GetSymbolsAsync(
+        Document document, int position, CompletionOptions options, CancellationToken cancellationToken);
 }

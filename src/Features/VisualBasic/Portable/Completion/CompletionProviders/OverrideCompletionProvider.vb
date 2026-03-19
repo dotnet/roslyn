@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -25,8 +25,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private _isProperty As Boolean
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Protected Overrides Function GetSyntax(commonSyntaxToken As SyntaxToken) As SyntaxNode
             Dim token = CType(commonSyntaxToken, SyntaxToken)
@@ -49,17 +56,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return syntaxTree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
         End Function
 
-
         Public Overrides Function FindStartingToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return token.GetPreviousTokenIfTouchingWord(position)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.SpaceTriggerChar
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.SpaceTriggerChar
 
         Public Overrides Function TryDetermineModifiers(startToken As SyntaxToken,
                                                         text As SourceText, startLine As Integer,
@@ -177,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return members.WhereAsArray(Function(m) Not m.IsKind(SymbolKind.Event))
         End Function
 
-        Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
+        Private Shared Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
             Dim overriddenMember = method
             Do While overriddenMember.OverriddenMethod IsNot Nothing
                 overriddenMember = overriddenMember.OverriddenMethod
@@ -190,20 +196,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Protected Overrides Function GetTargetCaretPosition(caretTarget As SyntaxNode) As Integer
+        Protected Overrides Function GetTargetSelectionSpan(caretTarget As SyntaxNode) As TextSpan
             Dim node = DirectCast(caretTarget, SyntaxNode)
 
             ' MustOverride Sub | MustOverride Function: move to end of line
             Dim methodStatement = TryCast(node, MethodStatementSyntax)
             If methodStatement IsNot Nothing Then
-                Return methodStatement.GetLocation().SourceSpan.End
+                Return New TextSpan(methodStatement.GetLocation().SourceSpan.End, 0)
             End If
 
             Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
             If methodBlock IsNot Nothing Then
                 Dim lastStatement = methodBlock.Statements.LastOrDefault()
                 If lastStatement IsNot Nothing Then
-                    Return lastStatement.GetLocation().SourceSpan.End
+                    Return New TextSpan(lastStatement.GetLocation().SourceSpan.End, 0)
                 End If
             End If
 
@@ -213,12 +219,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If firstAccessor IsNot Nothing Then
                     Dim lastAccessorStatement = firstAccessor.Statements.LastOrDefault()
                     If lastAccessorStatement IsNot Nothing Then
-                        Return lastAccessorStatement.GetLocation().SourceSpan.End
+                        Return New TextSpan(lastAccessorStatement.GetLocation().SourceSpan.End, 0)
                     End If
                 End If
             End If
 
-            Return -1
+            Return New TextSpan(0, 0)
         End Function
     End Class
 End Namespace

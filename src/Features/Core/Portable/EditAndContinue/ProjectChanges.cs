@@ -4,48 +4,54 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal readonly struct ProjectChanges
 {
-    internal readonly struct ProjectChanges
+    /// <summary>
+    /// All semantic changes made in changed documents.
+    /// </summary>
+    public readonly ImmutableArray<SemanticEdit> SemanticEdits;
+
+    /// <summary>
+    /// All line changes made in changed documents.
+    /// </summary>
+    public readonly ImmutableArray<SequencePointUpdates> LineChanges;
+
+    /// <summary>
+    /// All symbols added in changed documents.
+    /// </summary>
+    public readonly ImmutableHashSet<ISymbol> AddedSymbols;
+
+    /// <summary>
+    /// All active statements and the corresponding exception regions in changed documents.
+    /// </summary>
+    public readonly ImmutableArray<DocumentActiveStatementChanges> ActiveStatementChanges;
+
+    /// <summary>
+    /// Runtime capabilities required to apply the changes.
+    /// </summary>
+    public readonly EditAndContinueCapabilities RequiredCapabilities;
+
+    public ProjectChanges(
+        ImmutableArray<SemanticEdit> semanticEdits,
+        ImmutableArray<SequencePointUpdates> lineChanges,
+        ImmutableHashSet<ISymbol> addedSymbols,
+        ImmutableArray<DocumentActiveStatementChanges> activeStatementChanges,
+        EditAndContinueCapabilities requiredCapabilities)
     {
-        /// <summary>
-        /// All semantic changes made in changed documents.
-        /// </summary>
-        public readonly ImmutableArray<SemanticEdit> SemanticEdits;
+        Debug.Assert(!semanticEdits.IsDefault);
+        Debug.Assert(!lineChanges.IsDefault);
+        Debug.Assert(!activeStatementChanges.IsDefault);
+        Debug.Assert(requiredCapabilities != EditAndContinueCapabilities.None);
 
-        /// <summary>
-        /// All line changes made in changed documents.
-        /// </summary>
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<LineChange> Changes)> LineChanges;
-
-        /// <summary>
-        /// All symbols added in changed documents.
-        /// </summary>
-        public readonly ImmutableHashSet<ISymbol> AddedSymbols;
-
-        /// <summary>
-        /// All active statements and the corresponding exception regions in changed documents.
-        /// </summary>
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> NewActiveStatements;
-
-        public ProjectChanges(
-            ImmutableArray<SemanticEdit> semanticEdits,
-            ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineChanges,
-            ImmutableHashSet<ISymbol> addedSymbols,
-            ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> newActiveStatements)
-        {
-            Debug.Assert(!semanticEdits.IsDefault);
-            Debug.Assert(!lineChanges.IsDefault);
-            Debug.Assert(addedSymbols != null);
-            Debug.Assert(!newActiveStatements.IsDefault);
-
-            SemanticEdits = semanticEdits;
-            LineChanges = lineChanges;
-            AddedSymbols = addedSymbols;
-            NewActiveStatements = newActiveStatements;
-        }
+        SemanticEdits = semanticEdits;
+        LineChanges = lineChanges;
+        AddedSymbols = addedSymbols;
+        ActiveStatementChanges = activeStatementChanges;
+        RequiredCapabilities = requiredCapabilities;
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -292,11 +290,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Creates a token with kind IdentifierToken containing the specified text.
-        /// <param name="text">The raw text of the identifier name, including any escapes or leading '@'
-        /// character.</param>
         /// </summary>
+        /// <param name="text">The raw text of the identifier name, including any escapes or leading '@' character.</param>        
         public static SyntaxToken Identifier(string text)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(ElasticMarker.UnderlyingNode, text, ElasticMarker.UnderlyingNode));
         }
 
@@ -309,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, string text, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(leading.Node, text, trailing.Node));
         }
 
@@ -316,12 +323,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a verbatim token with kind IdentifierToken containing the specified text.
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
-        /// <param name="text">The raw text of the identifier name, including any escapes or leading '@'
-        /// character as it is in source.</param>
+        /// <param name="text">The identifier, not including any escapes or leading '@'
+        /// character.</param>
         /// <param name="valueText">The canonical value of the token's text.</param>
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken VerbatimIdentifier(SyntaxTriviaList leading, string text, string valueText, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (valueText == null)
+            {
+                throw new ArgumentNullException(nameof(valueText));
+            }
+
             if (text.StartsWith("@", StringComparison.Ordinal))
             {
                 throw new ArgumentException("text should not start with an @ character.");
@@ -343,6 +360,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, SyntaxKind contextualKind, string text, string valueText, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (valueText == null)
+            {
+                throw new ArgumentNullException(nameof(valueText));
+            }
+
             return new SyntaxToken(InternalSyntax.SyntaxFactory.Identifier(contextualKind, leading.Node, text, valueText, trailing.Node));
         }
 
@@ -718,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static XmlElementSyntax XmlSeeAlsoElement(Uri linkAddress, SyntaxList<XmlNodeSyntax> linkText)
         {
             XmlElementSyntax element = XmlElement(DocumentationCommentXmlNames.SeeAlsoElementName, linkText);
-            return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute(DocumentationCommentXmlNames.CrefAttributeName, linkAddress.ToString())));
+            return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute(DocumentationCommentXmlNames.HrefAttributeName, linkAddress.ToString())));
         }
 
         /// <summary>
@@ -825,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         /// </summary>
         /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(params XmlNodeSyntax[] content)
@@ -834,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         /// </summary>
         /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(SyntaxList<XmlNodeSyntax> content)
@@ -1404,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of syntax nodes.</param>
         /// <param name="separators">A sequence of token to be interleaved between the nodes. The number of tokens must
         /// be one less than the number of nodes.</param>
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode> nodes, IEnumerable<SyntaxToken> separators) where TNode : SyntaxNode
+        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode>? nodes, IEnumerable<SyntaxToken>? separators) where TNode : SyntaxNode
         {
             // Interleave the nodes and the separators.  The number of separators must be equal to or 1 less than the number of nodes or
             // an argument exception is thrown.
@@ -1547,39 +1574,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Create a new syntax tree from a syntax node.
         /// </summary>
         public static SyntaxTree SyntaxTree(SyntaxNode root, ParseOptions? options = null, string path = "", Encoding? encoding = null)
-        {
-            return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions?)options, path, encoding);
-        }
+            => CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions?)options ?? CSharpParseOptions.Default, path, encoding, SourceHashAlgorithm.Sha1);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable CS0618 // Type or member is obsolete
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(string, CSharpParseOptions?, string, Encoding?, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             string text,
             ParseOptions? options = null,
             string path = "",
             Encoding? encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return CSharpSyntaxTree.ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), (CSharpParseOptions?)options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
         }
+#pragma warning restore
 
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
             ParseOptions? options = null,
             string path = "",
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, cancellationToken);
         }
+
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
@@ -1593,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Parse a list of trivia rules for leading trivia.
         /// </summary>
-        internal static SyntaxTriviaList ParseLeadingTrivia(string text, CSharpParseOptions? options, int offset = 0)
+        internal static SyntaxTriviaList ParseLeadingTrivia(string text, CSharpParseOptions options, int offset = 0)
         {
             using (var lexer = new InternalSyntax.Lexer(MakeSourceText(text, offset), options))
             {
@@ -1651,6 +1674,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Parse a sequence of C# language tokens.
+        /// Since this API does not create a <see cref="SyntaxNode"/> that owns all produced tokens,
+        /// the <see cref="SyntaxToken.GetLocation"/> API may yield surprising results for
+        /// the produced tokens and its behavior is generally unspecified.
         /// </summary>
         /// <param name="text">The text of all the tokens.</param>
         /// <param name="initialTokenPosition">An integer to use as the starting position of the first token.</param>
@@ -1677,6 +1703,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Creates a token parser that can be used to parse tokens from a given source text.
+        /// </summary>
+        /// <param name="sourceText">The source to parse tokens from.</param>
+        /// <param name="options">Parse options for the source.</param>
+        public static SyntaxTokenParser CreateTokenParser(SourceText sourceText, CSharpParseOptions? options = null)
+        {
+            return new SyntaxTokenParser(new InternalSyntax.Lexer(sourceText, options ?? CSharpParseOptions.Default));
+        }
+
+        /// <summary>
         /// Parse a NameSyntax node using the grammar rule for names.
         /// </summary>
         public static NameSyntax ParseName(string text, int offset = 0, bool consumeFullText = true)
@@ -1686,21 +1722,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (NameSyntax)node.CreateRed();
+                return CreateRed<NameSyntax>(node, lexer.Options);
             }
         }
 
         /// <summary>
         /// Parse a TypeNameSyntax node using the grammar rule for type names.
         /// </summary>
-        public static TypeSyntax ParseTypeName(string text, int offset = 0, bool consumeFullText = true)
+        // Backcompat overload, do not remove
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static TypeSyntax ParseTypeName(string text, int offset, bool consumeFullText)
         {
-            using (var lexer = MakeLexer(text, offset))
+            return ParseTypeName(text, offset, options: null, consumeFullText);
+        }
+
+        /// <summary>
+        /// Parse a TypeNameSyntax node using the grammar rule for type names.
+        /// </summary>
+        public static TypeSyntax ParseTypeName(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
+        {
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseTypeName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (TypeSyntax)node.CreateRed();
+                return CreateRed<TypeSyntax>(node, lexer.Options);
             }
         }
 
@@ -1719,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseExpression();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (ExpressionSyntax)node.CreateRed();
+                return CreateRed<ExpressionSyntax>(node, lexer.Options);
             }
         }
 
@@ -1738,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseStatement();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (StatementSyntax)node.CreateRed();
+                return CreateRed<StatementSyntax>(node, lexer.Options);
             }
         }
 
@@ -1762,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return (MemberDeclarationSyntax)(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node).CreateRed();
+                return CreateRed<MemberDeclarationSyntax>(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node, lexer.Options);
             }
         }
 
@@ -1782,7 +1828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseCompilationUnit();
-                return (CompilationUnitSyntax)node.CreateRed();
+                return CreateRed<CompilationUnitSyntax>(node, lexer.Options);
             }
         }
 
@@ -1799,9 +1845,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList();
+                var node = parser.ParseParenthesizedParameterList(forExtensionOrUnion: false);
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (ParameterListSyntax)node.CreateRed();
+                return CreateRed<ParameterListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1820,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseBracketedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (BracketedParameterListSyntax)node.CreateRed();
+                return CreateRed<BracketedParameterListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1839,7 +1885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseParenthesizedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (ArgumentListSyntax)node.CreateRed();
+                return CreateRed<ArgumentListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1858,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseBracketedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (BracketedArgumentListSyntax)node.CreateRed();
+                return CreateRed<BracketedArgumentListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1870,19 +1916,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">The optional parse options to use. If no options are specified default options are
         /// used.</param>
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
-        public static AttributeArgumentListSyntax ParseAttributeArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
+        public static AttributeArgumentListSyntax? ParseAttributeArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
-            using (var parser = MakeParser(lexer))
-            {
-                var node = parser.ParseAttributeArgumentList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (AttributeArgumentListSyntax)node.CreateRed();
-            }
+            using var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options);
+            using var parser = MakeParser(lexer);
+
+            var node = parser.ParseAttributeArgumentList() ?? new InternalSyntax.AttributeArgumentListSyntax(
+                SyntaxKind.AttributeArgumentList,
+                InternalSyntax.SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken),
+                arguments: null,
+                InternalSyntax.SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken),
+                diagnostics: null,
+                annotations: null);
+            if (consumeFullText)
+                node = parser.ConsumeUnexpectedTokens(node);
+            return CreateRed<AttributeArgumentListSyntax>(node, lexer.Options);
+        }
+
+        private static TSyntax CreateRed<TSyntax>(InternalSyntax.CSharpSyntaxNode green, CSharpParseOptions options)
+            where TSyntax : CSharpSyntaxNode
+        {
+            var red = (TSyntax)green.CreateRed();
+            Debug.Assert(red._syntaxTree is null);
+#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
+            red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, options);
+#pragma warning restore
+            return red;
         }
 
         /// <summary>
-        /// Helper method for wrapping a string in an SourceText.
+        /// Helper method for wrapping a string in a SourceText.
         /// </summary>
         private static SourceText MakeSourceText(string text, int offset)
         {
@@ -2106,6 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerMemberCref:
                 case SyntaxKind.OperatorMemberCref:
                 case SyntaxKind.ConversionOperatorMemberCref:
+                case SyntaxKind.ExtensionMemberCref:
                 case SyntaxKind.ArrayType:
                 case SyntaxKind.NullableType:
                     // Adjustment may be required.
@@ -2114,7 +2178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node;
             }
 
-            CSharpSyntaxNode parent = node.Parent;
+            CSharpSyntaxNode? parent = node.Parent;
 
             if (parent == null)
             {
@@ -2161,9 +2225,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NameMemberCref:
                     if (((NameMemberCrefSyntax)parent).Name == node)
                     {
-                        CSharpSyntaxNode grandparent = parent.Parent;
-                        return grandparent != null && grandparent.Kind() == SyntaxKind.QualifiedCref
-                            ? grandparent
+                        CSharpSyntaxNode? grandparent = parent.Parent;
+                        return grandparent != null && grandparent is CrefSyntax
+                            ? GetStandaloneNode(grandparent)
                             : parent;
                     }
 
@@ -2173,6 +2237,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (((QualifiedCrefSyntax)parent).Member == node)
                     {
                         return parent;
+                    }
+
+                    break;
+
+                case SyntaxKind.ExtensionMemberCref:
+                    if (((ExtensionMemberCrefSyntax)parent).Member == node)
+                    {
+                        return GetStandaloneNode(parent);
                     }
 
                     break;
@@ -2427,7 +2499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
             TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
             SyntaxToken identifier,
             AccessorListSyntax accessorList)
         {
@@ -2449,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken operatorKeyword,
             TypeSyntax type,
             ParameterListSyntax parameterList,
-            BlockSyntax body,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
         {
             return SyntaxFactory.ConversionOperatorDeclaration(
@@ -2464,6 +2536,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            SyntaxToken operatorKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: null,
+                operatorKeyword: operatorKeyword,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: null,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody);
+        }
+
+        /// <summary>Creates a new <see cref="ConversionOperatorDeclarationSyntax"/> instance.</summary>
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
+            SyntaxToken operatorKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
+                operatorKeyword: operatorKeyword,
+                checkedKeyword: default,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
         public static OperatorDeclarationSyntax OperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2471,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken operatorKeyword,
             SyntaxToken operatorToken,
             ParameterListSyntax parameterList,
-            BlockSyntax body,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
         {
             return SyntaxFactory.OperatorDeclaration(
@@ -2486,6 +2629,79 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorKeyword,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorKeyword: operatorKeyword,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody);
+        }
+
+        /// <summary>Creates a new <see cref="OperatorDeclarationSyntax"/> instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
+            SyntaxToken operatorKeyword,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
+                operatorKeyword: operatorKeyword,
+                checkedKeyword: default,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax alias, NameSyntax name)
         {
@@ -2495,6 +2711,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 alias: alias,
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
+        }
+
+        public static UsingDirectiveSyntax UsingDirective(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        {
+            return UsingDirective(
+                globalKeyword: default,
+                usingKeyword,
+                staticKeyword,
+                unsafeKeyword: default,
+                alias,
+                namespaceOrType: name,
+                semicolonToken);
         }
 
         /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
@@ -2513,7 +2741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, body: null, expressionBody, semicolonToken);
 
-        public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
+        public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax? equalsValue)
             => EnumMemberDeclaration(attributeLists, modifiers: default,
                 identifier, equalsValue);
 
@@ -2588,7 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax? parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
+                ? AnonymousMethodExpression(default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
                 : throw new ArgumentException(nameof(body));
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
@@ -2597,6 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : throw new ArgumentException(nameof(body));
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             string text,
@@ -2610,6 +2839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
@@ -2623,25 +2853,142 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseSyntaxTree(
             string text,
             ParseOptions? options,
             string path,
             Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
             ParseOptions? options,
             string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions: null, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
+
+        /// <summary>Creates a new <see cref="OperatorMemberCrefSyntax"/> instance.</summary>
+        public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
+        {
+            return SyntaxFactory.OperatorMemberCref(
+                operatorKeyword: operatorKeyword,
+                operatorToken: operatorToken,
+                checkedKeyword: default,
+                parameters: parameters);
+        }
+
+        /// <summary>Creates a new <see cref="ConversionOperatorMemberCrefSyntax"/> instance.</summary>
+        public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+        {
+            return SyntaxFactory.ConversionOperatorMemberCref(
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                operatorKeyword: operatorKeyword,
+                checkedKeyword: default,
+                type: type,
+                parameters: parameters);
+        }
+
+        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
+        public static ClassDeclarationSyntax ClassDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.ClassDeclaration(
+                attributeLists, modifiers, keyword, identifier, typeParameterList,
+                parameterList: null, baseList, constraintClauses, openBraceToken,
+                members, closeBraceToken, semicolonToken);
+        }
+
+        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
+        public static ClassDeclarationSyntax ClassDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+        {
+            return SyntaxFactory.ClassDeclaration(attributeLists, modifiers, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, members);
+        }
+
+        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
+        public static ClassDeclarationSyntax ClassDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.ClassDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.ClassKeyword), identifier, typeParameterList, parameterList, baseList, constraintClauses, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
+        public static ClassDeclarationSyntax ClassDeclaration(SyntaxToken identifier)
+            => SyntaxFactory.ClassDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.ClassKeyword), identifier, null, null, null, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
+        public static ClassDeclarationSyntax ClassDeclaration(string identifier)
+            => SyntaxFactory.ClassDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.ClassKeyword), SyntaxFactory.Identifier(identifier), null, null, null, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.StructDeclaration(
+                attributeLists, modifiers, keyword, identifier, typeParameterList,
+                parameterList: null, baseList, constraintClauses, openBraceToken,
+                members, closeBraceToken, semicolonToken);
+        }
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+        {
+            return SyntaxFactory.StructDeclaration(attributeLists, modifiers, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, members);
+        }
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.StructDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList, baseList, constraintClauses, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(SyntaxToken identifier)
+            => SyntaxFactory.StructDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, null, null, null, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(string identifier)
+            => SyntaxFactory.StructDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.StructKeyword), SyntaxFactory.Identifier(identifier), null, null, null, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new InterfaceDeclarationSyntax instance.</summary>
+        public static InterfaceDeclarationSyntax InterfaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            return InterfaceDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+        }
+
+        /// <summary>Creates a new InterfaceDeclarationSyntax instance.</summary>
+        public static InterfaceDeclarationSyntax InterfaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.InterfaceDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.InterfaceKeyword), identifier, typeParameterList, baseList, constraintClauses, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new InterfaceDeclarationSyntax instance.</summary>
+        public static InterfaceDeclarationSyntax InterfaceDeclaration(SyntaxToken identifier)
+            => SyntaxFactory.InterfaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.InterfaceKeyword), identifier, null, null, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new InterfaceDeclarationSyntax instance.</summary>
+        public static InterfaceDeclarationSyntax InterfaceDeclaration(string identifier)
+            => SyntaxFactory.InterfaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.InterfaceKeyword), SyntaxFactory.Identifier(identifier), null, null, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
+        public static EnumDeclarationSyntax EnumDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, BaseListSyntax? baseList, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members)
+            => SyntaxFactory.EnumDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.EnumKeyword), identifier, baseList, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
+        public static EnumDeclarationSyntax EnumDeclaration(SyntaxToken identifier)
+            => SyntaxFactory.EnumDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.EnumKeyword), identifier, null, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
+        public static EnumDeclarationSyntax EnumDeclaration(string identifier)
+            => SyntaxFactory.EnumDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.EnumKeyword), SyntaxFactory.Identifier(identifier), null, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            => StructDeclaration(
+                keyword.Kind() is SyntaxKind.UnionKeyword ? SyntaxKind.UnionDeclaration : SyntaxKind.StructDeclaration,
+                attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
     }
 }

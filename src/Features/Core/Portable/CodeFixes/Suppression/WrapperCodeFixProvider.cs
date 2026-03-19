@@ -2,60 +2,53 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
+namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
+
+internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds) : CodeFixProvider
 {
-    internal sealed class WrapperCodeFixProvider : CodeFixProvider
+    private readonly ImmutableArray<string> _originalDiagnosticIds = [.. diagnosticIds.Distinct()];
+
+    public IConfigurationFixProvider SuppressionFixProvider { get; } = suppressionFixProvider;
+    public override ImmutableArray<string> FixableDiagnosticIds => _originalDiagnosticIds;
+
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        private readonly ImmutableArray<string> _originalDiagnosticIds;
-        private readonly IConfigurationFixProvider _suppressionFixProvider;
+        var diagnostics = context.Diagnostics.Where(SuppressionFixProvider.IsFixableDiagnostic);
 
-        public WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds)
+        var documentDiagnostics = diagnostics.WhereAsArray(d => d.Location.IsInSource);
+        if (!documentDiagnostics.IsEmpty)
         {
-            _suppressionFixProvider = suppressionFixProvider;
-            _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
+            var suppressionFixes = await SuppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
+            RegisterSuppressionFixes(context, suppressionFixes);
         }
 
-        public IConfigurationFixProvider SuppressionFixProvider => _suppressionFixProvider;
-        public override ImmutableArray<string> FixableDiagnosticIds => _originalDiagnosticIds;
-
-        public async override Task RegisterCodeFixesAsync(CodeFixContext context)
+        var projectDiagnostics = diagnostics.WhereAsArray(d => !d.Location.IsInSource);
+        if (!projectDiagnostics.IsEmpty)
         {
-            var diagnostics = context.Diagnostics.Where(_suppressionFixProvider.IsFixableDiagnostic);
-
-            var documentDiagnostics = diagnostics.Where(d => d.Location.IsInSource).ToImmutableArray();
-            if (!documentDiagnostics.IsEmpty)
-            {
-                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
-                RegisterSuppressionFixes(context, suppressionFixes);
-            }
-
-            var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
-            if (!projectDiagnostics.IsEmpty)
-            {
-                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
-                RegisterSuppressionFixes(context, suppressionFixes);
-            }
-        }
-
-        private static void RegisterSuppressionFixes(CodeFixContext context, ImmutableArray<CodeFix> suppressionFixes)
-        {
-            if (!suppressionFixes.IsDefault)
-            {
-                foreach (var suppressionFix in suppressionFixes)
-                {
-                    context.RegisterCodeFix(suppressionFix.Action, suppressionFix.Diagnostics);
-                }
-            }
-        }
-
-        public override FixAllProvider GetFixAllProvider()
-        {
-            return _suppressionFixProvider.GetFixAllProvider();
+            var suppressionFixes = await SuppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
+            RegisterSuppressionFixes(context, suppressionFixes);
         }
     }
+
+    private static void RegisterSuppressionFixes(CodeFixContext context, ImmutableArray<CodeFix> suppressionFixes)
+    {
+        if (!suppressionFixes.IsDefault)
+        {
+            foreach (var suppressionFix in suppressionFixes)
+            {
+                context.RegisterCodeFix(suppressionFix.Action, suppressionFix.Diagnostics);
+            }
+        }
+    }
+
+    public override FixAllProvider GetFixAllProvider()
+        => SuppressionFixProvider.GetFixAllProvider();
 }

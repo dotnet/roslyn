@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,11 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class EventDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of EventStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(eventDeclaration As EventStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  eventDeclaration As EventStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
-                                                  options As OptionSet,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(eventDeclaration, spans)
+            CollectCommentsRegions(eventDeclaration, spans, options)
 
             Dim block = TryCast(eventDeclaration.Parent, EventBlockSyntax)
             If Not block?.EndEventStatement.IsMissing Then
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     block, bannerNode:=eventDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Member, isCollapsible:=True))
 
-                CollectCommentsRegions(block.EndEventStatement, spans)
+                CollectCommentsRegions(block.EndEventStatement, spans, options)
             End If
         End Sub
     End Class

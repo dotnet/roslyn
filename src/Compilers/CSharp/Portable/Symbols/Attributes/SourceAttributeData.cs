@@ -2,34 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection.Metadata;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Represents a Source custom attribute specification
     /// </summary>
-    internal class SourceAttributeData : CSharpAttributeData
+    internal sealed class SourceAttributeData : CSharpAttributeData
     {
-        private readonly NamedTypeSymbol? _attributeClass;
-        private readonly MethodSymbol? _attributeConstructor; // Only null when error. Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
+        private readonly CSharpCompilation _compilation;
+        private readonly NamedTypeSymbol _attributeClass;
+        private readonly MethodSymbol? _attributeConstructor;
         private readonly ImmutableArray<TypedConstant> _constructorArguments;
         private readonly ImmutableArray<int> _constructorArgumentsSourceIndices;
         private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
         private readonly bool _isConditionallyOmitted;
         private readonly bool _hasErrors;
-        private readonly SyntaxReference? _applicationNode;
+        private readonly SyntaxReference _applicationNode;
 
-        internal SourceAttributeData(
-            SyntaxReference? applicationNode,
-            NamedTypeSymbol? attributeClass,
+        private SourceAttributeData(
+            CSharpCompilation compilation,
+            SyntaxReference applicationNode,
+            NamedTypeSymbol attributeClass,
             MethodSymbol? attributeConstructor,
             ImmutableArray<TypedConstant> constructorArguments,
             ImmutableArray<int> constructorArgumentsSourceIndices,
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors,
             bool isConditionallyOmitted)
         {
+            Debug.Assert(compilation is object);
+            Debug.Assert(applicationNode is object);
             Debug.Assert(!isConditionallyOmitted || attributeClass is object && attributeClass.IsConditional);
             Debug.Assert(!constructorArguments.IsDefault);
             Debug.Assert(!namedArguments.IsDefault);
@@ -44,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 constructorArgumentsSourceIndices.Any() && constructorArgumentsSourceIndices.Length == constructorArguments.Length);
             Debug.Assert(attributeConstructor is object || hasErrors);
 
+            _compilation = compilation;
             _attributeClass = attributeClass;
             _attributeConstructor = attributeConstructor;
             _constructorArguments = constructorArguments;
@@ -54,9 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _applicationNode = applicationNode;
         }
 
-        internal SourceAttributeData(SyntaxReference applicationNode, NamedTypeSymbol attributeClass, MethodSymbol? attributeConstructor, bool hasErrors)
+        internal SourceAttributeData(CSharpCompilation compilation, AttributeSyntax attributeSyntax, NamedTypeSymbol attributeClass, MethodSymbol? attributeConstructor, bool hasErrors)
             : this(
-            applicationNode,
+            compilation,
+            attributeSyntax,
             attributeClass,
             attributeConstructor,
             constructorArguments: ImmutableArray<TypedConstant>.Empty,
@@ -67,7 +72,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        public override NamedTypeSymbol? AttributeClass
+        internal SourceAttributeData(
+            CSharpCompilation compilation,
+            AttributeSyntax attributeSyntax,
+            NamedTypeSymbol attributeClass,
+            MethodSymbol? attributeConstructor,
+            ImmutableArray<TypedConstant> constructorArguments,
+            ImmutableArray<int> constructorArgumentsSourceIndices,
+            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments,
+            bool hasErrors,
+            bool isConditionallyOmitted)
+            : this(compilation, attributeSyntax.GetReference(), attributeClass, attributeConstructor, constructorArguments, constructorArgumentsSourceIndices, namedArguments, hasErrors, isConditionallyOmitted)
+        {
+        }
+
+        public override NamedTypeSymbol AttributeClass
         {
             get
             {
@@ -83,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override SyntaxReference? ApplicationSyntaxReference
+        public override SyntaxReference ApplicationSyntaxReference
         {
             get
             {
@@ -104,14 +123,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal CSharpSyntaxNode GetAttributeArgumentSyntax(int parameterIndex, AttributeSyntax attributeSyntax)
+        internal CSharpSyntaxNode GetAttributeArgumentSyntax(int parameterIndex)
         {
             // This method is only called when decoding (non-erroneous) well-known attributes.
             Debug.Assert(!this.HasErrors);
             Debug.Assert(this.AttributeConstructor is object);
             Debug.Assert(parameterIndex >= 0);
             Debug.Assert(parameterIndex < this.AttributeConstructor.ParameterCount);
-            Debug.Assert(attributeSyntax != null);
+
+            var attributeSyntax = (AttributeSyntax)_applicationNode.GetSyntax();
 
             if (_constructorArgumentsSourceIndices.IsDefault)
             {
@@ -127,8 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (sourceArgIndex == -1)
                 {
-                    // -1 signifies optional parameter whose default argument is used.
-                    Debug.Assert(this.AttributeConstructor.Parameters[parameterIndex].IsOptional);
+                    // -1 signifies optional parameter whose default argument is used, or
+                    // an empty params array.
+                    Debug.Assert(this.AttributeConstructor.Parameters[parameterIndex].IsOptional ||
+                                 this.AttributeConstructor.Parameters[parameterIndex].IsParamsArray);
                     return attributeSyntax.Name;
                 }
                 else
@@ -138,6 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return attributeSyntax.ArgumentList.Arguments[sourceArgIndex];
                 }
             }
+        }
+
+        internal override Location GetAttributeArgumentLocation(int parameterIndex)
+        {
+            return GetAttributeArgumentSyntax(parameterIndex).Location;
         }
 
         internal override bool IsConditionallyOmitted
@@ -156,11 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return new SourceAttributeData(this.ApplicationSyntaxReference, this.AttributeClass, this.AttributeConstructor, this.CommonConstructorArguments,
+                return new SourceAttributeData(this._compilation, this.ApplicationSyntaxReference, this.AttributeClass, this.AttributeConstructor, this.CommonConstructorArguments,
                     this.ConstructorArgumentsSourceIndices, this.CommonNamedArguments, this.HasErrors, isConditionallyOmitted);
             }
         }
 
+        [MemberNotNullWhen(false, nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get
@@ -169,12 +197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal protected sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
+        internal override DiagnosticInfo? ErrorInfo => null; // Binder reported errors
+
+        protected internal sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get { return _constructorArguments; }
         }
 
-        internal protected sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get { return _namedArguments; }
         }
@@ -185,16 +215,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// and System.Type.  It will not match an arbitrary signature but it is sufficient to match the signatures of the current set of
         /// well known attributes.
         /// </summary>
-        /// <param name="targetSymbol">The symbol which is the target of the attribute</param>
         /// <param name="description">The attribute to match.</param>
-        internal override int GetTargetAttributeSignatureIndex(Symbol targetSymbol, AttributeDescription description)
+        internal override int GetTargetAttributeSignatureIndex(AttributeDescription description)
         {
-            if (!IsTargetAttribute(description.Namespace, description.Name))
+            return GetTargetAttributeSignatureIndex(_compilation, AttributeClass, AttributeConstructor, description);
+        }
+
+        internal static int GetTargetAttributeSignatureIndex(CSharpCompilation compilation, NamedTypeSymbol attributeClass, MethodSymbol? attributeConstructor, AttributeDescription description)
+        {
+            if (!IsTargetAttribute(attributeClass, description.Namespace, description.Name))
             {
                 return -1;
             }
 
-            var ctor = this.AttributeConstructor;
+            var ctor = attributeConstructor;
 
             // Ensure that the attribute data really has a constructor before comparing the signature.
             if (ctor is null)
@@ -206,60 +240,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol? lazySystemType = null;
 
             ImmutableArray<ParameterSymbol> parameters = ctor.Parameters;
-            bool foundMatch = false;
 
-            for (int i = 0; i < description.Signatures.Length; i++)
+            for (int signatureIndex = 0; signatureIndex < description.Signatures.Length; signatureIndex++)
             {
-                byte[] targetSignature = description.Signatures[i];
+                byte[] targetSignature = description.Signatures[signatureIndex];
+
+                if (matches(targetSignature, parameters, ref lazySystemType))
+                {
+                    return signatureIndex;
+                }
+            }
+
+            return -1;
+
+            bool matches(byte[] targetSignature, ImmutableArray<ParameterSymbol> parameters, ref TypeSymbol? lazySystemType)
+            {
                 if (targetSignature[0] != (byte)SignatureAttributes.Instance)
                 {
-                    continue;
+                    return false;
                 }
 
                 byte parameterCount = targetSignature[1];
                 if (parameterCount != parameters.Length)
                 {
-                    continue;
+                    return false;
                 }
 
                 if ((SignatureTypeCode)targetSignature[2] != SignatureTypeCode.Void)
                 {
-                    continue;
+                    return false;
                 }
 
-                foundMatch = (targetSignature.Length == 3);
-                int k = 0;
-                for (int j = 3; j < targetSignature.Length; j++)
+                int parameterIndex = 0;
+                for (int signatureByteIndex = 3; signatureByteIndex < targetSignature.Length; signatureByteIndex++)
                 {
-                    if (k >= parameters.Length)
+                    if (parameterIndex >= parameters.Length)
                     {
-                        break;
+                        return false;
                     }
 
-                    TypeSymbol parameterType = parameters[k].Type;
+                    TypeSymbol parameterType = parameters[parameterIndex].Type;
                     SpecialType specType = parameterType.SpecialType;
-                    byte targetType = targetSignature[j];
+                    byte targetType = targetSignature[signatureByteIndex];
 
                     if (targetType == (byte)SignatureTypeCode.TypeHandle)
                     {
-                        j++;
+                        signatureByteIndex++;
 
                         if (parameterType.Kind != SymbolKind.NamedType && parameterType.Kind != SymbolKind.ErrorType)
                         {
-                            foundMatch = false;
-                            break;
+                            return false;
                         }
 
                         var namedType = (NamedTypeSymbol)parameterType;
-                        AttributeDescription.TypeHandleTargetInfo targetInfo = AttributeDescription.TypeHandleTargets[targetSignature[j]];
+                        AttributeDescription.TypeHandleTargetInfo targetInfo = AttributeDescription.TypeHandleTargets[targetSignature[signatureByteIndex]];
 
                         // Compare name and containing symbol name. Uses HasNameQualifier
                         // extension method to avoid string allocations.
                         if (!string.Equals(namedType.MetadataName, targetInfo.Name, System.StringComparison.Ordinal) ||
                             !namedType.HasNameQualifier(targetInfo.Namespace))
                         {
-                            foundMatch = false;
-                            break;
+                            return false;
                         }
 
                         targetType = (byte)targetInfo.Underlying;
@@ -269,126 +310,182 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             specType = parameterType.GetEnumUnderlyingType()!.SpecialType;
                         }
                     }
-                    else if (parameterType.IsArray())
+                    else if (targetType != (byte)SignatureTypeCode.SZArray && parameterType.IsArray())
                     {
+                        if (targetSignature[signatureByteIndex - 1] != (byte)SignatureTypeCode.SZArray)
+                        {
+                            return false;
+                        }
+
                         specType = ((ArrayTypeSymbol)parameterType).ElementType.SpecialType;
                     }
 
                     switch (targetType)
                     {
                         case (byte)SignatureTypeCode.Boolean:
-                            foundMatch = specType == SpecialType.System_Boolean;
-                            k += 1;
+                            if (specType != SpecialType.System_Boolean)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Char:
-                            foundMatch = specType == SpecialType.System_Char;
-                            k += 1;
+                            if (specType != SpecialType.System_Char)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.SByte:
-                            foundMatch = specType == SpecialType.System_SByte;
-                            k += 1;
+                            if (specType != SpecialType.System_SByte)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Byte:
-                            foundMatch = specType == SpecialType.System_Byte;
-                            k += 1;
+                            if (specType != SpecialType.System_Byte)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Int16:
-                            foundMatch = specType == SpecialType.System_Int16;
-                            k += 1;
+                            if (specType != SpecialType.System_Int16)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.UInt16:
-                            foundMatch = specType == SpecialType.System_UInt16;
-                            k += 1;
+                            if (specType != SpecialType.System_UInt16)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Int32:
-                            foundMatch = specType == SpecialType.System_Int32;
-                            k += 1;
+                            if (specType != SpecialType.System_Int32)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.UInt32:
-                            foundMatch = specType == SpecialType.System_UInt32;
-                            k += 1;
+                            if (specType != SpecialType.System_UInt32)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Int64:
-                            foundMatch = specType == SpecialType.System_Int64;
-                            k += 1;
+                            if (specType != SpecialType.System_Int64)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.UInt64:
-                            foundMatch = specType == SpecialType.System_UInt64;
-                            k += 1;
+                            if (specType != SpecialType.System_UInt64)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Single:
-                            foundMatch = specType == SpecialType.System_Single;
-                            k += 1;
+                            if (specType != SpecialType.System_Single)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Double:
-                            foundMatch = specType == SpecialType.System_Double;
-                            k += 1;
+                            if (specType != SpecialType.System_Double)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.String:
-                            foundMatch = specType == SpecialType.System_String;
-                            k += 1;
+                            if (specType != SpecialType.System_String)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.Object:
-                            foundMatch = specType == SpecialType.System_Object;
-                            k += 1;
+                            if (specType != SpecialType.System_Object)
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SerializationTypeCode.Type:
-                            if (lazySystemType is null)
-                            {
-                                lazySystemType = GetSystemType(targetSymbol);
-                            }
+                            lazySystemType ??= compilation.GetWellKnownType(WellKnownType.System_Type);
 
-                            foundMatch = TypeSymbol.Equals(parameterType, lazySystemType, TypeCompareKind.ConsiderEverything2);
-                            k += 1;
+                            if (!TypeSymbol.Equals(parameterType, lazySystemType, TypeCompareKind.ConsiderEverything))
+                            {
+                                return false;
+                            }
+                            parameterIndex += 1;
                             break;
 
                         case (byte)SignatureTypeCode.SZArray:
                             // Skip over and check the next byte
-                            foundMatch = parameterType.IsArray();
+                            if (!parameterType.IsArray())
+                            {
+                                return false;
+                            }
                             break;
 
                         default:
-                            return -1;
-                    }
-
-                    if (!foundMatch)
-                    {
-                        break;
+                            return false;
                     }
                 }
 
-                if (foundMatch)
-                {
-                    return i;
-                }
+                return true;
             }
+        }
 
-            Debug.Assert(!foundMatch);
-            return -1;
+        internal override bool IsTargetAttribute(string namespaceName, string typeName)
+        {
+            return IsTargetAttribute(AttributeClass, namespaceName, typeName);
         }
 
         /// <summary>
-        /// Gets the System.Type type symbol from targetSymbol's containing assembly.
+        /// Compares the namespace and type name with the attribute's namespace and type name.
+        /// Returns true if they are the same.
         /// </summary>
-        /// <param name="targetSymbol">Target symbol on which this attribute is applied.</param>
-        /// <returns>System.Type type symbol.</returns>
-        internal virtual TypeSymbol GetSystemType(Symbol targetSymbol)
+        internal static bool IsTargetAttribute(NamedTypeSymbol attributeClass, string namespaceName, string typeName)
         {
-            return targetSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type);
+            Debug.Assert(attributeClass is object);
+
+            if (!attributeClass.Name.Equals(typeName))
+            {
+                return false;
+            }
+
+            if (attributeClass.IsErrorType() && !(attributeClass is MissingMetadataTypeSymbol))
+            {
+                // Can't guarantee complete name information.
+                return false;
+            }
+
+            return attributeClass.HasNameQualifier(namespaceName);
         }
     }
 }

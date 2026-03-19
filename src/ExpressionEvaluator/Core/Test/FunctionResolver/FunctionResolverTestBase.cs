@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,6 +11,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         private static string GetMethodSignature(Module module, int token)
         {
-            var reader = module.GetMetadataInternal();
+            var reader = module.GetMetadataReader();
             return GetMethodSignature(reader, MetadataTokens.MethodDefinitionHandle(token));
         }
 

@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (CurrentToken.Kind == TokenKind.CloseParen)
             {
                 EatToken();
-                return ImmutableArray<ParameterSignature>.Empty;
+                return [];
             }
             var builder = ImmutableArray.CreateBuilder<ParameterSignature>();
             while (true)

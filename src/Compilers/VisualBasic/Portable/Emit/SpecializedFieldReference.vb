@@ -3,13 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -44,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly Property ISpecializedFieldReferenceUnspecializedVersion As Cci.IFieldReference Implements Cci.ISpecializedFieldReference.UnspecializedVersion
             Get
                 Debug.Assert(_underlyingField.OriginalDefinition Is _underlyingField.OriginalDefinition.OriginalDefinition)
-                Return _underlyingField.OriginalDefinition
+                Return _underlyingField.OriginalDefinition.GetCciAdapter()
             End Get
         End Property
 
@@ -56,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Function IFieldReferenceGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IFieldReference.GetType
             Dim customModifiers = _underlyingField.CustomModifiers
-            Dim type = DirectCast(context.Module, PEModuleBuilder).Translate(_underlyingField.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim type = DirectCast(context.Module, PEModuleBuilder).Translate(_underlyingField.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
             If customModifiers.Length = 0 Then
                 Return type
@@ -65,17 +61,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
+        Private ReadOnly Property IFieldReferenceRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.IFieldReference.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of Cci.ICustomModifier).Empty
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldReferenceIsByReference As Boolean Implements Cci.IFieldReference.IsByReference
+            Get
+                Return False
+            End Get
+        End Property
+
         Private Function IFieldReferenceGetResolvedField(context As EmitContext) As Cci.IFieldDefinition Implements Cci.IFieldReference.GetResolvedField
             Return Nothing
         End Function
 
         Private Sub AssociateWithMetadataWriter(metadataWriter As Cci.MetadataWriter) Implements Cci.IContextualNamedEntity.AssociateWithMetadataWriter
-            DirectCast(_underlyingField, Cci.IContextualNamedEntity).AssociateWithMetadataWriter(metadataWriter)
+            DirectCast(_underlyingField, SynthesizedStaticLocalBackingField).AssociateWithMetadataWriter(metadataWriter)
         End Sub
 
         Private ReadOnly Property IsContextualNamedEntity As Boolean Implements Cci.IFieldReference.IsContextualNamedEntity
             Get
-                Return _underlyingField.IFieldReferenceIsContextualNamedEntity
+                Return _underlyingField.IsContextualNamedEntity
             End Get
         End Property
     End Class

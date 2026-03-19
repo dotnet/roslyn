@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -207,7 +205,7 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
@@ -266,7 +264,7 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
@@ -975,7 +973,6 @@ class C
                 { "float", "float" },
            };
 
-
             string[,] shift1 =
             {
                 { "sbyte", "sbyte" },
@@ -1146,7 +1143,6 @@ class C
                 { "Base64FormattingOptions", "Base64FormattingOptions"},
             };
 
-
             // Use 2 instead of 0 so that we don't get divide by zero errors.
             var twos = new Dictionary<string, string>()
             {
@@ -1189,13 +1185,12 @@ class C
                 { "/", "divide" },
                 { "%", "remainder" },
                 { ">>", "rshift" },
+                { ">>>", "urshift" },
                 { "<<", "lshift" },
                 { "&", "and" },
                 { "|", "or" },
                 { "^", "xor" }
             };
-
-
 
             var source = new StringBuilder(@"
 using System; 
@@ -1264,8 +1259,6 @@ class C
     F(31, (x1 OP ynn).HasValue);
   }";
 
-
-
             List<Tuple<string, string[,]>> items = new List<Tuple<string, string[,]>>()
             {
                 Tuple.Create("*", numerics1),
@@ -1278,12 +1271,12 @@ class C
                 // UNDONE: so this test is disabled:
                 // UNDONE: Tuple.Create("-", enumSubtraction),
                 Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
                 Tuple.Create("<<", shift2),
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),
                 Tuple.Create("^", logical3)
             };
-
 
             int m = 0;
 
@@ -1408,7 +1401,6 @@ class C
                 F((sxnn << null).HasValue);";
 
             source += "}}";
-
 
             var verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
@@ -1904,7 +1896,7 @@ Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 || b2").WithArguments("||", "bool?", 
         [Fact]
         public void ShortCircuitLiftedUserDefinedOperators()
         {
-            // This test illustrates an bug in the native compiler which Roslyn fixes.
+            // This test illustrates a bug in the native compiler which Roslyn fixes.
             // The native compiler disallows a *lifted* & operator from being used as an &&
             // operator, but allows a *nullable* & operator to be used as an && operator.
             // There is no good reason for this discrepancy; either both should be legal
@@ -2034,7 +2026,6 @@ ttttfnnnn
 tttftfffnntnfnn
 ttttfnnnn";
 
-
             CompileAndVerify(source, expectedOutput: expected);
         }
 
@@ -2108,5 +2099,172 @@ class Test
         }
 
         #endregion
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+
+
+_ = (bool?)new S();
+bool? z;
+z = new S();
+
+z.GetValueOrDefault();
+
+struct S
+{
+    [System.Obsolete()]
+    public static implicit operator bool(S s) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // _ = (bool?)new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
+                // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // z = new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void TestIsNullable1()
+        {
+            var source = @"
+class C
+{
+    void M(object o)
+    {
+        if (o is int? i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void TestIsNullable2()
+        {
+            var source = @"
+using A = System.Nullable<int>;
+class C
+{
+    void M(object o)
+    {
+        if (o is A i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void TestIsNullable3()
+        {
+            var source = @"
+using A = int?;
+class C
+{
+    void M(object o)
+    {
+        if (o is A i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
+        public void MissingSystemNullable()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    X<Y?> M1() => M3(() => M2());
+                    X<Y?> M2() => new();
+                    void M3(object _) { }
+                }
+                class X<T> { }
+                struct Y { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
+                // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
+                // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
+                // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
+                // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
+        public void MissingSystemNullable_MissingUserType()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    X<Y?> M1() => M3(() => M2());
+                    X<Y?> M2() => new();
+                    void M3(object _) { }
+                }
+                class X<T> { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(4, 7),
+                // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
+                // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
+                // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
+                // (5,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(5, 7),
+                // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
+                // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
+        }
     }
 }

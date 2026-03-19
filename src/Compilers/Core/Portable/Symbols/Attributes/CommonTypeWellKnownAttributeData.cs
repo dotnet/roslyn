@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -211,6 +213,23 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        #region ExtendedLayoutAttribute
+        public bool HasExtendedLayoutAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return field;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                field = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
         #region SecurityCriticalAttribute and SecuritySafeCriticalAttribute
         private bool _hasSecurityCriticalAttributes;
         public bool HasSecurityCriticalAttributes
@@ -247,6 +266,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        #endregion
+
+        #region CompilerLoweringPreserveAttribute
+        private bool _hasCompilerLoweringPreserveAttribute;
+        public bool HasCompilerLoweringPreserveAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasCompilerLoweringPreserveAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasCompilerLoweringPreserveAttribute = value;
+                SetDataStored();
+            }
+        }
         #endregion
     }
 }

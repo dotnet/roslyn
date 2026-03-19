@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A digest of MetadataTypeName's fully qualified name which can be used as the key in a dictionary
         /// </summary>
-        public struct Key : IEquatable<Key>
+        public readonly struct Key : IEquatable<Key>
         {
             // PERF: We can work with either a fully qualified name (a single string) or
             // a 'split' name (namespace and type). If typeName is null, then a FQN is
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             private readonly byte _useCLSCompliantNameArityEncoding; // Using byte instead of bool for denser packing and smaller structure size
             private readonly short _forcedArity;
 
-            internal Key(MetadataTypeName mdTypeName)
+            internal Key(in MetadataTypeName mdTypeName)
             {
                 if (mdTypeName.IsNull)
                 {
@@ -113,9 +115,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public Key ToKey()
+        public readonly Key ToKey()
         {
-            return new Key(this);
+            return new Key(in this);
         }
     }
 }

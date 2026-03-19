@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class TuplePropertySymbol
         Inherits WrappedPropertySymbol
 
-        Private _containingType As TupleTypeSymbol
+        Private ReadOnly _containingType As TupleTypeSymbol
 
         Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
 
@@ -95,6 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return Me._underlyingProperty.GetOverloadResolutionPriority()
+        End Function
+
         Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
             Get
                 Return Me._underlyingProperty.IsMyGroupCollectionProperty
@@ -110,10 +114,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me._underlyingProperty.Parameters.SelectAsArray(Of ParameterSymbol)(Function(p) New TupleParameterSymbol(Me, p))
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Dim useSiteDiagnostic As DiagnosticInfo = MyBase.GetUseSiteErrorInfo
-            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, Me._underlyingProperty.GetUseSiteErrorInfo())
-            Return useSiteDiagnostic
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MyBase.GetUseSiteInfo
+            MyBase.MergeUseSiteInfo(useSiteInfo, Me._underlyingProperty.GetUseSiteInfo())
+            Return useSiteInfo
         End Function
 
         Public Overrides Function GetHashCode() As Integer
@@ -132,5 +136,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return Me._underlyingProperty.GetAttributes()
         End Function
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return _underlyingProperty.IsRequired
+            End Get
+        End Property
     End Class
 End Namespace

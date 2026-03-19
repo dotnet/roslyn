@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -14,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class NullableWalker
     {
-#nullable enable
         internal sealed class SnapshotManager
         {
             /// <summary>
@@ -50,37 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            internal (NullableWalker, VariableState, Symbol) RestoreWalkerToAnalyzeNewNode(
-                int position,
-                BoundNode nodeToAnalyze,
-                Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
-                SnapshotManager.Builder newManagerOpt)
+            internal (VariablesSnapshot, LocalStateSnapshot) GetSnapshot(int position)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
                 var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
-                return (new NullableWalker(binder.Compilation,
-                                           sharedState.Symbol,
-                                           useDelegateInvokeParameterTypes: false,
-                                           delegateInvokeMethodOpt: null,
-                                           nodeToAnalyze,
-                                           binder,
-                                           binder.Conversions,
-                                           variableState,
-                                           returnTypesOpt: null,
-                                           analyzedNullabilityMap,
-                                           snapshotBuilderOpt: newManagerOpt,
-                                           isSpeculative: true),
-                        variableState,
-                        sharedState.Symbol);
+                return (sharedState.Variables, incrementalSnapshot.VariableState);
             }
 
             internal TypeWithAnnotations? GetUpdatedTypeForLocalSymbol(SourceLocalSymbol symbol)
             {
                 var snapshot = GetSnapshotForPosition(symbol.IdentifierToken.SpanStart);
                 var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
-                if (sharedState.VariableTypes.TryGetValue(symbol, out var updatedType))
+                if (sharedState.Variables.TryGetType(symbol, out var updatedType))
                 {
                     return updatedType;
                 }
@@ -98,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            internal bool TryGetUpdatedSymbol(BoundNode node, Symbol symbol, out Symbol updatedSymbol)
+            internal bool TryGetUpdatedSymbol(BoundNode node, Symbol symbol, [NotNullWhen(true)] out Symbol? updatedSymbol)
             {
                 return _updatedSymbolsMap.TryGetValue((node, symbol), out updatedSymbol);
             }
@@ -134,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Fail($"Did not find a snapshot for {node} `{node.Syntax}.`");
                 }
-                Debug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
+                RoslynDebug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
             }
 
             internal void VerifyUpdatedSymbols()
@@ -142,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var ((expr, originalSymbol), updatedSymbol) in _updatedSymbolsMap)
                 {
                     var debugText = expr?.Syntax.ToFullString() ?? originalSymbol.ToDisplayString();
-                    Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
+                    RoslynDebug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
                     RoslynDebug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
                     RoslynDebug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
-                    Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
+                    RoslynDebug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
 Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 }
@@ -224,7 +205,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                     _currentWalkerSlot = previousSlot;
                 }
 
-                internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)
+                internal void TakeIncrementalSnapshot(BoundNode? node, LocalState currentState)
                 {
                     if (node == null || node.WasCompilerGenerated)
                     {
@@ -233,7 +214,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
 
                     // Note that we can't use Add here, as this is potentially not the stable
                     // state of this node and we could get updated states later.
-                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.Clone(), _currentWalkerSlot);
+                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.CreateSnapshot(), _currentWalkerSlot);
                 }
 
                 internal void SetUpdatedSymbol(BoundNode node, Symbol originalSymbol, Symbol updatedSymbol)
@@ -266,23 +247,13 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// <summary>
         /// Contains the shared state used to restore the walker at a specific point
         /// </summary>
-        internal struct SharedWalkerState
+        internal readonly struct SharedWalkerState
         {
-            internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
-            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
-            internal readonly Symbol Symbol;
+            internal readonly VariablesSnapshot Variables;
 
-            internal SharedWalkerState(
-                ImmutableDictionary<VariableIdentifier, int> variableSlot,
-                ImmutableArray<VariableIdentifier> variableBySlot,
-                ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                Symbol symbol)
+            internal SharedWalkerState(VariablesSnapshot variables)
             {
-                VariableSlot = variableSlot;
-                VariableBySlot = variableBySlot;
-                VariableTypes = variableTypes;
-                Symbol = symbol;
+                Variables = variables;
             }
         }
 
@@ -292,10 +263,10 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// </summary>
         private readonly struct Snapshot
         {
-            internal readonly LocalState VariableState;
+            internal readonly LocalStateSnapshot VariableState;
             internal readonly int SharedStateIndex;
 
-            internal Snapshot(LocalState variableState, int sharedStateIndex)
+            internal Snapshot(LocalStateSnapshot variableState, int sharedStateIndex)
             {
                 VariableState = variableState;
                 SharedStateIndex = sharedStateIndex;

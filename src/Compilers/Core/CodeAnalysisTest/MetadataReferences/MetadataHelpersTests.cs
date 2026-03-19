@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Jagged
         };
 
-        private struct TypeNameConfig
+        private readonly struct TypeNameConfig
         {
             public readonly int NestingLevel;
             public readonly TypeNameConfig[] GenericParamsConfig;
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TypeNameConfig typeNameConfig = typeNameConfigs[index];
 
                 string expectedTopLevelTypeName = "X";
-                typeNameBuilder.Append("X");
+                typeNameBuilder.Append('X');
 
                 string[] expectedNestedTypes = null;
                 if (typeNameConfig.NestingLevel > 0)
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         expectedNestedTypes[typeNameConfig.NestingLevel - 1] += genericArityStr;
                     }
 
-                    typeNameBuilder.Append("[");
+                    typeNameBuilder.Append('[');
 
                     for (int i = 0; i < genericParamsToDecode.Length; i++)
                     {
@@ -158,9 +160,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                         if (typeNameConfig.GenericParamsConfig[i].AssemblyQualified)
                         {
-                            typeNameBuilder.Append("[");
+                            typeNameBuilder.Append('[');
                             typeNameBuilder.Append(genericParamsToDecode[i]);
-                            typeNameBuilder.Append("]");
+                            typeNameBuilder.Append(']');
                         }
                         else
                         {
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         }
                     }
 
-                    typeNameBuilder.Append("]");
+                    typeNameBuilder.Append(']');
                 }
 
                 int expectedPointerCount = typeNameConfig.PointerCount;
@@ -500,6 +502,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, nestedNamespaces.Count());
             Assert.Equal("a", nestedNamespaces.ElementAt(0).Key);
             Assert.Equal("b", nestedNamespaces.ElementAt(1).Key);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("abc")]
+        [InlineData("\u1234")]
+        public static void GetUserStringBlobSize(string str)
+        {
+            var builder = new BlobBuilder();
+            builder.WriteUserString(str);
+            Assert.Equal(builder.Count, MetadataHelpers.GetUserStringBlobSize(str));
         }
     }
 }

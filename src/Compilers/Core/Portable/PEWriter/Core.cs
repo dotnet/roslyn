@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Symbols;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -13,6 +12,17 @@ namespace Microsoft.Cci
     /// An object corresponding to a metadata entity such as a type or a field.
     /// </summary>
     internal interface IDefinition : IReference
+    {
+        /// <summary>
+        /// True if the definition represents a definition deleted during EnC.
+        /// </summary>
+        bool IsEncDeleted { get; }
+    }
+
+    /// <summary>
+    /// No-PIA embedded definition.
+    /// </summary>
+    internal interface IEmbeddedDefinition
     {
     }
 
@@ -38,5 +48,10 @@ namespace Microsoft.Cci
         /// or null if the referenced entity isn't defined in the context.
         /// </summary>
         IDefinition? AsDefinition(EmitContext context);
+
+        /// <summary>
+        /// Returns underlying internal symbol object, if any.
+        /// </summary>
+        ISymbolInternal? GetInternalSymbol();
     }
 }

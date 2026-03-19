@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,12 +29,12 @@ namespace Microsoft.CodeAnalysis
         /// the same trivia with potentially rewritten sub structure.</param>
         public static TRoot ReplaceSyntax<TRoot>(
             this TRoot root,
-            IEnumerable<SyntaxNode> nodes,
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
-            IEnumerable<SyntaxToken> tokens,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken,
-            IEnumerable<SyntaxTrivia> trivia,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia)
+            IEnumerable<SyntaxNode>? nodes,
+            Func<SyntaxNode, SyntaxNode, SyntaxNode>? computeReplacementNode,
+            IEnumerable<SyntaxToken>? tokens,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken,
+            IEnumerable<SyntaxTrivia>? trivia,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia)
             where TRoot : SyntaxNode
         {
             return (TRoot)root.ReplaceCore(
@@ -123,8 +122,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>
-        /// <param name="tokenInList">The token to be replaced; a descendant of the root node and an element of a list member.</param>
+        /// <param name="tokenInList">The token to be replaced. This must be a direct element of a <see cref="SyntaxTokenList"/> 
+        /// (such as a modifier in a list of modifiers), and a descendant of the root node. 
+        /// If the token is not part of a <see cref="SyntaxTokenList"/>, an <see cref="InvalidOperationException"/> will be thrown.</param>
         /// <param name="newTokens">A sequence of tokens to use in the tree in place of the specified token.</param>
+        /// <exception cref="InvalidOperationException">Thrown when <paramref name="tokenInList"/> is not an element of a <see cref="SyntaxTokenList"/>.</exception>
         public static TRoot ReplaceToken<TRoot>(this TRoot root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens)
             where TRoot : SyntaxNode
         {
@@ -136,8 +138,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>
-        /// <param name="tokenInList">The token to insert before; a descendant of the root node and an element of a list member.</param>
+        /// <param name="tokenInList">The token to insert before. This must be a direct element of a <see cref="SyntaxTokenList"/> 
+        /// (such as a modifier in a list of modifiers), and a descendant of the root node. The new tokens will be inserted 
+        /// before this token in that list. If the token is not part of a <see cref="SyntaxTokenList"/>, 
+        /// an <see cref="InvalidOperationException"/> will be thrown.</param>
         /// <param name="newTokens">A sequence of tokens to insert into the tree immediately before the specified token.</param>
+        /// <exception cref="InvalidOperationException">Thrown when <paramref name="tokenInList"/> is not an element of a <see cref="SyntaxTokenList"/>.</exception>
         public static TRoot InsertTokensBefore<TRoot>(this TRoot root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens)
             where TRoot : SyntaxNode
         {
@@ -149,8 +155,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>
-        /// <param name="tokenInList">The token to insert after; a descendant of the root node and an element of a list member.</param>
+        /// <param name="tokenInList">The token to insert after. This must be a direct element of a <see cref="SyntaxTokenList"/> 
+        /// (such as a modifier in a list of modifiers), and a descendant of the root node. The new tokens will be inserted 
+        /// after this token in that list. If the token is not part of a <see cref="SyntaxTokenList"/>, 
+        /// an <see cref="InvalidOperationException"/> will be thrown.</param>
         /// <param name="newTokens">A sequence of tokens to insert into the tree immediately after the specified token.</param>
+        /// <exception cref="InvalidOperationException">Thrown when <paramref name="tokenInList"/> is not an element of a <see cref="SyntaxTokenList"/>.</exception>
         public static TRoot InsertTokensAfter<TRoot>(this TRoot root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens)
             where TRoot : SyntaxNode
         {
@@ -260,12 +270,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="node">The node to remove.</param>
         /// <param name="options">Options that determine how the node's trivia is treated.</param>
-        public static TRoot RemoveNode<TRoot>(this TRoot root,
+        /// <returns>New root or null if the root node itself is removed.</returns>
+        public static TRoot? RemoveNode<TRoot>(this TRoot root,
             SyntaxNode node,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(new[] { node }, options);
+            return (TRoot?)root.RemoveNodesCore(new[] { node }, options);
         }
 
         /// <summary>
@@ -275,13 +286,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="nodes">The nodes to remove.</param>
         /// <param name="options">Options that determine how the nodes' trivia is treated.</param>
-        public static TRoot RemoveNodes<TRoot>(
+        public static TRoot? RemoveNodes<TRoot>(
             this TRoot root,
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(nodes, options);
+            return (TRoot?)root.RemoveNodesCore(nodes, options);
         }
 
         internal const string DefaultIndentation = "    ";
@@ -430,7 +441,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Attaches the node to a SyntaxTree that the same options as <paramref name="oldTree"/>
         /// </summary>
-        internal static SyntaxNode? AsRootOfNewTreeWithOptionsFrom(this SyntaxNode node, SyntaxTree oldTree)
+        [return: NotNullIfNotNull(nameof(node))]
+        internal static SyntaxNode? AsRootOfNewTreeWithOptionsFrom(this SyntaxNode? node, SyntaxTree oldTree)
         {
             return node != null ? oldTree.WithRootAndOptions(node, oldTree.Options).GetRoot() : null;
         }

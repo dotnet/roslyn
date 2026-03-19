@@ -9,43 +9,41 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    public class InterpolatedStringExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InterpolatedStringExpressionSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider()
-            => new InterpolatedStringExpressionStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMultiLineStringLiteral()
-        {
-            await VerifyBlockSpansAsync(
-@"
-class C
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public sealed class InterpolatedStringExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InterpolatedStringExpressionSyntax>
 {
-    void M()
-    {
-        var v =
-{|hint:{|textspan:$$$@""
-{123}
-""|}|};
-    }
-}",
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    internal override AbstractSyntaxStructureProvider CreateProvider()
+        => new InterpolatedStringExpressionStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMissingOnIncompleteStringLiteral()
-        {
-            await VerifyNoBlockSpansAsync(
-@"
-class C
-{
-    void M()
-    {
-        var v = $$$"";
-    }
-}");
-        }
-    }
+    [Fact]
+    public Task TestMultiLineStringLiteral()
+        => VerifyBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        var v =
+                {|hint:{|textspan:$$$@"
+                {123}
+                "|}|};
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+
+    [Fact]
+    public Task TestMissingOnIncompleteStringLiteral()
+        => VerifyNoBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $$$";
+                    }
+                }
+                """);
 }

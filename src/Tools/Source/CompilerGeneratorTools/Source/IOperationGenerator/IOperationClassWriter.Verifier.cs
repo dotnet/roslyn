@@ -33,6 +33,12 @@ namespace IOperationGenerator
                     error = true;
                 }
 
+                if (abstractNode.IsInternal && !string.IsNullOrEmpty(abstractNode.ExperimentalUrl))
+                {
+                    Console.WriteLine($"{abstractNode.Name} is marked as internal and experimental. Internal nodes cannot be experimental.");
+                    error = true;
+                }
+
                 if (!abstractNode.IsInternal && abstractNode.Obsolete is null)
                 {
                     if (abstractNode.Comments?.Elements?[0].Name != "summary")
@@ -43,7 +49,13 @@ namespace IOperationGenerator
 
                     foreach (var prop in abstractNode.Properties)
                     {
-                        if (prop.Comments?.Elements?[0].Name != "summary" && !prop.IsInternal)
+                        if (prop.IsInternal && !string.IsNullOrEmpty(prop.ExperimentalUrl))
+                        {
+                            Console.WriteLine($"{abstractNode.Name}.{prop.Name} is marked as internal and experimental. Internal properties cannot be experimental.");
+                            error = true;
+                        }
+
+                        if (prop.Comments?.Elements?[0].Name != "summary" && !prop.IsInternal && !prop.IsOverride)
                         {
                             Console.WriteLine($"{abstractNode.Name}.{prop.Name} does not have correctly formatted comments, please ensure that there is a <summary> block for the property.");
                             error = true;
@@ -51,8 +63,37 @@ namespace IOperationGenerator
                     }
                 }
 
-                if (!(abstractNode is Node node)) continue;
-                if (node.SkipChildrenGeneration || node.SkipClassGeneration) continue;
+                foreach (var prop in GetAllGeneratedIOperationProperties(abstractNode))
+                {
+                    if (IsImmutableArray(prop.Type, out _) && prop.Type.Contains("?"))
+                    {
+                        Console.WriteLine($"{abstractNode.Name}.{prop.Name} has nullable IOperation elements. This is not allowed in IOperation and will mess up Children generation.");
+                        error = true;
+                    }
+                }
+
+                if (abstractNode is not Node node)
+                    continue;
+                if (node.SkipChildrenGeneration || node.SkipClassGeneration)
+                    continue;
+
+                if (node.HasTypeText is not (null or "true" or "false"))
+                {
+                    Console.WriteLine($"{node.Name} has unexpected value for {nameof(Node.HasType)}: {node.HasTypeText}");
+                    error = true;
+                }
+
+                if (node.HasConstantValueText is not (null or "true" or "false"))
+                {
+                    Console.WriteLine($"{node.Name} has unexpected value for {nameof(Node.HasConstantValue)}: {node.HasConstantValueText}");
+                    error = true;
+                }
+
+                if (node.HasConstantValue && !node.HasType)
+                {
+                    Console.WriteLine($"{node.Name} is marked as having a constant value without having a type");
+                    error = true;
+                }
 
                 var properties = GetAllGeneratedIOperationProperties(node).Where(p => !p.IsInternal).Select(p => p.Name).ToList();
 
@@ -70,7 +111,6 @@ namespace IOperationGenerator
                     }
                     continue;
                 }
-
 
                 if (node.ChildrenOrder is null)
                 {

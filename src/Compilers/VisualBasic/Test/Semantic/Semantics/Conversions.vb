@@ -2,16 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConversionsTests.Parameters
 Imports Roslyn.Test.Utilities
 
@@ -40,7 +36,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -53,7 +49,6 @@ End Class
 
             Dim m13 = DirectCast(test.GetMembers("M13").Single(), MethodSymbol)
             Dim m13p = m13.Parameters.Select(Function(p) p.Type).ToArray()
-
 
             Assert.Equal(ConversionKind.WideningReference, ClassifyDirectCastAssignment(m13p(a), m13p(b), methodBodyBinder)) ' Object)
             Assert.Equal(ConversionKind.WideningValue, ClassifyDirectCastAssignment(m13p(a), m13p(c), methodBodyBinder)) ' Object)
@@ -196,7 +191,6 @@ End Class
             Return result
         End Function
 
-
         Private Shared Function ClassifyConversion(source As TypeSymbol, destination As TypeSymbol) As ConversionKind
             Dim result As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(source, destination, Nothing)
             Assert.Null(result.Value)
@@ -208,7 +202,6 @@ End Class
             Assert.Null(result.Value)
             Return result.Key
         End Function
-
 
         <Fact()>
         Public Sub ConstantExpressionConversions()
@@ -222,7 +215,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -567,7 +560,6 @@ End Class
                 Next
             Next
 
-
             ' -------- Numeric non-zero values
             Dim nonZeroValues = New TypeAndValue() {
                     New TypeAndValue(sbyteType, SByte.MinValue),
@@ -608,13 +600,13 @@ End Class
                     New TypeAndValue(uint64Type, CULng(18)),
                     New TypeAndValue(decimalType, CDec(-11.3)),
                     New TypeAndValue(doubleType, CDbl(&HF000000000000000UL)),
-                    New TypeAndValue(doubleType, CDbl(&H70000000000000F0L)),
+                    New TypeAndValue(doubleType, CDbl(&H8000000000000000L)),
+                    New TypeAndValue(doubleType, CDbl(&H7FFFFFFFFFFFFC00L)),
                     New TypeAndValue(typeCodeType, Int32.MinValue),
                     New TypeAndValue(typeCodeType, Int32.MaxValue),
                     New TypeAndValue(typeCodeType, CInt(-3)),
                     New TypeAndValue(typeCodeType, CInt(7))
                     }
-
 
             Dim resultValue2 As ConstantValue
             Dim integerOverflow2 As Boolean
@@ -732,7 +724,7 @@ End Class
 
                                 Assert.True(gotException)
 
-                                Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                Assert.Equal(UncheckedConvert(mv.Value, numericType), resultValue.Value)
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -773,7 +765,6 @@ End Class
                 Next
 
             Next
-
 
             Dim dbl As Double = -1.5
             Dim doubleValue = ConstantValue.Create(dbl)
@@ -838,7 +829,6 @@ End Class
             Assert.False(resultValue.IsBad)
 
             Assert.Equal(Convert.ToUInt64(dbl), DirectCast(resultValue.Value, UInt64))
-
 
             ' -------  Boolean
             Dim falseValue = ConstantValue.Create(False)
@@ -919,7 +909,6 @@ End Class
 
             Next
 
-
             resultValue = Conversions.TryFoldConstantConversion(literal, booleanType, integerOverflow)
             resultValue2 = Conversions.TryFoldConstantConversion(constant, booleanType, integerOverflow2)
 
@@ -968,7 +957,6 @@ End Class
 
             Next
 
-
             ' -------  String <-> Char
 
             Dim stringValue = ConstantValue.Nothing
@@ -996,7 +984,6 @@ End Class
             Assert.Equal(ChrW(0), CChar(stringValue.StringValue))
             Assert.Equal(ChrW(0), DirectCast(resultValue.Value, Char))
 
-
             stringValue = ConstantValue.Create("")
 
             Assert.Equal(0, stringValue.StringValue.Length)
@@ -1022,7 +1009,6 @@ End Class
             Assert.Equal(ChrW(0), CChar(""))
             Assert.Equal(ChrW(0), DirectCast(resultValue.Value, Char))
 
-
             stringValue = ConstantValue.Create("abc")
 
             literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), stringValue, stringType)
@@ -1044,7 +1030,6 @@ End Class
             Assert.Equal(charType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
             Assert.Equal("a"c, DirectCast(resultValue.Value, Char))
-
 
             Dim charValue = ConstantValue.Create("b"c)
 
@@ -1081,7 +1066,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib},
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib},
                                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
@@ -1176,13 +1161,13 @@ End Class
                     New TypeAndValue(uint64Type, CULng(18)),
                     New TypeAndValue(decimalType, CDec(-11.3)),
                     New TypeAndValue(doubleType, CDbl(&HF000000000000000UL)),
-                    New TypeAndValue(doubleType, CDbl(&H70000000000000F0L)),
+                    New TypeAndValue(doubleType, CDbl(&H8000000000000000L)),
+                    New TypeAndValue(doubleType, CDbl(&H7FFFFFFFFFFFFC00L)),
                     New TypeAndValue(typeCodeType, Int32.MinValue),
                     New TypeAndValue(typeCodeType, Int32.MaxValue),
                     New TypeAndValue(typeCodeType, CInt(-3)),
                     New TypeAndValue(typeCodeType, CInt(7))
                     }
-
 
             Dim resultValue2 As ConstantValue
             Dim integerOverflow2 As Boolean
@@ -1300,7 +1285,7 @@ End Class
 
                                 Assert.True(gotException)
 
-                                Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                Assert.Equal(UncheckedConvert(mv.Value, numericType), resultValue.Value)
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1348,7 +1333,6 @@ End Class
                 Next
 
             Next
-
 
         End Sub
 
@@ -1410,6 +1394,22 @@ End Class
                             Throw New NotSupportedException()
                     End Select
 
+                Case TypeCode.Single, TypeCode.Double
+                    Dim val As Double = Convert.ToDouble(value)
+
+                    Select Case type.SpecialType
+                        Case System_Byte : Return UncheckedCByte(UncheckedCLng(val))
+                        Case System_SByte : Return UncheckedCSByte(UncheckedCLng(val))
+                        Case System_Int16 : Return UncheckedCShort(UncheckedCLng(val))
+                        Case System_UInt16 : Return UncheckedCUShort(UncheckedCLng(val))
+                        Case System_Int32 : Return UncheckedCInt(UncheckedCLng(val))
+                        Case System_UInt32 : Return UncheckedCUInt(UncheckedCLng(val))
+                        Case System_Int64 : Return UncheckedCLng(val)
+                        Case System_UInt64 : Return UncheckedCULng(val)
+                        Case Else
+                            Throw New NotSupportedException()
+                    End Select
+
                 Case Else
                     Throw New NotSupportedException()
             End Select
@@ -1450,7 +1450,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.References.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim asmVBConversions = c1.GetReferencedAssemblySymbol(vbConversionsRef)
             Dim asmModifiers = c1.GetReferencedAssemblySymbol(modifiersRef)
@@ -1501,7 +1501,6 @@ End Class
             Assert.True(enumerableOfModifiedArrayInt32.IsSameTypeIgnoringAll(enumerableOfArrayInt32))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfArrayInt32, enumerableOfModifiedArrayInt32)))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfModifiedArrayInt32, enumerableOfArrayInt32)))
-
 
             '--------------- Numeric
             Dim m2 = DirectCast(test.GetMembers("M2").Single(), MethodSymbol)
@@ -1609,8 +1608,6 @@ End Class
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(module2, [object]))
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(i), module2))
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(module2, m3p(i)))
-
-
 
             ' ------------- Type Parameter
             Dim m6 = DirectCast(test.GetMembers("M6").Single(), MethodSymbol)
@@ -1752,7 +1749,6 @@ End Class
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(a), m8p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT1'.
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(g), m8p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT7'.
 
-
             Dim m9 = DirectCast(test.GetMembers("M9").Single(), MethodSymbol)
             Dim m9p = m9.Parameters.Select(Function(p) p.Type).ToArray()
 
@@ -1863,7 +1859,6 @@ End Class
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(t), m4p(u))) 'error BC30332: Value of type '1-dimensional array of Enum2' cannot be converted to '1-dimensional array of Enum1' because 'Enum2' is not derived from 'Enum1'.
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(u), m4p(t))) 'error BC30332: Value of type '1-dimensional array of Enum1' cannot be converted to '1-dimensional array of Enum2' because 'Enum1' is not derived from 'Enum2'.
 
-
             Dim m5 = DirectCast(test.GetMembers("M5").Single(), MethodSymbol)
             Dim m5p = m5.Parameters.Select(Function(p) p.Type).ToArray()
 
@@ -1918,7 +1913,6 @@ End Class
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(r), m5p(q))) 'error BC30332: Value of type '1-dimensional array of MT12' cannot be converted to '1-dimensional array of MT13' because 'MT12' is not derived from 'MT13'.
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(v), m5p(w))) 'error BC30332: Value of type '1-dimensional array of MT17' cannot be converted to '1-dimensional array of MT16' because 'MT17' is not derived from 'MT16'.
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(w), m5p(v))) 'error BC30332: Value of type '1-dimensional array of MT16' cannot be converted to '1-dimensional array of MT17' because 'MT16' is not derived from 'MT17'.
-
 
             ' ------------- Value Type 
             Dim void = c1.GetSpecialType(System_Void)
@@ -1987,7 +1981,6 @@ End Class
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(d), m11p(i))) 'error BC30311: Value of type 'Integer?' cannot be converted to 'Structure2?'.
             Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(i), m11p(d))) 'error BC30311: Value of type 'Structure2?' cannot be converted to 'Integer?'.
 
-
             ' ------------ String
             Dim m12 = DirectCast(test.GetMembers("M12").Single(), MethodSymbol)
             Dim m12p = m12.Parameters.Select(Function(p) p.Type).ToArray()
@@ -2039,7 +2032,7 @@ End Class
         <Fact()>
         Public Sub BuiltIn()
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.References.mscorlib})
 
             Dim nullable = c1.GetSpecialType(System_Nullable_T)
 
@@ -2075,7 +2068,6 @@ End Class
                 nullable.Construct(c1.GetSpecialType(System_Boolean)),
                 nullable.Construct(c1.GetSpecialType(System_DateTime))
                 }
-
 
             For i As Integer = 0 To types.Length - 1 Step 1
                 For j As Integer = 0 To types.Length - 1 Step 1
@@ -4553,7 +4545,6 @@ End Module
             compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(False))
             CompileAndVerify(compilation, expectedOutput:="-1").VerifyDiagnostics()
 
-
             Dim expectedError = <expected>
 BC30439: Constant expression not representable in type 'Short'.
         Dim x As Short = Integer.MaxValue
@@ -5115,6 +5106,81 @@ End Module
   IL_0010:  ret
 }
 ]]>)
+        End Sub
+
+        <WorkItem(73032, "https://github.com/dotnet/roslyn/issues/73032")>
+        <Fact()>
+        Public Sub ConvertLargeDoubleConstantsAndLiteralsToLong()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main()
+        System.Console.WriteLine(CType(CDbl(&H8000000000000000L), Long) = ConvertToLong(CDbl(&H8000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H8000000000000400L), Long) = ConvertToLong(CDbl(&H8000000000000400L)))
+        System.Console.WriteLine(CType(-9.0E+18, Long) = ConvertToLong(-9.0E+18))
+        System.Console.WriteLine(CType(CDbl(&H8FFFFFFFFFFFFC00L), Long) = ConvertToLong(CDbl(&H8FFFFFFFFFFFFC00L)))
+        System.Console.WriteLine(CType(CDbl(&H9000000000000000L), Long) = ConvertToLong(CDbl(&H9000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000000L), Long) = ConvertToLong(CDbl(&H7000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000400L), Long) = ConvertToLong(CDbl(&H7000000000000400L)))
+        System.Console.WriteLine(CType(9.0E+18, Long) = ConvertToLong(9.0E+18))
+        System.Console.WriteLine(CType(CDbl(&H7FFFFFFFFFFFFC00L), Long) = ConvertToLong(CDbl(&H7FFFFFFFFFFFFC00L)))
+    End Sub
+
+    Function ConvertToLong(x as Double) As Long
+        Return CType(x, Long)
+    End Function
+End Module
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+
+            Dim expectedOutput = <![CDATA[
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
+
+        <Fact(), WorkItem("https://github.com/dotnet/roslyn/issues/36377")>
+        Public Sub GetSymbolInfo_ExplicitCastOnMethodGroup()
+            Dim compilation = CreateCompilation(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Public Class C
+    Public Shared Sub M()
+        Dim x As C = DirectCast(AddressOf C.Test, C)
+    End Sub
+
+    Public Shared Function Test() As Integer
+        Return 1
+    End Function
+
+    Public Shared Widening Operator CType(ByVal intDelegate As System.Func(Of Integer)) As C
+        Return New C()
+    End Operator
+End Class
+    ]]></file>
+    </compilation>)
+
+            compilation.AssertTheseEmitDiagnostics(<expected>
+BC30581: 'AddressOf' expression cannot be converted to 'C' because 'C' is not a delegate type.
+        Dim x As C = DirectCast(AddressOf C.Test, C)
+                                ~~~~~~~~~~~~~~~~
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of UnaryExpressionSyntax)().Single()
+            Assert.Null(model.GetSymbolInfo(syntax).Symbol)
+            Assert.Null(model.GetSymbolInfo(syntax.Operand).Symbol)
         End Sub
 
     End Class

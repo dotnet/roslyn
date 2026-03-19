@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -17,7 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Protected Sub New(manager As AnonymousTypeManager, typeDescr As AnonymousTypeDescriptor)
                 typeDescr.AssertGood()
-                Debug.Assert(TypeKind = TypeKind.Class OrElse TypeKind = TypeKind.Delegate)
+                Debug.Assert((TypeKind = TypeKind.Class AndAlso TypeOf Me Is AnonymousTypePublicSymbol) OrElse
+                             (TypeKind = TypeKind.Delegate AndAlso TypeOf Me Is AnonymousDelegatePublicSymbol))
 
                 Me.Manager = manager
                 Me.TypeDescriptor = typeDescr
@@ -103,6 +105,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
             Friend Overrides ReadOnly Property IsExtensibleInterfaceNoUseSiteDiagnostics As Boolean
                 Get
                     Return False
@@ -115,11 +123,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+            Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                 Return MakeAcyclicBaseType(diagnostics)
             End Function
 
-            Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                 Return MakeAcyclicInterfaces(diagnostics)
             End Function
 
@@ -311,7 +319,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
                 Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
             End Function
-        End Class
 
+            Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+                Return Equals(TryCast(other, AnonymousTypeOrDelegatePublicSymbol), comparison)
+            End Function
+
+            Public Overloads Function Equals(other As AnonymousTypeOrDelegatePublicSymbol, comparison As TypeCompareKind) As Boolean
+                If Me Is other Then
+                    Return True
+                End If
+
+                Return other IsNot Nothing AndAlso Me.TypeKind = other.TypeKind AndAlso Me.TypeDescriptor.Equals(other.TypeDescriptor, comparison)
+            End Function
+
+            Public NotOverridable Overrides Function GetHashCode() As Integer
+                Return Hash.Combine(Me.TypeDescriptor.GetHashCode(), TypeKind)
+            End Function
+
+            Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+                guidString = Nothing
+                Return False
+            End Function
+        End Class
     End Class
 End Namespace

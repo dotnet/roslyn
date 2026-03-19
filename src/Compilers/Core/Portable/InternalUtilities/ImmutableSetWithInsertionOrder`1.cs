@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,6 +44,41 @@ namespace Roslyn.Utilities
             return new ImmutableSetWithInsertionOrder<T>(_map.Add(value, _nextElementValue), _nextElementValue + 1u);
         }
 
+        public ImmutableSetWithInsertionOrder<T> AddRange(List<T> values)
+        {
+            ImmutableDictionary<T, uint>.Builder? builder = null;
+            var nextElementValue = _nextElementValue;
+
+            foreach (var value in values)
+            {
+                // no reason to cause allocations if value is already in the set
+                if (builder == null)
+                {
+                    if (_map.ContainsKey(value))
+                    {
+                        continue;
+                    }
+
+                    builder = _map.ToBuilder();
+                }
+                else if (builder.ContainsKey(value))
+                {
+                    continue;
+                }
+
+                builder.Add(value, nextElementValue);
+
+                nextElementValue++;
+            }
+
+            if (builder == null)
+            {
+                return this;
+            }
+
+            return new ImmutableSetWithInsertionOrder<T>(builder.ToImmutable(), nextElementValue);
+        }
+
         public ImmutableSetWithInsertionOrder<T> Remove(T value)
         {
             var modifiedMap = _map.Remove(value);
@@ -56,6 +89,34 @@ namespace Roslyn.Utilities
             }
 
             return this.Count == 1 ? Empty : new ImmutableSetWithInsertionOrder<T>(modifiedMap, _nextElementValue);
+        }
+
+        public ImmutableSetWithInsertionOrder<T> RemoveRange(List<T> values)
+        {
+            ImmutableDictionary<T, uint>.Builder? builder = null;
+
+            foreach (var value in values)
+            {
+                // no reason to cause allocations if value is missing
+                if (builder == null)
+                {
+                    if (!_map.ContainsKey(value))
+                    {
+                        continue;
+                    }
+
+                    builder = _map.ToBuilder();
+                }
+
+                builder.Remove(value);
+            }
+
+            if (builder == null)
+            {
+                return this;
+            }
+
+            return new ImmutableSetWithInsertionOrder<T>(builder.ToImmutable(), _nextElementValue);
         }
 
         public IEnumerable<T> InInsertionOrder

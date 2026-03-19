@@ -9,436 +9,381 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class VarKeywordRecommenderTests : RecommenderTests
 {
-    public class VarKeywordRecommenderTests : RecommenderTests
+    protected override string KeywordText => "var";
+
+    private readonly VarKeywordRecommender _recommender = new();
+
+    public VarKeywordRecommenderTests()
     {
-        private readonly VarKeywordRecommender _recommender = new VarKeywordRecommender();
+        this.RecommendKeywordsAsync = async (position, context) => _recommender.RecommendKeywords(position, context, CancellationToken.None);
+    }
 
-        public VarKeywordRecommenderTests()
-        {
-            this.keywordText = "var";
-            this.RecommendKeywordsAsync = (position, context) => _recommender.RecommendKeywordsAsync(position, context, CancellationToken.None);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClass_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
-        }
+    [Fact]
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalStatement_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
-        }
+    [Fact]
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
-        }
+    [Fact]
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStackAlloc()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-     int* goo = stackalloc $$");
-        }
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
+@"global using Goo = $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInFixedStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterStackAlloc()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                 int* goo = stackalloc $$
+            """);
+
+    [Fact]
+    public Task TestNotInFixedStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"fixed ($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInDelegateReturnType()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInDelegateReturnType()
+        => VerifyAbsenceAsync(
 @"public delegate $$");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInCastType()
-        {
-            // Could be a deconstruction
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInCastType()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var str = (($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInCastType2()
-        {
-            // Could be a deconstruction
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInCastType2()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var str = (($$)items) as string;"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestEmptyStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestBeforeStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"$$
-return true;"));
-        }
+    [Fact]
+    public Task TestBeforeStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            $$
+            return true;
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"return true;
-$$"));
-        }
+    [Fact]
+    public Task TestAfterStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            return true;
+            $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterBlock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"if (true) {
-}
-$$"));
-        }
+    [Fact]
+    public Task TestAfterBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            if (true) {
+            }
+            $$
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterLock()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterLock()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"lock $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterLock2()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterLock2()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"lock ($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterLock3()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterLock3()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"lock (l$$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInClass()
-        {
-            await VerifyAbsenceAsync(@"class C
-{
-  $$
-}");
-        }
+    [Fact]
+    public Task TestNotInClass()
+        => VerifyAbsenceAsync("""
+            class C
+            {
+              $$
+            }
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFor()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInFor()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for ($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInFor()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInFor()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"for (var $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFor2()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInFor2()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFor3()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInFor3()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;;"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterVar()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterVar()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInForEach()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInForEach()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"foreach ($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInForEach()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInForEach()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (var $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAwaitForEach()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInAwaitForEach()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"await foreach ($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInAwaitForEach()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInAwaitForEach()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"await foreach (var $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForEachRefLoop0()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForEachRefLoop0()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForEachRefLoop1()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForEachRefLoop1()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref $$ x"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForEachRefLoop2()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForEachRefLoop2()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref v$$ x"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForEachRefReadonlyLoop0()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForEachRefReadonlyLoop0()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref readonly $$ x"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForRefLoop0()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForRefLoop0()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for (ref $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForRefLoop1()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForRefLoop1()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for (ref v$$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForRefReadonlyLoop0()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForRefReadonlyLoop0()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for (ref readonly $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
-        public async Task TestInForRefReadonlyLoop1()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
+    public Task TestInForRefReadonlyLoop1()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for (ref readonly v$$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUsing()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInUsing()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"using ($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsing()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInUsing()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"using (var $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAwaitUsing()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestInAwaitUsing()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"await using ($$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInAwaitUsing()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInAwaitUsing()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"await using (var $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterConstLocal()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestAfterConstLocal()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"const $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterConstField()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    const $$");
-        }
+    [Fact]
+    public Task TestNotAfterConstField()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                const $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(12121, "https://github.com/dotnet/roslyn/issues/12121")]
-        public async Task TestAfterOutKeywordInArgument()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12121")]
+    public Task TestAfterOutKeywordInArgument()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"M(out $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(12121, "https://github.com/dotnet/roslyn/issues/12121")]
-        public async Task TestAfterOutKeywordInParameter()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-     void M1(out $$");
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12121")]
+    public Task TestAfterOutKeywordInParameter()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                 void M1(out $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestVarPatternInSwitch()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"switch(o)
-    {
-        case $$
-    }
-"));
-        }
+    [Fact]
+    public Task TestVarPatternInSwitch()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            switch(o)
+                {
+                    case $$
+                }
+            """));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestVarPatternInIs()
-        {
-            await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
-        }
+    [Fact]
+    public async Task TestVarPatternInIs()
+        => await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRefInMemberContext()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    ref $$");
-        }
+    [Fact]
+    public Task TestNotAfterRefInMemberContext()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                ref $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRefReadonlyInMemberContext()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    ref readonly $$");
-        }
+    [Fact]
+    public Task TestNotAfterRefReadonlyInMemberContext()
+        => VerifyAbsenceAsync(
+            """
+            class C {
+                ref readonly $$
+            """);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefInStatementContext()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestAfterRefInStatementContext()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"ref $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefReadonlyInStatementContext()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestAfterRefReadonlyInStatementContext()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"ref readonly $$"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefLocalDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestAfterRefLocalDeclaration()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"ref $$ int local;"));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefReadonlyLocalDeclaration()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestAfterRefReadonlyLocalDeclaration()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"ref readonly $$ int local;"));
-        }
 
-        // For a local function, we can't add any tests - sometimes the keyword is offered and sometimes it's not,
-        // depending on whether the keyword is partially written or not. This is because a partially written keyword
-        // causes this to be parsed as a local declaration instead. We can't add either test because
-        // VerifyKeywordAsync & VerifyAbsenceAsync check for both cases - with the keyword partially written and without.
+    // For a local function, we can't add any tests - sometimes the keyword is offered and sometimes it's not,
+    // depending on whether the keyword is partially written or not. This is because a partially written keyword
+    // causes this to be parsed as a local declaration instead. We can't add either test because
+    // VerifyKeywordAsync & VerifyAbsenceAsync check for both cases - with the keyword partially written and without.
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRefExpression()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterRefExpression()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"ref int x = ref $$"));
-        }
 
-        [WorkItem(10170, "https://github.com/dotnet/roslyn/issues/10170")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPropertyPattern()
-        {
-            await VerifyKeywordAsync(
-@"
-using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10170")]
+    public Task TestInPropertyPattern()
+        => VerifyKeywordAsync(
+            """
+            using System;
 
-class Person { public string Name; }
+            class Person { public string Name; }
 
-class Program
-{
-    void Goo(object o)
+            class Program
+            {
+                void Goo(object o)
+                {
+                    if (o is Person { Name: $$ })
+                    {
+                        Console.WriteLine(n);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotInDeclarationDeconstruction()
+        => VerifyAbsenceAsync(AddInsideMethod(
+@"var (x, $$) = (0, 0);"));
+
+    [Fact]
+    public Task TestInMixedDeclarationAndAssignmentInDeconstruction()
+        => VerifyKeywordAsync(AddInsideMethod(
+@"(x, $$) = (0, 0);"));
+
+    [Fact]
+    public async Task TestAfterScoped()
     {
-        if (o is Person { Name: $$ })
-        {
-            Console.WriteLine(n);
-        }
+        await VerifyKeywordAsync(AddInsideMethod("scoped $$"));
+        await VerifyKeywordAsync("scoped $$");
     }
-}");
-        }
-    }
+
+    [Fact]
+    public Task TestWithinExtension()
+        => VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

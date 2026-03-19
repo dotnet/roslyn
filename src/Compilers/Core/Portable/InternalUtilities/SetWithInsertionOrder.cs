@@ -2,16 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
@@ -20,7 +15,7 @@ namespace Roslyn.Utilities
     /// A set that returns the inserted values in insertion order.
     /// The mutation operations are not thread-safe.
     /// </summary>
-    internal sealed class SetWithInsertionOrder<T> : IEnumerable<T>, IReadOnlySet<T>
+    internal sealed class SetWithInsertionOrder<T> : IOrderedReadOnlySet<T>
     {
         private HashSet<T>? _set = null;
         private ArrayBuilder<T>? _elements = null;
@@ -92,12 +87,33 @@ namespace Roslyn.Utilities
         public bool Contains(T value) => _set?.Contains(value) ?? false;
 
         public IEnumerator<T> GetEnumerator()
-            => _elements?.GetEnumerator() ?? SpecializedCollections.EmptyEnumerator<T>();
+            => _elements is null ? SpecializedCollections.EmptyEnumerator<T>() : ((IEnumerable<T>)_elements).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public ImmutableArray<T> AsImmutable() => _elements.ToImmutableArrayOrEmpty();
 
         public T this[int i] => _elements![i];
+
+        private IReadOnlySet<T> Set
+            => (IReadOnlySet<T>?)_set ?? SpecializedCollections.EmptyReadOnlySet<T>();
+
+        public bool IsProperSubsetOf(IEnumerable<T> other)
+            => Set.IsProperSubsetOf(other);
+
+        public bool IsProperSupersetOf(IEnumerable<T> other)
+            => Set.IsProperSupersetOf(other);
+
+        public bool IsSubsetOf(IEnumerable<T> other)
+            => Set.IsSubsetOf(other);
+
+        public bool IsSupersetOf(IEnumerable<T> other)
+            => Set.IsSupersetOf(other);
+
+        public bool Overlaps(IEnumerable<T> other)
+            => Set.Overlaps(other);
+
+        public bool SetEquals(IEnumerable<T> other)
+            => Set.SetEquals(other);
     }
 }

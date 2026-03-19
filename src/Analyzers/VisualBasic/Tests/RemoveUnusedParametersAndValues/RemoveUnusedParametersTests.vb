@@ -8,8 +8,10 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
+    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
     Public Class RemoveUnusedParametersTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), New VisualBasicRemoveUnusedValuesCodeFixProvider())
         End Function
@@ -23,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
             Return TestHelpers.Diagnostic(id)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact>
         Public Async Function Parameter_Used() As Task
             Await TestDiagnosticMissingAsync(
 $"Class C
@@ -33,7 +35,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact>
         Public Async Function Parameter_Unused() As Task
             Await TestDiagnosticsAsync(
 $"Class C
@@ -43,7 +45,7 @@ End Class", parameters:=Nothing,
             Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact>
         Public Async Function Parameter_WrittenOnly() As Task
             Await TestDiagnosticsAsync(
 $"Class C
@@ -54,7 +56,7 @@ End Class", parameters:=Nothing,
             Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact>
         Public Async Function Parameter_WrittenThenRead() As Task
             Await TestDiagnosticsAsync(
 $"Class C
@@ -66,7 +68,7 @@ End Class", parameters:=Nothing,
             Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact>
         Public Async Function ParameterOfMethodThatHandlesEvent() As Task
             Await TestDiagnosticMissingAsync(
 $"Public Class C
@@ -78,7 +80,7 @@ $"Public Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact>
         Public Async Function Parameter_ConditionalDirective() As Task
             Await TestDiagnosticMissingAsync(
 $"Public Class C
@@ -90,8 +92,7 @@ $"Public Class C
 End Class")
         End Function
 
-        <WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32851")>
         Public Async Function Parameter_Unused_SpecialNames() As Task
             Await TestDiagnosticMissingAsync(
 $"Class C
@@ -100,8 +101,7 @@ $"Class C
 End Class")
         End Function
 
-        <WorkItem(36816, "https://github.com/dotnet/roslyn/issues/36816")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36816")>
         Public Async Function PartialMethodParameter_NoDiagnostic() As Task
             Await TestDiagnosticMissingAsync(
 $"Class C
@@ -116,8 +116,7 @@ Partial Class C
 End Class")
         End Function
 
-        <WorkItem(37988, "https://github.com/dotnet/roslyn/issues/37988")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37988")>
         Public Async Function XmlLiteral_NoDiagnostic() As Task
             Await TestDiagnosticMissingAsync(
 $"Public Class C
@@ -129,8 +128,7 @@ $"Public Class C
 End Class")
         End Function
 
-        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")>
         Public Async Function NotImplementedException_NoDiagnostic1() As Task
             Await TestDiagnosticMissingAsync(
 "imports system
@@ -142,8 +140,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")>
         Public Async Function NotImplementedException_NoDiagnostic2() As Task
             Await TestDiagnosticMissingAsync(
 "imports system
@@ -155,8 +152,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")>
         Public Async Function NotImplementedException_NoDiagnostic3() As Task
             Await TestDiagnosticMissingAsync(
 "imports system
@@ -168,8 +164,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")>
         Public Async Function NotImplementedException_MultipleStatements1() As Task
             Await TestDiagnosticsAsync(
 "imports system
@@ -183,8 +178,7 @@ end class", parameters:=Nothing,
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
-        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")>
         Public Async Function NotImplementedException_MultipleStatements2() As Task
             Await TestMissingAsync(
 "imports system
@@ -193,6 +187,30 @@ class C
     private sub Goo([|i|] as integer)
         if (true)
             throw new NotImplementedException()
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")>
+        Public Async Function TestMethodBody_OnlyThrowStatement() As Task
+            Await TestDiagnosticMissingAsync(
+"imports system
+
+class C
+    private sub Goo([|i|] as integer)
+        throw new Exception()
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")>
+        Public Async Function TestConstructorBody_OnlyThrowStatement() As Task
+            Await TestDiagnosticMissingAsync(
+"imports system
+
+class C
+    public sub new([|i|] as integer)
+        throw new Exception()
     end sub
 end class")
         End Function

@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -253,6 +257,332 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
             errors = trivia[0].Errors();
             Assert.Equal(1, errors.Length);
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineCommentOnOneLine_Razor()
+        {
+            var text = "@* comment *@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineCommentOnMultipleLines_Razor()
+        {
+            var text =
+@"@* 
+ comment 
+ on many lines
+*@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineXmlCommentOnMultipleLines_Razor()
+        {
+            var text =
+@"@** 
+ xml comment 
+ on many lines
+**@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_Razor_01()
+        {
+            var text = "@* comment";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_Razor_02()
+        {
+            var text = "@*@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_WrongTerminator_Razor_01()
+        {
+            var text = "@* comment */";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_WrongTerminator_Razor_02()
+        {
+            var text = "/* comment *@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Theory]
+        [InlineData('/', '@')]
+        [InlineData('@', '/')]
+        public void TestMixedMultiLineCommentTerminators_01(char outsideDelimiter, char insideDelimiter)
+        {
+            var text = $"{outsideDelimiter}* *{insideDelimiter} *{outsideDelimiter}";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            if (outsideDelimiter == '@')
+            {
+                errors.Verify(
+                    // error CS1056: Unexpected character '@'
+                    TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            }
+            else
+            {
+                errors.Verify();
+            }
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_RazorRecovery()
+        {
+            var text = "@: More text";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Empty(token.TrailingTrivia);
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentTokenEndOfLine_RazorRecovery()
+        {
+            var text = """
+                Identifier @: More text
+                // Regular comment
+                SecondIdentifier
+                """;
+            var tokens = Lex(text).ToList();
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Empty(token.Errors());
+
+            token = tokens[1];
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Single(token.TrailingTrivia);
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, token.TrailingTrivia[0].Kind());
+            Assert.Equal("@: More text", token.Text);
+
+            token = tokens[2];
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal("""
+                // Regular comment
+                SecondIdentifier
+                """, token.ToFullString());
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_TrailingMultiLine_RazorRecovery()
+        {
+            var text = """
+                @: /*
+                Identifier
+                */
+                """;
+
+            var tokens = Lex(text).ToList();
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal("@: /*", token.ToString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Single(token.TrailingTrivia);
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, token.TrailingTrivia[0].Kind());
+
+            token = tokens[1];
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal("Identifier", token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_PreprocessorDisabled_RazorRecovery()
+        {
+            var text = """
+                #if false
+                @:
+                #endif
+                """;
+
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify();
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(3, trivia.Length);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, trivia[0].Kind());
+            Assert.Equal(SyntaxKind.DisabledTextTrivia, trivia[1].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, trivia[2].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_PreprocessorEnabled_RazorRecovery()
+        {
+            var text = """
+                #if true
+                @:
+                #endif
+                """;
+
+            var tokens = Lex(text).ToArray();
+            Assert.Equal(2, tokens.Length);
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal("""
+                #if true
+                @:
+
+                """, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Single(token.GetLeadingTrivia());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, token.GetLeadingTrivia()[0].Kind());
+
+            token = tokens[1];
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal("#endif", token.ToFullString());
+            Assert.Single(token.GetLeadingTrivia());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, token.GetLeadingTrivia()[0].Kind());
+            Assert.Empty(token.GetTrailingTrivia());
         }
 
         [Fact]
@@ -814,6 +1144,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
+        public void TestStringLiteralWithEscape_CSharp12()
+        {
+            var text = """
+                "\e"
+                """;
+            var value = "\u001b";
+            var token = LexToken(text, TestOptions.Regular12);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestStringLiteralWithEscape_Preview()
+        {
+            var text = """
+                "\e"
+                """;
+            var value = "\u001b";
+            var token = LexToken(text, TestOptions.Regular13);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimStringLiteralWithEscape()
+        {
+            var text = """
+                @"\e"
+                """;
+            var value = @"\e";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
         public void TestCharacterLiteral()
         {
             var value = "x";
@@ -931,6 +1316,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var value = "\v";
             var text = "'\\v'";
             var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestCharacterLiteralEscape_E_CSharp12()
+        {
+            var value = "\u001b";
+            var text = "'\\e'";
+            var token = LexToken(text, TestOptions.Regular12);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestCharacterLiteralEscape_E_CSharpPreview()
+        {
+            var value = "\u001b";
+            var text = "'\\e'";
+            var token = LexToken(text, TestOptions.Regular13);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
@@ -1204,7 +1622,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestVerbatimIdentifierWithNoCharactersAndTrivia()
+        public void TestVerbatimIdentifierWithNoCharacters2()
+        {
+            var text = "@@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharacters3()
+        {
+            var text = "@@@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia1()
         {
             var text = "@  ";
             var token = LexToken(text);
@@ -1216,6 +1664,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
             Assert.Equal(text, token.ToFullString());
             var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia2()
+        {
+            var text = "@@  ";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.ToFullString());
+            var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia3()
+        {
+            var text = "@@@  ";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.ToFullString());
+            var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithMultipleAtSign1()
+        {
+            var text = "@@class";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(ErrorCode.ERR_IllegalAtSequence, (ErrorCode)errors[0].Code);
+            Assert.Equal(text, token.Text);
+            Assert.Equal("class", token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithMultipleAtSign2()
+        {
+            var text = "@@@class";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(ErrorCode.ERR_IllegalAtSequence, (ErrorCode)errors[0].Code);
+            Assert.Equal(text, token.Text);
+            Assert.Equal("class", token.ValueText);
         }
 
         [Fact]
@@ -1720,8 +2232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.ErrorsAndWarnings();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.WRN_LowercaseEllSuffix, errors[0].Code);
+            Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
         }
@@ -3530,7 +4041,6 @@ class C
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
 
-
             token = Lex("======= Trailing\r\n>>>>>>> Actually the end").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
@@ -3622,7 +4132,6 @@ class C
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
             Assert.Equal(34, trivia.Span.Length);
 
-
             token = Lex("{\r\n======= Trailing\r\ndisabled text\r\n>>>>>>> Actually the end").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
@@ -3645,6 +4154,485 @@ class C
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(36, trivia4.Span.Start);
             Assert.Equal(24, trivia4.Span.Length);
+        }
+
+        [Fact]
+        public void TestEqualsConflictMarker3()
+        {
+            // second ======= is part of disabled text
+            var token = Lex("""
+                ======= Trailing
+                disabled text 2
+                ======= 
+                more disabled text
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(4, token.LeadingTrivia.Count);
+
+            var trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("======= Trailing", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 2
+                ======= 
+                more disabled text
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[3];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact]
+        public void TestEqualsConflictMarker4()
+        {
+            // ||||||| is part of disabled text
+            var token = Lex("""
+                ======= Trailing
+                disabled text 2
+                ||||||| 
+                more disabled text
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(4, token.LeadingTrivia.Count);
+
+            var trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("======= Trailing", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 2
+                ||||||| 
+                more disabled text
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[3];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact]
+        public void TestPipeConflictMarker1()
+        {
+            // Has to be the start of a line.
+            var token = Lex(" |||||||").First();
+            Assert.Equal(SyntaxKind.BarBarToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.True(token.LeadingTrivia.Single().Kind() == SyntaxKind.WhitespaceTrivia);
+
+            // Has to have at least seven characters.
+            token = Lex("|||||| ").First();
+            Assert.Equal(SyntaxKind.BarBarToken, token.Kind());
+
+            // Start of line, seven characters
+            token = Lex("|||||||").First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.True(token.LeadingTrivia.Single().Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            // Start of line, seven characters
+            token = Lex("||||||| trailing chars").First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            var trivia = token.LeadingTrivia.Single();
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            Assert.True(trivia.ContainsDiagnostics);
+            var errors = trivia.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+
+            token = Lex("""
+                ||||||| Trailing
+                disabled text
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(3, token.LeadingTrivia.Count);
+            trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            Assert.True(trivia.ContainsDiagnostics);
+            errors = trivia.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+
+            token = Lex("""
+                ||||||| Trailing
+                disabled text
+                >>>> still disabled
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(3, token.LeadingTrivia.Count);
+
+            trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            Assert.True(trivia.ContainsDiagnostics);
+            errors = trivia.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+
+            token = Lex("""
+                ||||||| Trailing
+                disabled text
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(4, token.LeadingTrivia.Count);
+            var trivia1 = token.LeadingTrivia[0];
+            Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            Assert.True(trivia1.ContainsDiagnostics);
+            errors = trivia1.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+
+            var trivia2 = token.LeadingTrivia[1];
+            Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            var trivia3 = token.LeadingTrivia[2];
+            Assert.True(trivia3.Kind() == SyntaxKind.DisabledTextTrivia);
+
+            var trivia4 = token.LeadingTrivia[3];
+            Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            Assert.True(trivia4.ContainsDiagnostics);
+            errors = trivia4.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+
+            token = Lex("""
+                ||||||| Trailing
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(3, token.LeadingTrivia.Count);
+            trivia1 = token.LeadingTrivia[0];
+            Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            Assert.True(trivia1.ContainsDiagnostics);
+            errors = trivia1.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+
+            trivia2 = token.LeadingTrivia[1];
+            Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia3 = token.LeadingTrivia[2];
+            Assert.True(trivia3.Kind() == SyntaxKind.ConflictMarkerTrivia);
+
+            Assert.True(trivia3.ContainsDiagnostics);
+            errors = trivia3.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+        }
+
+        [Fact]
+        public void TestPipeConflictMarker2()
+        {
+            var token = Lex("""
+                ||||||| Mid
+                ======= Trailing
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(5, token.LeadingTrivia.Count);
+
+            var trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("||||||| Mid", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("======= Trailing", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[3];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[4];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact]
+        public void TestPipeConflictMarker3()
+        {
+            var token = Lex("""
+                ||||||| Mid
+                disabled text 1
+                ======= Trailing
+                disabled text 2
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(7, token.LeadingTrivia.Count);
+
+            var trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("||||||| Mid", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 1
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[3];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("======= Trailing", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[4];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[5];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 2
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[6];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact]
+        public void TestPipeConflictMarker4()
+        {
+            // second ======= is pat of disabled text
+            var token = Lex("""
+                ||||||| Mid
+                disabled text 1
+                ======= Trailing
+                disabled text 2
+                ======= 
+                more disabled text
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(7, token.LeadingTrivia.Count);
+
+            var trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("||||||| Mid", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 1
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[3];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("======= Trailing", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[4];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[5];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 2
+                ======= 
+                more disabled text
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[6];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact]
+        public void TestPipeConflictMarker5()
+        {
+            // second ||||||| is pat of disabled text
+            var token = Lex("""
+                ||||||| Mid
+                disabled text 1
+                ||||||| 
+                more disabled text
+                ======= Trailing
+                disabled text 2
+                >>>>>>> Actually the end
+                """).First();
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.True(token.HasLeadingTrivia);
+            Assert.Equal(7, token.LeadingTrivia.Count);
+
+            var trivia = token.LeadingTrivia[0];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("||||||| Mid", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[1];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[2];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 1
+                ||||||| 
+                more disabled text
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[3];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal("======= Trailing", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+
+            trivia = token.LeadingTrivia[4];
+            Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+
+            trivia = token.LeadingTrivia[5];
+            Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
+            Assert.Equal("""
+                disabled text 2
+
+                """, trivia.ToFullString());
+
+            trivia = token.LeadingTrivia[6];
+            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
+            Assert.True(trivia.ContainsDiagnostics);
+            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
+        public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
+        {
+            // Make a file that looks effectively like:
+            //
+            //      ////// <long stream of slashes>
+            //      ;
+            //      ..0;
+            //
+            // We want both dots at the end of the window.  When we lex the first dot, we'll peek ahead to see if we're
+            // on a number, and we don't want that to move the window forward.  Then when we lex the second dot, we will
+            // peek forward, making the text window point at "0;".
+            //
+            // Because we will have seen `.0` we will attempt to peek backwards to see if the prior token was a dot.
+            // This will involve reading back a chunk that includes that dot.
+            var windowEnd = "\r\n;\r\n..";
+            var code = new string('/', SlidingTextWindow.DefaultWindowLength - windowEnd.Length) + windowEnd + "0;";
+
+            var sourceText = SourceText.From(code);
+
+            {
+                // Run a full parse, and validate the tree returned).
+
+                using var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
+
+                using var parser = new LanguageParser(lexer, oldTree: null, changes: null);
+
+                Microsoft.CodeAnalysis.SyntaxTreeExtensions.VerifySource(
+                    sourceText, parser.ParseCompilationUnit().CreateRed());
+            }
+
+            {
+                // Now, replicate the same conditions that hte parser runs through by driving the a new lexer here
+                // directly.  That ensures that we are actually validating exactly the conditions that led to the bug
+                // (a dot token starting a number, right at the start of the character window).
+                var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
+
+                var mode = LexerMode.Syntax;
+                var token1 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.SemicolonToken, token1.Kind);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, token1.FullWidth);
+
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                var token2 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token2.Kind);
+
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                var token3 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token3.Kind);
+
+                // We will have jumped the window backwards to be able to read the prior dot.
+                Assert.Equal(code.IndexOf('.'), SlidingTextWindow.TestAccessor.GetCharacterWindowStartPositionInText(lexer.TextWindow));
+                Assert.Equal(2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                Assert.StartsWith("..0;", SlidingTextWindow.TestAccessor.GetCharacterWindow(lexer.TextWindow).AsSpan().ToString());
+
+                var token4 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.NumericLiteralToken, token4.Kind);
+                Assert.Equal("0", token4.ValueText);
+            }
         }
     }
 }

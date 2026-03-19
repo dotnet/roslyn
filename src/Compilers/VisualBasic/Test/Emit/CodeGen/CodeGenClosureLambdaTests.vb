@@ -536,7 +536,6 @@ End Module
 ]]>)
         End Sub
 
-
         <Fact>
         Public Sub InvalidGoto()
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1016,7 +1015,13 @@ label2:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Goo(3)
+        Try
+            x.Goo(3)
+        Catch ex As Exception
+            Console.WriteLine(ex)
+            Console.WriteLine(ex.Message)
+            Console.WriteLine(ex.StackTrace)
+        End Try
     End Sub
 End Module
     </file>
@@ -1122,7 +1127,6 @@ End Module
 </compilation>, expectedOutput:="TrueFalse", options:=TestOptions.DebugExe)
 
         End Sub
-
 
         <Fact>
         Public Sub SimpleGenericClosure()
@@ -1335,7 +1339,6 @@ End Module
 ]]>)
         End Sub
 
-
         'NOTE: it is important that we do not capture outer frame in the inner one here
         <Fact>
         Public Sub SimpleGenericClosureWithLocalsAndParams()
@@ -1465,7 +1468,6 @@ End Module
 }
 ]]>)
         End Sub
-
 
         <Fact>
         Public Sub SimpleGenericClosureWithLocalsParamsAndParent2()
@@ -2006,7 +2008,6 @@ End Module
 }
 ]]>)
         End Sub
-
 
         <Fact>
         Public Sub PropagatingValueSimpleForNonConstStep()
@@ -2979,7 +2980,6 @@ Class Test
 End Class
     </file>
                          </compilation>
-
 
             CompileAndVerify(source).VerifyIL("Test..cctor",
             <![CDATA[

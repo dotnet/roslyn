@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,12 +18,14 @@ namespace Microsoft.CodeAnalysis
             private SyntaxNode? _node;
             private int _count;
             private int _childIndex;
+            private SlotData _slotData;
 
             internal Enumerator(SyntaxNode node, int count)
             {
                 _node = node;
                 _count = count;
                 _childIndex = -1;
+                _slotData = new SlotData(node);
             }
 
             // PERF: Initialize an Enumerator directly from a SyntaxNode without going
@@ -35,17 +35,19 @@ namespace Microsoft.CodeAnalysis
                 _node = node;
                 _count = CountNodes(node.Green);
                 _childIndex = -1;
+                _slotData = new SlotData(node);
             }
 
             /// <summary>Advances the enumerator to the next element of the <see cref="ChildSyntaxList" />.</summary>
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
-            // MemberNotNullWhen(true, nameof(_node)) https://github.com/dotnet/roslyn/issues/41964
+            [MemberNotNullWhen(true, nameof(_node))]
             public bool MoveNext()
             {
                 var newIndex = _childIndex + 1;
                 if (newIndex < _count)
                 {
                     _childIndex = newIndex;
+                    Debug.Assert(_node != null);
                     return true;
                 }
 
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     Debug.Assert(_node is object);
-                    return ItemInternal(_node, _childIndex);
+                    return ItemInternal(_node, _childIndex, ref _slotData);
                 }
             }
 
@@ -77,8 +79,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                // node! can be removed when we enable MemberNotNull https://github.com/dotnet/roslyn/issues/41964
-                current = ItemInternal(_node!, _childIndex);
+                current = ItemInternal(_node, _childIndex, ref _slotData);
                 return true;
             }
 
@@ -86,8 +87,7 @@ namespace Microsoft.CodeAnalysis
             {
                 while (MoveNext())
                 {
-                    // node! can be removed when we enable MemberNotNull https://github.com/dotnet/roslyn/issues/41964
-                    var nodeValue = ItemInternalAsNode(_node!, _childIndex);
+                    var nodeValue = ItemInternalAsNode(_node, _childIndex, ref _slotData);
                     if (nodeValue != null)
                     {
                         return nodeValue;

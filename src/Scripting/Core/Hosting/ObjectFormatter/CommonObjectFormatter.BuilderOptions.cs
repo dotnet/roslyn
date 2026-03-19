@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <remarks>
         /// Internal for testing.
         /// </remarks>
-        internal struct BuilderOptions
+        internal readonly struct BuilderOptions
         {
             public readonly string Indentation;
             public readonly string NewLine;

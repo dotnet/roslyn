@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal interface IStreamingProgressTracker
 {
-    internal interface IStreamingProgressTracker
-    {
-        Task AddItemsAsync(int count);
-        Task ItemCompletedAsync();
-    }
+    ValueTask AddItemsAsync(int count, CancellationToken cancellationToken);
+    ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken);
 }

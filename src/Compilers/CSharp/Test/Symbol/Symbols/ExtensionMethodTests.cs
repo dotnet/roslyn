@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -429,9 +432,9 @@ static class Program
                 // (9,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool x = s.Goo is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "s.Goo is Action").WithLocation(9, 18),
-                // (12,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                // (12,20): error CS1061: 'int' does not contain a definition for 'Goo' and no accessible extension method 'Goo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         bool y = i.Goo is Action;
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "i.Goo is Action").WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Goo").WithArguments("int", "Goo").WithLocation(12, 20),
                 // (9,18): error CS0165: Use of unassigned local variable 's'
                 //         bool x = s.Goo is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(9, 18),
@@ -673,7 +676,7 @@ namespace N4
                 // (10,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(10, 22),
-                // (11,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (11,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(11, 22),
                 // (12,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
@@ -691,7 +694,7 @@ namespace N4
                 // (41,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(41, 22),
-                // (42,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (42,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(42, 22),
                 // (43,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
@@ -1002,7 +1005,7 @@ static class S3
 {
     internal static object F3(this N.C x, object y) { return null; }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef },
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore },
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
                 //             M1(c.F1); // wrong return type
@@ -1025,7 +1028,7 @@ static class S3
             // diagnostic (the caller has to grub through the diagnostic bag to see that there is no error there) and then the caller
             // has to produce a generic error message, which we see below. It does not appear that all callers have that test, though,
             // suggesting there may be a latent bug of missing diagnostics.
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
                 //             M1(c.F1); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F1").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(10, 16),
@@ -1132,7 +1135,7 @@ static class S
     internal static object E(this object o) { return null; }
     private static object F(this object o) { return null; }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
                 //         o.E += o.E;
@@ -1149,22 +1152,22 @@ static class S
                 // (10,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
                 //             o = !o.E;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!o.E").WithArguments("!", "method group").WithLocation(10, 17),
-                // (12,11): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (12,11): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         o.F += o.F;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(12, 11),
-                // (12,18): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (12,18): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         o.F += o.F;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(12, 18),
-                // (13,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (13,15): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o.F != null)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(13, 15),
-                // (15,17): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (15,17): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             M(o.F);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(15, 17),
-                // (16,15): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (16,15): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             o.F.ToString();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(16, 15),
-                // (17,20): error CS1061: 'object' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (17,20): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             o = !o.F;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(17, 20),
                 // (19,11): error CS0119: 'S.E(object)' is a method, which is not valid in the given context
@@ -1433,10 +1436,17 @@ static class S
 {
     internal static void E(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (5,18): error CS0428: Cannot convert method group 'E' to non-delegate type 'object'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "E").WithArguments("E", "object").WithLocation(5, 18));
+
+            compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,16): warning CS8974: Converting method group 'E' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         return o.E;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "o.E").WithArguments("E", "object").WithLocation(5, 16));
         }
 
         [Fact]
@@ -2192,9 +2202,9 @@ internal static class C
     private static void Main(string[] args) { }
 }
 ";
-            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
-                // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (4,29): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));
         }
 
@@ -2245,7 +2255,7 @@ class C
   IL_0024:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
   IL_0029:  ret       
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "orange, apple");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: "orange, apple");
             compilation.VerifyIL("C.F", code);
             compilation.VerifyIL("C.G", code);
         }
@@ -2283,11 +2293,12 @@ static class C
         a();
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor.
             var compilation = CompileAndVerify(source, expectedOutput:
 @"F: System.Int32
 F: S
 G: System.Int32
-G: S");
+G: S", verify: Verification.FailsILVerify);
             compilation.VerifyIL("C.Main",
 @"{
   // Code size      105 (0x69)
@@ -2413,7 +2424,7 @@ B");
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: GetUniqueName(),
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("Script"),
+                options: TestOptions.DebugExe.WithScriptClassName("Script"),
                 syntaxTrees: new[] { tree },
                 references: new[] { MscorlibRef, LinqAssemblyRef });
 
@@ -2443,19 +2454,19 @@ B");
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
-                Assert.True(mscorlib.MightContainExtensionMethods);
+                Assert.True(mscorlib.MightContainExtensions);
 
                 // TODO: Original references are not included in symbol validator.
                 if (isFromSource)
                 {
                     // System.Core.dll
                     var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
-                    Assert.True(systemCore.MightContainExtensionMethods);
+                    Assert.True(systemCore.MightContainExtensions);
                 }
 
                 // Local assembly.
                 var assembly = type.ContainingAssembly;
-                Assert.True(assembly.MightContainExtensionMethods);
+                Assert.True(assembly.MightContainExtensions);
             };
 
             CompileAndVerify(
@@ -2482,7 +2493,7 @@ B");
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
                 var assembly = module.ContainingAssembly;
-                var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
+                var mightContainExtensionMethods = assembly.MightContainExtensions;
                 // Every PE assembly is assumed to be capable of having an extension method.
                 // The source assembly doesn't know (so reports "true") until all methods have been inspected.
                 Assert.True(mightContainExtensionMethods);
@@ -2494,7 +2505,7 @@ B");
             };
             CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true));
             Assert.NotNull(sourceAssembly);
-            Assert.False(sourceAssembly.MightContainExtensionMethods);
+            Assert.False(sourceAssembly.MightContainExtensions);
         }
 
         [ClrOnlyFact]
@@ -2719,7 +2730,7 @@ class Program
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
             var parameter = methodSymbol.ThisParameter;
-            Assert.Equal(parameter.Ordinal, -1);
+            Assert.Equal(-1, parameter.Ordinal);
             Assert.Equal(parameter.ContainingSymbol, methodSymbol);
 
             // Get the GenericNameSyntax node Cast<T1> for binding
@@ -2761,10 +2772,10 @@ class Program
                 // (5,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         x.M(x, y);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(5, 11),
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S.M(object, object)'
                 //         x.M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(6, 11),
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S.M(object, object)'
                 //         M(x);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(7, 9));
         }
@@ -2846,7 +2857,6 @@ public struct MyStruct<T>
 
             reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
             Assert.NotNull(reducedWithReceiver);
-
 
             compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular7);
             compilation2.VerifyDiagnostics(
@@ -3787,7 +3797,7 @@ class C
 }
 var o = new object();
 o.F();";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
         }
 
@@ -4014,7 +4024,7 @@ public static class C
     public static void M2(in this int p) { }
 }";
 
-            void Validator(ModuleSymbol module)
+            void validator(ModuleSymbol module)
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -4031,7 +4041,7 @@ public static class C
                 Assert.Equal(RefKind.In, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+            CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll);
         }
 
         [Fact]
@@ -4044,7 +4054,7 @@ public static class C
     public static void M2(ref this int p) { }
 }";
 
-            void Validator(ModuleSymbol module)
+            void validator(ModuleSymbol module)
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -4061,7 +4071,434 @@ public static class C
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+            CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll);
+        }
+
+        [Fact]
+        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        public void ReduceExtensionsMethodOnReceiverTypeSystemVoid()
+        {
+            var source =
+@"static class C
+{
+    static void M(this object x)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            compilation.VerifyDiagnostics();
+
+            var extensionMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            var systemVoidType = compilation.GetSpecialType(SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_Void, systemVoidType.SpecialType);
+
+            var reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, null!);
+            Assert.Null(reduced);
+
+            reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, compilation);
+            Assert.Null(reduced);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = new A().M(1)) { }
+                }
+
+                public static class AExt
+                {
+                    public static void M(this A s, ref int i) {}
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,37): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                //     public A(int x, A a = new A().M(1)) { }
+                Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("2", "ref").WithLocation(8, 37));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74404")]
+        public void Repro_74404()
+        {
+            var source = """
+                #nullable enable
+                class C<T>;
+                static class CExt
+                {
+                    public static void M<T>(this C<T> c)
+                    {
+                        c.M = 42;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS1656: Cannot assign to 'M' because it is a 'method group'
+                //         c.M = 42;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.M").WithArguments("M", "method group").WithLocation(7, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestInModifier()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+
+                static class Extensions
+                {
+                    public static void M1(this in S s) { }
+                    public static void M2(this in E e) { }
+                    public static void M3(this in C c) { }
+                    public static void M4(this in I i) { }
+                    public static void M5(this in D d) { }
+                    public static void M6(this in S[] s) { }
+                    public static void M7<T>(this in T t) where T : struct { }
+                    public static unsafe void M8(this in int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
+                //     public static void M3(this in C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M3").WithArguments("M3").WithLocation(11, 24),
+                // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M4' must be a concrete (non-generic) value type.
+                //     public static void M4(this in I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M4").WithArguments("M4").WithLocation(12, 24),
+                // (13,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M5' must be a concrete (non-generic) value type.
+                //     public static void M5(this in D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M5").WithArguments("M5").WithLocation(13, 24),
+                // (14,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M6' must be a concrete (non-generic) value type.
+                //     public static void M6(this in S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
+                // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
+                //     public static void M7<T>(this in T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24),
+                // (16,42): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     public static unsafe void M8(this in int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 42));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestRefReadonlyModifier()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+                
+                static class Extensions
+                {
+                    public static void M1(this ref readonly S s) { }
+                    public static void M2(this ref readonly E e) { }
+                    public static void M3(this ref readonly C c) { }
+                    public static void M4(this ref readonly I i) { }
+                    public static void M5(this ref readonly D d) { }
+                    public static void M6(this ref readonly S[] s) { }
+                    public static void M7<T>(this ref readonly T t) where T : struct { }
+                    public static unsafe void M8(this ref readonly int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
+                //     public static void M3(this ref readonly C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M3").WithArguments("M3").WithLocation(11, 24),
+                // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M4' must be a concrete (non-generic) value type.
+                //     public static void M4(this ref readonly I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M4").WithArguments("M4").WithLocation(12, 24),
+                // (13,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M5' must be a concrete (non-generic) value type.
+                //     public static void M5(this ref readonly D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M5").WithArguments("M5").WithLocation(13, 24),
+                // (14,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M6' must be a concrete (non-generic) value type.
+                //     public static void M6(this ref readonly S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
+                // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
+                //     public static void M7<T>(this ref readonly T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24),
+                // (16,52): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     public static unsafe void M8(this ref readonly int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 52));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestInModifierInExtensionBlock()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+
+                static unsafe class Extensions
+                {
+                    extension(in S s) { }
+                    extension(in E e) { }
+                    extension(in C c) { }
+                    extension(in I i) { }
+                    extension(in D d) { }
+                    extension(in S[] s) { }
+                    extension<T>(in T t) where T : struct { }
+                    extension(in int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C").WithLocation(11, 18),
+                // (12,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "I").WithLocation(12, 18),
+                // (13,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "D").WithLocation(13, 18),
+                // (14,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "S[]").WithLocation(14, 18),
+                // (15,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(15, 21),
+                // (16,18): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     extension(in int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestRefReadonlyModifierInExtensionBlock()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+                
+                static unsafe class Extensions
+                {
+                    extension(ref readonly S s) { }
+                    extension(ref readonly E e) { }
+                    extension(ref readonly C c) { }
+                    extension(ref readonly I i) { }
+                    extension(ref readonly D d) { }
+                    extension(ref readonly S[] s) { }
+                    extension<T>(ref readonly T t) where T : struct { }
+                    extension(ref readonly int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C").WithLocation(11, 28),
+                // (12,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "I").WithLocation(12, 28),
+                // (13,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "D").WithLocation(13, 28),
+                // (14,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "S[]").WithLocation(14, 28),
+                // (15,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(15, 31),
+                // (16,28): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     extension(ref readonly int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 28));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestPointerExtensionParameterType()
+        {
+            var source = """
+                unsafe
+                {
+                    int* ptr = null;
+                    ptr.M();
+                }
+                """;
+
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static void M(this int* ptr) { }
+            // }
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            int32* ptr
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS1061: 'int*' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int*' could be found (are you missing a using directive or an assembly reference?)
+                //     ptr.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int*", "M").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestDynamicExtensionParameterType()
+        {
+            var source = """
+                object obj = null;
+                obj.M();
+                """;
+
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static void M(this dynamic obj) { }
+            // }
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            object obj
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        .param [1]
+                            .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // obj.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(2, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestFunctionPointerExtensionParameterType()
+        {
+            var source = """
+                unsafe
+                {
+                    delegate*<void> ptr = null;
+                    ptr.M();
+                }
+                """;
+
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static unsafe void M(this delegate*<void> ptr) { }
+            // }
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            method void *() ptr
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS1061: 'delegate*<void>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //     ptr.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("delegate*<void>", "M").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82206")]
+        public void MightContainExtensionMethods_01()
+        {
+            // For source assembly symbol, the initial value is always true.
+            var comp = CreateCompilation("");
+            Assert.True(comp.SourceAssembly.MightContainExtensions);
+            Assert.True(comp.SourceAssembly.GetPublicSymbol().MightContainExtensionMethods);
+            comp.VerifyEmitDiagnostics();
+
+            // But once the actual value is determined, it may be updated to false.
+            // This may be surprising from a public API perspective.
+            Assert.False(comp.SourceAssembly.MightContainExtensions);
+            Assert.False(comp.SourceAssembly.GetPublicSymbol().MightContainExtensionMethods);
         }
     }
 }

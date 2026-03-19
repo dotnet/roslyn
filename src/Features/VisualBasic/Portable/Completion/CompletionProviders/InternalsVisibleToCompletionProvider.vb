@@ -4,9 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -19,13 +19,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractInternalsVisibleToCompletionProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Protected Overrides Function GetAssemblyScopedAttributeSyntaxNodesOfDocument(documentRoot As SyntaxNode) As IImmutableList(Of SyntaxNode)
             Dim builder As ImmutableList(Of SyntaxNode).Builder = Nothing
             Dim compilationUnit = TryCast(documentRoot, CompilationUnitSyntax)
-            If Not compilationUnit Is Nothing Then
+            If compilationUnit IsNot Nothing Then
                 For Each attributeStatement In compilationUnit.Attributes
                     For Each attributeList In attributeStatement.AttributeLists
                         builder = If(builder, ImmutableList.CreateBuilder(Of SyntaxNode)())

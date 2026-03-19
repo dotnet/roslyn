@@ -2,17 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
-Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -494,7 +489,6 @@ Class M
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-
         ' Ensure local symbols gotten from same Binding instance are same object.
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
@@ -540,7 +534,6 @@ Class M
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
-
 
         <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <Fact()>
@@ -627,7 +620,6 @@ End Class
             End Namespace
         End Class
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors = <errors>
@@ -814,7 +806,6 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
            End Namespace
         End Class
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors = <errors>
@@ -884,7 +875,6 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
             Dim nsSymbol10 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "Global'lone global")
             Assert.NotNull(nsSymbol10)
             Assert.Equal("Global", nsSymbol10.ToTestDisplayString())
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
@@ -976,7 +966,6 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
            End Namespace
         End Class
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedDeclErrors =
@@ -1232,7 +1221,6 @@ End Class
         End Namespace
 
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors =
@@ -1618,7 +1606,6 @@ End Class
             Assert.NotNull(OnErrorGoto1)
         End Sub
 
-
         <WorkItem(541238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541238")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAliasDecl()
@@ -1832,7 +1819,6 @@ End Namespace
         End Namespace
 
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors =
@@ -1943,12 +1929,12 @@ End Module
             Assert.NotNull(label2)
             Assert.Equal("Label2", label2.Name)
             Dim symLabel = DirectCast(label1, LabelSymbol)
-            Assert.False(SymbolExtensions.IsOverloadable(symLabel))
+            Assert.False(symLabel.IsOverloadable())
             Assert.False(symLabel.IsMustOverride)
             Assert.False(symLabel.IsOverrides)
             Assert.False(symLabel.IsOverridable)
             Assert.False(symLabel.IsShared)
-            Assert.Equal(Of Accessibility)(Accessibility.NotApplicable, symLabel.DeclaredAccessibility)
+            AssertEx.Equal(Of Accessibility)(Accessibility.NotApplicable, symLabel.DeclaredAccessibility)
             Assert.Equal(1, symLabel.Locations.Length)
             Assert.Equal("Public Sub Main()", symLabel.ContainingSymbol.ToString)
             Assert.Equal("Public Sub Main()", symLabel.ContainingMethod.ToString)
@@ -1987,7 +1973,6 @@ End Module
             End Class
         End Namespace
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors =
@@ -2608,7 +2593,6 @@ End Namespace
     </file>
 </compilation>)
 
-
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim rootA = treeA.GetCompilationUnitRoot()
             Dim bindingsA = compilation.GetSemanticModel(treeA)
@@ -2636,7 +2620,7 @@ End Namespace
 
             Dim memSymbol = compilation.GlobalNamespace.GetMembers("System").Single()
             Assert.Equal(nsSymbolA.Locations.Length, memSymbol.Locations.Length)
-            Assert.Equal(Of ISymbol)(nsSymbolA, memSymbol)
+            AssertEx.Equal(Of ISymbol)(nsSymbolA, memSymbol)
         End Sub
 
         <WorkItem(542595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542595")>
@@ -2870,12 +2854,14 @@ End Module
             Dim sym = semanticModel.GetDeclaredSymbol(node)
             Assert.NotNull(sym)
             Assert.Equal(SymbolKind.Local, sym.Kind)
+            Assert.False(DirectCast(sym, ILocalSymbol).IsForEach)
             ' y
             node = nodes.Last()
             Assert.Equal("y", node.ToString())
             sym = semanticModel.GetDeclaredSymbol(node)
             Assert.NotNull(sym)
             Assert.Equal(SymbolKind.Local, sym.Kind)
+            Assert.True(DirectCast(sym, ILocalSymbol).IsForEach)
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub

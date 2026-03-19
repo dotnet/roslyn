@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static void ParseAndRoundTripping(string text, int errorCount = 0, int memberCount = 0)
         {
-            ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments, errorCount, memberCount);
+            ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), errorCount, memberCount);
         }
 
         internal static void ParseAndRoundTripping(string text, CSharpParseOptions options, int errorCount = 0, int memberCount = 0)
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             ParseAndRoundTripping("\0", 1);
             ParseAndRoundTripping("abc\0def", 3);
-            ParseAndRoundTripping("\0abc", 2);
+            ParseAndRoundTripping("\0abc", 3);
             ParseAndRoundTripping("class C { string s = \"\0\"; }", 0);
         }
 
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNegInvalidExternAlias01()
         {
-            ParseAndRoundTripping(Resources.InvalidExternAlias01, -1);
+            ParseAndRoundTripping(Resources.InvalidExternAlias01, errorCount: 1); // Parsed as local with an initializer
         }
 
         [WorkItem(901348, "DevDiv/Personal")]
@@ -400,7 +402,8 @@ partial class partial
         public void TestNegBug876575()
         {
             var text = @"partial enum E{}";
-            ParseAndRoundTripping(text, errorCount: 1);
+            // ERR_PartialMisplaced is not produced during parsing.
+            ParseAndRoundTripping(text, errorCount: 0);
         }
 
         [Fact]

@@ -5,7 +5,6 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis
                 return "";
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
                 return (object)this == obj;

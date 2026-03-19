@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -242,30 +245,40 @@ class B
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (11,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
+                //         a.E += a.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "a.E").WithArguments("E", "method group").WithLocation(11, 9),
-                // (12,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.E != null").WithArguments("!=", "method group", "<null>").WithLocation(12, 13),
-                // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
+                // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'A'
+                //             M(a.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "a.E").WithArguments("1", "method group", "A").WithLocation(14, 15),
-                // (15, 15): error CS0119: 'A.E()' is a 'method', which is not valid in the given context
+                // (15,15): error CS0119: 'A.E()' is a method, which is not valid in the given context
+                //             a.E.ToString();
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("A.E()", "method").WithLocation(15, 15),
                 // (16,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //             o = !a.E;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!a.E").WithArguments("!", "method group").WithLocation(16, 17),
                 // (17,26): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = a.E ?? a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(17, 26),
                 // (19,11): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         a.F += a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 11),
                 // (19,18): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         a.F += a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 18),
                 // (20,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         if (a.F != null)
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(20, 15),
                 // (22,17): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             M(a.F);
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(22, 17),
                 // (23,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             a.F.ToString();
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(23, 15),
                 // (24,20): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = !a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(24, 20),
                 // (25,39): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = (o != null) ? a.E : a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(25, 39));
         }
 
@@ -618,7 +631,7 @@ class C
     static void F(int i, params int[] args) { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'C.F(int, params int[])'
+                // (5,9): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'C.F(int, params int[])'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F").WithArguments("i", "C.F(int, params int[])").WithLocation(5, 9),
                 // (6,11): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "int").WithLocation(6, 11),
@@ -626,6 +639,38 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("2", "object", "int").WithLocation(7, 14),
                 // (8,17): error CS1503: Argument 3: cannot convert from 'object' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("3", "object", "int").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void ChooseExpandedFormIfBadArgCountAndBadArgument_Constructor()
+        {
+            var source =
+@"class C
+{
+    static void M(object o)
+    {
+        _ = new C();
+        _ = new C(o);
+        _ = new C(1, o);
+        _ = new C(1, 2, o);
+    }
+
+    C(int i, params int[] args) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'C.C(int, params int[])'
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("i", "C.C(int, params int[])").WithLocation(5, 17),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         _ = new C(o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "int").WithLocation(6, 19),
+                // (7,22): error CS1503: Argument 2: cannot convert from 'object' to 'int'
+                //         _ = new C(1, o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("2", "object", "int").WithLocation(7, 22),
+                // (8,25): error CS1503: Argument 3: cannot convert from 'object' to 'int'
+                //         _ = new C(1, 2, o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("3", "object", "int").WithLocation(8, 25)
+                );
         }
 
         [Fact]
@@ -666,7 +711,7 @@ delegate";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
                 // (3,9): error CS1003: Syntax error, '(' expected
                 // delegate
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("("),
                 // (3,9): error CS1026: ) expected
                 // delegate
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
@@ -905,7 +950,7 @@ namespace test
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario01()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario01()
         {
             // Two interfaces, neither implemented with alias - should have 2 errors each squiggling a different interface type.            
             string scenarioCode = @"
@@ -939,7 +984,7 @@ namespace test
         }
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario02()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario02()
         {
             // Two interfaces, only the  second is implemented 
             string scenarioCode = @"
@@ -969,7 +1014,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario03()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario03()
         {
             // Two interfaces, only the first is implemented
             string scenarioCode = @"
@@ -999,7 +1044,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario04()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario04()
         {
             // Two interfaces, neither implemented but formatting of interfaces are on different lines
             string scenarioCode = @"
@@ -1030,7 +1075,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario05()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario05()
         {
             // Inherited Interface scenario 
             // With methods not implemented in both base and derived.
@@ -1061,7 +1106,7 @@ interface IDerived : IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario06()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario06()
         {
             // Inherited Interface scenario 
             string scenarioCode = @"
@@ -1089,7 +1134,7 @@ interface IDerived : IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario07()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario07()
         {
             // Inherited Interface scenario - different order. 
             string scenarioCode = @"
@@ -1117,7 +1162,7 @@ interface IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario08()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario08()
         {
             // Inherited Interface scenario
             string scenarioCode = @"
@@ -1146,7 +1191,7 @@ interface IDerived2: IBase, IBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario09()
+        public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario09()
         {
             // Inherited Interface scenario.           
             string scenarioCode = @"
@@ -1181,7 +1226,7 @@ public interface IDerived : IBase, IBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario10()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario10()
         {
             // Inherited Interface scenario.
             string scenarioCode = @"
@@ -1222,7 +1267,7 @@ public interface IDerived : IBase2, IBase3
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario11()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario11()
         {
             // Inherited Interface scenario 
             string scenarioCode = @"
@@ -1253,7 +1298,7 @@ interface Iderived2 : Iderived
     void method4();
 }
 
-class foo : Iderived2, Iderived, Ibase, Ibase2
+class @foo : Iderived2, Iderived, Ibase, Ibase2
 {
     void Ibase.method1()
     { }
@@ -1265,9 +1310,9 @@ class foo : Iderived2, Iderived, Ibase, Ibase2
  ";
             var testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
-                // (29,24): error CS0535: 'foo' does not implement interface member 'Iderived.method3()'
-                // class foo : Iderived2, Iderived, Ibase, Ibase2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Iderived").WithArguments("foo", "Iderived.method3()").WithLocation(29, 24));
+                // (29,25): error CS0535: 'foo' does not implement interface member 'Iderived.method3()'
+                // class @foo : Iderived2, Iderived, Ibase, Ibase2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Iderived").WithArguments("foo", "Iderived.method3()").WithLocation(29, 25));
         }
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
@@ -1539,7 +1584,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_1");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_1");
 
             var source2 = @"
 public interface IBar
@@ -1547,7 +1592,7 @@ public interface IBar
     ImageMoniker? Moniker { get; }
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_1");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_1");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1558,7 +1603,7 @@ public class BarImpl : IBar
     }
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1566,7 +1611,7 @@ public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1592,7 +1637,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_2");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_2");
 
             var source2 = @"
 public interface IBar
@@ -1600,7 +1645,7 @@ public interface IBar
     ImageMoniker? Moniker { get; }
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_2");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_2");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1611,23 +1656,23 @@ public class BarImpl : IBar
     }
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
-    // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
+    // (4,24): error CS9333: 'BarImpl.Moniker': type must be 'Nullable<ImageMoniker>?' to match implemented member 'IBar.Moniker'
     //     ImageMoniker? IBar.Moniker    
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Moniker").WithArguments("BarImpl.Moniker").WithLocation(4, 24),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Moniker").WithArguments("BarImpl.Moniker", "Nullable<ImageMoniker>?", "IBar.Moniker").WithLocation(4, 24),
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
     // public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
-    // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
+    // (4,24): error CS9333: 'BarImpl.Moniker': type must be 'Nullable<ImageMoniker>' to match implemented member 'IBar.Moniker'
     //     ImageMoniker? IBar.Moniker    
-    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Moniker").WithArguments("BarImpl.Moniker").WithLocation(4, 24),
+    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Moniker").WithArguments("BarImpl.Moniker", "Nullable<ImageMoniker>", "IBar.Moniker").WithLocation(4, 24),
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
     // public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
@@ -1648,7 +1693,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_3");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_3");
 
             var source2 = @"
 public interface IBar
@@ -1656,7 +1701,7 @@ public interface IBar
     void SetMoniker(ImageMoniker? moniker);
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_3");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_3");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1665,7 +1710,7 @@ public class BarImpl : IBar
     {}
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1673,7 +1718,7 @@ public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1696,7 +1741,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_4");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_4");
 
             var source2 = @"
 public interface IBar
@@ -1704,7 +1749,7 @@ public interface IBar
     void SetMoniker(ImageMoniker? moniker);
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_4");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_4");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1713,7 +1758,7 @@ public class BarImpl : IBar
     {}
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
     // (4,15): error CS0539: 'BarImpl.SetMoniker(ImageMoniker?)' in explicit interface declaration is not a member of interface
@@ -1724,7 +1769,7 @@ public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
     // (4,15): error CS0539: 'BarImpl.SetMoniker(ImageMoniker?)' in explicit interface declaration is not a member of interface
@@ -1788,9 +1833,9 @@ class C
                 // (20,27): error CS0305: Using the generic type 'N.A<T>' requires '1' type arguments
                 // 
                 Diagnostic(ErrorCode.ERR_BadArity, "A").WithArguments("N.A<T>", "type", "1"),
-                // (21,34): error CS0308: The non-generic type 'N.B' cannot be used with type arguments
+                // (21,34): error CS0305: Using the generic type 'N.B<T1, T2>' requires '2' type arguments
                 // 
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "B<int>").WithArguments("N.B", "type")
+                Diagnostic(ErrorCode.ERR_BadArity, "B<int>").WithArguments("N.B<T1, T2>", "type", "2")
                 );
         }
 
@@ -1833,7 +1878,7 @@ class C
         {
             var source =
 @"delegate void Foo();
-class driver
+class @driver
 {
     public static event Foo e;
     static void Main(string[] args)
@@ -1872,9 +1917,10 @@ class C : I
                 // (9,17): error CS0238: 'C.M3<T>()' cannot be sealed because it is not an override
                 //     sealed void M3<T>() { }
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("C.M3<T>()").WithLocation(9, 17),
-                // (10,34): error CS0112: A static member 'C.M4<T>()' cannot be marked as override, virtual, or abstract
+                // (10,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     internal static virtual void M4<T>() { }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("C.M4<T>()").WithLocation(10, 34));
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("virtual").WithLocation(10, 34)
+                );
         }
 
         [WorkItem(542391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542391")]
@@ -1960,12 +2006,12 @@ partial class C
     partial void M(S s = new B()) { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,18): error CS0721: 'S': static types cannot be used as parameters
+                // (4,20): error CS0721: 'S': static types cannot be used as parameters
                 //     partial void M(S s = new A());
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S").WithLocation(4, 18),
-                // (5,18): error CS0721: 'S': static types cannot be used as parameters
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(4, 20),
+                // (5,20): error CS0721: 'S': static types cannot be used as parameters
                 //     partial void M(S s = new B()) { }
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S").WithLocation(5, 18),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(5, 20),
                 // (5,30): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial void M(S s = new B()) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(5, 30),
@@ -2027,9 +2073,9 @@ class Program
                 //         bool c = true;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(6, 14));
         }
-        [Fact, WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
 
-        private void NestedInterfaceImplementationWithOuterGenericType()
+        [Fact, WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
+        public void NestedInterfaceImplementationWithOuterGenericType()
         {
             CompileAndVerify(@"
 namespace System.ServiceModel
@@ -2139,13 +2185,19 @@ namespace System.ServiceModel
             var source =
 @"class C<T> { }
 class C<T> : System.Attribute { }";
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7),
+                // (2,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(2, 14)
+                );
+
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"),
-                // (2,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute")
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7)
                 );
         }
 
@@ -2158,13 +2210,13 @@ class C<T> : System.Attribute { }";
 {
     partial void I.M();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (3,20): error CS0754: A partial method may not explicitly implement an interface method
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (3,20): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),
-                // (3,20): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M").WithLocation(3, 20),
+                // (3,20): error CS0751: A partial member must be declared within a partial type
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(3, 20),
                 // (3,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(3, 20),
@@ -2359,7 +2411,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2384,12 +2436,12 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         new D(M)();
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
                 );
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         new D(M)();
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
@@ -2422,7 +2474,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2451,12 +2503,12 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         M(M);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
                 );
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         M(M);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
@@ -2820,7 +2872,7 @@ public static class LazyToStringExtension
             .Select(x => x.GetValue(obj))
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(sourceText, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40(sourceText, new[] { Net40.References.SystemCore }, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (12,42): error CS1002: ; expected
                 //             .Select(x => x.GetValue(obj))
@@ -2971,10 +3023,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { Net40.References.SystemCore });
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
                 );
@@ -3051,10 +3103,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { Net40.References.SystemCore });
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
                 );
@@ -3127,7 +3179,7 @@ class C
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(31, 38)
                 );
@@ -3209,10 +3261,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { Net40.References.SystemCore });
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(42, 38)
                 );
@@ -3308,7 +3360,7 @@ static class Extension2
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
     // (16,9): error CS0103: The name 'MathMin' does not exist in the current context
@@ -3352,6 +3404,233 @@ static class Extension2
             Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_02()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal enum AnyEnum
+    {
+        Val
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_03()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal enum AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_04()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal class AnyEnum
+    {
+        static internal int Val;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27),
+                // (10,29): warning CS0649: Field 'AnyClass.AnyEnum.Val' is never assigned to, and will always have its default value 0
+                //         static internal int Val;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Val").WithArguments("MyNamespace.AnyClass.AnyEnum.Val", "0").WithLocation(10, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_05()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal class AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_06()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal struct AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_07()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_08()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal delegate void AnyEnum();
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
         [Fact, WorkItem(30726, "https://github.com/dotnet/roslyn/issues/30726")]
         public void UsingStaticGenericConstraint()
         {
@@ -3360,7 +3639,7 @@ using static Test<System.String>;
 
 public static class Test<T> where T : struct { }
 ";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using static Test<System.String>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Test<System.String>;").WithLocation(2, 1),
@@ -3380,7 +3659,7 @@ class A<T> where T : class
     internal static class B { }
 }
 ";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using static A<A<int>[]>.B;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<A<int>[]>.B;").WithLocation(2, 1),
@@ -3396,7 +3675,7 @@ class A<T> where T : class
 using static A<int, string>;
 static class A<T, U> where T : class where U : struct { }
 ";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using static A<int, string>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<int, string>;").WithLocation(2, 1),
@@ -3515,79 +3794,79 @@ public class Class1
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             compilation.VerifyDiagnostics(
-                // (13,27): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
+                // (13,27): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArg0 = "string literal".ExtensionMethod0<>();
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod0<>").WithArguments("ExtensionMethod0", "method group", "1").WithLocation(13, 27),
-                // (13,44): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod0<>").WithLocation(13, 27),
+                // (13,44): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no accessible extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var omittedArg0 = "string literal".ExtensionMethod0<>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<>").WithArguments("string", "ExtensionMethod0").WithLocation(13, 44),
-                // (14,27): error CS0305: Using the generic method group 'ExtensionMethod1' requires 1 type arguments
+                // (14,27): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArg1 = "string literal".ExtensionMethod1<>();
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod1<>").WithArguments("ExtensionMethod1", "method group", "1").WithLocation(14, 27),
-                // (15,27): error CS0305: Using the generic method group 'ExtensionMethod2' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod1<>").WithLocation(14, 27),
+                // (15,27): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArg2 = "string literal".ExtensionMethod2<>();
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod2<>").WithArguments("ExtensionMethod2", "method group", "1").WithLocation(15, 27),
-                // (15,44): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod2<>").WithLocation(15, 27),
+                // (15,44): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no accessible extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var omittedArg2 = "string literal".ExtensionMethod2<>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(15, 44),
-                // (17,31): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
+                // (17,31): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArgFunc0 = "string literal".ExtensionMethod0<>;
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod0<>").WithArguments("ExtensionMethod0", "method group", "1").WithLocation(17, 31),
-                // (17,48): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod0<>").WithLocation(17, 31),
+                // (17,48): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no accessible extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var omittedArgFunc0 = "string literal".ExtensionMethod0<>;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<>").WithArguments("string", "ExtensionMethod0").WithLocation(17, 48),
-                // (18,31): error CS0305: Using the generic method group 'ExtensionMethod1' requires 1 type arguments
+                // (18,31): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod1<>").WithArguments("ExtensionMethod1", "method group", "1").WithLocation(18, 31),
-                // (18,13): error CS0815: Cannot assign method group to an implicitly-typed variable
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod1<>").WithLocation(18, 31),
+                // (18,31): error CS7003: Unexpected use of an unbound generic name
                 //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, @"omittedArgFunc1 = ""string literal"".ExtensionMethod1<>").WithArguments("method group").WithLocation(18, 13),
-                // (19,31): error CS0305: Using the generic method group 'ExtensionMethod2' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, @"""string literal"".ExtensionMethod1<>").WithLocation(18, 31),
+                // (19,31): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArgFunc2 = "string literal".ExtensionMethod2<>;
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod2<>").WithArguments("ExtensionMethod2", "method group", "1").WithLocation(19, 31),
-                // (19,48): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod2<>").WithLocation(19, 31),
+                // (19,48): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no accessible extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var omittedArgFunc2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(19, 48),
-                // (21,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (21,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no accessible extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var moreArgs0 = "string literal".ExtensionMethod0<int>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<int>").WithArguments("string", "ExtensionMethod0").WithLocation(21, 42),
-                // (22,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod1' and no extension method 'ExtensionMethod1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (22,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod1' and no accessible extension method 'ExtensionMethod1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var moreArgs1 = "string literal".ExtensionMethod1<int, bool>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod1<int, bool>").WithArguments("string", "ExtensionMethod1").WithLocation(22, 42),
-                // (23,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (23,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no accessible extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var moreArgs2 = "string literal".ExtensionMethod2<int, bool, string>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<int, bool, string>").WithArguments("string", "ExtensionMethod2").WithLocation(23, 42),
                 // (25,42): error CS0411: The type arguments for method 'FooExtensions.ExtensionMethod1<T>(object)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var lessArgs1 = "string literal".ExtensionMethod1();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "ExtensionMethod1").WithArguments("FooExtensions.ExtensionMethod1<T>(object)").WithLocation(25, 42),
-                // (26,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (26,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no accessible extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var lessArgs2 = "string literal".ExtensionMethod2<int>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<int>").WithArguments("string", "ExtensionMethod2").WithLocation(26, 42),
-                // (28,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound0' and no extension method 'ExtensionMethodNotFound0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (28,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound0' and no accessible extension method 'ExtensionMethodNotFound0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var nonExistingMethod0 = "string literal".ExtensionMethodNotFound0();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound0").WithArguments("string", "ExtensionMethodNotFound0").WithLocation(28, 51),
-                // (29,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound1' and no extension method 'ExtensionMethodNotFound1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (29,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound1' and no accessible extension method 'ExtensionMethodNotFound1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var nonExistingMethod1 = "string literal".ExtensionMethodNotFound1<int>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound1<int>").WithArguments("string", "ExtensionMethodNotFound1").WithLocation(29, 51),
-                // (30,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound2' and no extension method 'ExtensionMethodNotFound2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // (30,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound2' and no accessible extension method 'ExtensionMethodNotFound2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var nonExistingMethod2 = "string literal".ExtensionMethodNotFound2<int, string>();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound2<int, string>").WithArguments("string", "ExtensionMethodNotFound2").WithLocation(30, 51),
-                // (32,51): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
+                // (32,51): error CS8389: Omitting the type argument is not allowed in the current context
                 //         System.Func<object> delegateConversion0 = "string literal".ExtensionMethod0<>;
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod0<>").WithArguments("ExtensionMethod0", "method group", "1").WithLocation(32, 51),
-                // (32,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod0<>").WithLocation(32, 51),
+                // (32,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no accessible extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Func<object> delegateConversion0 = "string literal".ExtensionMethod0<>;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<>").WithArguments("string", "ExtensionMethod0").WithLocation(32, 68),
-                // (33,51): error CS0305: Using the generic method group 'ExtensionMethod1' requires 1 type arguments
+                // (33,51): error CS8389: Omitting the type argument is not allowed in the current context
                 //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod1<>").WithArguments("ExtensionMethod1", "method group", "1").WithLocation(33, 51),
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod1<>").WithLocation(33, 51),
                 // (33,51): error CS0407: '? FooExtensions.ExtensionMethod1<?>(object)' has the wrong return type
                 //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
                 Diagnostic(ErrorCode.ERR_BadRetType, @"""string literal"".ExtensionMethod1<>").WithArguments("FooExtensions.ExtensionMethod1<?>(object)", "?").WithLocation(33, 51),
-                // (34,51): error CS0305: Using the generic method group 'ExtensionMethod2' requires 1 type arguments
+                // (34,51): error CS8389: Omitting the type argument is not allowed in the current context
                 //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
-                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod2<>").WithArguments("ExtensionMethod2", "method group", "1").WithLocation(34, 51),
-                // (34,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod2<>").WithLocation(34, 51),
+                // (34,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no accessible extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(34, 68));
         }
@@ -3660,6 +3939,466 @@ class X
             var lambda = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single(s => s.Parameter.Identifier.Text == "x");
             var typeInfo = model.GetTypeInfo(lambda.Body);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70007")]
+        public void CycleThroughAttribute()
+        {
+            var compilation = CreateCompilation(@"
+using System.Reflection;
+
+[assembly: AssemblyVersion(MainVersion.CurrentVersion)]
+
+public class MainVersion
+{
+    public const string Hauptversion = ""8"";
+    public const string Nebenversion = ""2"";
+    public const string Build = ""0"";
+    public const string Revision = ""1"";
+
+    public const string CurrentVersion = Hauptversion + ""."" + Nebenversion + ""."" + Build + ""."" + Revision;
+}
+");
+            CompileAndVerify(compilation).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ElseIf_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void M(bool a, bool b)
+    {
+        if (a)
+        {}
+        else if (b)
+        {}
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ids = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ToArray();
+
+            var id = ids[1];
+
+            Assert.Equal("b", id.ToString());
+            Assert.Equal("System.Boolean b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[0];
+
+            Assert.Equal("a", id.ToString());
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[1];
+            Assert.Equal("System.Boolean b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ElseIf_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void M(bool a, object b)
+    {
+        if (a)
+        {}
+        else if (b is bool bb && bb)
+        {
+            bb = false;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ids = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ToArray();
+
+            var id = ids[1];
+
+            Assert.Equal("b", id.ToString());
+            Assert.Equal("System.Object b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[0];
+
+            Assert.Equal("a", id.ToString());
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            var ifStmt = tree.GetRoot().DescendantNodes().OfType<IfStatementSyntax>().First();
+
+            var operationString = @"
+IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (a) ... }')
+  Condition:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+  WhenTrue:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+  WhenFalse:
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'if (b is bo ... }')
+      Locals: Local_1: System.Boolean bb
+      IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (b is bo ... }')
+        Condition:
+          IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b is bool bb && bb')
+            Left:
+              IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'b is bool bb')
+                Value:
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'b')
+                Pattern:
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'bool bb') (InputType: System.Object, NarrowedType: System.Boolean, DeclaredSymbol: System.Boolean bb, MatchesNull: False)
+            Right:
+              ILocalReferenceOperation: bb (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'bb')
+        WhenTrue:
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'bb = false;')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'bb = false')
+                  Left:
+                    ILocalReferenceOperation: bb (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'bb')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+        WhenFalse:
+          null
+";
+
+            VerifyOperationTree(comp, model.GetOperation(ifStmt), operationString);
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[1];
+            Assert.Equal("System.Object b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            VerifyOperationTree(comp, model.GetOperation(ifStmt), operationString);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericAndNonGenericType()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int, string> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression<int, string>").WithArguments("MyExpression<T>", "type", "1").WithLocation(8, 9),
+                // (8,35): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericAndNonGenericType_SingleTypeArgument()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int> x = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,27): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         MyExpression<int> x = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestNonGenericTypeOnly()
+        {
+            var text = """
+                class MyExpression { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,9): error CS0308: The non-generic type 'MyExpression' cannot be used with type arguments
+                //         MyExpression<int> x;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "MyExpression<int>").WithArguments("MyExpression", "type").WithLocation(7, 9),
+                // (7,27): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericTypeOnly()
+        {
+            var text = """
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int, string> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression<int, string>").WithArguments("MyExpression<T>", "type", "1").WithLocation(7, 9),
+                // (7,35): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int, string> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestMultipleGenericTypes()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+                class MyExpression<T1, T2> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression<int, string, bool> x;
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (9,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression<int, string, bool> x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression<int, string, bool>").WithArguments("MyExpression<T>", "type", "1").WithLocation(9, 9),
+                // (9,41): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression<int, string, bool> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(9, 41));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericTypeWithNoTypeArguments()
+        {
+            var text = """
+                class MyExpression { }
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression x;
+                    }
+                }
+                """;
+
+            // When both generic and non-generic versions exist and no type arguments are provided,
+            // the non-generic version is successfully used (no error expected)
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,22): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericTypeOnlyWithNoTypeArguments()
+        {
+            var text = """
+                class MyExpression<T> { }
+
+                class Test
+                {
+                    void M()
+                    {
+                        MyExpression x;
+                    }
+                }
+                """;
+
+            // When only a generic type exists and no type arguments are provided,
+            // an error is reported about the required type arguments
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,9): error CS0305: Using the generic type 'MyExpression<T>' requires 1 type arguments
+                //         MyExpression x;
+                Diagnostic(ErrorCode.ERR_BadArity, "MyExpression").WithArguments("MyExpression<T>", "type", "1").WithLocation(7, 9),
+                // (7,22): warning CS0168: The variable 'x' is declared but never used
+                //         MyExpression x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericAndNonGenericMethod()
+        {
+            var text = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        M<int>(default!); 
+                    }
+
+                    void M(object obj) { }
+                    T2 M<T1, T2>(T1 t) => throw null!;
+                }
+                """;
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (5,9): error CS0305: Using the generic method 'Program.M<T1, T2>(T1)' requires 2 type arguments
+                //         M<int>(default!); 
+                Diagnostic(ErrorCode.ERR_BadArity, "M<int>").WithArguments("Program.M<T1, T2>(T1)", "method", "2").WithLocation(5, 9));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_01()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public enum Cookie : UInt32;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,17): error CS0518: Predefined type 'System.Enum' is not defined or imported
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Cookie").WithArguments("System.Enum").WithLocation(4, 17),
+                // (4,26): error CS0518: Predefined type 'System.Enum' is not defined or imported
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "UInt32").WithArguments("System.Enum").WithLocation(4, 26),
+                // (4,26): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "UInt32").WithArguments("System.Object").WithLocation(4, 26),
+                // (4,26): error CS0246: The type or namespace name 'UInt32' could not be found (are you missing a using directive or an assembly reference?)
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UInt32").WithArguments("UInt32").WithLocation(4, 26),
+                // (4,26): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "UInt32").WithLocation(4, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_02()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public enum Cookie : int;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,17): error CS0518: Predefined type 'System.Enum' is not defined or imported
+                //     public enum Cookie : int;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Cookie").WithArguments("System.Enum").WithLocation(4, 17),
+                // (4,26): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public enum Cookie : int;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_03()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public class Cookie : UInt32;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0246: The type or namespace name 'UInt32' could not be found (are you missing a using directive or an assembly reference?)
+                //     public class Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UInt32").WithArguments("UInt32").WithLocation(4, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_04()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public struct Cookie : UInt32;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //     public struct Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Cookie").WithArguments("System.ValueType").WithLocation(4, 19),
+                // (4,28): error CS0246: The type or namespace name 'UInt32' could not be found (are you missing a using directive or an assembly reference?)
+                //     public struct Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UInt32").WithArguments("UInt32").WithLocation(4, 28)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_05()
+        {
+            var source =
+@"
+static class Ext
+{
+    extension(Ext)
+    {
+    }
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // static class Ext
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Ext").WithArguments("System.Object").WithLocation(2, 14),
+                // (4,5): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "extension").WithArguments("System.Object").WithLocation(4, 5),
+                // (4,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 5),
+                // (4,14): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(").WithArguments("System.Void").WithLocation(4, 14),
+                // (4,15): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Ext").WithArguments("System.Object").WithLocation(4, 15)
+                );
         }
     }
 }

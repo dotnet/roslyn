@@ -4,48 +4,31 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Formatting.Rules
+namespace Microsoft.CodeAnalysis.Formatting.Rules;
+
+[NonDefaultable]
+internal readonly struct NextIndentBlockOperationAction(
+    ImmutableArray<AbstractFormattingRule> formattingRules,
+    int index,
+    SyntaxNode node,
+    List<IndentBlockOperation> list)
 {
-    internal readonly struct NextIndentBlockOperationAction
+    private NextIndentBlockOperationAction NextAction
+        => new(formattingRules, index + 1, node, list);
+
+    public void Invoke()
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly int _index;
-        private readonly SyntaxNode _node;
-        private readonly AnalyzerConfigOptions _options;
-        private readonly List<IndentBlockOperation> _list;
-
-        public NextIndentBlockOperationAction(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
-            int index,
-            SyntaxNode node,
-            AnalyzerConfigOptions options,
-            List<IndentBlockOperation> list)
+        // If we have no remaining handlers to execute, then we'll execute our last handler
+        if (index >= formattingRules.Length)
         {
-            _formattingRules = formattingRules;
-            _index = index;
-            _node = node;
-            _options = options;
-            _list = list;
+            return;
         }
-
-        private NextIndentBlockOperationAction NextAction
-            => new NextIndentBlockOperationAction(_formattingRules, _index + 1, _node, _options, _list);
-
-        public void Invoke()
+        else
         {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (_index >= _formattingRules.Length)
-            {
-                return;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddIndentBlockOperations(_list, _node, _options, NextAction);
-                return;
-            }
+            // Call the handler at the index, passing a continuation that will come back to here with index + 1
+            formattingRules[index].AddIndentBlockOperations(list, node, NextAction);
+            return;
         }
     }
 }

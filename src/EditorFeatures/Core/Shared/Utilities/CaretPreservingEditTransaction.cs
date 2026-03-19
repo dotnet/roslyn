@@ -6,110 +6,105 @@ using System;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+
+internal sealed class CaretPreservingEditTransaction : IDisposable
 {
-    internal class CaretPreservingEditTransaction : IDisposable
+    private readonly IEditorOperations _editorOperations;
+    private readonly ITextUndoHistory? _undoHistory;
+    private ITextUndoTransaction? _transaction;
+    private bool _active;
+
+    public CaretPreservingEditTransaction(
+        string description,
+        ITextView textView,
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService)
+        : this(description, undoHistoryRegistry.GetHistory(textView.TextBuffer), editorOperationsFactoryService.GetEditorOperations(textView))
     {
-        private readonly IEditorOperations _editorOperations;
-        private readonly ITextUndoHistory _undoHistory;
-        private ITextUndoTransaction _transaction;
-        private bool _active;
+    }
 
-        public CaretPreservingEditTransaction(
-            string description,
-            ITextView textView,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+    public CaretPreservingEditTransaction(string description, ITextUndoHistory? undoHistory, IEditorOperations editorOperations)
+    {
+        _editorOperations = editorOperations;
+        _undoHistory = undoHistory;
+        _active = true;
+
+        if (_undoHistory != null)
         {
-            _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-            _undoHistory = undoHistoryRegistry.GetHistory(textView.TextBuffer);
-            _active = true;
+            _transaction = new HACK_TextUndoTransactionThatRollsBackProperly(_undoHistory.CreateTransaction(description));
+            _editorOperations.AddBeforeTextBufferChangePrimitive();
+        }
+    }
 
-            if (_undoHistory != null)
-            {
-                _transaction = new HACK_TextUndoTransactionThatRollsBackProperly(_undoHistory.CreateTransaction(description));
-                _editorOperations.AddBeforeTextBufferChangePrimitive();
-            }
+    public static CaretPreservingEditTransaction? TryCreate(string description,
+        ITextView textView,
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService)
+    {
+        if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out _))
+        {
+            return new CaretPreservingEditTransaction(description, textView, undoHistoryRegistry, editorOperationsFactoryService);
         }
 
-        public static CaretPreservingEditTransaction TryCreate(string description,
-            ITextView textView,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-        {
-            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out _))
-            {
-                return new CaretPreservingEditTransaction(description, textView, undoHistoryRegistry, editorOperationsFactoryService);
-            }
+        return null;
+    }
 
-            return null;
+    public void Complete()
+    {
+        if (!_active)
+        {
+            throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
         }
 
-        public void Complete()
+        _editorOperations.AddAfterTextBufferChangePrimitive();
+        _transaction?.Complete();
+
+        EndTransaction();
+    }
+
+    public void Cancel()
+    {
+        if (!_active)
         {
-            if (!_active)
-            {
-                throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
-            }
-
-            _editorOperations.AddAfterTextBufferChangePrimitive();
-            if (_transaction != null)
-            {
-                _transaction.Complete();
-            }
-
-            EndTransaction();
+            throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
         }
 
-        public void Cancel()
+        _transaction?.Cancel();
+
+        EndTransaction();
+    }
+
+    public void Dispose()
+    {
+        if (_transaction != null)
         {
-            if (!_active)
-            {
-                throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
-            }
+            // If the transaction is still pending, we'll cancel it
+            Cancel();
+        }
+    }
 
-            if (_transaction != null)
-            {
-                _transaction.Cancel();
-            }
-
-            EndTransaction();
+    public IMergeTextUndoTransactionPolicy? MergePolicy
+    {
+        get
+        {
+            return _transaction?.MergePolicy;
         }
 
-        public void Dispose()
+        set
         {
-            if (_transaction != null)
-            {
-                // If the transaction is still pending, we'll cancel it
-                Cancel();
-            }
+            _transaction?.MergePolicy = value;
+        }
+    }
+
+    private void EndTransaction()
+    {
+        if (_transaction != null)
+        {
+            _transaction.Dispose();
+            _transaction = null;
         }
 
-        public IMergeTextUndoTransactionPolicy MergePolicy
-        {
-            get
-            {
-                return _transaction?.MergePolicy;
-            }
-
-            set
-            {
-                if (_transaction != null)
-                {
-                    _transaction.MergePolicy = value;
-                }
-            }
-        }
-
-        private void EndTransaction()
-        {
-            if (_transaction != null)
-            {
-                _transaction.Dispose();
-                _transaction = null;
-            }
-
-            _active = false;
-        }
+        _active = false;
     }
 }

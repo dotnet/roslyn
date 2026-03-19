@@ -4,14 +4,19 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseObjectInitializer), [Shared]>
-    Friend Class VisualBasicUseObjectInitializerCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseObjectInitializerCodeFixProvider
         Inherits AbstractUseObjectInitializerCodeFixProvider(Of
             SyntaxKind,
             ExpressionSyntax,
@@ -19,18 +24,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             ObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             AssignmentStatementSyntax,
-            VariableDeclaratorSyntax)
+            LocalDeclarationStatementSyntax,
+            VariableDeclaratorSyntax,
+            VisualBasicUseNamedMemberInitializerAnalyzer)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
+        Protected Overrides Function GetAnalyzer() As VisualBasicUseNamedMemberInitializerAnalyzer
+            Return VisualBasicUseNamedMemberInitializerAnalyzer.Allocate()
+        End Function
+
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
+
+        Protected Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance
+
+        Protected Overrides Function Whitespace(text As String) As SyntaxTrivia
+            Return SyntaxFactory.Whitespace(text)
+        End Function
+
         Protected Overrides Function GetNewStatement(
-                statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
+                statement As StatementSyntax,
+                objectCreation As ObjectCreationExpressionSyntax,
+                options As SyntaxFormattingOptions,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As StatementSyntax
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, matches))
+                GetNewObjectCreation(objectCreation, options, matches))
 
             Dim totalTrivia = ArrayBuilder(Of SyntaxTrivia).GetInstance()
             totalTrivia.AddRange(statement.GetLeadingTrivia())
@@ -50,22 +72,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
         Private Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
+                options As SyntaxFormattingOptions,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
                 SyntaxFactory.ObjectMemberInitializer(
-                    CreateFieldInitializers(matches)))
+                    CreateFieldInitializers(objectCreation, options, matches)))
         End Function
 
         Private Function CreateFieldInitializers(
+                objectCreation As ObjectCreationExpressionSyntax,
+                options As SyntaxFormattingOptions,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
-            Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
+            Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
+
+            AddExistingItems(objectCreation, nodesAndTokens)
 
             For i = 0 To matches.Length - 1
                 Dim match = matches(i)
 
-                Dim rightValue = match.Initializer
+                Dim rightValue = Indent(match.Initializer, options)
                 If i < matches.Length - 1 Then
                     rightValue = rightValue.WithoutTrailingTrivia()
                 End If
@@ -85,7 +112,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 End If
             Next
 
-            Return SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(nodesAndTokens)
+            Dim result = SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(nodesAndTokens)
+            nodesAndTokens.Free()
+            Return result
         End Function
     End Class
 End Namespace

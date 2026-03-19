@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -56,13 +58,162 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolatedSingleLineRawString1()
+        {
+            UsingExpression(@"$""""""{1 + 1}""""""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedSingleLineRawString2()
+        {
+            UsingExpression(@"$$""""""{{{1 + 1}}}""""""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedMultiLineRawString1()
+        {
+            UsingExpression(@"$""""""
+    {1 + 1}
+    """"""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedMultiLineRawString2()
+        {
+            UsingExpression(@"$$""""""
+    {{{1 + 1}}}
+    """"""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestAltInterpolatedVerbatimString_CSharp73()
         {
-            UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
-                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
-                // @$"hello"
-                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 1)
-                );
+            var text = @"@$""hello""";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (6,17): error CS8370: Feature 'alternative interpolated verbatim strings' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var v = @$"hello";
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(6, 17));
+
+            UsingExpression(text, TestOptions.Regular7_3);
 
             N(SyntaxKind.InterpolatedStringExpression);
             {
@@ -79,7 +230,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAltInterpolatedVerbatimString_CSharp8()
         {
-            UsingExpression(@"@$""hello""", TestOptions.Regular8);
+            var text = @"@$""hello""";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics();
+
+            UsingExpression(text, TestOptions.Regular8);
             N(SyntaxKind.InterpolatedStringExpression);
             {
                 N(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -90,6 +251,175 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.InterpolatedStringEndToken);
             }
             EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp73()
+        {
+            var text = "$@\"aaa{@$\"bbb\nccc\"}ddd\"";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (6, 24): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
+                // $@"aaa{@$"bbb
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(6, 24));
+
+            UsingExpression(text, TestOptions.Regular7_3);
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp8()
+        {
+            var text = "$@\"aaa{@$\"bbb\nccc\"}ddd\"";
+
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics();
+
+            UsingExpression(text, TestOptions.Regular8);
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedStringWithNewLinesInExpression()
+        {
+            var text = @"$""Text with {
+    new[] {
+        1, 2, 3
+    }[2]
+} parts and new line expressions!""";
+
+            UsingExpression(text, TestOptions.RegularPreview);
+
+            var expr = (InterpolatedStringExpressionSyntax)N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ElementAccessExpression);
+                    {
+                        N(SyntaxKind.ImplicitArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.ArrayInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+
+            Assert.Equal("Text with ", expr.Contents[0].ToString());
+            Assert.Equal(" parts and new line expressions!", expr.Contents[2].ToString());
         }
 
         [Fact]
@@ -322,6 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestBinary(SyntaxKind.GreaterThanToken);
             TestBinary(SyntaxKind.GreaterThanEqualsToken);
             TestBinary(SyntaxKind.GreaterThanGreaterThanToken);
+            TestBinary(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
             TestBinary(SyntaxKind.AmpersandToken);
             TestBinary(SyntaxKind.AmpersandAmpersandToken);
             TestBinary(SyntaxKind.BarToken);
@@ -362,6 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestAssignment(SyntaxKind.EqualsToken);
             TestAssignment(SyntaxKind.LessThanLessThanEqualsToken);
             TestAssignment(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+            TestAssignment(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
             TestAssignment(SyntaxKind.AmpersandEqualsToken);
             TestAssignment(SyntaxKind.BarEqualsToken);
             TestAssignment(SyntaxKind.CaretEqualsToken);
@@ -400,11 +732,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
-            Assert.Equal(1, expr.Errors().Length);
+            Assert.Equal(0, expr.Errors().Length);
 
             var e = (ConditionalAccessExpressionSyntax)expr;
             Assert.Equal("a.b", e.Expression.ToString());
             Assert.Equal(".c.d?[1]?.e()?.f", e.WhenNotNull.ToString());
+
+            var testWithStatement = @$"class C {{ void M() {{ var v = {text}; }} }}";
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,33): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 33),
+                // (1,38): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 38),
+                // (1,42): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 42),
+                // (1,47): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 47));
         }
 
         [Fact]
@@ -1015,6 +1365,468 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ac.Type);
             Assert.Equal("a[1]", ac.Type.ToString());
             Assert.Null(ac.Initializer);
+        }
+
+        [Fact]
+        public void TopLevel_NewPartialArray_Incomplete()
+        {
+            UsingTree("new partial[",
+                // (1,13): error CS1003: Syntax error, ']' expected
+                // new partial[
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 13),
+                // (1,13): error CS1002: ; expected
+                // new partial[
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 13));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "partial");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_NewContextualKeywordArray_Incomplete(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                [
+                """,
+                // (2,2): error CS1003: Syntax error, ']' expected
+                // [
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, keyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_NewScopedArray()
+        {
+            UsingTree($"""
+                new scoped[1];
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_NewContextualKeywordArray(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}[1
+                ];
+                """,
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // ];
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, keyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_ScopedObjectCreation_Incomplete()
+        {
+            UsingTree($"""
+                new scoped
+                (
+                """,
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_ContextualKeywordObjectCreation_Incomplete(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                (
+                """,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // new {keyword}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, keyword).WithLocation(1, 5),
+                // (2,2): error CS1733: Expected expression
+                // (
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, keyword);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_ScopedObjectCreation()
+        {
+            UsingTree($"new scoped();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_ContextualModifierObjectCreation(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                ();
+                """,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // new {keyword}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, keyword).WithLocation(1, 5),
+                // (2,2): error CS1525: Invalid expression term ')'
+                // ();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, keyword);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_NewPartialArray()
+        {
+            UsingTree($"new partial[1];");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "partial");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_PartialObjectCreation_Incomplete()
+        {
+            UsingTree($"""
+                new partial
+                (
+                """,
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_PartialObjectCreation()
+        {
+            UsingTree($"new partial();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -2339,7 +3151,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS1001: Identifier expected
                 //         Task.
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
@@ -2347,7 +3159,6 @@ class C
                 //         Task.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2437,18 +3248,17 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 14),
                 // (6,24): error CS1003: Syntax error, ',' expected
                 //         Task.await Task.Delay();
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(6, 24),
                 // (6,25): error CS1002: ; expected
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Delay").WithLocation(6, 25));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2534,12 +3344,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2609,12 +3418,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task = 1;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2692,12 +3500,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task, Task2;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2772,12 +3579,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2846,12 +3652,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task<T>();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2929,7 +3734,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS1001: Identifier expected
                 //         Task.
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
@@ -2937,7 +3742,6 @@ class C
                 //         Task.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3386,17 +4190,12 @@ class C
 {
     void M()
     {
-        // syntax error
         var j = e is a < i >>> 2;
     }
 }
 ";
             var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
-                // (7,30): error CS1525: Invalid expression term '>'
-                //         var j = e is a < i >>> 2;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 30)
-                );
+            tree.GetDiagnostics().Verify();
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3433,40 +4232,32 @@ class C
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.GreaterThanExpression);
+                                            N(SyntaxKind.LessThanExpression);
                                             {
-                                                N(SyntaxKind.LessThanExpression);
+                                                N(SyntaxKind.IsExpression);
                                                 {
-                                                    N(SyntaxKind.IsExpression);
+                                                    N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "e");
-                                                        }
-                                                        N(SyntaxKind.IsKeyword);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "a");
-                                                        }
+                                                        N(SyntaxKind.IdentifierToken, "e");
                                                     }
-                                                    N(SyntaxKind.LessThanToken);
-                                                    N(SyntaxKind.RightShiftExpression);
+                                                    N(SyntaxKind.IsKeyword);
+                                                    N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "i");
-                                                        }
-                                                        N(SyntaxKind.GreaterThanGreaterThanToken);
-                                                        M(SyntaxKind.IdentifierName);
-                                                        {
-                                                            M(SyntaxKind.IdentifierToken);
-                                                        }
+                                                        N(SyntaxKind.IdentifierToken, "a");
                                                     }
                                                 }
-                                                N(SyntaxKind.GreaterThanToken);
-                                                N(SyntaxKind.NumericLiteralExpression);
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.UnsignedRightShiftExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "i");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                                    }
                                                 }
                                             }
                                         }
@@ -3497,8 +4288,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(text,
                 // (7,30): error CS1525: Invalid expression term '<<'
                 //         var j = e is a < i > << 2;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<<").WithArguments("<<").WithLocation(7, 30)
@@ -3569,6 +4359,380 @@ class C
                                                         M(SyntaxKind.IdentifierToken);
                                                     }
                                                     N(SyntaxKind.LessThanLessThanToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_07()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        // syntax error
+        var j = e is a < i >>>> 2;
+    }
+}
+";
+            var tree = UsingTree(text,
+                // (7,31): error CS1525: Invalid expression term '>'
+                //         var j = e is a < i >>>> 2;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 31)
+                );
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "j");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.GreaterThanExpression);
+                                            {
+                                                N(SyntaxKind.LessThanExpression);
+                                                {
+                                                    N(SyntaxKind.IsExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "e");
+                                                        }
+                                                        N(SyntaxKind.IsKeyword);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.UnsignedRightShiftExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "i");
+                                                        }
+                                                        N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.GreaterThanToken);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_08()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        M(out a < i >>> 2);
+    }
+}
+";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.OutKeyword);
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "a");
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.UnsignedRightShiftExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "i");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_09()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        //const int a = 1;
+        //const int i = 2;
+        switch (false)
+        {
+            case a < i >>> 2: break;
+        }
+    }
+}
+";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchStatement);
+                            {
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.FalseLiteralExpression);
+                                {
+                                    N(SyntaxKind.FalseKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
+                                {
+                                    N(SyntaxKind.CaseSwitchLabel);
+                                    {
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "a");
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.UnsignedRightShiftExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "i");
+                                                }
+                                                N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.BreakStatement);
+                                    {
+                                        N(SyntaxKind.BreakKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_10()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        //int a = 1;
+        //int i = 1;
+        var j = a < i >>> 2;
+    }
+}
+";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "j");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "a");
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.UnsignedRightShiftExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "i");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
                                                     N(SyntaxKind.NumericLiteralExpression);
                                                     {
                                                         N(SyntaxKind.NumericLiteralToken, "2");
@@ -3800,6 +4964,67 @@ select t";
             EOF();
         }
 
+        [Fact]
+        public void InterpolatedStringExpressionSurroundedByCurlyBraces()
+        {
+            UsingExpression("$\"{{{12}}}\"");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+        }
+
+        [Fact]
+        public void InterpolatedStringExpressionWithFormatClauseSurroundedByCurlyBraces()
+        {
+            UsingExpression("$\"{{{12:X}}}\"");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
+                    N(SyntaxKind.InterpolationFormatClause);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.InterpolatedStringTextToken, "X");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+        }
+
         [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
         public void ConditionalExpressionInInterpolation()
         {
@@ -4009,10 +5234,21 @@ select t";
         [Fact]
         public void NullCoalescingAssignmentCSharp7_3()
         {
-            UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8652: The feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
+            var test = "a ??= b";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,32): error CS8370: Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 32),
+                // (1,36): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 36));
+
+            UsingExpression(test, TestOptions.Regular7_3);
 
             N(SyntaxKind.CoalesceAssignmentExpression);
             {
@@ -4048,7 +5284,7 @@ select t";
         public void RangeExpression_ThreeDots()
         {
             UsingExpression("1...2",
-                // (1,2): error CS8401: Unexpected character sequence '...'
+                // (1,2): error CS8635: Unexpected character sequence '...'
                 // 1...2
                 Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
 
@@ -4061,7 +5297,7 @@ select t";
                 N(SyntaxKind.DotDotToken);
                 N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.NumericLiteralToken, ".2");
+                    N(SyntaxKind.NumericLiteralToken, "2");
                 }
             }
             EOF();
@@ -4114,7 +5350,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Binary_WithALowerPrecedenceOperator()
+        public void RangeExpression_Binary_WithALowerPrecedenceOperator_01()
         {
             UsingExpression("1<<2..3>>4");
             N(SyntaxKind.RightShiftExpression);
@@ -4140,6 +5376,41 @@ select t";
                     }
                 }
                 N(SyntaxKind.GreaterThanGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithALowerPrecedenceOperator_02()
+        {
+            UsingExpression("1<<2..3>>>4");
+            N(SyntaxKind.UnsignedRightShiftExpression);
+            {
+                N(SyntaxKind.LeftShiftExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.LessThanLessThanToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                    }
+                }
+                N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
                 N(SyntaxKind.NumericLiteralExpression);
                 {
                     N(SyntaxKind.NumericLiteralToken, "4");
@@ -4694,12 +5965,12 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_ConditionalAccessExpression()
+        public void RangeExpression_ConditionalAccessExpression_01()
         {
             UsingExpression("c?..b",
                 // (1,6): error CS1003: Syntax error, ':' expected
                 // c?..b
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 6),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 6),
                 // (1,6): error CS1733: Expected expression
                 // c?..b
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
@@ -4723,6 +5994,50 @@ select t";
                 M(SyntaxKind.IdentifierName);
                 {
                     M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_ConditionalAccessExpression_02()
+        {
+            // It would also be reasonable to parse this as '(c?.b)..(a)', but a Range doesn't accept nullable operands, so the below parse is acceptable.
+            UsingExpression("c?.b..a",
+                // (1,6): error CS1001: Identifier expected
+                // c?.b..a
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 6));
+
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
                 }
             }
             EOF();
@@ -4804,20 +6119,13 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadRefElementAccess()
         {
             UsingExpression("new[] { ref[] }",
                 // (1,9): error CS1525: Invalid expression term 'ref'
                 // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9),
-                // (1,12): error CS1525: Invalid expression term '['
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 12),
-                // (1,13): error CS0443: Syntax error; value expected
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -4830,24 +6138,10 @@ select t";
                     N(SyntaxKind.RefExpression);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ElementAccessExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                M(SyntaxKind.Argument);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
@@ -4893,9 +6187,6 @@ select t";
         public void ObjectInitializer_BadRef()
         {
             UsingExpression("new C { P = ref }",
-                // (1,13): error CS1525: Invalid expression term 'ref'
-                // new C { P = ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 13),
                 // (1,17): error CS1525: Invalid expression term '}'
                 // new C { P = ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 17));
@@ -4937,9 +6228,6 @@ select t";
         public void CollectionInitializer_BadRef_01()
         {
             UsingExpression("new C { ref }",
-                // (1,9): error CS1525: Invalid expression term 'ref'
-                // new C { ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
                 // (1,13): error CS1525: Invalid expression term '}'
                 // new C { ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));
@@ -5018,7 +6306,7 @@ select t";
         [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void AttributeArgument_BadRef()
         {
-            UsingTree("class C { [Attr(ref)] void M() { } }").GetDiagnostics().Verify(
+            UsingTree("class C { [Attr(ref)] void M() { } }",
                 // (1,17): error CS1525: Invalid expression term 'ref'
                 // class C { [Attr(ref)] void M() { } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(1, 17),
@@ -5149,14 +6437,13 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
-                // (1,9): error CS1003: Syntax error, ',' expected
+                // (1,9): error CS1041: Identifier expected; 'in' is a keyword
                 // new[] { in[] }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5166,20 +6453,24 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
-                    // (1,9): error CS1003: Syntax error, ',' expected
-                    // new[] { out[] }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(1, 9));
+                // (1,9): error CS1041: Identifier expected; 'out' is a keyword
+                // new[] { out[] }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5189,6 +6480,11 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
@@ -5233,6 +6529,2356 @@ select t";
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_01()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                // (7,31): error CS1001: Identifier expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                // (7,33): error CS1003: Syntax error, ')' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                // (7,33): error CS1003: Syntax error, ',' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(7, 33),
+                // (7,34): error CS1026: ) expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 34)
+                );
+        }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_02()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}\F\G{H}_{I.J.K(""L"")}.M"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                    // (7,31): error CS1001: Identifier expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                    // (7,33): error CS1003: Syntax error, ')' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                    // (7,33): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(7, 33),
+                    // (7,34): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 34),
+                    // (7,35): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",").WithLocation(7, 35),
+                    // (7,36): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 36),
+                    // (7,37): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "G").WithArguments(",").WithLocation(7, 37),
+                    // (7,38): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(7, 38),
+                    // (7,39): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "H").WithArguments(",").WithLocation(7, 39),
+                    // (7,40): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(7, 40),
+                    // (7,41): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",").WithLocation(7, 41),
+                    // (7,42): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(7, 42),
+                    // (7,43): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments(",").WithLocation(7, 43),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,50): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "L").WithArguments(",").WithLocation(7, 50),
+                    // (7,51): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, @""")}.M""").WithArguments(",").WithLocation(7, 51)
+                );
+        }
+
+        [Fact]
+        public void UnsignedRightShift_01()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
+            {
+                UsingExpression("x >>> y", options);
+
+                N(SyntaxKind.UnsignedRightShiftExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShift_02()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
+            {
+                UsingExpression("x > >> y", options,
+                    // (1,5): error CS1525: Invalid expression term '>'
+                    // x > >> y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 5)
+                    );
+
+                N(SyntaxKind.GreaterThanExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.RightShiftExpression);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShift_03()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
+            {
+                UsingExpression("x >> > y", options,
+                    // (1,6): error CS1525: Invalid expression term '>'
+                    // x >> > y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 6)
+                    );
+
+                N(SyntaxKind.GreaterThanExpression);
+                {
+                    N(SyntaxKind.RightShiftExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_01()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
+            {
+                UsingExpression("x >>>= y", options);
+
+                N(SyntaxKind.UnsignedRightShiftAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_02()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
+            {
+                UsingExpression("x > >>= y", options,
+                    // (1,5): error CS1525: Invalid expression term '>'
+                    // x > >>= y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 5)
+                    );
+
+                N(SyntaxKind.RightShiftAssignmentExpression);
+                {
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_03()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
+            {
+                UsingExpression("x >> >= y", options,
+                    // (1,6): error CS1525: Invalid expression term '>='
+                    // x >> >= y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">=").WithArguments(">=").WithLocation(1, 6)
+                    );
+
+                N(SyntaxKind.GreaterThanOrEqualExpression);
+                {
+                    N(SyntaxKind.RightShiftExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_04()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
+            {
+                UsingExpression("x >>> = y", options,
+                    // (1,7): error CS1525: Invalid expression term '='
+                    // x >>> = y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 7)
+                    );
+
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.UnsignedRightShiftExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression1()
+        {
+            var text = "x is X ? from item in collection select item : null";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierToken, "item");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "collection");
+                        }
+                    }
+                    N(SyntaxKind.QueryBody);
+                    {
+                        N(SyntaxKind.SelectClause);
+                        {
+                            N(SyntaxKind.SelectKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "item");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression2()
+        {
+            var text = "x is X.Y ? from item in collection select item : null";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierToken, "item");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "collection");
+                        }
+                    }
+                    N(SyntaxKind.QueryBody);
+                    {
+                        N(SyntaxKind.SelectClause);
+                        {
+                            N(SyntaxKind.SelectKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "item");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression_Incomplete()
+        {
+            var text = "x is X.Y ? from item";
+
+            UsingExpression(text,
+                // (1,21): error CS1001: Identifier expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, 'in' expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("in").WithLocation(1, 21),
+                // (1,21): error CS1733: Expected expression
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21),
+                // (1,21): error CS0742: A query body must end with a select clause or a group clause
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpectedSelectOrGroup, "").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, ':' expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 21),
+                // (1,21): error CS1733: Expected expression
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "item");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.InKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.QueryBody);
+                    {
+                        M(SyntaxKind.SelectClause);
+                        {
+                            M(SyntaxKind.SelectKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonInsteadOfEqualsSign()
+        {
+            UsingExpression("new Class1 { X: 0 }",
+                // (1,15): error CS1003: Syntax error, '=' expected
+                // new Class1 { X: 0 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 15));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        M(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ImplicitObjectInitializerWithColonInsteadOfEqualsSign()
+        {
+            UsingStatement("Class1 c1 = new() { X: 0 };",
+                // (1,22): error CS1003: Syntax error, '=' expected
+                // Class1 c1 = new() { X: 0 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 22));
+
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Class1");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c1");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ImplicitObjectCreationExpression);
+                            {
+                                N(SyntaxKind.NewKeyword);
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ObjectInitializerExpression);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "X");
+                                        }
+                                        M(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonInsteadOfEqualsSignInNestedInitialization()
+        {
+            UsingExpression("new Class1 { X = { Y: 0 } }",
+                // (1,21): error CS1003: Syntax error, '=' expected
+                // new Class1 { X = { Y: 0 } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 21));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Y");
+                                }
+                                M(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonInsteadOfEqualsSignInCollectionInitializer()
+        {
+            UsingExpression("new Class1 { X = { [0] = { Y: 0 } } }",
+                // (1,29): error CS1003: Syntax error, '=' expected
+                // new Class1 { X = { [0] = { Y: 0 } } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 29));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.ImplicitElementAccess);
+                                {
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.ObjectInitializerExpression);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Y");
+                                        }
+                                        M(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonAndDashInsteadOfEqualsSigns()
+        {
+            UsingExpression("new Class1 { X: 0, Y - 0 }",
+                // (1,15): error CS1003: Syntax error, '=' expected
+                // new Class1 { X: 0, Y - 0 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 15));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        M(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SubtractExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.MinusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11418")]
+        public void LetClauseWithKeywordAsIdentifier1()
+        {
+            UsingExpression("from m in methods let params = 1 select m",
+                // (1,23): error CS1041: Identifier expected; 'params' is a keyword
+                // from m in methods let params = m.GetParameters() select m
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "params").WithArguments("", "params").WithLocation(1, 23));
+
+            N(SyntaxKind.QueryExpression);
+            {
+                N(SyntaxKind.FromClause);
+                {
+                    N(SyntaxKind.FromKeyword);
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.InKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "methods");
+                    }
+                }
+                N(SyntaxKind.QueryBody);
+                {
+                    N(SyntaxKind.LetClause);
+                    {
+                        N(SyntaxKind.LetKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.SelectClause);
+                    {
+                        N(SyntaxKind.SelectKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "m");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11418")]
+        public void LetClauseWithKeywordAsIdentifier2()
+        {
+            UsingExpression("from m in methods let and = 1 select m");
+
+            N(SyntaxKind.QueryExpression);
+            {
+                N(SyntaxKind.FromClause);
+                {
+                    N(SyntaxKind.FromKeyword);
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.InKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "methods");
+                    }
+                }
+                N(SyntaxKind.QueryBody);
+                {
+                    N(SyntaxKind.LetClause);
+                    {
+                        N(SyntaxKind.LetKeyword);
+                        N(SyntaxKind.IdentifierToken, "and");
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.SelectClause);
+                    {
+                        N(SyntaxKind.SelectKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "m");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11418")]
+        public void LetClauseWithKeywordAsIdentifier3()
+        {
+            UsingExpression("from m in methods let let = 1 select m",
+                // (1,23): error CS1525: Invalid expression term 'let'
+                // from m in methods let let = 1 select m
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "let").WithArguments("let").WithLocation(1, 23),
+                // (1,23): error CS1003: Syntax error, '=' expected
+                // from m in methods let let = 1 select m
+                Diagnostic(ErrorCode.ERR_SyntaxError, "let").WithArguments("=").WithLocation(1, 23),
+                // (1,23): error CS1525: Invalid expression term 'let'
+                // from m in methods let let = 1 select m
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "let").WithArguments("let").WithLocation(1, 23),
+                // (1,27): error CS1001: Identifier expected
+                // from m in methods let let = 1 select m
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 27));
+
+            N(SyntaxKind.QueryExpression);
+            {
+                N(SyntaxKind.FromClause);
+                {
+                    N(SyntaxKind.FromKeyword);
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.InKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "methods");
+                    }
+                }
+                N(SyntaxKind.QueryBody);
+                {
+                    N(SyntaxKind.LetClause);
+                    {
+                        N(SyntaxKind.LetKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.EqualsToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.LetClause);
+                    {
+                        N(SyntaxKind.LetKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.SelectClause);
+                    {
+                        N(SyntaxKind.SelectKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "m");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInIfStatement1()
+        {
+            UsingTree("""
+                if (Boo Quux())
+                {
+                }
+                """,
+                // (1,9): error CS1073: Unexpected token 'Quux'
+                // if (Boo Quux())
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4009")]
+        public void InProgressMultipleExpressionsInIfStatement2()
+        {
+            UsingTree("""
+                if (1 2)
+                    return;
+                """,
+                // (1,7): error CS1073: Unexpected token '2'
+                // if (1 2)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "2").WithArguments("2").WithLocation(1, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ReturnStatement);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4009")]
+        public void InProgressMultipleExpressionsInIfStatement3()
+        {
+            UsingTree("""
+                if (1 2 3)
+                    return;
+                """,
+                // (1,7): error CS1026: ) expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "2").WithLocation(1, 7),
+                // (1,9): error CS1002: ; expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(1, 9),
+                // (1,10): error CS1002: ; expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 10),
+                // (1,10): error CS1022: Type or namespace definition, or end-of-file expected
+                // if (1 2 3)
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInParenthesizedExpression()
+        {
+            UsingTree("""
+                var v = (Boo Quux());
+                """,
+                // (1,14): error CS1073: Unexpected token 'Quux'
+                // var v = (Boo Quux());
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 14));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInCatchFilter()
+        {
+            UsingTree("""
+                try
+                {
+                }
+                catch (Exception e) when (Boo Quux())
+                {
+                }
+                """,
+                // (4,31): error CS1073: Unexpected token 'Quux'
+                // catch (Exception e) when (Boo Quux())
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(4, 31));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.TryStatement);
+                    {
+                        N(SyntaxKind.TryKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.CatchClause);
+                        {
+                            N(SyntaxKind.CatchKeyword);
+                            N(SyntaxKind.CatchDeclaration);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Exception");
+                                }
+                                N(SyntaxKind.IdentifierToken, "e");
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.CatchFilterClause);
+                            {
+                                N(SyntaxKind.WhenKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Boo");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInDoStatement()
+        {
+            UsingTree("""
+                do
+                {
+                }
+                while (Boo Quux());
+                """,
+                // (4,12): error CS1073: Unexpected token 'Quux'
+                // while (Boo Quux());
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(4, 12));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.DoStatement);
+                    {
+                        N(SyntaxKind.DoKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.WhileKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInLockStatement()
+        {
+            UsingTree("""
+                lock (Boo Quux())
+                {
+                }
+                """,
+                // (1,11): error CS1073: Unexpected token 'Quux'
+                // lock (Boo Quux())
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LockStatement);
+                    {
+                        N(SyntaxKind.LockKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInWhileStatement()
+        {
+            UsingTree("""
+                while (Boo Quux())
+                {
+                }
+                """,
+                // (1,12): error CS1073: Unexpected token 'Quux'
+                // while (Boo Quux())
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 12));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.WhileStatement);
+                    {
+                        N(SyntaxKind.WhileKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInMakeRefExpression()
+        {
+            UsingTree("""
+                var v = __makeref(Boo Quux());
+                """,
+                // (1,23): error CS1073: Unexpected token 'Quux'
+                // var v = __makeref(Boo Quux());
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 23));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.MakeRefExpression);
+                                    {
+                                        N(SyntaxKind.MakeRefKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInRefTypeExpression()
+        {
+            UsingTree("""
+                var v = __reftype(Boo Quux());
+                """,
+                // (1,23): error CS1073: Unexpected token 'Quux'
+                // var v = __reftype(Boo Quux());
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 23));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.RefTypeExpression);
+                                    {
+                                        N(SyntaxKind.RefTypeKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInRefValueExpression()
+        {
+            UsingTree("""
+                var v = __refvalue(Boo Quux);
+                """,
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // var v = __refvalue(Boo Quux);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 24));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.RefValueExpression);
+                                    {
+                                        N(SyntaxKind.RefValueKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        M(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Quux");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInCheckedExpression()
+        {
+            UsingTree("""
+                var v = checked(Boo Quux());
+                """,
+                // (1,21): error CS1073: Unexpected token 'Quux'
+                // var v = checked(Boo Quux());
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 21));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.CheckedExpression);
+                                    {
+                                        N(SyntaxKind.CheckedKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInUncheckedExpression()
+        {
+            UsingTree("""
+                var v = unchecked(Boo Quux());
+                """,
+                // (1,23): error CS1073: Unexpected token 'Quux'
+                // var v = unchecked(Boo Quux());
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 23));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.UncheckedExpression);
+                                    {
+                                        N(SyntaxKind.UncheckedKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInInvocationExpression1()
+        {
+            UsingTree("""
+                var v = Goo(Boo Quux());
+                """,
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // var v = Goo(Boo Quux());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 17));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Boo");
+                                                }
+                                            }
+                                            M(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Quux");
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInInvocationExpression2()
+        {
+            UsingTree("""
+                var v = Goo(1, Boo Quux());
+                """,
+                // (1,20): error CS1003: Syntax error, ',' expected
+                // var v = Goo(1, Boo Quux());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 20));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                                }
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Boo");
+                                                }
+                                            }
+                                            M(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Quux");
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInInvocationExpression3()
+        {
+            UsingTree("""
+                var v = Goo(Boo Quux(), 1);
+                """,
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // var v = Goo(Boo Quux(), 1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 17));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Boo");
+                                                }
+                                            }
+                                            M(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Quux");
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInObjectCreationExpression1()
+        {
+            UsingTree("""
+                var v = new Goo(Boo Quux());
+                """,
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // var v = new Goo(Boo Quux());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 21));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
+                                    {
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Boo");
+                                                }
+                                            }
+                                            M(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Quux");
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInTupleExpression()
+        {
+            UsingTree("""
+                var v = (a, b, 0 0);
+                """,
+                // (1,18): error CS1026: ) expected
+                // var v = (a, b, 0 0);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "0").WithLocation(1, 18),
+                // (1,18): error CS1003: Syntax error, ',' expected
+                // var v = (a, b, 0 0);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(1, 18));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.TupleExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "a");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "b");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        M(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInDeconstruction()
+        {
+            // Note: 'b c' is parsed as a declaration, which produces a binding error later.
+            UsingTree("""
+                (a, b, 0 0) = (a, b, c);
+                """,
+                // (1,10): error CS1026: ) expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "0").WithLocation(1, 10),
+                // (1,10): error CS1002: ; expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "0").WithLocation(1, 10),
+                // (1,11): error CS1002: ; expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 11),
+                // (1,11): error CS1022: Type or namespace definition, or end-of-file expected
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 11),
+                // (1,13): error CS1525: Invalid expression term '='
+                // (a, b, 0 0) = (a, b, c);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 13));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void TestParenthesizedDefaultInIsExpression()
+        {
+            // We don't want to treat `!` as the start of a new 'missing' expression.
+            UsingTree("""
+                if (i is (default)!) {}
+                """,
+                // (1,19): error CS1026: ) expected
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(1, 19),
+                // (1,20): error CS1525: Invalid expression term ')'
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 20),
+                // (1,20): error CS1002: ; expected
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 20),
+                // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 20));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.LogicalNotExpression);
+                            {
+                                N(SyntaxKind.ExclamationToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58298")]
+        public void OperatorErrorLocation1()
+        {
+            UsingTree("""
+                void M()
+                {
+                    <<;
+                }
+                """,
+                // (3,5): error CS1525: Invalid expression term '<<'
+                //     <<;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<<").WithArguments("<<").WithLocation(3, 5),
+                // (3,7): error CS1525: Invalid expression term ';'
+                //     <<;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.LeftShiftExpression);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.LessThanLessThanToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31774")]
+        public void OperatorErrorLocation2()
+        {
+            UsingTree("""
+                void M()
+                {
+                    // comment
+                    / Console.ReadKey();
+                }
+                """,
+                // (4,5): error CS1525: Invalid expression term '/'
+                //     / Console.ReadKey();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "/").WithArguments("/").WithLocation(4, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.DivideExpression);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.SlashToken);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Console");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "ReadKey");
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31774")]
+        public void OperatorErrorLocation3()
+        {
+            UsingTree("""
+                void M()
+                {
+                    // comment
+                    = Console.ReadKey();
+                }
+                """,
+                // (4,5): error CS1525: Invalid expression term '='
+                //     = Console.ReadKey();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(4, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Console");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "ReadKey");
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }

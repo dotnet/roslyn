@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -210,6 +210,11 @@ namespace Roslyn.Utilities
 
         private static readonly char[] s_invalidPathChars = Path.GetInvalidPathChars();
 
+        internal static string GetNormalizedPathOrOriginalPath(string path, string? basePath)
+        {
+            return NormalizeRelativePath(path, basePath, baseDirectory: null) ?? path;
+        }
+
         internal static string? NormalizeRelativePath(string path, string? basePath, string? baseDirectory)
         {
             // Does this look like a URI at all or does it have any invalid path characters? If so, just use it as is.
@@ -269,7 +274,10 @@ namespace Roslyn.Utilities
 
         internal static string? TryNormalizeAbsolutePath(string path)
         {
-            Debug.Assert(PathUtilities.IsAbsolute(path));
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                return null;
+            }
 
             try
             {
@@ -306,17 +314,35 @@ namespace Roslyn.Utilities
             return RethrowExceptionsAsIOException(() => new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous));
         }
 
-        internal static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+        public static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+            => RethrowExceptionsAsIOException(
+                static operation => operation(),
+                operation);
+
+        public static T RethrowExceptionsAsIOException<T, TArg>(Func<TArg, T> operation, TArg arg)
         {
             try
             {
-                return operation();
+                return operation(arg);
             }
-            catch (IOException)
+            catch (Exception e) when (e is not IOException)
             {
-                throw;
+                throw new IOException(e.Message, e);
             }
-            catch (Exception e)
+        }
+
+        public static Task<T> RethrowExceptionsAsIOExceptionAsync<T>(Func<Task<T>> operation)
+            => RethrowExceptionsAsIOExceptionAsync(
+                static operation => operation(),
+                operation);
+
+        public static async Task<T> RethrowExceptionsAsIOExceptionAsync<T, TArg>(Func<TArg, Task<T>> operation, TArg arg)
+        {
+            try
+            {
+                return await operation(arg).ConfigureAwait(false);
+            }
+            catch (Exception e) when (e is not IOException)
             {
                 throw new IOException(e.Message, e);
             }
@@ -401,19 +427,20 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static Stream OpenFileStream(string path)
+        /// <exception cref="IOException"/>
+        /// <summary>
+        /// Preferred mechanism to obtain both length and last write time of a file. Querying independently
+        /// requires multiple i/o hits which are expensive, even if cached.
+        /// </summary>
+        internal static void GetFileLengthAndTimeStamp(string fullPath, out long fileLength, out DateTime timeStamp)
         {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             try
             {
-                return File.OpenRead(path);
-            }
-            catch (ArgumentException)
-            {
-                throw;
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                throw new FileNotFoundException(e.Message, path, e);
+                var info = new FileInfo(fullPath);
+
+                fileLength = info.Length;
+                timeStamp = info.LastWriteTimeUtc;
             }
             catch (IOException)
             {

@@ -6,13 +6,17 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- This component is deployed with remote debugger tools. It needs to work on .NET Framework 4.5 and Core CLR 1.0 (Windows OneCore) -->
-    <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_ERROR_REPORTING;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+    <!--
+      Workaround: https://github.com/dotnet/roslyn/issues/78392
+      We use NO_VALUE_TUPLE symbol to conditionally compile the code that
+      uses ValueTuple because remote debugger does not ship it.
+    -->
+    <DefineConstants>$(DefineConstants);NO_VALUE_TUPLE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>Compiler\ExceptionUtilities.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\MetadataReader\MetadataTypeCodeExtensions.cs">
       <Link>Compiler\MetadataTypeCodeExtensions.cs</Link>
     </Compile>
@@ -22,8 +26,8 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\WellKnownMemberNames.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
-      <Link>Compiler\NullableAttributes.cs</Link>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
+      <Link>Compiler\CommonGeneratedNames.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
       <Link>Compiler\RoslynString.cs</Link>
@@ -37,6 +41,15 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameKind.cs">
+      <Link>CSharp\Compiler\GeneratedNameKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameParser.cs">
+      <Link>CSharp\Compiler\GeneratedNameParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameConstants.cs">
+      <Link>CSharp\Compiler\GeneratedNameConstants.cs</Link>
+    </Compile>
     <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
       <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
@@ -47,13 +60,11 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation">
-      <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
-      <ExcludeAssets>compile</ExcludeAssets>
-    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Reflection.Metadata" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" ExcludeAssets="compile" />
   </ItemGroup>
+  <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

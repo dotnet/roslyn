@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             // This test ensures that our perf benchmark code compiles without problems.
             // Benchmark code can be found in the following file under the 
-            // "CompilerTestResources" project that is part of Roslyn.sln -
+            // "CompilerTestResources" project that is part of Roslyn.slnx -
             //      $/Roslyn/Main/Open/Compilers/Test/Resources/Core/PerfTests/CSPerfTest.cs
 
             // You can also use VS's "Navigate To" feature to find the above file easily -

@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -14,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class ProgrammaticSuppressionInfo : IEquatable<ProgrammaticSuppressionInfo?>
     {
-        public ImmutableHashSet<(string Id, LocalizableString Justification)> Suppressions { get; }
+        public ImmutableArray<Suppression> Suppressions { get; }
 
-        internal ProgrammaticSuppressionInfo(ImmutableHashSet<(string Id, LocalizableString Justification)> suppressions)
+        internal ProgrammaticSuppressionInfo(ImmutableArray<Suppression> suppressions)
         {
             Suppressions = suppressions;
         }
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return other != null &&
-                this.Suppressions.SetEquals(other.Suppressions);
+                this.Suppressions.SetEquals(other.Suppressions, EqualityComparer<Suppression>.Default);
         }
 
         public override bool Equals(object? obj)
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override int GetHashCode()
         {
-            return Suppressions.Count;
+            return Suppressions.Length;
         }
     }
 }

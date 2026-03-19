@@ -3,44 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class GlobalKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.GlobalKeyword)
 {
-    internal class GlobalKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public GlobalKeywordRecommender()
-            : base(SyntaxKind.GlobalKeyword)
+        var syntaxTree = context.SyntaxTree;
+
+        if (syntaxTree.IsMemberDeclarationContext(position, context.LeftToken))
         {
+            var token = context.TargetToken;
+            if (token.GetAncestor<EnumDeclarationSyntax>() == null)
+                return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var syntaxTree = context.SyntaxTree;
-
-            if (syntaxTree.IsMemberDeclarationContext(position, context.LeftToken))
-            {
-                var token = context.TargetToken;
-
-                if (token.GetAncestor<EnumDeclarationSyntax>() == null)
-                {
-                    return true;
-                }
-            }
-
-            return
-                context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
-                context.IsAnyExpressionContext ||
-                context.IsObjectCreationTypeContext ||
-                context.IsIsOrAsTypeContext ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.RefKeyword, cancellationToken) ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.ReadOnlyKeyword, cancellationToken) ||
-                syntaxTree.IsUsingAliasContext(position, cancellationToken);
-        }
+        return
+            context.IsTypeContext ||
+            context.IsEnumBaseListContext ||
+            UsingKeywordRecommender.IsUsingDirectiveContext(context, forGlobalKeyword: true, cancellationToken);
     }
 }

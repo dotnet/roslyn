@@ -4,7 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642a()
+            ' ILVerify: Unexpected type on the stack. { Offset = 16, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -49,7 +50,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>).
+</compilation>, verify:=Verification.FailsILVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -628,10 +629,9 @@ expectedOutput:=<![CDATA[
         <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
         <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
         <WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")>
-        <ConditionalFact(GetType(DesktopOnly))>
+        <Fact>
         Public Sub DecimalLiteral_BreakingChange()
-
-            CompileAndVerify(
+            Dim source =
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System
@@ -652,7 +652,9 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>
+            If (ExecutionConditionUtil.IsDesktop) Then
+                CompileAndVerify(source, references:=XmlReferences, expectedOutput:=<![CDATA[
 0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -664,7 +666,20 @@ End Module
 
 0.1000000000000000000000000000
 ]]>)
+            ElseIf ExecutionConditionUtil.IsCoreClr Then
+                CompileAndVerify(source, references:=XmlReferences, expectedOutput:=<![CDATA[
+0.0000000000000000000000000031
+0.0000000000000000000000000031
 
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+]]>)
+            End If
         End Sub
 
         <Fact()>
@@ -757,7 +772,6 @@ Module M
 End Module
     ]]></file>
 </compilation>)
-
 
             Dim d As Decimal = 0
             If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
@@ -1043,14 +1057,14 @@ Imports System
 Imports System.Collections
 Class CLS
     Implements IEnumerable
- 
+
     Public Shared Sub Main(args() As String)
         Dim x = New CLS() From {1, 2, 3}
     End Sub
- 
+
     Partial Private Sub Add(i As Integer)
     End Sub
- 
+
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
         Return Nothing
     End Function
@@ -1200,9 +1214,9 @@ End Class
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Attribute
 {
-  .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = ( 01 00 FF 7F 00 00 00 00 ) 
+  .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = ( 01 00 FF 7F 00 00 00 00 )
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -1211,7 +1225,7 @@ End Class
     IL_0001:  ret
   } // end of method B::get_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -1219,7 +1233,7 @@ End Class
     IL_0000:  ret
   } // end of method B::set_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -1228,7 +1242,7 @@ End Class
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -1236,7 +1250,7 @@ End Class
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -1245,7 +1259,7 @@ End Class
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_r
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -1253,7 +1267,7 @@ End Class
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -1283,7 +1297,7 @@ End Class
 .class public auto ansi beforefieldinit D1
        extends B
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -1292,7 +1306,7 @@ End Class
     IL_0001:  ret
   } // end of method D1::get_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -1301,7 +1315,7 @@ End Class
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -1309,7 +1323,7 @@ End Class
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -1318,7 +1332,7 @@ End Class
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_r
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -1326,7 +1340,7 @@ End Class
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -1355,7 +1369,7 @@ End Class
 .class public auto ansi beforefieldinit D2
        extends D1
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -1363,7 +1377,7 @@ End Class
     IL_0000:  ret
   } // end of method D2::set_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -1371,7 +1385,7 @@ End Class
     IL_0000:  ret
   } // end of method D2::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -1380,7 +1394,7 @@ End Class
     IL_0001:  ret
   } // end of method D2::get_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -1410,8 +1424,8 @@ End Class
   .custom instance void D2::.ctor() = ( 01 00 03 00 54 08 08 50 5F 72 77 5F 72 5F 77 01   // ....T..P_rw_r_w.
                                         00 00 00 54 08 09 50 5F 72 77 5F 72 77 5F 77 02   // ...T..P_rw_rw_w.
                                         00 00 00 54 08 09 50 5F 72 77 5F 72 77 5F 72 03   // ...T..P_rw_rw_r.
-                                        00 00 00 ) 
-  .method public hidebysig specialname rtspecialname 
+                                        00 00 00 )
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -1527,11 +1541,11 @@ expectedOutput:=<![CDATA[True]]>).
 {
   .field private static string[] s
 
-  .method public specialname static int32[] 
+  .method public specialname static int32[]
           get_X(string[]& a) cil managed
   {
     .param [1]
-    .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 ) 
+    .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 )
     // Code size       18 (0x12)
     .maxstack  1
     .locals init ([0] int32[] X)
@@ -1547,12 +1561,12 @@ expectedOutput:=<![CDATA[True]]>).
     IL_0011:  ret
   } // end of method RedimTest::get_X
 
-  .method public specialname static void 
+  .method public specialname static void
           set_X(string[]& a,
                 int32[] 'value') cil managed
   {
     .param [1]
-    .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 ) 
+    .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 )
     // Code size       17 (0x11)
     .maxstack  8
     IL_0000:  nop
@@ -1638,7 +1652,7 @@ End Module
     IL_0001:  ret
   }
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     .maxstack  8
@@ -1665,7 +1679,7 @@ End Module
 Imports System
 Module C
   Sub S()
-    Dim b  As Boolean = (New B()).M1 AndAlso (New B()).M2 
+    Dim b  As Boolean = (New B()).M1 AndAlso (New B()).M2
   End Sub
 End Module
     </file>
@@ -1696,7 +1710,7 @@ End Module
 .class sequential ansi sealed public Struct1
          extends [mscorlib]System.ValueType
 {
-    .method public hidebysig virtual instance string 
+    .method public hidebysig virtual instance string
             ToString() cil managed
     {
       // Code size       11 (0xb)
@@ -1958,12 +1972,12 @@ expectedOutput:=<![CDATA[
     <file name="a.vb">
 Imports System
 
-Interface I 
+Interface I
     Sub M()
 End Interface
 
 Public Structure S1
-    Implements I 
+    Implements I
 
     Public Sub M() Implements I.M
         System.Console.WriteLine("S1:M")
@@ -2213,7 +2227,7 @@ End Class
 Class MainClass
     Public Shared Function g(p As Boolean) As Integer
         Return (If(p, DirectCast(New AB1(), IB), DirectCast(New AB2(), IB))).f()
-    End Function 
+    End Function
     Public Shared Sub Main()
         System.Console.WriteLine(g(True))
         System.Console.WriteLine(g(False))
@@ -2314,7 +2328,7 @@ Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Security
 
-<Assembly: SecurityTransparent()> 
+<Assembly: SecurityTransparent()>
 
 Class Program
     Private Shared Function C() As Boolean
@@ -2358,7 +2372,6 @@ End Class
 }
 ]]>)
         End Sub
-
 
         <WorkItem(546809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
         <Fact()>
@@ -2445,7 +2458,7 @@ End Class
 Class MainClass
     Public Shared Function g() As Integer
         Return (If(DirectCast(New AB1(), IB), DirectCast(New AB2(), IB))).f()
-    End Function 
+    End Function
     Public Shared Sub Main()
         System.Console.WriteLine(g())
     End Sub
@@ -2479,7 +2492,6 @@ expectedOutput:=<![CDATA[
 
             CompileAndVerify(
 <compilation>
-
     <file name="a.vb">Imports System
 Imports System.Globalization
 
@@ -2515,7 +2527,7 @@ Class EmitTest
     End Sub
 
     Public Shared Sub WriteResult(name As String, result As Object)
-        Dim val = GetCultureInvariantString(result) 
+        Dim val = GetCultureInvariantString(result)
         Console.WriteLine("{0}:  {1}", name.PadLeft(10),
                                  If(result Is Nothing, "&lt;Nothing&gt;", String.Format("{0}||{1}", val, result.GetType.FullName)))
     End Sub
@@ -3287,7 +3299,7 @@ Public Module Program
     Public Function CoalesceGeneric(Of T As Structure)(x As T?) As T
         Return If(x, CType(Nothing, T))
     End Function
-        
+
     public Function CoalesceTuple(x As (a As Boolean, b As System.Guid)?) As (a As Boolean, b As System.Guid)
         Return If(x, CType(Nothing, (a As Boolean, b As System.Guid)))
     End Function
@@ -3351,7 +3363,7 @@ End Module</file>
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function (a As Boolean, b As System.Guid)?.GetValueOrDefault() As (a As Boolean, b As System.Guid)"
+  IL_0002:  call       "Function System.ValueTuple(Of Boolean, System.Guid)?.GetValueOrDefault() As System.ValueTuple(Of Boolean, System.Guid)"
   IL_0007:  ret
 }]]>).
             VerifyIL("Program.CoalesceUserStruct",
@@ -3401,14 +3413,14 @@ End Module</file>
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function (a As Boolean, b As System.Guid, c As String)?.GetValueOrDefault() As (a As Boolean, b As System.Guid, c As String)"
+  IL_0002:  call       "Function System.ValueTuple(Of Boolean, System.Guid, String)?.GetValueOrDefault() As System.ValueTuple(Of Boolean, System.Guid, String)"
   IL_0007:  ret
 }
 ]]>)
         End Sub
 
-        <Fact()>
-        Public Sub TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3461,32 +3473,24 @@ End Module</file>
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault1",
             <![CDATA[
- { 
-  // Code size       19 (0x13)
-  .maxstack  1
+{
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  ldc.i4.2
-  IL_000a:  ret
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0012:  ret
+  IL_0002:  ldc.i4.2
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  ret
 }
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault2",
             <![CDATA[
- {
-  // Code size       19 (0x13)
-  .maxstack  1
+{
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  ldarg.1
-  IL_000a:  ret
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0012:  ret
+  IL_0002:  ldarg.1
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  ret
 }
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault3",
@@ -3520,6 +3524,71 @@ End Module</file>
   IL_0014:  ret
 }
             ]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault_ByRefParameter()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceWithNonDefault(x As Integer?, ByRef y As Integer) As Integer
+        Return If(x, y)
+    End Function
+End Module</file>
+</compilation>)
+
+            ' Dereferencing might throw, so no `GetValueOrDefault(defaultValue)` optimization here
+            verifier.VerifyIL("Program.CoalesceWithNonDefault",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldarg.1
+  IL_000a:  ldind.i4
+  IL_000b:  ret
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault_Local()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceWithNonDefault(x As Integer?) As Integer
+        Dim y = 3
+        Dim z = If(x, y)
+        Return y + z
+    End Function
+End Module</file>
+</compilation>).
+            VerifyIL("Program.CoalesceWithNonDefault",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (Integer V_0, //y
+                Integer V_1) //z
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  ldloc.0
+  IL_0005:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  add.ovf
+  IL_000e:  ret
+}
+]]>)
         End Sub
 
         <Fact()>
@@ -3561,7 +3630,7 @@ value
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
         Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -3573,10 +3642,98 @@ Public Module Program
 End Module</file>
 </compilation>)
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to calling `GetValueOrDefault(defaultValue)` member
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  box        "Integer"
+  IL_000d:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 0)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
             compilation.AssertTheseEmitDiagnostics(
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
         Return If(x, 0)
+                  ~
+</errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to less efficient implementation with branching
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.2
+  IL_000a:  br.s       IL_0013
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  box        "Integer"
+  IL_0018:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
+        Return If(x, 2)
                   ~
 </errors>)
         End Sub
@@ -3614,7 +3771,7 @@ Test01:  123||System.Int32
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub Main()
         Dim cond As Boolean
@@ -3689,7 +3846,7 @@ Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Security
 
-<Assembly: SecurityTransparent()> 
+<Assembly: SecurityTransparent()>
 
 Namespace TernaryAndVarianceConversion
     Delegate Sub CovariantDelegateWithVoidReturn(Of Out T)()
@@ -3988,7 +4145,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub Main()
         dim breakLoop as Boolean
@@ -3996,7 +4153,7 @@ Module M1
         Do While breakLoop
             Console.WriteLine("Iterate")
             breakLoop = false
-        Loop    
+        Loop
     End Sub
 End Module
     </file>
@@ -4008,16 +4165,16 @@ End Module
   // Code size       20 (0x14)
   .maxstack  1
   .locals init (Boolean V_0) //breakLoop
-  IL_0000:  ldc.i4.1  
-  IL_0001:  stloc.0   
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
   IL_0002:  br.s       IL_0010
   IL_0004:  ldstr      "Iterate"
   IL_0009:  call       "Sub System.Console.WriteLine(String)"
-  IL_000e:  ldc.i4.0  
-  IL_000f:  stloc.0   
-  IL_0010:  ldloc.0   
+  IL_000e:  ldc.i4.0
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
   IL_0011:  brtrue.s   IL_0004
-  IL_0013:  ret       
+  IL_0013:  ret
 }
 ]]>)
         End Sub
@@ -4027,7 +4184,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub Main()
         dim breakLoop as Boolean
@@ -4035,7 +4192,7 @@ Module M1
         Do Until breakLoop
             Console.WriteLine("Iterate")
             breakLoop = false
-        Loop    
+        Loop
     End Sub
 End Module
     </file>
@@ -4047,16 +4204,16 @@ expectedOutput:="").
   // Code size       20 (0x14)
   .maxstack  1
   .locals init (Boolean V_0) //breakLoop
-  IL_0000:  ldc.i4.1  
-  IL_0001:  stloc.0   
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
   IL_0002:  br.s       IL_0010
   IL_0004:  ldstr      "Iterate"
   IL_0009:  call       "Sub System.Console.WriteLine(String)"
-  IL_000e:  ldc.i4.0  
-  IL_000f:  stloc.0   
-  IL_0010:  ldloc.0   
+  IL_000e:  ldc.i4.0
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
   IL_0011:  brfalse.s  IL_0004
-  IL_0013:  ret       
+  IL_0013:  ret
 }
 ]]>)
         End Sub
@@ -4066,12 +4223,12 @@ expectedOutput:="").
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub Main()
         dim breakLoop as Boolean
         breakLoop = true
-        Do 
+        Do
             Console.WriteLine("Iterate")
             breakLoop = false
         Loop While breakLoop
@@ -4088,15 +4245,15 @@ Iterate
   // Code size       18 (0x12)
   .maxstack  1
   .locals init (Boolean V_0) //breakLoop
-  IL_0000:  ldc.i4.1  
-  IL_0001:  stloc.0   
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
   IL_0002:  ldstr      "Iterate"
   IL_0007:  call       "Sub System.Console.WriteLine(String)"
-  IL_000c:  ldc.i4.0  
-  IL_000d:  stloc.0   
-  IL_000e:  ldloc.0   
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
   IL_000f:  brtrue.s   IL_0002
-  IL_0011:  ret       
+  IL_0011:  ret
 }
 ]]>)
         End Sub
@@ -4106,12 +4263,12 @@ Iterate
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub M()
         dim breakLoop as Boolean
         breakLoop = true
-        Do 
+        Do
             Console.WriteLine("Iterate")
             breakLoop = false
         Loop Until breakLoop
@@ -4125,15 +4282,15 @@ End Module
   // Code size       18 (0x12)
   .maxstack  1
   .locals init (Boolean V_0) //breakLoop
-  IL_0000:  ldc.i4.1  
-  IL_0001:  stloc.0   
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
   IL_0002:  ldstr      "Iterate"
   IL_0007:  call       "Sub System.Console.WriteLine(String)"
-  IL_000c:  ldc.i4.0  
-  IL_000d:  stloc.0   
-  IL_000e:  ldloc.0   
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
   IL_000f:  brfalse.s  IL_0002
-  IL_0011:  ret       
+  IL_0011:  ret
 }
 ]]>)
         End Sub
@@ -4143,12 +4300,12 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Sub M()
-        Do 
+        Do
             Console.WriteLine("Iterate")
-        Loop 
+        Loop
     End Sub
 End Class
     </file>
@@ -4170,7 +4327,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub Main()
         dim breakLoop as Boolean
@@ -4186,8 +4343,8 @@ Module M1
             Console.WriteLine("Exiting")
             Exit Do
             Console.WriteLine("Stmt2")
-        Loop   
-        Console.WriteLine("After Loop") 
+        Loop
+        Console.WriteLine("After Loop")
     End Sub
 End Module
     </file>
@@ -4206,28 +4363,28 @@ After Loop
   .maxstack  1
   .locals init (Boolean V_0, //breakLoop
            Boolean V_1) //continueLoop
-  IL_0000:  ldc.i4.1  
-  IL_0001:  stloc.0   
-  IL_0002:  ldc.i4.1  
-  IL_0003:  stloc.1   
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_002d
   IL_0006:  ldstr      "Stmt1"
   IL_000b:  call       "Sub System.Console.WriteLine(String)"
-  IL_0010:  ldloc.1   
+  IL_0010:  ldloc.1
   IL_0011:  brfalse.s  IL_0021
   IL_0013:  ldstr      "Continuing"
   IL_0018:  call       "Sub System.Console.WriteLine(String)"
-  IL_001d:  ldc.i4.0  
-  IL_001e:  stloc.1   
+  IL_001d:  ldc.i4.0
+  IL_001e:  stloc.1
   IL_001f:  br.s       IL_002d
   IL_0021:  ldstr      "Exiting"
   IL_0026:  call       "Sub System.Console.WriteLine(String)"
   IL_002b:  br.s       IL_0030
-  IL_002d:  ldloc.0   
+  IL_002d:  ldloc.0
   IL_002e:  brtrue.s   IL_0006
   IL_0030:  ldstr      "After Loop"
   IL_0035:  call       "Sub System.Console.WriteLine(String)"
-  IL_003a:  ret       
+  IL_003a:  ret
 }
 ]]>)
         End Sub
@@ -4237,7 +4394,7 @@ After Loop
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class CLS
     Partial Private Shared Sub PS()
     End Sub
@@ -4270,7 +4427,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Interface I
     Sub S()
 End Interface
@@ -4300,7 +4457,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Class C(Of V)
 
@@ -4333,7 +4490,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Class C(Of V)
 
@@ -4366,7 +4523,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Class C(Of V)
 
@@ -4399,7 +4556,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure C(Of V)
 
@@ -4432,7 +4589,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Class C
     Partial Private Sub S(s As Integer)
@@ -4463,7 +4620,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure C
     Partial Private Sub S(s As Integer)
@@ -4494,7 +4651,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Class C
     Partial Private Sub S(Of V)(s As V)
@@ -4524,7 +4681,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure C
     Partial Private Sub S(Of V)(s As V)
@@ -4730,7 +4887,7 @@ expectedOutput:=<![CDATA[Base.New(): 0]]>).
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Module M1
     Sub Goo(xParam as Integer, ByRef yParam As Long)
@@ -4767,18 +4924,18 @@ y = 189
 {
   // Code size       26 (0x1a)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0006:  ldarg.1   
-  IL_0007:  ldind.i8  
+  IL_0006:  ldarg.1
+  IL_0007:  ldind.i8
   IL_0008:  call       "Sub System.Console.WriteLine(Long)"
   IL_000d:  ldc.i4.s   17
   IL_000f:  starg.s    V_0
-  IL_0011:  ldarg.1   
+  IL_0011:  ldarg.1
   IL_0012:  ldc.i4     0xbd
-  IL_0017:  conv.i8   
-  IL_0018:  stind.i8  
-  IL_0019:  ret       
+  IL_0017:  conv.i8
+  IL_0018:  stind.i8
+  IL_0019:  ret
 }
 ]]>)
         End Sub
@@ -4789,7 +4946,7 @@ y = 189
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Module M1
     Function SayHi as string
@@ -4816,8 +4973,8 @@ hi
   IL_0005:  call       "Sub System.Console.WriteLine(String)"
   IL_000a:  call       "Function M1.SayHi() As String"
   IL_000f:  call       "Sub System.Console.WriteLine(String)"
-  IL_0014:  ret       
-}    
+  IL_0014:  ret
+}
 ]]>)
         End Sub
 
@@ -4939,7 +5096,7 @@ Namespace VBN
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub S1()
       dim f as boolean = true
@@ -4978,7 +5135,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Function F1() as boolean
      dim f as boolean = true
@@ -4991,7 +5148,7 @@ Module M1
       end if
       console.writeline("end")
       return false
-    End Function 
+    End Function
 
 End Module
     </file>
@@ -5024,7 +5181,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Function F1(x as integer) as integer
       do while true
@@ -5044,7 +5201,7 @@ IL_0000:  ldarg.0
 IL_0001:  stloc.0
 IL_0002:  ldloc.0
 IL_0003:  ret
-}  
+}
 ]]>)
         End Sub
 
@@ -5053,7 +5210,7 @@ IL_0003:  ret
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Sub M()
 
@@ -5087,7 +5244,7 @@ End Class
   IL_0012:  call       "Sub System.Console.Write(String)"
   IL_0017:  call       "Sub System.Console.Write(Boolean)"
   IL_001c:  ret
-}   
+}
 ]]>)
         End Sub
 
@@ -5096,7 +5253,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub M()
         dim a?()(,) as integer
@@ -5117,7 +5274,7 @@ End Module
   IL_0001:  newarr     "Integer"
   IL_0006:  pop
   IL_0007:  ret
-} 
+}
 ]]>)
         End Sub
 
@@ -5126,7 +5283,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Sub M()
         Dim z As Integer()(,) = New Integer(3)(,) {}
@@ -5143,7 +5300,7 @@ End Class
   IL_0001:  newarr     "Integer(,)"
   IL_0006:  pop
   IL_0007:  ret
-}    
+}
 ]]>)
         End Sub
 
@@ -5153,7 +5310,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub Main()
     Dim z1 As Integer() = New Integer(2) {1,2,3}
@@ -5203,7 +5360,7 @@ expectedOutput:="3b").VerifyIL("M1.Main",
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub M()
         Dim z1(1) As string
@@ -5856,15 +6013,15 @@ End Module
     <file name="a.vb">
 Option Strict Off
 Option Infer On
- 
+
 Imports System
- 
+
 Module Program
     Sub Main(args As String())
         Dim b = Function() Sub() Return
         Goo(Of Func(Of Action(Of Integer)))(b)()(1)
     End Sub
- 
+
     Function Goo(Of T)(x As T) As T
         Return x
     End Function
@@ -6045,7 +6202,8 @@ End Module
         <WorkItem(538865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538865")>
         <Fact>
         Public Sub TestGetObjectValueCalls()
-
+            ' ILVerify null ref
+            ' Tracked by https//github.com/dotnet/roslyn/issues/58652
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -6202,7 +6360,7 @@ Module Program1
 
     Sub Test2()
         Dim x As Object = 1
-        Dim s As Object = x 
+        Dim s As Object = x
     End Sub
 
     Sub Test3()
@@ -6256,7 +6414,7 @@ Module Program1
     Sub PassByRef3(ByRef x As System.Guid)
     End Sub
 
-    Private Function fun1() As Object 
+    Private Function fun1() As Object
         return Nothing
     End Function
 
@@ -6270,7 +6428,7 @@ Module Program1
 
 End Module
     </file>
-</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef})
+</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef}, verify:=Verification.FailsILVerify)
 
             verifier.VerifyIL("Module1.M",
             <![CDATA[
@@ -6293,7 +6451,7 @@ End Module
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       "Sub Module1.PassByRef(ByRef Object)"
-  IL_0007:  ret       
+  IL_0007:  ret
 }
 ]]>)
 
@@ -6302,10 +6460,10 @@ End Module
 {
   // Code size       12 (0xc)
   .maxstack  1
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_0006:  call       "Sub Module1.PassByVal(Object)"
-  IL_000b:  ret       
+  IL_000b:  ret
 }
 ]]>)
 
@@ -6328,12 +6486,12 @@ End Module
   // Code size       15 (0xf)
   .maxstack  1
   .locals init (Object V_0)
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0006:  stloc.0   
+  IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       "Sub Module1.PassByRef(ByRef Object)"
-  IL_000e:  ret       
+  IL_000e:  ret
 }
 ]]>)
 
@@ -6385,10 +6543,10 @@ End Module
 {
   // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.NegateObject(Object) As Object"
   IL_0006:  starg.s    V_0
-  IL_0008:  ret       
+  IL_0008:  ret
 }
 ]]>)
 
@@ -6397,10 +6555,10 @@ End Module
 {
   // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.PlusObject(Object) As Object"
   IL_0006:  starg.s    V_0
-  IL_0008:  ret       
+  IL_0008:  ret
 }
 ]]>)
 
@@ -6435,11 +6593,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.IntDivideObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6461,10 +6619,10 @@ End Module
 {
   // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.NotObject(Object) As Object"
   IL_0006:  starg.s    V_0
-  IL_0008:  ret       
+  IL_0008:  ret
 }
 ]]>)
 
@@ -6473,11 +6631,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AndObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6486,16 +6644,16 @@ End Module
 {
   // Code size       25 (0x19)
   .maxstack  1
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean"
   IL_0006:  brfalse.s  IL_0010
-  IL_0008:  ldarg.0   
+  IL_0008:  ldarg.0
   IL_0009:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean"
   IL_000e:  br.s       IL_0011
-  IL_0010:  ldc.i4.0  
+  IL_0010:  ldc.i4.0
   IL_0011:  box        "Boolean"
   IL_0016:  starg.s    V_0
-  IL_0018:  ret       
+  IL_0018:  ret
 }
 ]]>)
 
@@ -6504,11 +6662,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.OrObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6517,16 +6675,16 @@ End Module
 {
   // Code size       25 (0x19)
   .maxstack  1
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean"
   IL_0006:  brtrue.s   IL_0010
-  IL_0008:  ldarg.0   
+  IL_0008:  ldarg.0
   IL_0009:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean"
   IL_000e:  br.s       IL_0011
-  IL_0010:  ldc.i4.1  
+  IL_0010:  ldc.i4.1
   IL_0011:  box        "Boolean"
   IL_0016:  starg.s    V_0
-  IL_0018:  ret       
+  IL_0018:  ret
 }
 ]]>)
 
@@ -6535,11 +6693,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.XorObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6548,11 +6706,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.MultiplyObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6561,11 +6719,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6574,11 +6732,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.SubtractObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6587,11 +6745,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.LeftShiftObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6600,11 +6758,11 @@ End Module
 {
   // Code size       10 (0xa)
   .maxstack  2
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.RightShiftObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
-  IL_0009:  ret       
+  IL_0009:  ret
 }
 ]]>)
 
@@ -6613,9 +6771,9 @@ End Module
 {
   // Code size        4 (0x4)
   .maxstack  1
-  IL_0000:  ldnull    
+  IL_0000:  ldnull
   IL_0001:  starg.s    V_0
-  IL_0003:  ret       
+  IL_0003:  ret
 }
 ]]>)
 
@@ -6624,9 +6782,9 @@ End Module
 {
   // Code size        4 (0x4)
   .maxstack  1
-  IL_0000:  ldnull    
+  IL_0000:  ldnull
   IL_0001:  starg.s    V_0
-  IL_0003:  ret       
+  IL_0003:  ret
 }
 ]]>)
 
@@ -6635,9 +6793,9 @@ End Module
 {
   // Code size        4 (0x4)
   .maxstack  1
-  IL_0000:  ldnull    
+  IL_0000:  ldnull
   IL_0001:  starg.s    V_0
-  IL_0003:  ret       
+  IL_0003:  ret
 }
 ]]>)
 
@@ -6648,7 +6806,7 @@ End Module
   .maxstack  1
   IL_0000:  ldstr      "x"
   IL_0005:  starg.s    V_0
-  IL_0007:  ret       
+  IL_0007:  ret
 }
 ]]>)
 
@@ -6659,7 +6817,7 @@ End Module
   .maxstack  1
   IL_0000:  ldstr      "x"
   IL_0005:  starg.s    V_0
-  IL_0007:  ret       
+  IL_0007:  ret
 }
 ]]>)
 
@@ -6670,7 +6828,7 @@ End Module
   .maxstack  1
   IL_0000:  ldstr      "x"
   IL_0005:  starg.s    V_0
-  IL_0007:  ret       
+  IL_0007:  ret
 }
 ]]>)
 
@@ -6679,10 +6837,10 @@ End Module
 {
   // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  castclass  "System.ValueType"
   IL_0006:  starg.s    V_0
-  IL_0008:  ret       
+  IL_0008:  ret
 }
 ]]>)
 
@@ -6694,10 +6852,10 @@ End Module
   .locals init (System.Guid V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "System.Guid"
-  IL_0008:  ldloc.0   
+  IL_0008:  ldloc.0
   IL_0009:  box        "System.Guid"
   IL_000e:  starg.s    V_0
-  IL_0010:  ret       
+  IL_0010:  ret
 }
 ]]>)
 
@@ -6709,10 +6867,10 @@ End Module
   .locals init (System.Guid V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "System.Guid"
-  IL_0008:  ldloc.0   
+  IL_0008:  ldloc.0
   IL_0009:  box        "System.Guid"
   IL_000e:  starg.s    V_0
-  IL_0010:  ret       
+  IL_0010:  ret
 }
 ]]>)
 
@@ -6724,10 +6882,10 @@ End Module
   .locals init (System.Guid V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "System.Guid"
-  IL_0008:  ldloc.0   
+  IL_0008:  ldloc.0
   IL_0009:  box        "System.Guid"
   IL_000e:  starg.s    V_0
-  IL_0010:  ret       
+  IL_0010:  ret
 }
 ]]>)
 
@@ -6736,10 +6894,10 @@ End Module
 {
   // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldarg.1   
+  IL_0000:  ldarg.1
   IL_0001:  box        "T"
   IL_0006:  starg.s    V_0
-  IL_0008:  ret       
+  IL_0008:  ret
 }
 ]]>)
 
@@ -6748,10 +6906,10 @@ End Module
 {
   // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldarg.1   
+  IL_0000:  ldarg.1
   IL_0001:  box        "T"
   IL_0006:  starg.s    V_0
-  IL_0008:  ret       
+  IL_0008:  ret
 }
 ]]>)
 
@@ -6760,11 +6918,11 @@ End Module
 {
   // Code size       14 (0xe)
   .maxstack  1
-  IL_0000:  ldarg.1   
+  IL_0000:  ldarg.1
   IL_0001:  box        "T"
   IL_0006:  isinst     "Object"
   IL_000b:  starg.s    V_0
-  IL_000d:  ret       
+  IL_000d:  ret
 }
 ]]>)
 
@@ -7061,7 +7219,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Function Count() as integer
         return 1
@@ -7102,7 +7260,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Function Count() as integer
         return 1
@@ -7160,9 +7318,9 @@ Module M1
     Sub M()
         Dim x As System.TypeCode() = {
                         System.TypeCode.Boolean,
-                        System.TypeCode.Byte, 
-                        System.TypeCode.Char, 
-                        System.TypeCode.DateTime, 
+                        System.TypeCode.Byte,
+                        System.TypeCode.Char,
+                        System.TypeCode.DateTime,
                         System.TypeCode.DBNull}
     End Sub
 End Module
@@ -7211,9 +7369,9 @@ Module M1
     Sub M()
         Dim x As System.TypeCode() = {
                         System.TypeCode.Boolean,
-                        System.TypeCode.Byte, 
-                        System.TypeCode.Char, 
-                        System.TypeCode.DateTime, 
+                        System.TypeCode.Byte,
+                        System.TypeCode.Char,
+                        System.TypeCode.DateTime,
                         System.TypeCode.DBNull}
     End Sub
 End Module
@@ -7239,8 +7397,8 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
-Class Clazz 
+Imports System
+Class Clazz
     Public Property Prop As String
 End Class
 Module M1
@@ -7380,7 +7538,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System         
+Imports System
 
 Enum E1
     x = 42
@@ -7413,8 +7571,8 @@ End Module
   IL_001f:  call       "Function System.Enum.Parse(System.Type, String) As Object"
   IL_0024:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_0029:  call       "Sub System.Console.Write(Object)"
-  IL_002e:  ret       
-}    
+  IL_002e:  ret
+}
 ]]>)
         End Sub
 
@@ -7423,7 +7581,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System         
+Imports System
 
 Module M1
     Sub Main()
@@ -7461,7 +7619,7 @@ IL_0037:  box        "Integer"
 IL_003c:  call       "Function Object.GetType() As System.Type"
 IL_0041:  call       "Sub System.Console.Write(Object)"
 IL_0046:  ret
-}   
+}
 ]]>)
         End Sub
 
@@ -7559,7 +7717,7 @@ End Module
  -IL_0017:  nop
  -IL_0018:  ret
 }
-", sequencePoints:="M1.Main")
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
         End Sub
 
         <Fact>
@@ -7567,7 +7725,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Sub Main()
         For i as integer = 1 to 10 step 1
@@ -7610,7 +7768,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Dim i as integer = 42
     Sub Main()
@@ -7653,7 +7811,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Dim i as integer = 42
     Sub Main()
@@ -7704,7 +7862,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Dim p1 As Integer
     Sub Main()
@@ -7844,7 +8002,7 @@ IL_000f:  ret
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module M1
     Dim i as integer = 42
     Sub Main()
@@ -8488,7 +8646,7 @@ End Structure
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure S
     Public Sub New(i As Integer)
@@ -8562,7 +8720,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure S
     Public Sub New(i As Integer)
@@ -8636,7 +8794,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure S
     Public x As Integer
@@ -8729,7 +8887,7 @@ VerifyIL("C.Main",
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure S
     Public Sub New(i As Integer)
@@ -8787,7 +8945,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure S
     Public Sub New(ByRef i As Integer)
@@ -8799,7 +8957,7 @@ Class C
 
     Sub M()
         Dim loc0 As New S(AutoProp) ' cannot escape
-        loc0 = New S(AutoProp) ' cannot escape 
+        loc0 = New S(AutoProp) ' cannot escape
         Try
             Dim loc1 As New S(AutoProp) ' cannot escape because cannot be used before declaration
             loc1 = New S(AutoProp) ' can escape
@@ -8877,7 +9035,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 
 Structure S
     Public Sub New(i As Integer)
@@ -8945,7 +9103,7 @@ End Class
   .pack 0
   .size 1
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -8956,7 +9114,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Dim Fld As S
     Dim FldArr(4) As S
@@ -9024,7 +9182,7 @@ End Class
   .pack 0
   .size 1
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -9035,7 +9193,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Sub M()
         Dim loc As S
@@ -9103,7 +9261,7 @@ End Class
   .pack 0
   .size 1
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -9114,7 +9272,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Sub M(paramByVal As S, ByRef paramByRef As S)
         paramByVal = New S()
@@ -9178,7 +9336,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Dim Fld As S
     Dim FldArr(4) As S
@@ -9204,35 +9362,35 @@ End Class
   // Code size       77 (0x4d)
   .maxstack  2
   .locals init (System.Exception V_0) //ex
-  IL_0000:  ldarg.0   
+  IL_0000:  ldarg.0
   IL_0001:  ldflda     "C.Fld As S"
   IL_0006:  initobj    "S"
-  IL_000c:  ldarg.0   
+  IL_000c:  ldarg.0
   IL_000d:  ldfld      "C.FldArr As S()"
-  IL_0012:  ldc.i4.1  
+  IL_0012:  ldc.i4.1
   IL_0013:  ldelema    "S"
   IL_0018:  initobj    "S"
   .try
   {
-    IL_001e:  ldarg.0   
+    IL_001e:  ldarg.0
     IL_001f:  ldflda     "C.Fld As S"
     IL_0024:  initobj    "S"
-    IL_002a:  ldarg.0   
+    IL_002a:  ldarg.0
     IL_002b:  ldfld      "C.FldArr As S()"
-    IL_0030:  ldc.i4.1  
+    IL_0030:  ldc.i4.1
     IL_0031:  ldelema    "S"
     IL_0036:  initobj    "S"
     IL_003c:  leave.s    IL_004c
   }
   catch System.Exception
   {
-    IL_003e:  dup       
+    IL_003e:  dup
     IL_003f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0044:  stloc.0   
+    IL_0044:  stloc.0
     IL_0045:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
     IL_004a:  leave.s    IL_004c
   }
-  IL_004c:  ret       
+  IL_004c:  ret
 }
 ]]>)
         End Sub
@@ -9251,7 +9409,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Sub M()
         Dim loc As S
@@ -9320,7 +9478,7 @@ End Class
             Dim vbSource =
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Class C
     Sub M(paramByVal As S, ByRef paramByRef As S)
         paramByVal = New S()
@@ -9344,25 +9502,25 @@ End Class
   .locals init (System.Exception V_0) //ex
   IL_0000:  ldarga.s   V_1
   IL_0002:  initobj    "S"
-  IL_0008:  ldarg.2   
+  IL_0008:  ldarg.2
   IL_0009:  initobj    "S"
   .try
   {
     IL_000f:  ldarga.s   V_1
     IL_0011:  initobj    "S"
-    IL_0017:  ldarg.2   
+    IL_0017:  ldarg.2
     IL_0018:  initobj    "S"
     IL_001e:  leave.s    IL_002e
   }
   catch System.Exception
   {
-    IL_0020:  dup       
+    IL_0020:  dup
     IL_0021:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0026:  stloc.0   
+    IL_0026:  stloc.0
     IL_0027:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
     IL_002c:  leave.s    IL_002e
   }
-  IL_002e:  ret       
+  IL_002e:  ret
 }
 ]]>)
         End Sub
@@ -9378,7 +9536,7 @@ End Class
   .pack 0
   .size 1
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -9447,7 +9605,7 @@ End Class
   .pack 0
   .size 1
 
-  .method family hidebysig specialname rtspecialname 
+  .method family hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -9516,7 +9674,7 @@ End Class
   .pack 0
   .size 1
 
-  .method private hidebysig specialname rtspecialname 
+  .method private hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -9584,7 +9742,7 @@ End Class
   .pack 0
   .size 1
 
-  .method private hidebysig specialname rtspecialname 
+  .method private hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -9651,7 +9809,6 @@ End Class
 ]]>)
         End Sub
 
-
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_OptionalParameter()
@@ -9662,7 +9819,7 @@ End Class
   .pack 0
   .size 1
 
-  .method private hidebysig specialname rtspecialname 
+  .method private hidebysig specialname rtspecialname
         instance void  .ctor([opt] int32 a) cil managed
   {
     .param [2] = int32(0x0000007B)
@@ -9791,7 +9948,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System  
+Imports System
 Class CT(Of X)
     Public Sub T()
         Dim a As X = Nothing
@@ -9819,7 +9976,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System  
+Imports System
 Class CT(Of X As Structure)
     Public Sub T()
         Dim a As X = New X()
@@ -9853,7 +10010,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System  
+Imports System
 Class CT(Of X As New)
     Public Sub T()
         Dim a As X = New X()
@@ -9888,7 +10045,7 @@ End Module
 <compilation>
     <file name="a.vb">
 Option Infer Off
-Imports System  
+Imports System
 Structure S
     Public Sub New(i As Integer)
     End Sub
@@ -9937,7 +10094,7 @@ End Module
   .pack 0
   .size 1
 
-  .method private hidebysig specialname rtspecialname 
+  .method private hidebysig specialname rtspecialname
         instance void  .ctor() cil managed
   {
     ret
@@ -9976,7 +10133,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module EmitTest
 
     Class C
@@ -10267,9 +10424,9 @@ Class A
     End Enum
 
     Shared Sub Main()
-        Dim e as DayOfWeek = New DayOfWeek()        
+        Dim e as DayOfWeek = New DayOfWeek()
         Console.Write(e.ToString)
-        Dim e1 as E1 = New E1()        
+        Dim e1 as E1 = New E1()
         Console.Writeline(e1.ToString)
     End Sub
 End Class
@@ -10323,7 +10480,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10340,7 +10497,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10381,7 +10538,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10408,7 +10565,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 
@@ -10856,7 +11013,6 @@ End Structure
 ]]>)
         End Sub
 
-
         <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
         <Fact()>
         Public Sub MultipleconstsByRef()
@@ -11164,7 +11320,7 @@ Imports System.Math
 
 Class Test
     Public Shared Sub Main()
-        If CDec(36%) <> 36@ Then 
+        If CDec(36%) <> 36@ Then
             System.Console.WriteLine("FAIL")
         Else
             System.Console.WriteLine("PASS")
@@ -11183,7 +11339,6 @@ End Class]]>
 }
 ]]>)
         End Sub
-
 
         <WorkItem(543757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543757")>
         <Fact()>
@@ -11315,24 +11470,24 @@ End Class
             Dim optParameterSource = <![CDATA[
 .class interface public abstract auto ansi IAnimal
 {
-  .method public newslot abstract strict virtual 
+  .method public newslot abstract strict virtual
           instance void  MakeNoise([opt] int32 pitch) cil managed
   {
   } // end of method IAnimal::MakeNoise
-  .method public newslot specialname abstract strict virtual 
+  .method public newslot specialname abstract strict virtual
           instance class IAnimal  get_Descendants([opt] int32 generation) cil managed
   {
   } // end of method IAnimal::get_Descendants
   .property instance class IAnimal Descendants(int32)
   {
     .get instance class IAnimal IAnimal::get_Descendants(int32)
-  } // end of property IAnimal::Descendants 
+  } // end of property IAnimal::Descendants
 } // end of class IAnimal
 
 .class public abstract auto ansi AbstractAnimal
        extends [mscorlib]System.Object
 {
-  .method family specialname rtspecialname 
+  .method family specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -11341,11 +11496,11 @@ End Class
     IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  ret
   } // end of method AbstractAnimal::.ctor
-  .method public newslot abstract strict virtual 
+  .method public newslot abstract strict virtual
           instance void  MakeNoise([opt] int32 pitch) cil managed
   {
   } // end of method AbstractAnimal::MakeNoise
-  .method public newslot specialname abstract strict virtual 
+  .method public newslot specialname abstract strict virtual
           instance class AbstractAnimal  get_Descendants([opt] int32 generation) cil managed
   {
   } // end of method AbstractAnimal::get_Descendants
@@ -11545,7 +11700,7 @@ Public Structure S1
             Console.WriteLine(x)
         End Set
     End Property
-End Structure 
+End Structure
 
     </file>
 </compilation>,
@@ -11553,21 +11708,30 @@ expectedOutput:="2").
             VerifyIL("Test.TestINop(Of T)(T)",
             <![CDATA[
 {
-  // Code size       36 (0x24)
+  // Code size       60 (0x3c)
   .maxstack  3
-  .locals init (T V_0)
+  .locals init (T V_0,
+            T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Test.Nop(Of T)(T) As T"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  constrained. "T"
-  IL_0011:  callvirt   "Function I.get_IntPropI() As Integer"
-  IL_0016:  ldc.i4.1
-  IL_0017:  add.ovf
-  IL_0018:  constrained. "T"
-  IL_001e:  callvirt   "Sub I.set_IntPropI(Integer)"
-  IL_0023:  ret
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_0021
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function I.get_IntPropI() As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub I.set_IntPropI(Integer)"
+  IL_003b:  ret
 }
 ]]>)
         End Sub
@@ -11624,7 +11788,7 @@ End Class
                                                                  Assert.True(typeB.IsComImport())
                                                                  Assert.Equal(1, typeB.GetAttributes().Length)
                                                                  Dim ctorB = typeB.InstanceConstructors.First()
-                                                                 Assert.True(DirectCast(ctorB, Cci.IMethodDefinition).IsExternal)
+                                                                 Assert.True(DirectCast(ctorB.GetCciAdapter(), Cci.IMethodDefinition).IsExternal)
                                                                  Assert.Equal(expectedMethodImplAttributes, ctorB.ImplementationAttributes)
                                                              End Sub
 
@@ -11940,7 +12104,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-option strict off        
+option strict off
 
 Imports System
 
@@ -12039,7 +12203,7 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-option strict off        
+option strict off
 
 Imports System
 
@@ -12137,7 +12301,6 @@ End Module
 ]]>)
         End Sub
 
-
         <WorkItem(575547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575547")>
         <Fact()>
         Public Sub LateBindingToSystemArrayIndex02()
@@ -12207,11 +12370,11 @@ Module Module1
 
     Function Test1(x as Integer) As Integer
 	return Test2(x,-x)
-    End Function 
+    End Function
 
     Function Test2(x as Integer, y as Integer) As Integer
 	return y
-    End Function 
+    End Function
 End Module
     </file>
 </compilation>, options:=TestOptions.ReleaseExe,
@@ -12358,7 +12521,6 @@ BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner
 </expected>)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
-
 
             compilationVerifier.VerifyIL("FromDesigner3..ctor",
             <![CDATA[
@@ -12642,7 +12804,7 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
+Imports System
 Module Program
     Function Goo() As AttributeTargets
         Return AttributeTargets.All
@@ -12880,9 +13042,10 @@ End class
             VerifyIL("test(Of T).Repro1(T)",
             <![CDATA[
 {
-  // Code size       77 (0x4d)
+      // Code size       77 (0x4d)
   .maxstack  4
-  .locals init (Integer& V_0)
+  .locals init (Integer& V_0,
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
   IL_0006:  ldflda     "c0.x As Integer"
@@ -12893,23 +13056,27 @@ End class
   IL_000f:  ldc.i4.1
   IL_0010:  add.ovf
   IL_0011:  stind.i4
-  IL_0012:  ldarga.s   V_0
-  IL_0014:  ldarga.s   V_0
-  IL_0016:  constrained. "T"
-  IL_001c:  callvirt   "Function c0.get_P1() As Integer"
-  IL_0021:  ldc.i4.1
-  IL_0022:  add.ovf
-  IL_0023:  constrained. "T"
+  IL_0012:  ldarg.0
+  IL_0013:  dup
+  IL_0014:  stloc.1
+  IL_0015:  box        "T"
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function c0.get_P1() As Integer"
+  IL_0027:  ldc.i4.1
+  IL_0028:  add.ovf
   IL_0029:  callvirt   "Sub c0.set_P1(Integer)"
-  IL_002e:  ldarga.s   V_0
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldarga.s   V_0
-  IL_0033:  ldc.i4.1
-  IL_0034:  constrained. "T"
-  IL_003a:  callvirt   "Function c0.get_Item(Integer) As Integer"
-  IL_003f:  ldc.i4.1
-  IL_0040:  add.ovf
-  IL_0041:  constrained. "T"
+  IL_002e:  ldarg.0
+  IL_002f:  dup
+  IL_0030:  stloc.1
+  IL_0031:  box        "T"
+  IL_0036:  ldc.i4.1
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  ldc.i4.1
+  IL_003a:  constrained. "T"
+  IL_0040:  callvirt   "Function c0.get_Item(Integer) As Integer"
+  IL_0045:  ldc.i4.1
+  IL_0046:  add.ovf
   IL_0047:  callvirt   "Sub c0.set_Item(Integer, Integer)"
   IL_004c:  ret
 }
@@ -13011,7 +13178,6 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 
 Imports System
@@ -13082,7 +13248,6 @@ End Module
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 
 Imports System
@@ -13340,12 +13505,12 @@ BC35000: Requested operation is not available because the runtime library functi
 <compilation>
     <file name="a.vb">
 Imports System
- 
+
 Public Enum LineStyle
   Dot
   Dash
 End Enum
- 
+
 Friend Class A
  Public shared Sub Main()
    Const linestyle As LineStyle = LineStyle.Dot
@@ -13374,15 +13539,15 @@ End CLass
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
- 
+
 Public Enum LineStyle
   Dot
   Dash
 End Enum
- 
+
 Friend Class A
  Public shared Sub Main()
-   Const blah As LineStyle = blah Or LineStyle.Dot 
+   Const blah As LineStyle = blah Or LineStyle.Dot
    Console.WriteLine(blah)
  End Sub
 End CLass
@@ -13392,7 +13557,7 @@ End CLass
             comp.AssertTheseDiagnostics(
 <errors>
 BC30500: Constant 'blah' cannot depend on its own value.
-   Const blah As LineStyle = blah Or LineStyle.Dot 
+   Const blah As LineStyle = blah Or LineStyle.Dot
          ~~~~
 </errors>)
 
@@ -13405,15 +13570,15 @@ BC30500: Constant 'blah' cannot depend on its own value.
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
- 
+
 Public Enum LineStyle
   Dot
   Dash
 End Enum
- 
+
 Friend Class A
  Public shared Sub Main()
-   Const blah = blah Or LineStyle.Dot 
+   Const blah = blah Or LineStyle.Dot
    Console.WriteLine(blah)
  End Sub
 End CLass
@@ -13423,10 +13588,10 @@ End CLass
             comp.AssertTheseDiagnostics(
 <errors>
 BC30500: Constant 'blah' cannot depend on its own value.
-   Const blah = blah Or LineStyle.Dot 
+   Const blah = blah Or LineStyle.Dot
                 ~~~~
 BC42104: Variable 'blah' is used before it has been assigned a value. A null reference exception could result at runtime.
-   Const blah = blah Or LineStyle.Dot 
+   Const blah = blah Or LineStyle.Dot
                 ~~~~
 </errors>)
 
@@ -13439,15 +13604,15 @@ BC42104: Variable 'blah' is used before it has been assigned a value. A null ref
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
- 
+
 Public Enum LineStyle
   Dot
   Dash
 End Enum
- 
+
 Friend Class A
  Public shared Sub Main()
-   Const blah As Object = blah Or LineStyle.Dot 
+   Const blah As Object = blah Or LineStyle.Dot
    Const blah1 As Object = blah1
    Console.WriteLine(blah)
  End Sub
@@ -13458,10 +13623,10 @@ End CLass
             comp.AssertTheseDiagnostics(
 <errors>
 BC30500: Constant 'blah' cannot depend on its own value.
-   Const blah As Object = blah Or LineStyle.Dot 
+   Const blah As Object = blah Or LineStyle.Dot
                           ~~~~
 BC42104: Variable 'blah' is used before it has been assigned a value. A null reference exception could result at runtime.
-   Const blah As Object = blah Or LineStyle.Dot 
+   Const blah As Object = blah Or LineStyle.Dot
                           ~~~~
 BC30500: Constant 'blah1' cannot depend on its own value.
    Const blah1 As Object = blah1
@@ -13489,7 +13654,7 @@ End Module
     </file>
 </compilation>
 
-            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Metadata.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[
@@ -13543,14 +13708,14 @@ End Class
             Dim i As Integer
 
             For i = 0 To count - 1
-                builder.Append(i + 1)
+                builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(" * ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") + ")
             Next
 
-            builder.Append(i + 1)
+            builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
 
             Return builder.ToString()
         End Function
@@ -13622,16 +13787,16 @@ End Class
 
             For i = 0 To count - 1
                 builder.Append("a(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(")")
                 builder.Append(" AndAlso ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") OrElse ")
             Next
 
             builder.Append("a(")
-            builder.Append(i)
+            builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
             builder.Append(")")
 
             Return builder.ToString()
@@ -13711,7 +13876,12 @@ End Class
 5180801")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
+        ' Temporarily disabling in release builds due to the following item:
+        ' https://github.com/dotnet/roslyn/issues/60472
+#If DEBUG Then
+        ' Restricting to English as there are different tolerance limits on non-English cultures. The test
+        ' is to prevent regressions and single language should be sufficient here
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
@@ -13755,14 +13925,13 @@ End Structure
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
                 )
         End Sub
-
+#End If
 
         <Fact()>
         Public Sub InplaceCtorUsesLocal()
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 
 Module Module1
@@ -13824,13 +13993,14 @@ End Module
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+Imports System.Globalization
 Public Class TestClass
     Private _rotation As Decimal
     Private Sub CalculateDimensions()
@@ -13841,8 +14011,8 @@ Public Class TestClass
         Dim x as New TestClass()
         x._rotation = 1
         x.CalculateDimensions()
-        System.Console.WriteLine(x._rotation)
-    End Sub    
+        System.Console.WriteLine(x._rotation.ToString(CultureInfo.InvariantCulture))
+    End Sub
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe,
@@ -13870,13 +14040,14 @@ End Class
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+Imports System.Globalization
 Public Class TestClass
     Private Shared Sub CalculateDimensions(_rotation As Decimal())
         _rotation(GetIndex()) *= 180 / System.Math.PI 'This line causes '"vbc.exe" exited with code -2146232797'
@@ -13884,14 +14055,14 @@ Public Class TestClass
 
     Private Shared Function GetIndex() As Integer
         Return 0
-    End Function 
+    End Function
 
     Shared Sub Main()
         Dim _rotation(0) as Decimal
         _rotation(0) = 1
         CalculateDimensions(_rotation)
-        System.Console.WriteLine(_rotation(0))
-    End Sub    
+        System.Console.WriteLine(_rotation(0).ToString(CultureInfo.InvariantCulture))
+    End Sub
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe,
@@ -13919,7 +14090,6 @@ End Class
 }
 ]]>)
         End Sub
-
 
         <Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")>
         Public Sub IgnoredConversion()
@@ -13983,25 +14153,25 @@ End Module
             c.VerifyIL("Module1.Test",
             <![CDATA[
 {
-  // Code size       48 (0x30)
-  .maxstack  1
+  // Code size       46 (0x2e)
+  .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "T"
   IL_0008:  ldloc.0
-  IL_0009:  box        "T"
-  IL_000e:  brtrue.s   IL_0013
-  IL_0010:  ldnull
-  IL_0011:  br.s       IL_002a
-  IL_0013:  ldloca.s   V_0
-  IL_0015:  initobj    "T"
-  IL_001b:  ldloc.0
-  IL_001c:  stloc.0
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  constrained. "T"
-  IL_0025:  callvirt   "Function Object.ToString() As String"
-  IL_002a:  call       "Sub System.Console.WriteLine(String)"
-  IL_002f:  ret
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  dup
+  IL_000d:  ldobj      "T"
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_001d
+  IL_0019:  pop
+  IL_001a:  ldnull
+  IL_001b:  br.s       IL_0028
+  IL_001d:  constrained. "T"
+  IL_0023:  callvirt   "Function Object.ToString() As String"
+  IL_0028:  call       "Sub System.Console.WriteLine(String)"
+  IL_002d:  ret
 }
 ]]>)
         End Sub
@@ -14769,6 +14939,7 @@ End Module
 ]]>)
         End Sub
 
+        <Fact>
         Public Sub NormalizedNaN()
             CompileAndVerify(
 <compilation>

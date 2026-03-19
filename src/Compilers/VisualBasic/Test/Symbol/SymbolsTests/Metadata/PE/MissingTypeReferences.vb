@@ -3,15 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
-Imports CompilationCreationTestHelpers
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -27,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestReferences.SymbolsTests.MissingTypes.MDMissingType,
                                      TestReferences.SymbolsTests.MissingTypes.MDMissingTypeLib,
-                                     TestReferences.NetFx.v4_0_21006.mscorlib})
+                                     Net40.References.mscorlib})
 
             TestMissingTypeReferencesHelper2(assemblies)
         End Sub
@@ -115,7 +111,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Same(base.ContainingAssembly, baseContainerContainer.ContainingAssembly)
 
         End Sub
-
 
         Private Sub TestMissingTypeReferencesHelper2(assemblies() As AssemblySymbol, Optional reflectionOnly As Boolean = False)
 
@@ -374,7 +369,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal("C6.MissingC7(Of U, V)[missing]", missing2.ToTestDisplayString())
         End Sub
 
-
         <Fact>
         Public Sub Equality()
 
@@ -477,8 +471,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(missingAssembly.Equals(missingAssembly))
             Assert.NotEqual(New Object(), missingAssembly)
             Assert.False(missingAssembly.Equals(Nothing))
-        End Sub
 
+            Assert.Empty(DirectCast(missingAssembly, IAssemblySymbol).GetForwardedTypes())
+        End Sub
 
     End Class
 

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 
@@ -12,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     Public Class ISymbolExtensionsTests
         Inherits TestBase
 
-        Private Async Function TestIsAccessibleWithinAsync(workspaceDefinition As XElement, expectedVisible As Boolean) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+        Private Shared Async Function TestIsAccessibleWithinAsync(workspaceDefinition As XElement, expectedVisible As Boolean) As Tasks.Task
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)

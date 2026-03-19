@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Cci;
 
 namespace Microsoft.DiaSymReader
 {
@@ -139,7 +142,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="InvalidOperationException">Writes are not allowed to the underlying stream.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is null</exception>
-        public abstract void DefineCustomMetadata(byte[] metadata);
+        public abstract void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition);
 
         /// <summary>
         /// Designates specified method as an entry point.
@@ -206,5 +209,20 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="InvalidOperationException">Writes are not allowed to the underlying stream.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         public abstract void CloseTokensToSourceSpansMap();
+
+        /// <summary>
+        /// Writes compiler version and name to the PDB.
+        /// </summary>
+        /// <param name="major">Major version</param>
+        /// <param name="minor">Minor version</param>
+        /// <param name="build">Build</param>
+        /// <param name="revision">Revision</param>
+        /// <param name="name">Compiler name</param>
+        /// <exception cref="ObjectDisposedException">Object has been disposed.</exception>
+        /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
+        /// <exception cref="NotSupportedException">The PDB writer does not support adding compiler info.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>
+        public virtual void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
+            => throw new NotSupportedException();
     }
 }

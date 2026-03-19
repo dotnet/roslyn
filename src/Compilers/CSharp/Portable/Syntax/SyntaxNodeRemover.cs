@@ -4,8 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal static class SyntaxNodeRemover
     {
-        internal static TRoot RemoveNodes<TRoot>(TRoot root,
+        internal static TRoot? RemoveNodes<TRoot>(TRoot root,
                 IEnumerable<SyntaxNode> nodes,
                 SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
@@ -41,16 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 result = result.WithTrailingTrivia(result.GetTrailingTrivia().Concat(residualTrivia));
             }
 
-            return (TRoot)result;
+            return (TRoot?)result;
         }
 
-        private class SyntaxRemover : CSharpSyntaxRewriter
+        private sealed class SyntaxRemover : CSharpSyntaxRewriter
         {
             private readonly HashSet<SyntaxNode> _nodesToRemove;
             private readonly SyntaxRemoveOptions _options;
             private readonly TextSpan _searchSpan;
             private readonly SyntaxTriviaListBuilder _residualTrivia;
-            private HashSet<SyntaxNode> _directivesToKeep;
+            private HashSet<SyntaxNode>? _directivesToKeep;
 
             public SyntaxRemover(
                 SyntaxNode[] nodesToRemove,
@@ -160,9 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return node.FullSpan.IntersectsWith(_searchSpan) || (_residualTrivia != null && _residualTrivia.Count > 0);
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            [return: NotNullIfNotNull(nameof(node))]
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
-                SyntaxNode result = node;
+                SyntaxNode? result = node;
 
                 if (node != null)
                 {
@@ -207,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 var withSeps = list.GetWithSeparators();
                 bool removeNextSeparator = false;
 
-                SyntaxNodeOrTokenListBuilder alternate = null;
+                SyntaxNodeOrTokenListBuilder? alternate = null;
                 for (int i = 0, n = withSeps.Count; i < n; i++)
                 {
                     var item = withSeps[i];
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                     else
                     {
-                        var node = (TNode)item.AsNode();
+                        var node = (TNode)item.AsNode()!;
 
                         if (this.IsForRemoval(node))
                         {
@@ -264,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         }
                         else
                         {
-                            visited = this.VisitListElement((TNode)item.AsNode());
+                            visited = this.VisitListElement(node);
                         }
                     }
 
@@ -321,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             private void AddTrivia(SyntaxToken token, SyntaxNode node)
             {
+                Debug.Assert(node.Parent is object);
                 if ((_options & SyntaxRemoveOptions.KeepLeadingTrivia) != 0)
                 {
                     this.AddResidualTrivia(token.LeadingTrivia);
@@ -360,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             private void AddTrivia(SyntaxNode node, SyntaxToken token)
             {
+                Debug.Assert(node.Parent is object);
                 if ((_options & SyntaxRemoveOptions.KeepLeadingTrivia) != 0)
                 {
                     this.AddResidualTrivia(node.GetLeadingTrivia());
@@ -428,8 +432,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
 
                     var directivesInSpan = node.DescendantTrivia(span, n => n.ContainsDirectives, descendIntoTrivia: true)
-                                         .Where(tr => tr.IsDirective)
-                                         .Select(tr => (DirectiveTriviaSyntax)tr.GetStructure());
+                                               .Where(tr => tr.IsDirective)
+                                               .Select(tr => (DirectiveTriviaSyntax)tr.GetStructure()!);
 
                     foreach (var directive in directivesInSpan)
                     {
@@ -461,9 +465,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                         if (_directivesToKeep.Contains(directive))
                         {
-                            AddResidualTrivia(SyntaxFactory.TriviaList(directive.ParentTrivia), requiresNewLine: true);
+                            var parentTrivia = directive.ParentTrivia;
+                            var (triviaList, directiveTriviaListIndex) = getTriviaListAndIndex(parentTrivia);
+
+                            // If we're keeping a directive, and it's not at the start of the line, keep the indentation
+                            // whitespace that precedes it as well so that the directive stays in the right location.
+                            if (directiveTriviaListIndex >= 1 && triviaList[directiveTriviaListIndex - 1] is { RawKind: (int)SyntaxKind.WhitespaceTrivia } indentationTrivia)
+                            {
+                                AddResidualTrivia(SyntaxFactory.TriviaList(indentationTrivia, parentTrivia), requiresNewLine: true);
+                            }
+                            else
+                            {
+                                AddResidualTrivia(SyntaxFactory.TriviaList(parentTrivia), requiresNewLine: true);
+                            }
                         }
                     }
+                }
+
+                static (SyntaxTriviaList triviaList, int index) getTriviaListAndIndex(SyntaxTrivia trivia)
+                {
+                    var parentToken = trivia.Token;
+
+                    var index = parentToken.LeadingTrivia.IndexOf(trivia);
+                    return index >= 0
+                        ? (parentToken.LeadingTrivia, index)
+                        : (parentToken.TrailingTrivia, parentToken.TrailingTrivia.IndexOf(trivia));
                 }
             }
 

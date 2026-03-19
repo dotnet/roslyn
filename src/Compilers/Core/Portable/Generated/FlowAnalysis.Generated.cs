@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 // < auto-generated />
+#nullable enable
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -14,8 +17,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
     /// </summary>
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.FlowCapture"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
     /// </remarks>
     public interface IFlowCaptureOperation : IOperation
     {
@@ -34,8 +41,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
     /// </summary>
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.FlowCaptureReference"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
     /// </remarks>
     public interface IFlowCaptureReferenceOperation : IOperation
     {
@@ -43,6 +54,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// An id used to match references to the same intermediate result.
         /// </summary>
         CaptureId Id { get; }
+        /// <summary>
+        /// True if this reference to the capture initializes the capture. Used when the capture is being initialized by being passed as an <see langword="out" /> parameter.
+        /// </summary>
+        bool IsInitialization { get; }
     }
     /// <summary>
     /// Represents result of checking whether the <see cref="Operand" /> is null.
@@ -52,8 +67,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// and <see cref="IConditionalAccessOperation" /> nodes.
     /// </summary>
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.IsNull"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
     /// </remarks>
     public interface IIsNullOperation : IOperation
     {
@@ -67,8 +86,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
     /// </summary>
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.CaughtException"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
     /// </remarks>
     public interface ICaughtExceptionOperation : IOperation
     {
@@ -80,8 +103,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// This node is produced only as part of a <see cref="ControlFlowGraph" />.
     /// </summary>
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.StaticLocalInitializationSemaphore"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
     /// </remarks>
     public interface IStaticLocalInitializationSemaphoreOperation : IOperation
     {
@@ -94,15 +121,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// Represents an anonymous function operation in context of a <see cref="ControlFlowGraph" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# lambda expression.
-    ///  (2) VB anonymous delegate expression.
+    /// <list type="number">
+    ///   <item><description>C# lambda expression</description></item>
+    ///   <item><description>VB anonymous delegate expression</description></item>
+    /// </list>
     /// </para>
     /// A <see cref="ControlFlowGraph" /> for the body of the anonymous function is available from
     /// the enclosing <see cref="ControlFlowGraph" />.
     /// </summary>
     /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.FlowAnonymousFunction"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
     /// </remarks>
     public interface IFlowAnonymousFunctionOperation : IOperation
     {

@@ -4,19 +4,19 @@
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
-Imports System.Threading.Tasks
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 
@@ -26,14 +26,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits LSPCompletionProvider
         Implements ICustomCommitCompletionProvider
 
-        Private ReadOnly _threadingContext As IThreadingContext
-        Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
-
         <ImportingConstructor>
-        Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
-            _threadingContext = threadingContext
-            Me._editorAdaptersFactoryService = editorAdaptersFactoryService
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property IsSnippetProvider As Boolean
             Get
@@ -55,51 +57,50 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim snippets = snippetInfoService.GetSnippetsIfAvailable()
 
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
-            Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
+            Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim targetToken = leftToken.GetPreviousTokenIfTouchingWord(position)
 
-            If (IsInNonUserCode(syntaxTree, position, cancellationToken)) Then
+            If syntaxTree.IsPossibleTupleContext(leftToken, position) Then
                 Return
             End If
 
-            context.IsExclusive = ShouldBeExclusive(context.Options)
-            context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))
-        End Function
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
+            If IsInNonUserCode(syntaxTree, position, cancellationToken) Then
+                Return
+            End If
 
-        Private Function ShouldBeExclusive(options As OptionSet) As Boolean
-            Return options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic) = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
+            context.IsExclusive = context.CompletionOptions.SnippetsBehavior = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
+            context.AddItems(CreateCompletionItems(snippets))
         End Function
 
         Private Shared ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
         Private Shared ReadOnly s_rules As CompletionItemRules = CompletionItemRules.Create(
             commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, s_commitChars)))
 
-        Private Shared ReadOnly s_tupleRules As CompletionItemRules = s_rules.
-            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
-
-        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), isTupleContext As Boolean) As IEnumerable(Of CompletionItem)
+        Private Shared Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo)) As IEnumerable(Of CompletionItem)
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
                                        s.Shortcut,
                                        displayTextSuffix:="",
                                        description:=s.Description.ToSymbolDisplayParts(),
                                        glyph:=Glyph.Snippet,
-                                       rules:=If(isTupleContext, s_tupleRules, s_rules)))
+                                       rules:=s_rules))
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
+            Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso options.TriggerOnTypingLetters
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
 
         Public Sub Commit(completionItem As CompletionItem,
+                          document As Document,
                           textView As ITextView,
                           subjectBuffer As ITextBuffer,
                           triggerSnapshot As ITextSnapshot,
                           commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(_threadingContext, textView, subjectBuffer, _editorAdaptersFactoryService)
+            Dim expansionClientFactory = document.Project.Services.SolutionServices.GetRequiredService(Of ISnippetExpansionClientFactory)()
+            Dim snippetClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(document, textView, subjectBuffer)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)
@@ -107,7 +108,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             subjectBuffer.Replace(currentSpan, completionItem.DisplayText)
 
             Dim updatedSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)
-            snippetClient.TryInsertExpansion(updatedSpan.Start, updatedSpan.Start + completionItem.DisplayText.Length)
+            snippetClient.TryInsertExpansion(updatedSpan.Start, updatedSpan.Start + completionItem.DisplayText.Length, CancellationToken.None)
         End Sub
     End Class
 End Namespace

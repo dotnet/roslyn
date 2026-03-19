@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +10,6 @@ using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -373,12 +370,12 @@ namespace Microsoft.CodeAnalysis
                 base.WriteByte(value);
 
                 // same rationale for checked arithmetic as above.
-                checked { BytesWritten++; };
+                checked { BytesWritten++; }
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,10 +87,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Assert.Null(list.GetWeakReference(3).GetTarget());
             Assert.Null(list.GetWeakReference(4).GetTarget());
 
-            var array = list.ToArray();
+            var nonWeakList = new List<object>();
+            foreach (var obj in list)
+                nonWeakList.Add(obj);
 
-            Assert.Equal(1, array.Length);
-            Assert.Same(b.GetReference(), array[0]);
+            Assert.Equal(1, nonWeakList.Count);
+            Assert.Same(b.GetReference(), nonWeakList[0]);
 
             // list was compacted:
             Assert.Equal(1, list.WeakCount);
@@ -121,7 +125,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             b.AssertReleased();
 
-            list.ToArray(); // shrinks, #alive == 0
+            // shrinks, #alive == 0
+            foreach (var obj in list)
+                ;
+
             Assert.Equal(0, list.TestOnly_UnderlyingArray.Length);
             Assert.Equal(0, list.WeakCount);
         }
@@ -149,7 +156,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             b.AssertReleased();
 
-            list.ToArray(); // shrinks, #alive == 0
+            // shrinks, #alive == 0
+            foreach (var obj in list)
+                ;
+
             Assert.Equal(0, list.TestOnly_UnderlyingArray.Length);
             Assert.Equal(0, list.WeakCount);
         }

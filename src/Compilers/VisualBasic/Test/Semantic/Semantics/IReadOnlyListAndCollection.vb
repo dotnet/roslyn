@@ -2,11 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -131,7 +127,7 @@ ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyListOfObject3
-]]>)
+]]>, verify:=Verification.Passes)
 
         End Sub
 
@@ -346,7 +342,7 @@ ProcessReadOnlyCollection3
 ProcessReadOnlyCollection3
 ProcessReadOnlyCollection3
 ProcessReadOnlyCollectionOfObject3
-]]>)
+]]>, verify:=Verification.Passes)
 
         End Sub
 

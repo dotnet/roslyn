@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -17,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly TypeSymbol RightType;
         public readonly TypeSymbol ReturnType;
         public readonly MethodSymbol Method;
+        public readonly TypeSymbol ConstrainedToTypeOpt;
         public readonly BinaryOperatorKind Kind;
 
         /// <summary>
@@ -26,13 +29,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public int? Priority;
 
-        public BinaryOperatorSignature(BinaryOperatorKind kind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType, MethodSymbol method = null)
+        public BinaryOperatorSignature(BinaryOperatorKind kind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType)
+        {
+            this.Kind = kind;
+            this.LeftType = leftType;
+            this.RightType = rightType;
+            this.ReturnType = returnType;
+            this.Method = null;
+            this.ConstrainedToTypeOpt = null;
+            this.Priority = null;
+        }
+
+        public BinaryOperatorSignature(BinaryOperatorKind kind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType, MethodSymbol method, TypeSymbol constrainedToTypeOpt)
         {
             this.Kind = kind;
             this.LeftType = leftType;
             this.RightType = rightType;
             this.ReturnType = returnType;
             this.Method = method;
+            this.ConstrainedToTypeOpt = constrainedToTypeOpt;
             this.Priority = null;
         }
 
@@ -48,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol.Equals(this.LeftType, other.LeftType, TypeCompareKind.ConsiderEverything2) &&
                 TypeSymbol.Equals(this.RightType, other.RightType, TypeCompareKind.ConsiderEverything2) &&
                 TypeSymbol.Equals(this.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything2) &&
-                this.Method == other.Method;
+                Symbol.Equals(this.Method, other.Method, TypeCompareKind.ConsiderEverything);
         }
 
         public static bool operator ==(BinaryOperatorSignature x, BinaryOperatorSignature y)
@@ -78,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)Method != null)
+                if ((object)Method != null && Method.IsStatic)
                 {
                     Debug.Assert(Method.ParameterCount == 2);
 
@@ -100,13 +115,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)Method != null)
                 {
-                    Debug.Assert(Method.ParameterCount == 2);
+                    int rightIndex = Method.IsStatic ? 1 : 0;
+
+                    Debug.Assert(Method.ParameterCount == rightIndex + 1);
 
                     if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
                     {
-                        Debug.Assert(Method.ParameterRefKinds.Length == 2);
+                        Debug.Assert(Method.ParameterRefKinds.Length == rightIndex + 1);
 
-                        return Method.ParameterRefKinds[1];
+                        return Method.ParameterRefKinds[rightIndex];
                     }
                 }
 

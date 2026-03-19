@@ -2,15 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Partial Public Class FlowAnalysisTests
@@ -1656,7 +1648,6 @@ End Class
             Assert.Equal("Me, args, q, y, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
-
 
         <Fact>
         Public Sub Select10()

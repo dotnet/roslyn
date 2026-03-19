@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -155,7 +157,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim localConsumer = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                                  {TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                                   TestReferences.SymbolsTests.NoPia.ExternalAsm1})
@@ -268,7 +269,6 @@ End Interface
     ]]></file>
 </compilation>
 
-
             Dim localType = CreateCompilationWithMscorlib40(compilationDef1)
 
             Dim compilationDef2 =
@@ -290,7 +290,6 @@ End Interface
         End Sub
 
     End Class
-
 
     Friend Module Extensions
 

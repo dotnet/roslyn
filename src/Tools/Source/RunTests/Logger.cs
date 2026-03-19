@@ -5,9 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RunTests
 {
@@ -18,13 +15,21 @@ namespace RunTests
 
         internal static bool HasErrors => s_hasErrors;
 
+        internal static void LogWarning(string line)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add($"Warning: {line}");
+            }
+        }
+
         internal static void LogError(Exception ex, string line)
         {
             lock (s_lines)
             {
                 s_hasErrors = true;
                 s_lines.Add($"Error {ex.Message}: {line}");
-                s_lines.Add(ex.StackTrace);
+                s_lines.Add(ex.StackTrace ?? "");
             }
         }
 
@@ -34,7 +39,7 @@ namespace RunTests
             {
                 s_lines.Add(message);
                 s_lines.Add(ex.Message);
-                s_lines.Add(ex.StackTrace);
+                s_lines.Add(ex.StackTrace ?? "");
             }
         }
 
@@ -43,7 +48,7 @@ namespace RunTests
             lock (s_lines)
             {
                 s_lines.Add(ex.Message);
-                s_lines.Add(ex.StackTrace);
+                s_lines.Add(ex.StackTrace ?? "");
             }
         }
 

@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindMethodGroup(ExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
+        private BoundExpression BindMethodGroup(ExpressionSyntax node, bool invoked, bool indexed, BindingDiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -57,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+#nullable enable
         /// <summary>
         /// Helper method to create a synthesized method invocation expression.
         /// </summary>
@@ -69,70 +73,82 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="typeArgs">Optional type arguments.</param>
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <param name="allowFieldsAndProperties">True to allow invocation of fields and properties of delegate type. Only methods are allowed otherwise.</param>
-        /// <param name="allowUnexpandedForm">False to prevent selecting a params method in unexpanded form.</param>
+        /// <param name="ignoreNormalFormIfHasValidParamsParameter">True to prevent selecting a params method in unexpanded form.</param>
         /// <returns>Synthesized method invocation expression.</returns>
         internal BoundExpression MakeInvocationExpression(
             SyntaxNode node,
             BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             SeparatedSyntaxList<TypeSyntax> typeArgsSyntax = default(SeparatedSyntaxList<TypeSyntax>),
             ImmutableArray<TypeWithAnnotations> typeArgs = default(ImmutableArray<TypeWithAnnotations>),
-            CSharpSyntaxNode queryClause = null,
+            ImmutableArray<(string Name, Location Location)?> names = default,
+            CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
-            bool allowUnexpandedForm = true)
+            bool ignoreNormalFormIfHasValidParamsParameter = false,
+            bool searchExtensionsIfNecessary = true,
+            bool disallowExpandedNonArrayParams = false)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.makeInvocationExpression
+            //
+
             Debug.Assert(receiver != null);
+            Debug.Assert(names.IsDefault || names.Length == args.Length);
 
             receiver = BindToNaturalType(receiver, diagnostics);
-            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics);
+            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary);
 
             // The other consumers of this helper (await and collection initializers) require the target member to be a method.
             if (!allowFieldsAndProperties && (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess))
             {
+                ReportMakeInvocationExpressionBadMemberKind(node, methodName, boundExpression, diagnostics);
+
                 Symbol symbol;
-                MessageID msgId;
                 if (boundExpression.Kind == BoundKind.FieldAccess)
                 {
-                    msgId = MessageID.IDS_SK_FIELD;
                     symbol = ((BoundFieldAccess)boundExpression).FieldSymbol;
                 }
                 else
                 {
-                    msgId = MessageID.IDS_SK_PROPERTY;
                     symbol = ((BoundPropertyAccess)boundExpression).PropertySymbol;
                 }
 
-                diagnostics.Add(
-                    ErrorCode.ERR_BadSKknown,
-                    node.Location,
-                    methodName,
-                    msgId.Localize(),
-                    MessageID.IDS_SK_METHOD.Localize());
-
-                return BadExpression(node, LookupResultKind.Empty, ImmutableArray.Create(symbol), args.Add(receiver));
+                return BadExpression(node, LookupResultKind.Empty, ImmutableArray.Create(symbol), args.Add(receiver), wasCompilerGenerated: true);
             }
 
+            Debug.Assert(allowFieldsAndProperties || boundExpression.Kind is (BoundKind.MethodGroup or BoundKind.BadExpression));
             boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVariablePendingInference ||
+            Debug.Assert(!args.Any(static e => e.Kind == BoundKind.OutVariablePendingInference ||
                                         e.Kind == BoundKind.OutDeconstructVarPendingInference ||
                                         e.Kind == BoundKind.DiscardExpression && !e.HasExpressionType()));
             analyzedArguments.Arguments.AddRange(args);
-            BoundExpression result = BindInvocationExpression(
-                node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
-                allowUnexpandedForm: allowUnexpandedForm);
 
-            // Query operator can't be called dynamically. 
+            if (!names.IsDefault)
+            {
+                analyzedArguments.Names.AddRange(names);
+            }
+
+            BoundExpression result = BindInvocationExpression(
+                node, node, methodName, boundExpression, analyzedArguments, diagnostics, acceptOnlyMethods: !allowFieldsAndProperties,
+                queryClause, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
+
+            // Query operator can't be called dynamically.
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
             {
                 // the error has already been reported by BindInvocationExpression
-                Debug.Assert(diagnostics.HasAnyErrors());
+                Debug.Assert(diagnostics.DiagnosticBag is null || diagnostics.HasAnyErrors());
 
-                result = CreateBadCall(node, boundExpression, LookupResultKind.Viable, analyzedArguments);
+                result = CreateBadCall(node, boundExpression, LookupResultKind.NotInvocable, analyzedArguments);
             }
 
             result.WasCompilerGenerated = true;
@@ -140,12 +156,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private static void ReportMakeInvocationExpressionBadMemberKind(SyntaxNode node, string methodName, BoundExpression boundExpression, BindingDiagnosticBag diagnostics)
+        {
+            MessageID msgId;
+            if (boundExpression.Kind == BoundKind.FieldAccess)
+            {
+                msgId = MessageID.IDS_SK_FIELD;
+            }
+            else
+            {
+                msgId = MessageID.IDS_SK_PROPERTY;
+            }
+
+            diagnostics.Add(
+                ErrorCode.ERR_BadSKknown,
+                node.Location,
+                methodName,
+                msgId.Localize(),
+                MessageID.IDS_SK_METHOD.Localize());
+        }
+#nullable disable
+
         /// <summary>
         /// Bind an expression as a method invocation.
         /// </summary>
         private BoundExpression BindInvocationExpression(
             InvocationExpressionSyntax node,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             BoundExpression result;
             if (TryBindNameofOperator(node, diagnostics, out result))
@@ -162,22 +199,78 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: false);
                 result = BindArgListOperator(node, diagnostics, analyzedArguments);
             }
+            else if (receiverIsInvocation(node, out InvocationExpressionSyntax nested))
+            {
+                var invocations = ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
+
+                invocations.Push(node);
+                node = nested;
+                while (receiverIsInvocation(node, out nested))
+                {
+                    invocations.Push(node);
+                    node = nested;
+                }
+
+                BoundExpression boundExpression = BindMethodGroup(node.Expression, invoked: true, indexed: false, diagnostics: diagnostics);
+
+                while (true)
+                {
+                    result = bindArgumentsAndInvocation(node, boundExpression, analyzedArguments, diagnostics);
+                    nested = node;
+
+                    if (!invocations.TryPop(out node))
+                    {
+                        break;
+                    }
+
+                    Debug.Assert(node.Expression.Kind() is SyntaxKind.SimpleMemberAccessExpression);
+                    var memberAccess = (MemberAccessExpressionSyntax)node.Expression;
+                    analyzedArguments.Clear();
+                    CheckContextForPointerTypes(nested, diagnostics, result); // BindExpression does this after calling BindExpressionInternal
+                    boundExpression = BindMemberAccessWithBoundLeft(memberAccess, result, memberAccess.Name, memberAccess.OperatorToken, invoked: true, indexed: false, diagnostics);
+                }
+
+                invocations.Free();
+            }
             else
             {
                 BoundExpression boundExpression = BindMethodGroup(node.Expression, invoked: true, indexed: false, diagnostics: diagnostics);
-                boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
-                string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-                result = BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
+                result = bindArgumentsAndInvocation(node, boundExpression, analyzedArguments, diagnostics);
             }
 
             analyzedArguments.Free();
             return result;
+
+            BoundExpression bindArgumentsAndInvocation(InvocationExpressionSyntax node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
+            {
+                boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
+                string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                return BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics, acceptOnlyMethods: false);
+            }
+
+            static bool receiverIsInvocation(InvocationExpressionSyntax node, out InvocationExpressionSyntax nested)
+            {
+                if (node.Expression is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax receiver, RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } && !receiver.MayBeNameofOperator())
+                {
+                    nested = receiver;
+                    return true;
+                }
+
+                nested = null;
+                return false;
+            }
         }
 
-        private BoundExpression BindArgListOperator(InvocationExpressionSyntax node, DiagnosticBag diagnostics, AnalyzedArguments analyzedArguments)
+        private BoundExpression BindArgListOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, AnalyzedArguments analyzedArguments)
         {
             bool hasErrors = analyzedArguments.HasErrors;
+
+            if (IsInAsyncMethod() && Compilation.IsRuntimeAsyncEnabledIn(ContainingMemberOrLambda))
+            {
+                // Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, node, ContainingMemberOrLambda);
+            }
 
             // We allow names, oddly enough; M(__arglist(x : 123)) is legal. We just ignore them.
             TypeSymbol objType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
@@ -237,10 +330,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             string methodName,
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
+            bool acceptOnlyMethods,
             CSharpSyntaxNode queryClause = null,
-            bool allowUnexpandedForm = true)
+            bool ignoreNormalFormIfHasValidParamsParameter = false,
+            bool disallowExpandedNonArrayParams = false)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindInvocationExpression
+            //
+
             BoundExpression result;
             NamedTypeSymbol delegateType;
 
@@ -257,16 +360,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
-                    diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm, anyApplicableCandidates: out _);
+                    diagnostics, queryClause,
+                    ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                    disallowExpandedNonArrayParams: disallowExpandedNonArrayParams,
+                    anyApplicableCandidates: out _,
+                    acceptOnlyMethods: acceptOnlyMethods);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
                 if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, delegateType, node: node))
                 {
-                    return CreateBadCall(node, boundExpression, LookupResultKind.Viable, analyzedArguments);
+                    return CreateBadCall(node, boundExpression, LookupResultKind.NotInvocable, analyzedArguments);
                 }
 
                 result = BindDelegateInvocation(node, expression, methodName, boundExpression, analyzedArguments, diagnostics, queryClause, delegateType);
+            }
+            else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointerType)
+            {
+                ReportSuppressionIfNeeded(boundExpression, diagnostics);
+                result = BindFunctionPointerInvocation(node, boundExpression, analyzedArguments, diagnostics);
             }
             else
             {
@@ -283,21 +395,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         private BoundExpression BindDynamicInvocation(
             SyntaxNode node,
             BoundExpression expression,
             AnalyzedArguments arguments,
             ImmutableArray<MethodSymbol> applicableMethods,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
             CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
 
             bool hasErrors = false;
+            BoundExpression? receiver;
             if (expression.Kind == BoundKind.MethodGroup)
             {
                 BoundMethodGroup methodGroup = (BoundMethodGroup)expression;
-                BoundExpression receiver = methodGroup.ReceiverOpt;
+                receiver = methodGroup.ReceiverOpt;
 
                 // receiver is null if we are calling a static method declared on an outer class via its simple name:
                 if (receiver != null)
@@ -317,6 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // the runtime binder would ignore the receiver, but in a ctor initializer we can't read "this" before 
                                 // the base constructor is called. We need to handle this as a type qualified static method call.
                                 // Also applicable to things like field initializers, which run before the ctor initializer.
+                                Debug.Assert(ContainingType is not null);
                                 expression = methodGroup.Update(
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,
@@ -324,6 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags & ~BoundMethodGroupFlags.HasImplicitReceiver,
+                                    methodGroup.FunctionType,
                                     receiverOpt: new BoundTypeExpression(node, null, this.ContainingType).MakeCompilerGenerated(),
                                     resultKind: methodGroup.ResultKind);
                             }
@@ -337,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                             // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                             bool inStaticContext;
-                            bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                            bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                             BoundExpression finalReceiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
 
@@ -348,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags,
+                                    methodGroup.FunctionType,
                                     finalReceiver,
                                     methodGroup.ResultKind);
                             break;
@@ -357,12 +474,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 expression = BindToNaturalType(expression, diagnostics);
+
+                if (expression is BoundDynamicMemberAccess memberAccess)
+                {
+                    receiver = memberAccess.Receiver;
+                }
+                else
+                {
+                    receiver = expression;
+                }
             }
 
             ImmutableArray<BoundExpression> argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
             var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause);
+            hasErrors &= ReportBadDynamicArguments(node, receiver, argArray, refKindsArray, diagnostics, queryClause);
 
             return new BoundDynamicInvocation(
                 node,
@@ -374,8 +500,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
         }
+#nullable disable
 
-        private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
         {
             if (arguments.Names.Count == 0)
             {
@@ -402,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
             builder.AddRange(arguments.Arguments);
@@ -420,15 +547,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns true if there were errors.
+#nullable enable
         private static bool ReportBadDynamicArguments(
             SyntaxNode node,
+            BoundExpression? receiver,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKinds,
-            DiagnosticBag diagnostics,
-            CSharpSyntaxNode queryClause)
+            BindingDiagnosticBag diagnostics,
+            CSharpSyntaxNode? queryClause)
         {
             bool hasErrors = false;
             bool reportedBadQuery = false;
+
+            if (receiver != null && !IsLegalDynamicOperand(receiver))
+            {
+                // Cannot perform a dynamic invocation on an expression with type '{0}'.
+                Debug.Assert(receiver.Type is not null);
+                Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnExpression, receiver.Syntax, receiver.Type);
+                hasErrors = true;
+            }
 
             if (!refKinds.IsDefault)
             {
@@ -477,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Lambdas,anonymous methods and method groups are the typeless expressions that
                         // are not usable as dynamic arguments; if we get here then the expression must have a type.
-                        Debug.Assert((object)arg.Type != null);
+                        Debug.Assert((object?)arg.Type != null);
                         // error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation
 
                         Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, arg.Syntax, arg.Type);
@@ -487,6 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return hasErrors;
         }
+#nullable disable
 
         private BoundExpression BindDelegateInvocation(
             SyntaxNode node,
@@ -494,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string methodName,
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
             NamedTypeSymbol delegateType)
         {
@@ -502,20 +640,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = MethodGroup.GetInstance();
             methodGroup.PopulateWithSingleMethod(boundExpression, delegateType.DelegateInvokeMethod);
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             OverloadResolution.MethodInvocationOverloadResolution(
                 methods: methodGroup.Methods,
                 typeArguments: methodGroup.TypeArguments,
                 receiver: methodGroup.Receiver,
                 arguments: analyzedArguments,
                 result: overloadResolutionResult,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo,
+                options: analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None);
+            diagnostics.Add(node, useSiteInfo);
 
             // If overload resolution on the "Invoke" method found an applicable candidate, and one of the arguments
             // was dynamic then treat this as a dynamic call.
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
+                var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
+                ReportMemberNotSupportedByDynamicDispatch(node, applicable, diagnostics);
+
                 result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
             }
             else
@@ -528,12 +670,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static bool HasApplicableConditionalMethod(OverloadResolutionResult<MethodSymbol> results)
+        private static bool HasApplicableConditionalMethod(ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
         {
-            var r = results.Results;
-            for (int i = 0; i < r.Length; ++i)
+            foreach (var candidate in finalApplicableCandidates)
             {
-                if (r[i].IsApplicable && r[i].Member.IsConditional)
+                if (candidate.Member.IsConditional)
                 {
                     return true;
                 }
@@ -542,23 +683,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, BindingDiagnosticBag diagnostics)
+            where TMember : Symbol
+        {
+            if (candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                !candidate.Member.GetParameters().Last().Type.IsSZArray())
+            {
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicDispatchToParamsCollection,
+                    syntax, candidate.LeastOverriddenMember);
+            }
+        }
+
         private BoundExpression BindMethodGroupInvocation(
             SyntaxNode syntax,
             SyntaxNode expression,
             string methodName,
             BoundMethodGroup methodGroup,
             AnalyzedArguments analyzedArguments,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
-            bool allowUnexpandedForm,
-            out bool anyApplicableCandidates)
+            bool ignoreNormalFormIfHasValidParamsParameter,
+            out bool anyApplicableCandidates,
+            bool disallowExpandedNonArrayParams,
+            bool acceptOnlyMethods) // For example, do not accept extension property value invocations (delegates returned by a property can be invoked, etc.)
         {
-            BoundExpression result;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindMethodGroupInvocation
+            //
+
+            BoundExpression result = null;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = this.ResolveMethodGroup(
-                methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
-                useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
-            diagnostics.Add(expression, useSiteDiagnostics);
+                methodGroup, expression, methodName, analyzedArguments,
+                useSiteInfo: ref useSiteInfo,
+                options: (ignoreNormalFormIfHasValidParamsParameter ? OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter : OverloadResolution.Options.None) |
+                         (disallowExpandedNonArrayParams ? OverloadResolution.Options.DisallowExpandedNonArrayParams : OverloadResolution.Options.None) |
+                         (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None),
+                acceptOnlyMethods: acceptOnlyMethods);
+            diagnostics.Add(expression, useSiteInfo);
+
+            if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
+            {
+                diagnostics.AddRange(resolution.Diagnostics);
+                BoundExpression extensionMemberAccess = GetExtensionMemberAccess(expression, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+
+                Debug.Assert(extensionMemberAccess.Kind != BoundKind.MethodGroup);
+
+                extensionMemberAccess = CheckValue(extensionMemberAccess, BindValueKind.RValue, diagnostics);
+                BoundExpression extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName: null, extensionMemberAccess, analyzedArguments, diagnostics, acceptOnlyMethods: false);
+                anyApplicableCandidates = !extensionMemberInvocation.HasAnyErrors;
+                return extensionMemberInvocation;
+            }
+
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
 
             if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
@@ -568,6 +749,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalMethods;
                 LookupResultKind resultKind;
                 ImmutableArray<TypeWithAnnotations> typeArguments;
+                BoundExpression receiverOpt = methodGroup.ReceiverOpt;
+
                 if (resolution.OverloadResolutionResult != null)
                 {
                     originalMethods = GetOriginalMethods(resolution.OverloadResolutionResult);
@@ -579,18 +762,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalMethods = methodGroup.Methods;
                     resultKind = methodGroup.ResultKind;
                     typeArguments = methodGroup.TypeArgumentsOpt;
+
+                    if (originalMethods.IsEmpty && methodGroup.LookupSymbolOpt is { })
+                    {
+                        Debug.Assert(methodGroup.LookupSymbolOpt is not MethodSymbol);
+
+                        // Create receiver as BindMemberAccessBadResult does
+                        receiverOpt = new BoundBadExpression(
+                            methodGroup.Syntax,
+                            methodGroup.ResultKind,
+                            [methodGroup.LookupSymbolOpt],
+                            receiverOpt == null ? [] : [AdjustBadExpressionChild(receiverOpt)],
+                            GetNonMethodMemberType(methodGroup.LookupSymbolOpt));
+                    }
                 }
 
                 result = CreateBadCall(
                     syntax,
                     methodName,
-                    methodGroup.ReceiverOpt,
+                    receiverOpt,
                     originalMethods,
                     resultKind,
                     typeArguments,
                     analyzedArguments,
                     invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
-                    isDelegate: false);
+                    isDelegate: false,
+                    BindingDiagnosticBag.Discarded);
             }
             else if (!resolution.IsEmpty)
             {
@@ -604,11 +801,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resolution.MethodGroup != null)
                     {
                         // we want to force any unbound lambda arguments to cache an appropriate conversion if possible; see 9448.
-                        DiagnosticBag discarded = DiagnosticBag.GetInstance();
                         result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
-                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: discarded, queryClause: queryClause);
-                        discarded.Free();
+                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: BindingDiagnosticBag.Discarded, queryClause: queryClause);
                     }
 
                     // Since the resolution is non-empty and has no diagnostics, the LookupResultKind in its MethodGroup is uninteresting.
@@ -621,50 +816,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resolution.AnalyzedArguments.HasDynamicArgument &&
                         resolution.OverloadResolutionResult.HasAnyApplicableMember)
                     {
-                        if (resolution.IsLocalFunctionInvocation)
-                        {
-                            result = BindLocalFunctionInvocationWithDynamicArgument(
-                                syntax, expression, methodName, methodGroup,
-                                diagnostics, queryClause, resolution);
-                        }
-                        else if (resolution.IsExtensionMethodGroup)
-                        {
-                            // error CS1973: 'T' has no applicable method named 'M' but appears to have an
-                            // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
-                            // casting the dynamic arguments or calling the extension method without the extension method
-                            // syntax.
+                        // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
+                        // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
+                        // that are not performed at compile-time.
+                        // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
+                        var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
+                                                                                            methodGroup.ReceiverOpt,
+                                                                                            methodGroup.TypeArgumentsOpt,
+                                                                                            isExtensionMethodGroup: resolution.IsExtensionMethodGroup,
+                                                                                            diagnostics);
 
-                            // We found an extension method, so the instance associated with the method group must have 
-                            // existed and had a type.
-                            Debug.Assert(methodGroup.InstanceOpt != null && (object)methodGroup.InstanceOpt.Type != null);
-
-                            Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.InstanceOpt.Type, methodGroup.Name);
+                        if (finalApplicableCandidates.Length == 0)
+                        {
                             result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
                         }
-                        else
+                        else if (finalApplicableCandidates.Length == 1)
                         {
-                            if (HasApplicableConditionalMethod(resolution.OverloadResolutionResult))
-                            {
-                                // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
-                                // because one or more applicable overloads are conditional methods
-                                Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
-                            }
+                            Debug.Assert(finalApplicableCandidates[0].IsApplicable);
 
-                            // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
-                            // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
-                            // that are not performed at compile-time.
-                            // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
-                                                                                                methodGroup.ReceiverOpt,
-                                                                                                methodGroup.TypeArgumentsOpt,
-                                                                                                diagnostics);
-                            if (finalApplicableCandidates.Length > 0)
+                            result = TryEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, expression, methodName, methodGroup, diagnostics, queryClause, resolution, finalApplicableCandidates[0]);
+
+                            if (result is null && finalApplicableCandidates[0].LeastOverriddenMember.MethodKind != MethodKind.LocalFunction)
                             {
-                                result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates, diagnostics, queryClause);
+                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], diagnostics);
+                            }
+                        }
+
+                        if (result is null)
+                        {
+                            Debug.Assert(finalApplicableCandidates.Length > 0);
+
+                            if (resolution.IsExtensionMethodGroup)
+                            {
+                                // error CS1973: 'T' has no applicable method named 'M' but appears to have an
+                                // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
+                                // casting the dynamic arguments or calling the extension method without the extension method
+                                // syntax.
+
+                                Debug.Assert(methodGroup.ReceiverOpt != null && (object)methodGroup.ReceiverOpt.Type != null);
+
+                                Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.ReceiverOpt.Type, methodGroup.Name);
+                                result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
                             }
                             else
                             {
-                                result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
+                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, finalApplicableCandidates);
+
+                                result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics, queryClause);
                             }
                         }
                     }
@@ -684,120 +882,143 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression BindLocalFunctionInvocationWithDynamicArgument(
-            SyntaxNode syntax,
-            SyntaxNode expression,
-            string methodName,
-            BoundMethodGroup boundMethodGroup,
-            DiagnosticBag diagnostics,
-            CSharpSyntaxNode queryClause,
-            MethodGroupResolution resolution)
+        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
         {
-            // Invocations of local functions with dynamic arguments don't need
-            // to be dispatched as dynamic invocations since they cannot be
-            // overloaded. Instead, we'll just emit a standard call with
-            // dynamic implicit conversions for any dynamic arguments. There
-            // are two exceptions: "params", and unconstructed generics. While
-            // implementing those cases with dynamic invocations is possible,
-            // we have decided the implementation complexity is not worth it.
-            // Refer to the comments below for the exact semantics.
-
-            Debug.Assert(resolution.IsLocalFunctionInvocation);
-            Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
-            Debug.Assert(queryClause == null);
-
-            var validResult = resolution.OverloadResolutionResult.ValidResult;
-            var args = resolution.AnalyzedArguments.Arguments.ToImmutable();
-            var refKindsArray = resolution.AnalyzedArguments.RefKinds.ToImmutableOrNull();
-
-            ReportBadDynamicArguments(syntax, args, refKindsArray, diagnostics, queryClause);
-
-            var localFunction = validResult.Member;
-            var methodResult = validResult.Result;
-
-            // We're only in trouble if a dynamic argument is passed to the
-            // params parameter and is ambiguous at compile time between normal
-            // and expanded form i.e., there is exactly one dynamic argument to
-            // a params parameter
-            // See https://github.com/dotnet/roslyn/issues/10708
-            if (OverloadResolution.IsValidParams(localFunction) &&
-                methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
+            if (HasApplicableConditionalMethod(finalApplicableCandidates))
             {
-                var parameters = localFunction.Parameters;
+                // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
+                // because one or more applicable overloads are conditional methods
+                Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
+            }
+        }
 
-                Debug.Assert(parameters.Last().IsParams);
-
+        private bool IsAmbiguousDynamicParamsArgument<TMethodOrPropertySymbol>(ArrayBuilder<BoundExpression> arguments, MemberResolutionResult<TMethodOrPropertySymbol> candidate, out SyntaxNode argumentSyntax)
+             where TMethodOrPropertySymbol : Symbol
+        {
+            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, disallowExpandedNonArrayParams: false, out _) &&
+                candidate.Result.Kind == MemberResolutionKind.ApplicableInNormalForm)
+            {
+                var parameters = candidate.Member.GetParameters();
                 var lastParamIndex = parameters.Length - 1;
 
-                for (int i = 0; i < args.Length; ++i)
+                for (int i = 0; i < arguments.Count; ++i)
                 {
-                    var arg = args[i];
+                    var arg = arguments[i];
                     if (arg.HasDynamicType() &&
-                        methodResult.ParameterFromArgument(i) == lastParamIndex)
+                        candidate.Result.ParameterFromArgument(i) == lastParamIndex)
                     {
-                        Error(diagnostics,
-                            ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
-                            syntax, parameters.Last().Name, localFunction.Name);
-                        return BindDynamicInvocation(
-                            syntax,
-                            boundMethodGroup,
-                            resolution.AnalyzedArguments,
-                            resolution.OverloadResolutionResult.GetAllApplicableMembers(),
-                            diagnostics,
-                            queryClause);
+                        argumentSyntax = arg.Syntax;
+                        return true;
                     }
                 }
             }
 
-            // If we call an unconstructed generic local function with a
-            // dynamic argument in a place where it influences the type
-            // parameters, we need to dynamically dispatch the call (as the
-            // function must be constructed at runtime). We cannot do that, so
-            // disallow that. However, doing a specific analysis of each
-            // argument and its corresponding parameter to check if it's
-            // generic (and allow dynamic in non-generic parameters) may break
-            // overload resolution in the future, if we ever allow overloaded
-            // local functions. So, just disallow any mixing of dynamic and
-            // inferred generics. (Explicit generic arguments are fine)
-            // See https://github.com/dotnet/roslyn/issues/21317
-            if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && localFunction.IsGenericMethod)
+            argumentSyntax = null;
+            return false;
+        }
+
+        private bool CanEarlyBindSingleCandidateInvocationWithDynamicArgument(
+            SyntaxNode syntax,
+            BoundMethodGroup boundMethodGroup,
+            BindingDiagnosticBag diagnostics,
+            MethodGroupResolution resolution,
+            MemberResolutionResult<MethodSymbol> methodResolutionResult,
+            MethodSymbol singleCandidate)
+        {
+            if (singleCandidate.MethodKind != MethodKind.LocalFunction)
             {
-                Error(diagnostics,
-                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
-                    syntax, localFunction.Name);
-                return BindDynamicInvocation(
-                    syntax,
-                    boundMethodGroup,
-                    resolution.AnalyzedArguments,
-                    resolution.OverloadResolutionResult.GetAllApplicableMembers(),
-                    diagnostics,
-                    queryClause);
+                return false;
             }
 
-            return BindInvocationExpressionContinued(
+            if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && singleCandidate.IsGenericMethod)
+            {
+                // If we call an unconstructed generic function with a
+                // dynamic argument in a place where it influences the type
+                // parameters, we need to dynamically dispatch the call (as the
+                // function must be constructed at runtime). We disallow that
+                // when we know that runtime binder will not be able to handle the case.
+                // See https://github.com/dotnet/roslyn/issues/21317
+
+                // However, doing a specific analysis of each
+                // argument and its corresponding parameter to check if it's
+                // generic (and allow dynamic in non-generic parameters) doesn't
+                // seem to worth the complexity. So, just disallow any mixing of dynamic and
+                // inferred generics. (Explicit generic arguments are fine)
+
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                    syntax, singleCandidate.Name);
+
+                return false;
+            }
+
+            if (IsAmbiguousDynamicParamsArgument(resolution.AnalyzedArguments.Arguments, methodResolutionResult, out SyntaxNode argumentSyntax))
+            {
+                // We're only in trouble if a dynamic argument is passed to the
+                // params parameter and is ambiguous at compile time between normal
+                // and expanded form i.e., there is exactly one dynamic argument to
+                // a params parameter, and we know that runtime binder might not be
+                // able to handle the disambiguation
+                // See https://github.com/dotnet/roslyn/issues/10708
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
+                    argumentSyntax, singleCandidate.Parameters.Last().Name, singleCandidate.Name);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private BoundExpression TryEarlyBindSingleCandidateInvocationWithDynamicArgument(
+            SyntaxNode syntax,
+            SyntaxNode expression,
+            string methodName,
+            BoundMethodGroup boundMethodGroup,
+            BindingDiagnosticBag diagnostics,
+            CSharpSyntaxNode queryClause,
+            MethodGroupResolution resolution,
+            MemberResolutionResult<MethodSymbol> methodResolutionResult)
+        {
+            MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
+
+            if (!CanEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
+            {
+                return null;
+            }
+
+            var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
+            resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
+
+            BoundExpression result = BindInvocationExpressionContinued(
                 node: syntax,
                 expression: expression,
                 methodName: methodName,
-                result: resolution.OverloadResolutionResult,
+                result: resultWithSingleCandidate,
                 analyzedArguments: resolution.AnalyzedArguments,
                 methodGroup: resolution.MethodGroup,
                 delegateTypeOpt: null,
                 diagnostics: diagnostics,
                 queryClause: queryClause);
+
+            resultWithSingleCandidate.Free();
+
+            return result;
         }
 
-        private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
+        private ImmutableArray<MemberResolutionResult<TMethodOrPropertySymbol>> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
             SyntaxNode syntax,
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
-            DiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
+            bool isExtensionMethodGroup,
+            BindingDiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
 
-            var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
-            DiagnosticBag firstFailed = null;
-            DiagnosticBag candidateDiagnostics = DiagnosticBag.GetInstance();
+            var finalCandidates = ArrayBuilder<MemberResolutionResult<TMethodOrPropertySymbol>>.GetInstance();
+            BindingDiagnosticBag firstFailed = null;
+            var candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
             for (int i = 0, n = overloadResolutionResult.ResultsBuilder.Count; i < n; i++)
             {
@@ -812,17 +1033,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // * If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value, 
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
-                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
-                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
+                    TMethodOrPropertySymbol member = result.Member;
+                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, member, syntax, candidateDiagnostics, invokedAsExtensionMethod: isExtensionMethodGroup && !member.IsExtensionBlockMember()) &&
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
                     {
-                        finalCandidates.Add(result.Member);
+                        finalCandidates.Add(result);
                         continue;
                     }
 
                     if (firstFailed == null)
                     {
                         firstFailed = candidateDiagnostics;
-                        candidateDiagnostics = DiagnosticBag.GetInstance();
+                        candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     }
                     else
                     {
@@ -848,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalCandidates.ToImmutableAndFree();
         }
 
-        private void CheckRestrictedTypeReceiver(BoundExpression expression, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private void CheckRestrictedTypeReceiver(BoundExpression expression, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -860,17 +1082,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     {
                         var call = (BoundCall)expression;
-                        if (!call.HasAnyErrors && call.ReceiverOpt != null && (object)call.ReceiverOpt.Type != null)
+                        if (!call.HasAnyErrors && call.ReceiverOpt != null && (object)call.ReceiverOpt.Type != null && !call.Method.IsExtensionBlockMember())
                         {
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
                             // Case 1: receiver is a restricted type, and method called is defined on a parent type
-                            if (call.ReceiverOpt.Type.IsRestrictedType() && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
+                            if (call.ReceiverOpt.Type.IsRestrictedType() && !call.Method.ContainingType.IsInterface && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
                             }
-                            // Case 2: receiver is a base reference, and the the child type is restricted
+                            // Case 2: receiver is a base reference, and the child type is restricted
                             else if (call.ReceiverOpt.Kind == BoundKind.BaseReference && this.ContainingType.IsRestrictedType())
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, this.ContainingType, call.Method.ContainingType);
@@ -891,6 +1113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, dynInvoke.Expression.Syntax, dynInvoke.Expression.Type);
                         }
                     }
+                    break;
+                case BoundKind.FunctionPointerInvocation:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
@@ -919,16 +1143,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             MethodGroup methodGroup,
             NamedTypeSymbol delegateTypeOpt,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindInvocationExpressionContinued
+            //
+
             Debug.Assert(node != null);
             Debug.Assert(methodGroup != null);
             Debug.Assert(methodGroup.Error == null);
             Debug.Assert(methodGroup.Methods.Count > 0);
             Debug.Assert(((object)delegateTypeOpt == null) || (methodGroup.Methods.Count == 1));
 
-            var invokedAsExtensionMethod = methodGroup.IsExtensionMethodGroup;
+            bool invokedAsExtensionMethod = methodGroup.IsExtensionMethodGroup;
 
             // Delegate invocations should never be considered extension method
             // invocations (even though the delegate may refer to an extension method).
@@ -946,41 +1178,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.Succeeded)
             {
+                BindingDiagnosticBag buildArgumentsForErrorRecoveryDiagnostics;
+
                 if (analyzedArguments.HasErrors)
                 {
                     // Errors for arguments have already been reported, except for unbound lambdas and switch expressions.
                     // We report those now.
-                    foreach (var argument in analyzedArguments.Arguments)
-                    {
-                        switch (argument)
-                        {
-                            case UnboundLambda unboundLambda:
-                                var boundWithErrors = unboundLambda.BindForErrorRecovery();
-                                diagnostics.AddRange(boundWithErrors.Diagnostics);
-                                break;
-                            case BoundTupleLiteral _:
-                                // Tuple literals can contain unbound lambdas or switch expressions.
-                                _ = BindToNaturalType(argument, diagnostics);
-                                break;
-                            case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
-                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), conversionIfTargetTyped: null, diagnostics);
-                                break;
-                        }
-                    }
+                    buildArgumentsForErrorRecoveryDiagnostics = diagnostics;
                 }
                 else
                 {
+                    buildArgumentsForErrorRecoveryDiagnostics = BindingDiagnosticBag.Discarded;
+
                     // Since there were no argument errors to report, we report an error on the invocation itself.
                     string name = (object)delegateTypeOpt == null ? methodName : null;
                     result.ReportDiagnostics(
                         binder: this, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: name,
                         receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
-                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt,
-                        queryClause: queryClause);
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt, queryClause: queryClause);
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
-                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
+                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null),
+                    buildArgumentsForErrorRecoveryDiagnostics);
             }
 
             // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
@@ -988,11 +1208,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodResult = result.ValidResult;
             var returnType = methodResult.Member.ReturnType;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
-
             var method = methodResult.Member;
-            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            var argsToParams = methodResult.Result.ArgsToParamsOpt;
+            bool isExtensionBlockMethod = method.IsExtensionBlockMember();
+
+            if (isExtensionBlockMethod)
+            {
+                // For new extension methods, we performed overload resolution giving the receiver as one of the arguments.
+                // We now restore the arguments to their original state and update the result accordingly.
+                invokedAsExtensionMethod = false;
+                analyzedArguments.Arguments.RemoveAt(0);
+
+                if (analyzedArguments.Names is { Count: > 0 })
+                {
+                    analyzedArguments.Names.RemoveAt(0);
+                }
+
+                if (analyzedArguments.RefKinds is { Count: > 0 })
+                {
+                    analyzedArguments.RefKinds.RemoveAt(0);
+                }
+
+                Debug.Assert(methodResult.Result.ConversionForArg(0).Exists);
+                methodResult = methodResult.WithResult(methodResult.Result.WithoutReceiverArgument());
+            }
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -1001,7 +1239,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // instance methods. Therefore we must detect this scenario here, rather than in
             // overload resolution.
 
-            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
+            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
+
+            if (invokedAsExtensionMethod && (object)receiver != methodGroup.Receiver)
+            {
+                // we will have a different receiver if ReplaceTypeOrValueReceiver has unwrapped TypeOrValue
+                Debug.Assert(analyzedArguments.Arguments[0] == (object)methodGroup.Receiver);
+                analyzedArguments.Arguments[0] = receiver;
+            }
+
+            ImmutableArray<int> argsToParams;
+            this.CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: invokedAsExtensionMethod, out argsToParams);
+
+            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+            var extensionReceiver = isExtensionBlockMethod && !method.IsStatic ? receiver : null;
+            BindDefaultArguments(node, method.Parameters, extensionReceiver, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1015,15 +1267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression receiverArgument = analyzedArguments.Argument(0);
                 ParameterSymbol receiverParameter = method.Parameters.First();
-
-                // we will have a different receiver if ReplaceTypeOrValueReceiver has unwrapped TypeOrValue
-                if ((object)receiver != receiverArgument)
-                {
-                    // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
-                    Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0),
-                        receiverParameter.Type, diagnostics);
-                }
 
                 if (receiverParameter.RefKind == RefKind.Ref)
                 {
@@ -1050,9 +1293,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Arguments[0] = receiverArgument;
             }
+            else if (isExtensionBlockMethod && receiver is not BoundTypeExpression)
+            {
+                receiver = CheckAndConvertExtensionReceiver(receiver, method.ContainingType.ExtensionParameter, diagnostics);
+            }
 
             // This will be the receiver of the BoundCall node that we create.
-            // For extension methods, there is no receiver because the receiver in source was actually the first argument.
+            // For classic extension methods, there is no receiver because the receiver in source was actually the first argument.
             // For instance methods, we may have synthesized an implicit this node.  We'll keep it for the emitter.
             // For static methods, we may have synthesized a type expression.  It serves no purpose, so we'll drop it.
             if (invokedAsExtensionMethod || (!method.RequiresInstanceReceiver && receiver != null && receiver.WasCompilerGenerated))
@@ -1073,16 +1320,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if the implied argument would have an unsafe type.  We need to check
             // the parameters explicitly, since there won't be bound nodes for the implied
             // arguments until lowering.
-            if (method.HasUnsafeParameter())
+            if (method.HasParameterContainingPointerType())
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                gotError = ReportUnsafeIfNotAllowed(node, diagnostics) || gotError;
+                gotError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) || gotError;
             }
 
             bool hasBaseReceiver = receiver != null && receiver.Kind == BoundKind.BaseReference;
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
+            ReportDiagnosticsIfDisallowedExtension(diagnostics, method, node);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
 
             // No use site errors, but there could be use site warnings.
             // If there are any use site warnings, they have already been reported by overload resolution.
@@ -1099,19 +1349,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
-            if (!gotError)
-            {
-                gotError = !CheckInvocationArgMixing(
-                    node,
-                    method,
-                    receiver,
-                    method.Parameters,
-                    args,
-                    argsToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
-            }
-
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
@@ -1125,19 +1362,553 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+            return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
+                        argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
+
+#nullable enable
+        private BoundExpression CheckAndConvertExtensionReceiver(BoundExpression receiver, ParameterSymbol extensionParameter, BindingDiagnosticBag diagnostics)
+        {
+            CheckArgumentRefKind(RefKind.None, receiver, arg: 0, extensionParameter, invokedAsExtensionMethod: true, diagnostics);
+
+            if (extensionParameter.RefKind == RefKind.Ref)
+            {
+                // If this was a ref extension method, the receiver must be checked for L-value constraints.
+                // This helper method will also replace it with a BoundBadExpression if it was invalid.
+                receiver = CheckValue(receiver, BindValueKind.RefOrOut, diagnostics);
+            }
+
+            receiver = CreateConversion(receiver, extensionParameter.Type, diagnostics);
+            return receiver;
+        }
+
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
+        {
+            var method = property.GetMethod ?? property.SetMethod;
+
+            // Property might be missing accessors in invalid code.
+            if (method is null)
+            {
+                return ThreeState.False;
+            }
+
+            return ReceiverIsSubjectToCloning(receiver, method);
+        }
+
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
+        {
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type is null or { IsReferenceType: true })
+            {
+                return ThreeState.False;
+            }
+
+            var valueKind = method.IsEffectivelyReadOnly
+                ? BindValueKind.RefersToLocation
+                : BindValueKind.RefersToLocation | BindValueKind.Assignable;
+            var result = !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
+            return result.ToThreeState();
+        }
+
+        private static SourceLocation GetCallerLocation(SyntaxNode syntax)
+        {
+            var token = syntax switch
+            {
+                InvocationExpressionSyntax invocation => invocation.ArgumentList.OpenParenToken,
+                BaseObjectCreationExpressionSyntax objectCreation => objectCreation.NewKeyword,
+                ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList.OpenParenToken,
+                PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType => primaryConstructorBaseType.ArgumentList.OpenParenToken,
+                ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList.OpenBracketToken,
+                _ => syntax.GetFirstToken()
+            };
+
+            return new SourceLocation(token);
+        }
+
+        private BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, BindingDiagnosticBag diagnostics)
+        {
+            var parameterType = parameter.Type;
+            Debug.Assert(parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object);
+
+            // We have a call to a method M([Optional] object x) which omits the argument. The value we generate
+            // for the argument depends on the presence or absence of other attributes. The rules are:
+            //
+            // * If we're generating a default argument for an attribute, it's a compile error.
+            // * If the parameter is marked as [MarshalAs(Interface)], [MarshalAs(IUnknown)] or [MarshalAs(IDispatch)]
+            //   then the argument is null.
+            // * Otherwise, if the parameter is marked as [IUnknownConstant] then the argument is
+            //   new UnknownWrapper(null)
+            // * Otherwise, if the parameter is marked as [IDispatchConstant] then the argument is
+            //    new DispatchWrapper(null)
+            // * Otherwise, the argument is Type.Missing.
+
+            BoundExpression? defaultValue = null;
+            if (InAttributeArgument)
+            {
+                // CS7067: Attribute constructor parameter '{0}' is optional, but no default parameter value was specified.
+                diagnostics.Add(ErrorCode.ERR_BadAttributeParamDefaultArgument, syntax.Location, parameter.Name);
+            }
+            else if (parameter.IsMarshalAsObject)
+            {
+                // default(object)
+                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+            }
+            else if (parameter.IsIUnknownConstant)
+            {
+                if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor, diagnostics, syntax: syntax) is MethodSymbol methodSymbol)
+                {
+                    // new UnknownWrapper(default(object))
+                    var unknownArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, unknownArgument) { WasCompilerGenerated = true };
+                }
+            }
+            else if (parameter.IsIDispatchConstant)
+            {
+                if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor, diagnostics, syntax: syntax) is MethodSymbol methodSymbol)
+                {
+                    // new DispatchWrapper(default(object))
+                    var dispatchArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, dispatchArgument) { WasCompilerGenerated = true };
+                }
+            }
+            else
+            {
+                if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Type__Missing, diagnostics, syntax: syntax) is FieldSymbol fieldSymbol)
+                {
+                    // Type.Missing
+                    defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
+                }
+            }
+
+            return defaultValue ?? BadExpression(syntax).MakeCompilerGenerated();
+        }
+
+        internal static ParameterSymbol? GetCorrespondingParameter(
+            int argumentOrdinal,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            int n = parameters.Length;
+            ParameterSymbol? parameter;
+
+            if (argsToParamsOpt.IsDefault)
+            {
+                if (argumentOrdinal < n)
+                {
+                    parameter = parameters[argumentOrdinal];
+                }
+                else if (expanded)
+                {
+                    parameter = parameters[n - 1];
+                }
+                else
+                {
+                    parameter = null;
+                }
+            }
+            else
+            {
+                Debug.Assert(argumentOrdinal < argsToParamsOpt.Length);
+                int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
+
+                if (parameterOrdinal < n)
+                {
+                    parameter = parameters[parameterOrdinal];
+                }
+                else
+                {
+                    parameter = null;
+                }
+            }
+
+            return parameter;
+        }
+
+        /// <param name="extensionReceiver">The receiver for new extension members that are non-static.</param>
+        internal void BindDefaultArguments(
+            SyntaxNode node,
+            ImmutableArray<ParameterSymbol> parameters,
+            BoundExpression? extensionReceiver,
+            ArrayBuilder<BoundExpression> argumentsBuilder,
+            ArrayBuilder<RefKind>? argumentRefKindsBuilder,
+            ArrayBuilder<(string Name, Location Location)?>? namesBuilder,
+            ref ImmutableArray<int> argsToParamsOpt,
+            out BitVector defaultArguments,
+            bool expanded,
+            bool enableCallerInfo,
+            BindingDiagnosticBag diagnostics,
+            Symbol? attributedMember = null)
+        {
+            int paramsIndex = parameters.Length - 1;
+            var visitedParameters = BitVector.Create(parameters.Length);
+            for (var i = 0; i < argumentsBuilder.Count; i++)
+            {
+                var parameter = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                if (parameter is not null)
+                {
+                    visitedParameters[parameter.Ordinal] = true;
+
+                    if (expanded && parameter.Ordinal == paramsIndex)
+                    {
+                        expanded = false; // For the reminder of the method treat this as non-expanded case
+                        Debug.Assert(argumentsBuilder[i].IsParamsArrayOrCollection);
+                        Debug.Assert(i + 1 == argumentsBuilder.Count ||
+                                     GetCorrespondingParameter(i + 1, parameters, argsToParamsOpt, expanded: true)?.Ordinal != paramsIndex);
+                    }
+                }
+            }
+
+            if (expanded)
+            {
+                // expanded parameter array is not treated as an optional parameter
+                visitedParameters[paramsIndex] = true;
+            }
+
+            bool haveDefaultArguments = !parameters.All(static (param, visitedParameters) => visitedParameters[param.Ordinal], visitedParameters);
+
+            if (!haveDefaultArguments && !expanded)
+            {
+                Debug.Assert(argumentsBuilder.Count >= parameters.Length); // Accounting for arglist cases
+                Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
+                Debug.Assert(namesBuilder is null || namesBuilder.Count == 0 || namesBuilder.Count == argumentsBuilder.Count);
+                Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == argumentsBuilder.Count);
+                defaultArguments = default;
+                return;
+            }
+
+            ArrayBuilder<int>? argsToParamsBuilder = null;
+            if (!argsToParamsOpt.IsDefault)
+            {
+                argsToParamsBuilder = ArrayBuilder<int>.GetInstance(argsToParamsOpt.Length);
+                argsToParamsBuilder.AddRange(argsToParamsOpt);
+            }
+
+            // only proceed with binding default arguments if we know there is some parameter that has not been matched by an explicit argument
+            if (haveDefaultArguments)
+            {
+                // In a scenario like `string Prop { get; } = M();`, the containing symbol could be the synthesized field.
+                // We want to use the associated user-declared symbol instead where possible.
+                var containingMember = InAttributeArgument ? attributedMember : ContainingMember() switch
+                {
+                    FieldSymbol { AssociatedSymbol: { } symbol } => symbol,
+                    var c => c
+                };
+                Debug.Assert(InAttributeArgument || (attributedMember is null && containingMember is not null));
+
+                defaultArguments = BitVector.Create(parameters.Length);
+
+                // Params methods can be invoked in normal form, so the strongest assertion we can make is that, if
+                // we're in an expanded context, the last param must be params. The inverse is not necessarily true.
+                Debug.Assert(!expanded || parameters[^1].IsParams);
+                var lastIndex = expanded ? ^1 : ^0;
+
+                var argumentsCount = argumentsBuilder.Count;
+                // Go over missing parameters, inserting default values for optional parameters
+                foreach (var parameter in parameters.AsSpan()[..lastIndex])
+                {
+                    if (!visitedParameters[parameter.Ordinal])
+                    {
+                        Debug.Assert(parameter.IsOptional);
+
+                        defaultArguments[argumentsBuilder.Count] = true;
+                        argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, extensionReceiver, argumentsBuilder, argumentsCount, argsToParamsOpt));
+
+                        if (argumentRefKindsBuilder is { Count: > 0 })
+                        {
+                            argumentRefKindsBuilder.Add(RefKind.None);
+                        }
+
+                        argsToParamsBuilder?.Add(parameter.Ordinal);
+                        if (namesBuilder?.Count > 0)
+                        {
+                            namesBuilder.Add(null);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                defaultArguments = default;
+            }
+
+            if (expanded)
+            {
+                // Create an empty collection
+                BoundExpression collection = CreateParamsCollection(node, parameters[paramsIndex], collectionArgs: ImmutableArray<BoundExpression>.Empty, diagnostics);
+                argumentsBuilder.Add(collection);
+                argsToParamsBuilder?.Add(paramsIndex);
+
+                if (argumentRefKindsBuilder is { Count: > 0 })
+                {
+                    argumentRefKindsBuilder.Add(RefKind.None);
+                }
+
+                if (namesBuilder is { Count: > 0 })
+                {
+                    namesBuilder.Add(null);
+                }
+            }
+
+            Debug.Assert(argumentsBuilder.Count == parameters.Length);
+            Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == parameters.Length);
+            Debug.Assert(namesBuilder is null || namesBuilder.Count == 0 || namesBuilder.Count == parameters.Length);
+            Debug.Assert(argsToParamsBuilder is null || argsToParamsBuilder.Count == parameters.Length);
+
+            if (argsToParamsBuilder is object)
+            {
+                argsToParamsOpt = argsToParamsBuilder.ToImmutableOrNull();
+                argsToParamsBuilder.Free();
+            }
+
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol? containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics,
+                BoundExpression? extensionReceiver, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt)
+            {
+                TypeSymbol parameterType = parameter.Type;
+                if (Flags.Includes(BinderFlags.ParameterDefaultValue))
+                {
+                    // This is only expected to occur in recursive error scenarios, for example: `object F(object param = F()) { }`
+                    // We return a non-error expression here to ensure ERR_DefaultValueMustBeConstant (or another appropriate diagnostics) is produced by the caller.
+                    return new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+
+                var parameterDefaultValue = parameter.ExplicitDefaultConstantValue;
+                if (InAttributeArgument && parameterDefaultValue?.IsBad == true)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAttributeArgument, syntax.Location);
+                    return BadExpression(syntax).MakeCompilerGenerated();
+                }
+
+                var defaultConstantValue = parameterDefaultValue switch
+                {
+                    // Bad default values are implicitly replaced with default(T) at call sites.
+                    { IsBad: true } => ConstantValue.Null,
+                    var constantValue => constantValue
+                };
+                Debug.Assert((object?)defaultConstantValue != ConstantValue.Unset);
+
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                var callerSourceLocation = enableCallerInfo ? GetCallerLocation(syntax) : null;
+                BoundExpression defaultValue;
+                if (callerSourceLocation is object && parameter.IsCallerLineNumber)
+                {
+                    int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && parameter.IsCallerFilePath)
+                {
+                    string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, Compilation.Options.SourceReferenceResolver);
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && parameter.IsCallerMemberName && containingMember is not null)
+                {
+                    var memberName = containingMember.GetMemberCallerName();
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object
+                    && !parameter.IsCallerMemberName
+                    && parameter.CallerArgumentExpressionParameterIndex >= 0
+                    && Conversions.ClassifyBuiltInConversion(Compilation.GetSpecialType(SpecialType.System_String), parameterType, isChecked: false, ref discardedUseSiteInfo).Exists
+                    && tryGetArgument(parameter.CallerArgumentExpressionParameterIndex, extensionReceiver, argumentsBuilder, argumentsCount, argsToParamsOpt, out var argument))
+                {
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (defaultConstantValue == ConstantValue.NotAvailable)
+                {
+                    // There is no constant value given for the parameter in source/metadata.
+                    if (parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object)
+                    {
+                        // We have something like M([Optional] object x). We have special handling for such situations.
+                        defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, diagnostics);
+                    }
+                    else
+                    {
+                        // The argument to M([Optional] int x) becomes default(int)
+                        defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    }
+                }
+                else if (defaultConstantValue.IsNull)
+                {
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    TypeSymbol constantType = Compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                    defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
+
+                    if (InAttributeArgument && parameterType.SpecialType == SpecialType.System_Object)
+                    {
+                        // error CS1763: '{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null
+                        diagnostics.Add(ErrorCode.ERR_NotNullRefDefaultParameter, syntax.Location, parameter.Name, parameterType);
+                    }
+                }
+
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (!conversion.IsValid && defaultConstantValue is { SpecialType: SpecialType.System_Decimal or SpecialType.System_DateTime })
+                {
+                    // Usually, if a default constant value fails to convert to the parameter type, we want an error at the call site.
+                    // For legacy reasons, decimal and DateTime constants are special. If such a constant fails to convert to the parameter type
+                    // then we want to silently replace it with default(ParameterType).
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    if (!conversion.IsValid)
+                    {
+                        GenerateImplicitConversionError(diagnostics, syntax, conversion, defaultValue, parameterType);
+                    }
+                    var isCast = conversion.IsExplicit;
+                    defaultValue = CreateConversion(
+                        defaultValue.Syntax,
+                        defaultValue,
+                        conversion,
+                        isCast,
+                        isCast ? new ConversionGroup(conversion, parameter.TypeWithAnnotations) : null,
+                        InConversionGroupFlags.Unspecified,
+                        parameterType,
+                        diagnostics);
+                }
+
+                return defaultValue;
+
+                static bool tryGetArgument(int parameterIndex,
+                    BoundExpression? extensionReceiver, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt,
+                    [NotNullWhen(true)] out BoundExpression? argument)
+                {
+                    Debug.Assert(parameterIndex >= 0);
+                    bool hasExtensionReceiver = extensionReceiver is not null;
+                    int argumentIndex = getArgumentIndex(parameterIndex, argsToParamsOpt, hasExtensionReceiver);
+                    if (hasExtensionReceiver)
+                    {
+                        if (argumentIndex == 0)
+                        {
+                            argument = extensionReceiver!;
+                            return true;
+                        }
+
+                        argumentIndex--;
+                    }
+
+                    if (argumentIndex >= 0 && argumentIndex < argumentsCount)
+                    {
+                        argument = argumentsBuilder[argumentIndex];
+                        return true;
+                    }
+
+                    argument = null;
+                    return false;
+                }
+
+                static int getArgumentIndex(int parameterIndex, ImmutableArray<int> argsToParamsOpt, bool hasExtensionReceiver)
+                {
+                    if (argsToParamsOpt.IsDefault)
+                    {
+                        return parameterIndex;
+                    }
+
+                    int offset = 0;
+                    if (hasExtensionReceiver)
+                    {
+                        // For new non-static extension methods, the argument corresponding to the extension parameter is at index 0,
+                        // and all other arguments are shifted by 1.
+                        if (parameterIndex == 0)
+                        {
+                            return 0;
+                        }
+
+                        offset = 1;
+                    }
+
+                    int foundArgIndex = argsToParamsOpt.IndexOf(parameterIndex - offset);
+                    if (foundArgIndex < 0)
+                    {
+                        return -1;
+                    }
+
+                    return foundArgIndex + offset;
+                }
+            }
+        }
+
+        private BoundExpression CreateParamsCollection(SyntaxNode node, ParameterSymbol paramsParameter, ImmutableArray<BoundExpression> collectionArgs, BindingDiagnosticBag diagnostics)
+        {
+            TypeSymbol collectionType = paramsParameter.Type;
+            BoundExpression collection;
+
+            if (collectionType is ArrayTypeSymbol { IsSZArray: true })
+            {
+                TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+                BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(collectionArgs.Length), int32Type) { WasCompilerGenerated = true };
+
+                collection = new BoundArrayCreation(
+                            node,
+                            ImmutableArray.Create(arraySize),
+                            new BoundArrayInitialization(node, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
+                            collectionType)
+                { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+            }
+            else
+            {
+                if (Compilation.SourceModule != paramsParameter.ContainingModule)
+                {
+                    MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
+                }
+
+                // params collections have no way to pass `with(...)` arguments along.  So just pass 'null' for them
+                // as they will never exist.
+                var unconvertedCollection = new BoundUnconvertedCollectionExpression(
+                    node, withElement: null, ImmutableArray<BoundNode>.CastUp(collectionArgs))
+                {
+                    WasCompilerGenerated = true,
+                    IsParamsArrayOrCollection = true
+                };
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
+                diagnostics.Add(node, useSiteInfo);
+
+                BoundCollectionExpression converted;
+                if (!conversion.Exists)
+                {
+                    Debug.Assert(false); // Add test if this code path is reachable
+                    GenerateImplicitConversionErrorForCollectionExpression(unconvertedCollection, collectionType, diagnostics);
+                    converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
+                }
+                else
+                {
+                    Debug.Assert(conversion.IsCollectionExpression);
+                    converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
+                }
+
+                collection = new BoundConversion(
+                                 node,
+                                 converted,
+                                 conversion,
+                                 @checked: CheckOverflowAtRuntime,
+                                 explicitCastInCode: false,
+                                 conversionGroupOpt: null,
+                                 InConversionGroupFlags.Unspecified,
+                                 constantValueOpt: null,
+                                 type: collectionType)
+                { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+            }
+
+            Debug.Assert(collection.IsParamsArrayOrCollection);
+            return collection;
+        }
+
+#nullable disable
 
         /// <summary>
         /// Returns false if an implicit 'this' copy will occur due to an instance member invocation in a readonly member.
         /// </summary>
-        internal bool CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
+        internal bool CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, BindingDiagnosticBag diagnostics)
         {
             // For now we are warning only in implicit copy scenarios that are only possible with readonly members.
             // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
-            if (receiver is BoundThisReference &&
+            if (receiver?.IsEquivalentToThisReference == true &&
                 receiver.Type.IsValueType &&
                 ContainingMemberOrLambda is MethodSymbol containingMethod &&
                 containingMethod.IsEffectivelyReadOnly &&
@@ -1181,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Call this once overload resolution has succeeded on the method group of which the BoundTypeOrValueExpression
         /// is the receiver.  Generally, useType will be true if the chosen method is static and false otherwise.
         /// </remarks>
-        private BoundExpression ReplaceTypeOrValueReceiver(BoundExpression receiver, bool useType, DiagnosticBag diagnostics)
+        private BoundExpression ReplaceTypeOrValueReceiver(BoundExpression receiver, bool useType, BindingDiagnosticBag diagnostics)
         {
             if ((object)receiver == null)
             {
@@ -1192,15 +1963,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TypeOrValueExpression:
                     var typeOrValue = (BoundTypeOrValueExpression)receiver;
+                    var identifier = (IdentifierNameSyntax)typeOrValue.Syntax;
+                    Debug.Assert(typeOrValue.Binder == (object)this);
+
                     if (useType)
                     {
-                        diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics);
-                        return typeOrValue.Data.TypeExpression;
+                        if (typeOrValue.Binder.GetShadowedPrimaryConstructorParameter(identifier, typeOrValue.ValueSymbol, invoked: false, membersOpt: null) is { } shadowedParameter &&
+                            !shadowedParameter.Type.Equals(typeOrValue.Type, TypeCompareKind.AllIgnoreOptions)) // If the type and the name match, we would resolve to the same type rather than a value at the end.
+                        {
+                            diagnostics.Add(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, identifier.Location, shadowedParameter);
+                        }
+
+                        return typeOrValue.Binder.BindNamespaceOrType(identifier, diagnostics);
                     }
                     else
                     {
-                        diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics);
-                        return CheckValue(typeOrValue.Data.ValueExpression, BindValueKind.RValue, diagnostics);
+                        var boundValue = typeOrValue.Binder.BindIdentifier(identifier, invoked: false, indexed: false, diagnostics: diagnostics);
+
+                        Debug.Assert(typeOrValue.Type.Equals(boundValue.Type, TypeCompareKind.ConsiderEverything));
+                        Debug.Assert(typeOrValue.ValueSymbol == (boundValue.ExpressionSymbol ?? ((BoundConversion)boundValue).Operand.ExpressionSymbol));
+
+                        boundValue = BindToNaturalType(boundValue, diagnostics);
+                        return CheckValue(boundValue, BindValueKind.RValue, diagnostics);
                     }
 
                 case BoundKind.QueryClause:
@@ -1212,6 +1996,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     return BindToNaturalType(receiver, diagnostics);
+            }
+        }
+
+        private static Symbol GetValueSymbolIfTypeOrValueReceiver(BoundExpression receiver)
+        {
+            if ((object)receiver == null)
+            {
+                return null;
+            }
+
+            switch (receiver)
+            {
+                case BoundTypeOrValueExpression typeOrValueExpression:
+                    return typeOrValueExpression.ValueSymbol;
+
+                case BoundQueryClause queryClause:
+                    // a query clause may wrap a TypeOrValueExpression.
+                    return GetValueSymbolIfTypeOrValueReceiver(queryClause.Value);
+
+                default:
+                    return null;
             }
         }
 
@@ -1240,7 +2045,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             AnalyzedArguments analyzedArguments,
             bool invokedAsExtensionMethod,
-            bool isDelegate)
+            bool isDelegate,
+            BindingDiagnosticBag buildArgumentsForErrorRecoveryDiagnostics)
         {
             MethodSymbol method;
             ImmutableArray<BoundExpression> args;
@@ -1249,7 +2055,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constructedMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                 foreach (var m in methods)
                 {
-                    constructedMethods.Add(m.ConstructedFrom == m && m.Arity == typeArgumentsWithAnnotations.Length ? m.Construct(typeArgumentsWithAnnotations) : m);
+                    MethodSymbol constructedMethod;
+                    if (m.IsExtensionBlockMember())
+                    {
+                        constructedMethod = m.IsDefinition && m.GetMemberArityIncludingExtension() == typeArgumentsWithAnnotations.Length
+                            ? m.ConstructIncludingExtension(typeArgumentsWithAnnotations)
+                            : m;
+                    }
+                    else
+                    {
+                        constructedMethod = m.ConstructedFrom == m && m.Arity == typeArgumentsWithAnnotations.Length
+                            ? m.Construct(typeArgumentsWithAnnotations)
+                            : m;
+                    }
+
+                    constructedMethods.Add(constructedMethod);
                 }
 
                 methods = constructedMethods.ToImmutableAndFree();
@@ -1268,7 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = new ErrorMethodSymbol(methodContainer, returnType, name);
             }
 
-            args = BuildArgumentsForErrorRecovery(analyzedArguments, methods);
+            args = BuildArgumentsForErrorRecovery(analyzedArguments, methods, buildArgumentsForErrorRecoveryDiagnostics);
             var argNames = analyzedArguments.GetNames();
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             receiver = BindToTypeForErrorRecovery(receiver);
@@ -1277,7 +2097,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsUnboundGeneric(MethodSymbol method)
         {
-            return method.IsGenericMethod && method.ConstructedFrom() == method;
+            if (method.GetMemberArityIncludingExtension() == 0)
+            {
+                return false;
+            }
+
+            if (!method.IsExtensionBlockMember())
+            {
+                return method.ConstructedFrom == method;
+            }
+
+            return method.IsDefinition;
         }
 
         // Arbitrary limit on the number of parameter lists from overload
@@ -1285,14 +2115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Any additional parameter lists are ignored.
         internal const int MaxParameterListsForErrorRecovery = 10;
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<MethodSymbol> methods)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<MethodSymbol> methods, BindingDiagnosticBag diagnostics)
         {
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var m in methods)
             {
-                if (!IsUnboundGeneric(m) && m.ParameterCount > 0)
+                if (!IsUnboundGeneric(m) && m.GetParameterCountIncludingExtensionParameter() > 0)
                 {
-                    parameterListList.Add(m.Parameters);
+                    parameterListList.Add(m.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false));
                     if (parameterListList.Count == MaxParameterListsForErrorRecovery)
                     {
                         break;
@@ -1300,7 +2130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
+            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList, diagnostics);
             parameterListList.Free();
             return result;
         }
@@ -1310,6 +2140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var p in properties)
             {
+                Debug.Assert(!p.IsExtensionBlockMember());
                 if (p.ParameterCount > 0)
                 {
                     parameterListList.Add(p.Parameters);
@@ -1320,14 +2151,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
+            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList, BindingDiagnosticBag.Discarded);
             parameterListList.Free();
             return result;
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList, BindingDiagnosticBag diagnostics)
         {
-            var discardedDiagnostics = DiagnosticBag.GetInstance();
             int argumentCount = analyzedArguments.Arguments.Count;
             ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
             newArguments.AddRange(analyzedArguments.Arguments);
@@ -1338,20 +2168,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.UnboundLambda:
                         {
-                            // bind the argument against each applicable parameter
                             var unboundArgument = (UnboundLambda)argument;
-                            foreach (var parameterList in parameterListList)
+
+                            // If nested in other lambdas where type inference is involved,
+                            // the target delegate type could be different each time.
+                            // But if the lambda is explicitly typed, we can bind only once.
+                            // https://github.com/dotnet/roslyn/issues/69093
+                            if (unboundArgument.HasExplicitlyTypedParameterList &&
+                                unboundArgument.HasExplicitReturnType(out _, out _, out _) &&
+                                unboundArgument.FunctionType is { } functionType &&
+                                functionType.GetInternalDelegateType() is { } delegateType)
                             {
-                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                                if (parameterType?.Kind == SymbolKind.NamedType &&
-                                    (object)parameterType.GetDelegateType() != null)
+                                // Just assume we're not in an expression tree for the purposes of error recovery.
+                                _ = unboundArgument.Bind(delegateType, isExpressionTree: false);
+                            }
+                            else
+                            {
+                                // bind the argument against each applicable parameter
+                                foreach (var parameterList in parameterListList)
                                 {
-                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
+                                    var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                                    if (parameterType?.Kind == SymbolKind.NamedType &&
+                                        (object)parameterType.GetDelegateType() != null)
+                                    {
+                                        // Just assume we're not in an expression tree for the purposes of error recovery.
+                                        var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
+                                    }
                                 }
                             }
 
                             // replace the unbound lambda with its best inferred bound version
-                            newArguments[i] = unboundArgument.BindForErrorRecovery();
+                            BoundLambda boundLambda = unboundArgument.BindForErrorRecovery();
+                            newArguments[i] = boundLambda;
+                            diagnostics.AddRange(boundLambda.Diagnostics);
                             break;
                         }
                     case BoundKind.OutVariablePendingInference:
@@ -1401,18 +2250,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     default:
                         {
-                            newArguments[i] = BindToTypeForErrorRecovery(argument, getCorrespondingParameterType(i));
+                            newArguments[i] = BindToTypeForErrorRecovery(argument, diagnostics, getCorrespondingParameterType(i));
                             break;
                         }
                 }
             }
 
-            discardedDiagnostics.Free();
             return newArguments.ToImmutableAndFree();
 
             TypeSymbol getCorrespondingParameterType(int i)
             {
-                // See if all applicable applicable parameters have the same type
+                // See if all applicable parameters have the same type
                 TypeSymbol candidateType = null;
                 foreach (var parameterList in parameterListList)
                 {
@@ -1467,7 +2315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
         {
-            return BuildArgumentsForErrorRecovery(analyzedArguments, Enumerable.Empty<ImmutableArray<ParameterSymbol>>());
+            return BuildArgumentsForErrorRecovery(analyzedArguments, Enumerable.Empty<ImmutableArray<ParameterSymbol>>(), BindingDiagnosticBag.Discarded);
         }
 
         private BoundCall CreateBadCall(
@@ -1508,57 +2356,92 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
-        private bool TryBindNameofOperator(InvocationExpressionSyntax node, DiagnosticBag diagnostics, out BoundExpression result)
+        private bool TryBindNameofOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, out BoundExpression result)
         {
+            if (node.MayBeNameofOperator())
+            {
+                var binder = this.GetBinder(node);
+                Debug.Assert(binder.Flags == this.Flags);
+                if (binder.EnclosingNameofArgument == node.ArgumentList.Arguments[0].Expression)
+                {
+                    result = binder.BindNameofOperatorInternal(node, diagnostics);
+                    return true;
+                }
+            }
+
             result = null;
-            if (node.Expression.Kind() != SyntaxKind.IdentifierName ||
-                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() != SyntaxKind.NameOfKeyword ||
-                node.ArgumentList.Arguments.Count != 1)
-            {
-                return false;
-            }
-
-            ArgumentSyntax argument = node.ArgumentList.Arguments[0];
-            if (argument.NameColon != null || argument.RefOrOutKeyword != default(SyntaxToken) || InvocableNameofInScope())
-            {
-                return false;
-            }
-
-            result = BindNameofOperatorInternal(node, diagnostics);
-            return true;
+            return false;
         }
 
-        private BoundExpression BindNameofOperatorInternal(InvocationExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindNameofOperatorInternal(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
-            string name = "";
-            // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
-            var nameofBinder = new NameofBinder(argument, this);
-            var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
-            if (!boundArgument.HasAnyErrors && CheckSyntaxForNameofArgument(argument, out name, diagnostics) && boundArgument.Kind == BoundKind.MethodGroup)
+            var boundArgument = BindExpression(argument, diagnostics);
+
+            bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
+            if (boundArgument is BoundMethodGroup methodGroup)
             {
-                var methodGroup = (BoundMethodGroup)boundArgument;
-                if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)
+                if (!boundArgument.HasAnyErrors && syntaxIsOk)
                 {
-                    // method group with type parameters not allowed
-                    diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argument.Location);
+                    if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)
+                    {
+                        // method group with type parameters not allowed
+                        diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argument.Location);
+                    }
+                    else
+                    {
+                        EnsureNameofExpressionSymbols(methodGroup, diagnostics);
+                    }
                 }
-                else
+
+                boundArgument = methodGroup.Update(
+                    methodGroup.TypeArgumentsOpt,
+                    methodGroup.Name,
+                    methodGroup.Methods,
+                    methodGroup.LookupSymbolOpt,
+                    methodGroup.LookupError,
+                    methodGroup.Flags,
+                    methodGroup.FunctionType,
+                    receiverOpt: ReplaceTypeOrValueReceiver(methodGroup.ReceiverOpt, useType: true, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics), //only change
+                    methodGroup.ResultKind);
+            }
+            else if (boundArgument is BoundPropertyAccess propertyAccess)
+            {
+                if (propertyAccess.PropertySymbol.IsExtensionBlockMember())
                 {
-                    nameofBinder.EnsureNameofExpressionSymbols(methodGroup, diagnostics);
+                    diagnostics.Add(ErrorCode.ERR_NameofExtensionMember, boundArgument.Syntax);
+                }
+            }
+            else if (boundArgument is BoundNamespaceExpression nsExpr)
+            {
+                diagnostics.AddAssembliesUsedByNamespaceReference(nsExpr.NamespaceSymbol);
+            }
+            else if (boundArgument is BoundIndexerAccess indexerAccess)
+            {
+                // nameof(x[y]) where the argument is an indexer is an error. Ref analysis requires
+                // the indexer to be recognized as get, set, or both. We don't know which was
+                // intended for nameof() but since this is already an error, assume it's get.
+                Debug.Assert(!syntaxIsOk);
+                Debug.Assert(indexerAccess.AccessorKind == AccessorKind.Unknown);
+                if (indexerAccess.AccessorKind == AccessorKind.Unknown)
+                {
+                    boundArgument = CheckValue(boundArgument, BindValueKind.RValue, diagnostics);
                 }
             }
 
+            boundArgument = BindToNaturalType(boundArgument, diagnostics, reportNoTargetType: false);
             return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 
-        private void EnsureNameofExpressionSymbols(BoundMethodGroup methodGroup, DiagnosticBag diagnostics)
+        private void EnsureNameofExpressionSymbols(BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics)
         {
             // Check that the method group contains something applicable. Otherwise error.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(methodGroup.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None, acceptOnlyMethods: true);
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
+
+            diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             diagnostics.AddRange(resolution.Diagnostics);
             if (resolution.IsExtensionMethodGroup)
             {
@@ -1569,7 +2452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if syntax form is OK (so no errors were reported)
         /// </summary>
-        private bool CheckSyntaxForNameofArgument(ExpressionSyntax argument, out string name, DiagnosticBag diagnostics, bool top = true)
+        private bool CheckSyntaxForNameofArgument(ExpressionSyntax argument, out string name, BindingDiagnosticBag diagnostics, bool top = true)
         {
             switch (argument.Kind())
             {
@@ -1632,16 +2515,83 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Helper method that checks whether there is an invocable 'nameof' in scope.
         /// </summary>
-        private bool InvocableNameofInScope()
+        internal bool InvocableNameofInScope()
         {
             var lookupResult = LookupResult.GetInstance();
             const LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(lookupResult, SyntaxFacts.GetText(SyntaxKind.NameOfKeyword), useSiteDiagnostics: ref useSiteDiagnostics, arity: 0, options: options);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            this.LookupSymbolsWithFallback(lookupResult, SyntaxFacts.GetText(SyntaxKind.NameOfKeyword), useSiteInfo: ref discardedUseSiteInfo, arity: 0, options: options);
 
             var result = lookupResult.IsMultiViable;
             lookupResult.Free();
             return result;
+        }
+
+#nullable enable
+        private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
+        {
+            boundExpression = BindToNaturalType(boundExpression, diagnostics);
+            RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
+
+            var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;
+
+            var overloadResolutionResult = OverloadResolutionResult<FunctionPointerMethodSymbol>.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var methodsBuilder = ArrayBuilder<FunctionPointerMethodSymbol>.GetInstance(1);
+            methodsBuilder.Add(funcPtr.Signature);
+            OverloadResolution.FunctionPointerOverloadResolution(
+                methodsBuilder,
+                analyzedArguments,
+                overloadResolutionResult,
+                ref useSiteInfo);
+
+            diagnostics.Add(node, useSiteInfo);
+
+            if (!overloadResolutionResult.Succeeded)
+            {
+                ImmutableArray<FunctionPointerMethodSymbol> methods = methodsBuilder.ToImmutableAndFree();
+                overloadResolutionResult.ReportDiagnostics(
+                    binder: this,
+                    node.Location,
+                    nodeOpt: null,
+                    diagnostics,
+                    name: null,
+                    boundExpression,
+                    boundExpression.Syntax,
+                    analyzedArguments,
+                    methods,
+                    typeContainingConstructor: null,
+                    delegateTypeBeingInvoked: null,
+                    returnRefKind: funcPtr.Signature.RefKind);
+
+                return new BoundFunctionPointerInvocation(
+                    node,
+                    boundExpression,
+                    BuildArgumentsForErrorRecovery(analyzedArguments, StaticCast<MethodSymbol>.From(methods), BindingDiagnosticBag.Discarded),
+                    analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    LookupResultKind.OverloadResolutionFailure,
+                    funcPtr.Signature.ReturnType,
+                    hasErrors: true);
+            }
+
+            methodsBuilder.Free();
+
+            MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
+            CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false, argsToParamsOpt: out _);
+
+            var args = analyzedArguments.Arguments.ToImmutable();
+            var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+
+            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) ||
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated);
+            return new BoundFunctionPointerInvocation(
+                node,
+                boundExpression,
+                args,
+                refKinds,
+                LookupResultKind.Viable,
+                funcPtr.Signature.ReturnType,
+                hasErrors);
         }
     }
 }

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,11 +19,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="parts">The array of parts.</param>
         /// <returns>The concatenation of the parts into a single string.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/67203", AllowImplicitBoxing = false)]
         public static string ToDisplayString(this ImmutableArray<SymbolDisplayPart> parts)
         {
             if (parts.IsDefault)
             {
-                throw new ArgumentException("parts");
+                throw new ArgumentException(nameof(parts));
             }
 
             if (parts.Length == 0)
@@ -38,20 +38,46 @@ namespace Microsoft.CodeAnalysis
             }
 
             var pool = PooledStringBuilder.GetInstance();
-            try
+            var actualBuilder = pool.Builder;
+            foreach (var part in parts)
             {
-                var actualBuilder = pool.Builder;
-                foreach (var part in parts)
-                {
-                    actualBuilder.Append(part);
-                }
+                actualBuilder.Append(part.ToString());
+            }
 
-                return actualBuilder.ToString();
-            }
-            finally
+            return pool.ToStringAndFree();
+        }
+
+        /// <summary>
+        /// Converts an ArrayBuilder of <see cref="SymbolDisplayPart"/>s to a string.
+        /// </summary>
+        /// <param name="parts">The array of parts.</param>
+        /// <returns>The concatenation of the parts into a single string.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/67203", AllowImplicitBoxing = false)]
+        internal static string ToDisplayString(this ArrayBuilder<SymbolDisplayPart> parts)
+        {
+            if (parts is null)
             {
-                pool.Free();
+                throw new ArgumentException(nameof(parts));
             }
+
+            if (parts.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            if (parts.Count == 1)
+            {
+                return parts[0].ToString();
+            }
+
+            var pool = PooledStringBuilder.GetInstance();
+            var actualBuilder = pool.Builder;
+            foreach (var part in parts)
+            {
+                actualBuilder.Append(part.ToString());
+            }
+
+            return pool.ToStringAndFree();
         }
 
         /// <summary>

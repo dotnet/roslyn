@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -75,6 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern { get { return false; } }
 
+        internal override bool IsRequired => false;
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData { get { return null; } }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get { return ImmutableArray<ParameterSymbol>.Empty; } }
@@ -86,5 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get { return ImmutableArray<PropertySymbol>.Empty; } }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return ImmutableArray<CustomModifier>.Empty; } }
+
+        internal override int TryGetOverloadResolutionPriority() => 0;
     }
 }

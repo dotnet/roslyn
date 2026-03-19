@@ -40,15 +40,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+                Dim options = Await _document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim newNode = Await GetNewNodeAsync(_document, _node, cancellationToken).ConfigureAwait(False)
+                Dim newNode = Await GetNewNodeAsync(_document, _node, options, cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(_node, newNode)
 
                 Return _document.WithSyntaxRoot(newRoot)
             End Function
 
-            Private Async Function GetNewNodeAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Private Async Function GetNewNodeAsync(document As Document, node As SyntaxNode, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Dim newNode As SyntaxNode = Nothing
+                Dim trivia As SyntaxTriviaList = node.GetLeadingTrivia()
+                node = node.WithoutLeadingTrivia()
 
                 Dim propertyStatement = TryCast(node, PropertyStatementSyntax)
                 If propertyStatement IsNot Nothing Then
@@ -61,13 +64,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 End If
 
                 'Make sure we preserve any trivia from the original node
-                newNode = newNode.WithTriviaFrom(node)
+                newNode = newNode.WithLeadingTrivia(trivia)
 
                 'We need to perform a cleanup on the node because AddModifiers doesn't adhere to the VB modifier ordering rules
                 Dim cleanupService = document.GetLanguageService(Of ICodeCleanerService)
 
                 If cleanupService IsNot Nothing AndAlso newNode IsNot Nothing Then
-                    newNode = Await cleanupService.CleanupAsync(newNode, ImmutableArray.Create(newNode.Span), document.Project.Solution.Workspace, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
+                    Dim services = document.Project.Solution.Services
+                    newNode = Await cleanupService.CleanupAsync(newNode, ImmutableArray.Create(newNode.Span), options, services, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
                 End If
 
                 Return newNode.WithAdditionalAnnotations(Formatter.Annotation)

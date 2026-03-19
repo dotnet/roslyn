@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -64,7 +67,7 @@ public class Test
  -IL_002c:  ldstr      ""After""
   IL_0031:  call       ""void System.Console.WriteLine(string)""
  -IL_0036:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -119,7 +122,7 @@ public class Test
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -394,7 +397,7 @@ public class Test
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -541,7 +544,7 @@ partial class Test
 }
 ";
 
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular10).VerifyIL("Test.Main", @"
 {
   // Code size       36 (0x24)
   .maxstack  2
@@ -1384,7 +1387,7 @@ public class Test
  -IL_0025:  ldstr      ""After""
   IL_002a:  call       ""void System.Console.WriteLine(string)""
  -IL_002f:  ret
-}", sequencePoints: "Test.M");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -1739,7 +1742,7 @@ public class Test
 
         private static CSharpCompilation CreateCompilationWithCorlib20(string text)
         {
-            return CreateEmptyCompilation(new string[] { text }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+            return CreateEmptyCompilation(new string[] { text }, new[] { Net20.References.mscorlib });
         }
 
         #endregion Pre-4.0 codegen
@@ -1768,7 +1771,7 @@ public class Buffer<T>
 
             item = newItem;
             empty = false;
-            Console.Error.WriteLine(""{0} wrote {1}"", Thread.CurrentThread.Name, newItem);
+            Console.WriteLine(""{0} wrote {1}"", Thread.CurrentThread.Name, newItem);
             Monitor.PulseAll(bufferLock);
         }
     }
@@ -1781,7 +1784,7 @@ public class Buffer<T>
 
             empty = true;
             T result = item;
-            Console.Error.WriteLine(""{0} read {1}"", Thread.CurrentThread.Name, result);
+            Console.WriteLine(""{0} read {1}"", Thread.CurrentThread.Name, result);
             Monitor.PulseAll(bufferLock);
             return result;
         }

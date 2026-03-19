@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void GetSnPublicKeyFromPublicKeyBlob()
         {
-            // An Strongname public key blob includes an additional header on top
+            // A Strongname public key blob includes an additional header on top
             // of the wincrypt.h public key blob
             var snBlob = TestResources.General.snPublicKey;
 
@@ -168,24 +170,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "0602000000240000DEADBEEF" + new string('0', 136 * 2), // public key blob without magic public key
             };
 
-            Assert.False(CryptoBlobParser.TryParseKey(HexToBin(invalidKeyBlobs[0]), out _, out _));
-            Assert.False(CryptoBlobParser.TryParseKey(HexToBin(invalidKeyBlobs[1]), out _, out _));
-            Assert.False(CryptoBlobParser.TryParseKey(HexToBin(invalidKeyBlobs[2]), out _, out _));
-            Assert.False(CryptoBlobParser.TryParseKey(HexToBin(invalidKeyBlobs[3]), out _, out _));
-        }
-
-        private static ImmutableArray<byte> HexToBin(string input)
-        {
-            Assert.True(input != null && (input.Length & 1) == 0, "invalid input string.");
-
-            var result = new byte[input.Length >> 1];
-
-            for (var i = 0; i < result.Length; i++)
-            {
-                result[i] = byte.Parse(input.Substring(i << 1, 2), NumberStyles.HexNumber);
-            }
-
-            return ImmutableArray.Create(result);
+            Assert.False(CryptoBlobParser.TryParseKey(TestHelpers.HexToByte(invalidKeyBlobs[0].AsSpan()), out _, out _));
+            Assert.False(CryptoBlobParser.TryParseKey(TestHelpers.HexToByte(invalidKeyBlobs[1].AsSpan()), out _, out _));
+            Assert.False(CryptoBlobParser.TryParseKey(TestHelpers.HexToByte(invalidKeyBlobs[2].AsSpan()), out _, out _));
+            Assert.False(CryptoBlobParser.TryParseKey(TestHelpers.HexToByte(invalidKeyBlobs[3].AsSpan()), out _, out _));
         }
     }
 }

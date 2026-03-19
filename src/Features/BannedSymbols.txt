@@ -1,0 +1,13 @@
+T:System.ComponentModel.Composition.ExportAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ExportMetadataAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportManyAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportMetadataConstraintAttribut; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportingConstructorAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.MetadataAttributeAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.OnImportsSatisfiedAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.PartMetadataAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.PartNotDiscoverableAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.SharedAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.SharingBoundaryAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.Convention.AttributedModelProvider; Use types from System.Composition instead

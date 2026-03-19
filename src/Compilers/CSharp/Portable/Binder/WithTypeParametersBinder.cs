@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // TODO: Change this to a data structure that won't allocate enumerators
         protected abstract MultiDictionary<string, TypeParameterSymbol> TypeParameterMap { get; }
 
-        // This is only overridden by WithMethodTypeParametersBinder.
         protected virtual LookupOptions LookupMask
         {
             get
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(result.IsClear);
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var typeParameter in TypeParameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(typeParameter, arity, options, null, diagnose, ref useSiteDiagnostics));
+                result.MergeEqual(originalBinder.CheckViability(typeParameter, arity, options, null, diagnose, ref useSiteInfo));
             }
         }
     }

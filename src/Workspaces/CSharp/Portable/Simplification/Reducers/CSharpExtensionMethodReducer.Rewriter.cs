@@ -2,28 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
+
+internal sealed partial class CSharpExtensionMethodReducer
 {
-    internal partial class CSharpExtensionMethodReducer
+    private sealed class Rewriter : AbstractReductionRewriter
     {
-        private class Rewriter : AbstractReductionRewriter
+        public Rewriter(ObjectPool<IReductionRewriter> pool)
+            : base(pool)
         {
-            public Rewriter(ObjectPool<IReductionRewriter> pool)
-                : base(pool)
-            {
-            }
+        }
 
-            public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
-            {
-                return SimplifyExpression(
-                    node,
-                    newNode: base.VisitInvocationExpression(node),
-                    simplifier: s_simplifyExtensionMethod);
-            }
+        public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            return SimplifyNode(
+                node,
+                newNode: base.VisitInvocationExpression(node),
+                simplifier: s_simplifyExtensionMethod);
         }
     }
 }

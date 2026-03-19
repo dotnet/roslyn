@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 
-namespace Microsoft.CodeAnalysis.PatternMatching
+namespace Microsoft.CodeAnalysis.PatternMatching;
+
+internal static class PatternMatcherExtensions
 {
-    internal static class PatternMatcherExtensions
+    public static PatternMatch? GetFirstMatch(this PatternMatcher matcher, string? candidate)
     {
-        public static PatternMatch? GetFirstMatch(this PatternMatcher matcher, string candidate)
-        {
-            using var _ = ArrayBuilder<PatternMatch>.GetInstance(out var matches);
-            matcher.AddMatches(candidate, matches);
-            return matches.Any() ? (PatternMatch?)matches.First() : null;
-        }
-
-        public static bool Matches(this PatternMatcher matcher, string candidate)
-            => matcher.GetFirstMatch(candidate) != null;
+        using var matches = TemporaryArray<PatternMatch>.Empty;
+        matcher.AddMatches(candidate, ref matches.AsRef());
+        return matches.Count > 0 ? matches[0] : null;
     }
+
+    public static bool Matches(this PatternMatcher matcher, [NotNullWhen(true)] string? candidate)
+        => matcher.GetFirstMatch(candidate) != null;
 }

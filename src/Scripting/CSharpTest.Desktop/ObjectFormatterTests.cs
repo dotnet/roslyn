@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -88,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void VBBackingFields_DebuggerBrowsable()
         {
+            var reference = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
             string source = @"
 Imports System
 
@@ -100,7 +103,7 @@ End Class
             var compilation = VB.VisualBasicCompilation.Create(
                 "goo",
                 new[] { VB.VisualBasicSyntaxTree.ParseText(source) },
-                new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly) },
+                new[] { reference },
                 new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug));
 
             Assembly a;
@@ -126,6 +129,7 @@ End Class
             Assert.Equal(1, attrsA.Length);
             Assert.Equal(1, attrsWE.Length);
             Assert.Equal(1, attrsE.Length);
+            reference.GetMetadataNoCopy().Dispose();
         }
     }
 }

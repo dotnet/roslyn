@@ -2,13 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.ObjectModel
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend NotInheritable Class SimpleIdentifierSyntax
@@ -16,16 +9,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As GreenNode, followingTrivia As GreenNode)
             MyBase.New(kind, errors, annotations, text, precedingTrivia, followingTrivia)
-        End Sub
-
-        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SimpleIdentifierSyntax(o)
-
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-        End Sub
-
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(SimpleIdentifierSyntax), Function(r) New SimpleIdentifierSyntax(r))
         End Sub
 
         ''' <summary>

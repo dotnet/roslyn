@@ -2,6 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+#if CODE_STYLE
+extern alias CODESTYLE_UTILITIES;
+#endif
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,223 +14,225 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
+using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
 #else
-using Microsoft.CodeAnalysis.Options;
+using OptionsCollectionAlias = OptionsCollection;
 #endif
-
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
+    : AbstractUserDiagnosticTest(logger)
 {
-    public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
+    private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = [];
+
+    internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
+
+    internal virtual (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace, TestParameters parameters)
+        => CreateDiagnosticProviderAndFixer(workspace);
+
+    private (DiagnosticAnalyzer, CodeFixProvider) GetOrCreateDiagnosticProviderAndFixer(
+        Workspace workspace, TestParameters parameters)
     {
-        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap =
-            new ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)>();
+        return parameters.fixProviderData == null
+            ? _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer)
+            : CreateDiagnosticProviderAndFixer(workspace, parameters);
+    }
 
-        internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
-
-        internal virtual (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace, TestParameters parameters)
-            => CreateDiagnosticProviderAndFixer(workspace);
-
-        private (DiagnosticAnalyzer, CodeFixProvider) GetOrCreateDiagnosticProviderAndFixer(
-            Workspace workspace, TestParameters parameters)
+    internal virtual bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
+    {
+        if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
         {
-            return parameters.fixProviderData == null
-                ? _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer)
-                : CreateDiagnosticProviderAndFixer(workspace, parameters);
-        }
-
-        internal virtual bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
-        {
-            if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+            if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
             {
-                if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
-                {
-                    // The message only displayed if either enabled and not hidden, or configurable
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        [Fact]
-        public void TestSupportedDiagnosticsMessageTitle()
-        {
-            using (var workspace = new AdhocWorkspace())
-            {
-                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                if (diagnosticAnalyzer == null)
-                {
-                    return;
-                }
-
-                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
-                {
-                    if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
-                    {
-                        // The title only displayed for rule configuration
-                        continue;
-                    }
-
-                    Assert.NotEqual("", descriptor.Title?.ToString() ?? "");
-                }
+                // The message only displayed if either enabled and not hidden, or configurable
+                return true;
             }
         }
 
-        [Fact]
-        public void TestSupportedDiagnosticsMessageDescription()
+        return false;
+    }
+
+    [Fact]
+    public void TestSupportedDiagnosticsMessageTitle()
+    {
+        using var workspace = new AdhocWorkspace();
+        var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+        if (diagnosticAnalyzer == null)
         {
-            using (var workspace = new AdhocWorkspace())
-            {
-                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                if (diagnosticAnalyzer == null)
-                {
-                    return;
-                }
-
-                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
-                {
-                    if (ShouldSkipMessageDescriptionVerification(descriptor))
-                    {
-                        continue;
-                    }
-
-                    Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
-                }
-            }
+            return;
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
-        public void TestSupportedDiagnosticsMessageHelpLinkUri()
+        foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
         {
-            using (var workspace = new AdhocWorkspace())
+            if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
             {
-                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                if (diagnosticAnalyzer == null)
-                {
-                    return;
-                }
-
-                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
-                {
-                    Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
-                }
-            }
-        }
-
-        internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
-
-            var provider = providerAndFixer.Item1;
-            var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
-            AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
-            return allDiagnostics;
-        }
-
-        internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
-
-            var provider = providerAndFixer.Item1;
-            string annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
-            {
-                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
+                // The title only displayed for rule configuration
+                continue;
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
-            var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
-            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
-            AssertNoAnalyzerExceptionDiagnostics(diagnostics);
-
-            var fixer = providerAndFixer.Item2;
-            if (fixer == null)
-            {
-                return (diagnostics, ImmutableArray<CodeAction>.Empty, null);
-            }
-
-            var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
-            var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-            var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
-                dxs, fixer, testDriver, document, span, annotation, parameters.index);
-
-            // If we are also testing non-fixable diagnostics,
-            // then the result diagnostics need to include all diagnostics,
-            // not just the fixable ones returned from GetDiagnosticAndFixesAsync.
-            if (parameters.retainNonFixableDiagnostics)
-            {
-                resultDiagnostics = diagnostics;
-            }
-
-            return (resultDiagnostics, codeActions, actionToInvoke);
+            Assert.NotEqual("", descriptor.Title?.ToString() ?? "");
         }
+    }
 
-        protected async Task TestDiagnosticInfoAsync(
-            string initialMarkup,
-            IDictionary<OptionKey, object> options,
-            string diagnosticId,
-            DiagnosticSeverity diagnosticSeverity,
-            LocalizableString diagnosticMessage = null)
+    [Fact]
+    public void TestSupportedDiagnosticsMessageDescription()
+    {
+        using var workspace = new AdhocWorkspace();
+        var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+        if (diagnosticAnalyzer == null)
         {
-            await TestDiagnosticInfoAsync(initialMarkup, null, null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
-            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            return;
         }
 
-        protected async Task TestDiagnosticInfoAsync(
-            string initialMarkup,
-            ParseOptions parseOptions,
-            CompilationOptions compilationOptions,
-            IDictionary<OptionKey, object> options,
-            string diagnosticId,
-            DiagnosticSeverity diagnosticSeverity,
-            LocalizableString diagnosticMessage = null)
+        foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
         {
-            var testOptions = new TestParameters(parseOptions, compilationOptions, options);
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
+            if (ShouldSkipMessageDescriptionVerification(descriptor))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
-                diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
-                Assert.Equal(1, diagnostics.Count());
-
-                var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
-                var expected = hostDocument.SelectedSpans.Single();
-                var actual = diagnostics.Single().Location.SourceSpan;
-                Assert.Equal(expected, actual);
-
-                Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
-
-                if (diagnosticMessage != null)
-                {
-                    Assert.Equal(diagnosticMessage, diagnostics.Single().GetMessage());
-                }
+                continue;
             }
+
+            Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
         }
+    }
+
+    [Fact]
+    public void TestSupportedDiagnosticsMessageHelpLinkUri()
+    {
+        using var workspace = new AdhocWorkspace();
+        var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+        if (diagnosticAnalyzer == null)
+            return;
+
+        foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+        {
+            // These don't come up in UI.
+            if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                continue;
+
+            if (descriptor.Id is "RE0001" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
+                continue;
+
+            if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
+                continue;
+
+            if (descriptor.Id == "IDE1007")
+                continue;
+
+            Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
+        }
+    }
+
+    internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
+        EditorTestWorkspace workspace, TestParameters parameters)
+    {
+        var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+        AddAnalyzerToWorkspace(workspace, analyzer);
+
+        var document = GetDocumentAndSelectSpan(workspace, out var span);
+        var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
+        AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
+        return allDiagnostics;
+    }
+
+    internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
+        EditorTestWorkspace workspace, TestParameters parameters)
+    {
+        var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+        AddAnalyzerToWorkspace(workspace, analyzer);
+
+        var (document, span, annotation) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
+
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace);
+        var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
+        var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
+        AssertNoAnalyzerExceptionDiagnostics(diagnostics);
+
+        if (fixer == null)
+        {
+            return (diagnostics, ImmutableArray<CodeAction>.Empty, null);
+        }
+
+        var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
+        var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
+        var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
+            dxs, fixer, testDriver, document, span, annotation, parameters.index);
+
+        // If we are also testing non-fixable diagnostics,
+        // then the result diagnostics need to include all diagnostics,
+        // not just the fixable ones returned from GetDiagnosticAndFixesAsync.
+        if (parameters.retainNonFixableDiagnostics)
+        {
+            resultDiagnostics = diagnostics;
+        }
+
+        return (resultDiagnostics, codeActions, actionToInvoke);
+    }
+
+    private protected async Task TestDiagnosticInfoAsync(
+        string initialMarkup,
+        string diagnosticId,
+        DiagnosticSeverity diagnosticSeverity,
+        OptionsCollectionAlias options = null,
+        LocalizableString diagnosticMessage = null)
+    {
+        await TestDiagnosticInfoAsync(initialMarkup, parseOptions: null, compilationOptions: null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+        await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), compilationOptions: null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+    }
+
+    private protected async Task TestDiagnosticInfoAsync(
+        string initialMarkup,
+        ParseOptions parseOptions,
+        CompilationOptions compilationOptions,
+        OptionsCollectionAlias options,
+        string diagnosticId,
+        DiagnosticSeverity diagnosticSeverity,
+        LocalizableString diagnosticMessage = null)
+    {
+        var testOptions = new TestParameters(parseOptions, compilationOptions, options: options);
+        using var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions);
+        var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
+        diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
+        Assert.Equal(1, diagnostics.Length);
+
+        var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
+        var expected = hostDocument.SelectedSpans.Single();
+        var actual = diagnostics.Single().Location.SourceSpan;
+        Assert.Equal(expected, actual);
+
+        Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
+
+        if (diagnosticMessage != null)
+        {
+            Assert.Equal(diagnosticMessage, diagnostics.Single().GetMessage());
+        }
+    }
 
 #pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
-        /// <summary>
-        /// The internal method <see cref="AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(Diagnostic)"/> does
-        /// essentially this, but due to linked files between projects, this project cannot have internals visible
-        /// access to the Microsoft.CodeAnalysis project without the cascading effect of many extern aliases, so it
-        /// is re-implemented here in a way that is potentially overly aggressive with the knowledge that if this method
-        /// starts failing on non-analyzer exception diagnostics, it can be appropriately tuned or re-evaluated.
-        /// </summary>
-        private void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
+    /// <summary>
+    /// The internal method <see cref="AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(Diagnostic)"/> does
+    /// essentially this, but due to linked files between projects, this project cannot have internals visible
+    /// access to the Microsoft.CodeAnalysis project without the cascading effect of many extern aliases, so it
+    /// is re-implemented here in a way that is potentially overly aggressive with the knowledge that if this method
+    /// starts failing on non-analyzer exception diagnostics, it can be appropriately tuned or re-evaluated.
+    /// </summary>
+    private static void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
 #pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
-        {
-            var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
-            AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
-        }
+    {
+        var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.AnalyzerException));
+        AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
     }
 }

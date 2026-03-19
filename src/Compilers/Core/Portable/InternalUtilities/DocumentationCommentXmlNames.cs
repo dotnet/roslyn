@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Roslyn.Utilities
@@ -13,12 +11,15 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class DocumentationCommentXmlNames
     {
+        public const string BElementName = "b";
         public const string CElementName = "c";
         public const string CodeElementName = "code";
         public const string CompletionListElementName = "completionlist";
         public const string DescriptionElementName = "description";
+        public const string EmElementName = "em";
         public const string ExampleElementName = "example";
         public const string ExceptionElementName = "exception";
+        public const string IElementName = "i";
         public const string IncludeElementName = "include";
         public const string InheritdocElementName = "inheritdoc";
         public const string ItemElementName = "item";
@@ -34,9 +35,11 @@ namespace Roslyn.Utilities
         public const string ReturnsElementName = "returns";
         public const string SeeElementName = "see";
         public const string SeeAlsoElementName = "seealso";
+        public const string StrongElementName = "strong";
         public const string SummaryElementName = "summary";
         public const string TermElementName = "term";
         public const string ThreadSafetyElementName = "threadsafety";
+        public const string TtElementName = "tt";
         public const string TypeParameterElementName = "typeparam";
         public const string TypeParameterReferenceElementName = "typeparamref";
         public const string ValueElementName = "value";

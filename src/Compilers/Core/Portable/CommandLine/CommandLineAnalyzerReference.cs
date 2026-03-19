@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// Describes a command line analyzer assembly specification.
     /// </summary>
     [DebuggerDisplay("{FilePath,nq}")]
-    public struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
+    public readonly struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
     {
         private readonly string _path;
 

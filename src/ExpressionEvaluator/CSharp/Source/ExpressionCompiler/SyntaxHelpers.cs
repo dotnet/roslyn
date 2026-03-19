@@ -2,28 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal static class SyntaxHelpers
     {
-        internal static readonly CSharpParseOptions ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CurrentVersion);
+        internal static readonly CSharpParseOptions PreviewParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview); // Used to be LanguageVersionFacts.CurrentVersion
 
         /// <summary>
         /// Parse expression. Returns null if there are any errors.
         /// </summary>
         internal static ExpressionSyntax? ParseExpression(
             this string expr,
+            bool isInFieldKeywordContext,
             DiagnosticBag diagnostics,
             bool allowFormatSpecifiers,
             out ReadOnlyCollection<string>? formatSpecifiers)
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 allowFormatSpecifiers = false;
             }
 
-            var syntax = ParseDebuggerExpression(expr, consumeFullText: !allowFormatSpecifiers);
+            var syntax = ParseDebuggerExpression(expr, consumeFullText: !allowFormatSpecifiers, isInFieldKeywordContext);
             diagnostics.AddRange(syntax.GetDiagnostics());
             formatSpecifiers = null;
 
@@ -58,10 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static ExpressionSyntax? ParseAssignment(
             this string target,
             string expr,
+            bool isInFieldKeywordContext,
             DiagnosticBag diagnostics)
         {
-            var text = SourceText.From(expr);
-            var expression = ParseDebuggerExpressionInternal(text, consumeFullText: true);
+            var text = SourceText.From(expr, encoding: null, SourceHashAlgorithms.Default);
+            var expression = ParseDebuggerExpressionInternal(text, consumeFullText: true, isInFieldKeywordContext);
             // We're creating a SyntaxTree for just the RHS so that the Diagnostic spans for parse errors
             // will be correct (with respect to the original input text).  If we ever expose a SemanticModel
             // for debugger expressions, we should use this SyntaxTree.
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Any Diagnostic spans produced in binding will be offset by the length of the "target" expression text.
             // If we want to support live squiggles in debugger windows, SemanticModel, etc, we'll want to address this.
-            var targetSyntax = ParseDebuggerExpressionInternal(SourceText.From(target), consumeFullText: true);
+            var targetSyntax = ParseDebuggerExpressionInternal(SourceText.From(target, encoding: null, SourceHashAlgorithms.Default), consumeFullText: true, isInFieldKeywordContext);
             Debug.Assert(!targetSyntax.GetDiagnostics().Any(), "The target of an assignment should never contain Diagnostics if we're being allowed to assign to it in the debugger.");
 
             var assignment = InternalSyntax.SyntaxFactory.AssignmentExpression(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 targetSyntax,
                 InternalSyntax.SyntaxFactory.Token(SyntaxKind.EqualsToken),
                 expression);
-            return assignment.MakeDebuggerExpression(SourceText.From(assignment.ToString()));
+            return assignment.MakeDebuggerExpression(SourceText.From(assignment.ToString(), encoding: null, SourceHashAlgorithms.Default));
         }
 
         /// <summary>
@@ -90,9 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         internal static StatementSyntax? ParseStatement(
             this string expr,
+            bool isInFieldKeywordContext,
             DiagnosticBag diagnostics)
         {
-            var syntax = ParseDebuggerStatement(expr);
+            var syntax = ParseDebuggerStatement(expr, isInFieldKeywordContext);
             diagnostics.AddRange(syntax.GetDiagnostics());
             return diagnostics.HasAnyErrors() ? null : syntax;
         }
@@ -196,28 +197,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return false;
         }
 
-        private static ExpressionSyntax ParseDebuggerExpression(string text, bool consumeFullText)
+        private static ExpressionSyntax ParseDebuggerExpression(string text, bool consumeFullText, bool isInFieldKeywordContext)
         {
-            var source = SourceText.From(text);
-            var expression = ParseDebuggerExpressionInternal(source, consumeFullText);
+            var source = SourceText.From(text, encoding: null, SourceHashAlgorithms.Default);
+            var expression = ParseDebuggerExpressionInternal(source, consumeFullText, isInFieldKeywordContext);
             return expression.MakeDebuggerExpression(source);
         }
 
-        private static InternalSyntax.ExpressionSyntax ParseDebuggerExpressionInternal(SourceText source, bool consumeFullText)
+        private static InternalSyntax.ExpressionSyntax ParseDebuggerExpressionInternal(SourceText source, bool consumeFullText, bool isInFieldKeywordContext)
         {
-            using var lexer = new InternalSyntax.Lexer(source, ParseOptions, allowPreprocessorDirectives: false);
+            using var lexer = new InternalSyntax.Lexer(source, PreviewParseOptions, allowPreprocessorDirectives: false);
             using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax);
+            parser.IsInFieldKeywordContext = isInFieldKeywordContext;
 
             var node = parser.ParseExpression();
-            if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+            if (consumeFullText)
+                node = parser.ConsumeUnexpectedTokens(node);
             return node;
         }
 
-        private static StatementSyntax ParseDebuggerStatement(string text)
+        private static StatementSyntax ParseDebuggerStatement(string text, bool isInFieldKeywordContext)
         {
-            var source = SourceText.From(text);
-            using var lexer = new InternalSyntax.Lexer(source, ParseOptions);
+            var source = SourceText.From(text, encoding: null, SourceHashAlgorithms.Default);
+            using var lexer = new InternalSyntax.Lexer(source, PreviewParseOptions);
             using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax);
+            parser.IsInFieldKeywordContext = isInFieldKeywordContext;
 
             var statement = parser.ParseStatement();
             var syntaxTree = statement.CreateSyntaxTree(source);
@@ -226,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static SyntaxTree CreateSyntaxTree(this InternalSyntax.CSharpSyntaxNode root, SourceText text)
         {
-            return CSharpSyntaxTree.CreateForDebugger((CSharpSyntaxNode)root.CreateRed(), text, ParseOptions);
+            return CSharpSyntaxTree.CreateForDebugger((CSharpSyntaxNode)root.CreateRed(), text, PreviewParseOptions);
         }
 
         private static ExpressionSyntax MakeDebuggerExpression(this InternalSyntax.ExpressionSyntax expression, SourceText text)
@@ -244,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// We don't want to use the real lexer because we want to treat keywords as identifiers.
         /// Since the inputs are so simple, we'll just do the lexing ourselves.
         /// </remarks>
-        internal static bool TryParseDottedName(string input, [NotNullWhen(true)]out NameSyntax? output)
+        internal static bool TryParseDottedName(string input, [NotNullWhen(true)] out NameSyntax? output)
         {
             var pooled = PooledStringBuilder.GetInstance();
             try

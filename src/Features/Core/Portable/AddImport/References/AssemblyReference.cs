@@ -2,53 +2,48 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    private sealed partial class AssemblyReference(
+        AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+        SearchResult searchResult,
+        ReferenceAssemblyResult referenceAssemblyWithType,
+        bool isWithinImport) : Reference(provider, searchResult, isWithinImport)
     {
-        private partial class AssemblyReference : Reference
+        private readonly ReferenceAssemblyResult _referenceAssemblyWithType = referenceAssemblyWithType;
+
+        public override async Task<AddImportFixData> TryGetFixDataAsync(
+            Document document, SyntaxNode node, bool cleanDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
+            var textChanges = await GetTextChangesAsync(document, node, cleanDocument, options, cancellationToken).ConfigureAwait(false);
 
-            public AssemblyReference(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                SearchResult searchResult,
-                ReferenceAssemblyWithTypeResult referenceAssemblyWithType)
-                : base(provider, searchResult)
-            {
-                _referenceAssemblyWithType = referenceAssemblyWithType;
-            }
+            var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
+            var fullyQualifiedTypeName = string.Join(
+                ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
 
-            public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
-            {
-                var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-
-                var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
-                var fullyQualifiedTypeName = string.Join(
-                    ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
-
-                return AddImportFixData.CreateForReferenceAssemblySymbol(
-                    textChanges, title, _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
-            }
-
-            public override bool Equals(object obj)
-            {
-                var reference = obj as AssemblyReference;
-                return base.Equals(obj) &&
-                    _referenceAssemblyWithType.AssemblyName == reference._referenceAssemblyWithType.AssemblyName;
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
-            }
+            return AddImportFixData.CreateForReferenceAssemblySymbol(
+                textChanges, title, _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
         }
+
+        public override bool Equals(object obj)
+        {
+            var reference = obj as AssemblyReference;
+            return base.Equals(obj) &&
+                _referenceAssemblyWithType.AssemblyName == reference._referenceAssemblyWithType.AssemblyName;
+        }
+
+        public override int GetHashCode()
+            => Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
     }
 }

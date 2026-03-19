@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -123,11 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override void EnsureAllMembersLoaded()
         {
-            var typesByNS = _typesByNS;
+            var typesByNS = Volatile.Read(ref _typesByNS);
 
-            if (lazyTypes == null || lazyNamespaces == null)
+            if (typesByNS == null)
             {
-                System.Diagnostics.Debug.Assert(typesByNS != null);
+                Debug.Assert(lazyNamespaces != null && lazyTypes != null);
+            }
+            else
+            {
                 LoadAllMembers(typesByNS);
                 Interlocked.Exchange(ref _typesByNS, null);
             }

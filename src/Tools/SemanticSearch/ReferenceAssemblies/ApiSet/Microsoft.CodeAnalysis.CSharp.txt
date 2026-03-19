@@ -1,0 +1,9 @@
+﻿+T:*
+-T:Microsoft.CodeAnalysis.CSharp.CSharpCommandLine*
+-M:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.#ctor*
+-M:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithCryptoKeyContainer*
+-M:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithCryptoKeyFile*
+-M:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithCryptoPublicKey*
+-M:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithCryptoKeyContainer*
+-M:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithCryptoKeyFile*
+-M:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithCryptoPublicKey*

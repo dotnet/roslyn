@@ -5,7 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     <ExportLanguageServiceFactory(GetType(ISymbolDisplayService), LanguageNames.VisualBasic), [Shared]>
@@ -13,11 +13,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSymbolDisplayService(provider)
+            Return New VisualBasicSymbolDisplayService(provider.LanguageServices)
         End Function
     End Class
 End Namespace

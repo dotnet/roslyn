@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyTemplate = EmbeddedSymbolKind.LastValue << 1
         End Enum
 
-
         Private _embeddedKind As SyntaxTreeKind
         Private _treeOrdinal As Integer
         Private _position As Integer
@@ -204,6 +203,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim firstKey = New LexicalSortKey(first, compilation)
             Dim secondKey = New LexicalSortKey(second, compilation)
+            Return LexicalSortKey.Compare(firstKey, secondKey)
+        End Function
+
+        Public Shared Function Compare(first As SyntaxNode, second As SyntaxNode, compilation As VisualBasicCompilation) As Integer
+            ' This is a shortcut to avoid building complete keys for the case when both locations belong to the same tree.
+            ' Also saves us in some speculative SemanticModel scenarios when the tree we are dealing with doesn't belong to
+            ' the compilation and an attempt of building the LexicalSortKey will simply assert and crash.
+            If first.SyntaxTree IsNot Nothing AndAlso first.SyntaxTree Is second.SyntaxTree Then
+                Return first.Span.Start - second.Span.Start
+            End If
+
+            Dim firstKey = New LexicalSortKey(first.SyntaxTree, first.SpanStart, compilation)
+            Dim secondKey = New LexicalSortKey(second.SyntaxTree, second.SpanStart, compilation)
             Return LexicalSortKey.Compare(firstKey, secondKey)
         End Function
 

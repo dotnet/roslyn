@@ -52,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me.GetNextTokenInState(ScannerState.VB)
 
             Else
-                Dim parser As New Parser(Me)
-
-                directiveTrivia = parser.ParseConditionalCompilationStatement()
-                directiveTrivia = parser.ConsumeStatementTerminatorAfterDirective(directiveTrivia)
+                Using parser = New Parser(Me)
+                    directiveTrivia = parser.ParseConditionalCompilationStatement()
+                    directiveTrivia = parser.ConsumeStatementTerminatorAfterDirective(directiveTrivia)
+                End Using
             End If
 
             Debug.Assert(directiveTrivia.FullWidth > 0, "should at least get #")
@@ -167,7 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return preprocessorState
         End Function
-
 
         ' takes a preprocessor state and applies a directive statement to it
         Friend Shared Function ApplyDirective(preprocessorState As PreprocessorState,
@@ -662,5 +661,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
     End Class
 End Namespace
-
 

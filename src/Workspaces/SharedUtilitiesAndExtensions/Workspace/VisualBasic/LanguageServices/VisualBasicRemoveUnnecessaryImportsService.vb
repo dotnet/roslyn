@@ -17,14 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Inherits AbstractRemoveUnnecessaryImportsService(Of ImportsClauseSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider
-            Get
-                Return VisualBasicUnnecessaryImportsProvider.Instance
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider(Of ImportsClauseSyntax) = VisualBasicUnnecessaryImportsProvider.Instance
 
         Public Overrides Async Function RemoveUnnecessaryImportsAsync(
                 document As Document,
@@ -43,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
-                Dim newRoot = New Rewriter(Me, document, unnecessaryImports, cancellationToken).Visit(oldRoot)
+                Dim newRoot = New VisualBasicRemoveUnnecessaryImportsRewriter(unnecessaryImports, cancellationToken).Visit(oldRoot)
                 newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
 
                 cancellationToken.ThrowIfCancellationRequested()

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml.Serialization;
 
 namespace CSharpSyntaxGenerator
@@ -32,6 +35,7 @@ namespace CSharpSyntaxGenerator
         public List<TreeTypeChild> Children;
     }
 
+    [DebuggerDisplay("{Name,nq}")]
     public class Field : TreeTypeChild
     {
         [XmlAttribute]
@@ -41,7 +45,13 @@ namespace CSharpSyntaxGenerator
         public string Type;
 
         [XmlAttribute]
+        public string ExperimentalUrl;
+
+        [XmlAttribute]
         public string Optional;
+
+        [XmlAttribute]
+        public string RequiredForTest;
 
         [XmlAttribute]
         public string Override;

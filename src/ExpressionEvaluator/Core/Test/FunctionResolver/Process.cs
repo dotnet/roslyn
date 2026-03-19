@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -11,7 +13,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     {
         private readonly bool _shouldEnable;
         private readonly List<Module> _modules;
-        private int _shouldEnableRequests;
 
         internal Process(params Module[] modules) : this(true, modules)
         {
@@ -20,14 +21,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal Process(bool shouldEnable, params Module[] modules)
         {
             _shouldEnable = shouldEnable;
-            _modules = new List<Module>(modules);
+            _modules = [.. modules];
         }
 
-        internal int ShouldEnableRequests => _shouldEnableRequests;
+        internal int ShouldEnableRequests { get; private set; }
 
         internal bool ShouldEnableFunctionResolver()
         {
-            _shouldEnableRequests++;
+            ShouldEnableRequests++;
             return _shouldEnable;
         }
 

@@ -2,47 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Collections.Generic;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis;
+
+internal static class ImmutableDictionaryExtensions
 {
-    internal static class ImmutableDictionaryExtensions
+    public static bool KeysEqual<TKey, TValue>(this ImmutableDictionary<TKey, TValue> self, ImmutableDictionary<TKey, TValue> other)
+        where TKey : notnull
     {
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> AddAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
+        if (self.Count != other.Count)
         {
-            return keys.Aggregate(map, (m, k) => m.Add(k, value));
+            return false;
         }
 
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> Add<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
+        if (self.IsEmpty)
         {
-            if (!map.TryGetValue(key, out var values))
+            return true;
+        }
+
+        foreach (var (key, _) in self)
+        {
+            if (!other.ContainsKey(key))
             {
-                values = ImmutableHashSet.Create<V>();
-                return map.Add(key, values.Add(value));
+                return false;
             }
-
-            return map.SetItem(key, values.Add(value));
         }
 
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> RemoveAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
+        if (self.KeyComparer != other.KeyComparer)
         {
-            return keys.Aggregate(map, (m, k) => m.Remove(k, value));
-        }
-
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> Remove<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
-        {
-            if (map.TryGetValue(key, out var values))
+            foreach (var (key, _) in other)
             {
-                values = values.Remove(value);
-                if (values.Count > 0)
+                if (!self.ContainsKey(key))
                 {
-                    return map.SetItem(key, values);
+                    return false;
                 }
             }
-
-            return map.Remove(key);
         }
+
+        return true;
     }
 }

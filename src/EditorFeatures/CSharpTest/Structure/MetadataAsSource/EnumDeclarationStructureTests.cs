@@ -4,79 +4,86 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
-using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
+
+public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumDeclarationSyntax>
 {
-    public class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumDeclarationSyntax>
-    {
-        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new MetadataEnumDeclarationStructureProvider();
+    protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task NoCommentsOrAttributes()
-        {
-            const string code = @"
-enum $$E
-{
-    A,
-    B
-}";
+    [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public Task NoCommentsOrAttributes()
+        => VerifyBlockSpansAsync("""
+                {|hint:enum $$E{|textspan:
+                {
+                    A,
+                    B
+                }|}|}
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
-            await VerifyNoBlockSpansAsync(code);
-        }
+    [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
+                {|hint:{|textspan:[Bar]
+                |}{|#0:enum $$E|}{|textspan2:
+                {
+                    A,
+                    B
+                }|}|#0}
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+            Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task WithAttributes()
-        {
-            const string code = @"
-{|hint:{|textspan:[Bar]
-|}enum $$E|}
-{
-    A,
-    B
-}";
+    [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
+                {|hint:{|textspan:// Summary:
+                //     This is a summary.
+                [Bar]
+                |}{|#0:enum $$E|}{|textspan2:
+                {
+                    A,
+                    B
+                }|}|#0}
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+            Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+    [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
+                {|hint:{|textspan:// Summary:
+                //     This is a summary.
+                [Bar]
+                |}{|#0:public enum $$E|}{|textspan2:
+                {
+                    A,
+                    B
+                }|}|#0}
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+            Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task WithCommentsAndAttributes()
-        {
-            const string code = @"
-{|hint:{|textspan:// Summary:
-//     This is a summary.
-[Bar]
-|}enum $$E|}
-{
-    A,
-    B
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task WithCommentsAttributesAndModifiers()
-        {
-            const string code = @"
-{|hint:{|textspan:// Summary:
-//     This is a summary.
-[Bar]
-|}public enum $$E|}
-{
-    A,
-    B
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
-    }
+    [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+    [InlineData("enum")]
+    [InlineData("struct")]
+    [InlineData("class")]
+    [InlineData("interface")]
+    public Task TestEnum3(string typeKind)
+        => VerifyBlockSpansAsync($$"""
+            {|#0:$$enum E{|textspan:
+            {
+            }|#0}
+            |}
+            {{typeKind}} Following
+            {
+            }
+            """,
+            Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 }

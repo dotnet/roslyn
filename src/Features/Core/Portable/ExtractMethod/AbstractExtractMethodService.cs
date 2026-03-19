@@ -4,44 +4,47 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+/// <summary>
+/// Core service that tries to share as much extract-method logic across C# and VB.  Note: TStatementSyntax and
+/// TExecutableStatementSyntax exist to model VB's inheritance model there (where StatementSyntax is used liberally
+/// (including for signatures of members, while ExecutableStatementSyntax generally corresponds to a code statement
+/// found within a method body).  In C# these will be the same StatementSyntax type as C# has a much stronger split
+/// between executable code statements and symbol signatures.
+/// </summary>
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax> : IExtractMethodService
+    where TStatementSyntax : SyntaxNode
+    where TExecutableStatementSyntax : TStatementSyntax
+    where TExpressionSyntax : SyntaxNode
 {
-    internal abstract class AbstractExtractMethodService<TValidator, TExtractor, TResult> : IExtractMethodService
-        where TValidator : SelectionValidator
-        where TExtractor : MethodExtractor
-        where TResult : SelectionResult
+    protected abstract SelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction);
+    protected abstract MethodExtractor CreateMethodExtractor(SelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
+
+    public async Task<ExtractMethodResult> ExtractMethodAsync(
+        Document document,
+        TextSpan textSpan,
+        bool localFunction,
+        ExtractMethodGenerationOptions options,
+        CancellationToken cancellationToken)
     {
-        protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, OptionSet options);
-        protected abstract TExtractor CreateMethodExtractor(TResult selectionResult, bool localFunction);
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-        public async Task<ExtractMethodResult> ExtractMethodAsync(
-            Document document,
-            TextSpan textSpan,
-            bool localFunction,
-            OptionSet options,
-            CancellationToken cancellationToken)
-        {
-            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var validator = CreateSelectionValidator(semanticDocument, textSpan, localFunction);
 
-            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+        var (selectionResult, status) = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
+        if (selectionResult is null)
+            return ExtractMethodResult.Fail(status);
 
-            var validator = CreateSelectionValidator(semanticDocument, textSpan, options);
+        cancellationToken.ThrowIfCancellationRequested();
 
-            var selectionResult = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
-            if (!selectionResult.ContainsValidContext)
-            {
-                return new FailedExtractMethodResult(selectionResult.Status);
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // extract method
-            var extractor = CreateMethodExtractor((TResult)selectionResult, localFunction);
-
-            return await extractor.ExtractMethodAsync(cancellationToken).ConfigureAwait(false);
-        }
+        // extract method
+        var extractor = CreateMethodExtractor(selectionResult, options, localFunction);
+        return extractor.ExtractMethod(status, cancellationToken);
     }
 }

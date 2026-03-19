@@ -4,6 +4,7 @@
 
 Imports System.Collections.Generic
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -29,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Aliases As Dictionary(Of String, AliasAndImportsClausePosition)
         Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer)
-        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer)
+        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol), isProjectImportsDeclaration As Boolean)
+        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
     End Class
 
     Partial Friend Class Binder
@@ -76,7 +77,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub BindAliasImportsClause(aliasImportSyntax As SimpleImportsClauseSyntax,
                                                       binder As Binder,
                                                       data As ImportData,
-                                                      diagBag As DiagnosticBag)
+                                                      diagnostics As DiagnosticBag)
+                Dim diagBag = BindingDiagnosticBag.GetInstance()
+
                 Dim aliasesName = aliasImportSyntax.Name
                 Dim aliasTarget As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(aliasesName, diagBag)
 
@@ -113,11 +116,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     conflictsWith(0))
                     Else
                         If aliasTarget.Kind <> SymbolKind.ErrorType Then
-                            Dim useSiteErrorInfo As DiagnosticInfo = aliasTarget.GetUseSiteErrorInfo()
+                            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = aliasTarget.GetUseSiteInfo()
 
-                            If ShouldReportUseSiteErrorForAlias(useSiteErrorInfo) Then
-                                Binder.ReportDiagnostic(diagBag, aliasImportSyntax, useSiteErrorInfo)
+                            If ShouldReportUseSiteErrorForAlias(useSiteInfo.DiagnosticInfo) Then
+                                Binder.ReportUseSite(diagBag, aliasImportSyntax, useSiteInfo)
+                            Else
+                                diagBag.AddDependencies(useSiteInfo)
                             End If
+                        Else
+                            diagBag.DependenciesBag.Clear()
                         End If
 
                         ' We create the alias symbol even when the target is erroneous, 
@@ -129,9 +136,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              aliasTarget,
                                                              If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
 
-                        data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart)
+                        data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart, DirectCast(diagBag.DependenciesBag, IReadOnlyCollection(Of AssemblySymbol)))
                     End If
                 End If
+
+                diagnostics.AddRange(diagBag.DiagnosticBag)
+                diagBag.Free()
             End Sub
 
             ''' <summary>
@@ -148,7 +158,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub BindMembersImportsClause(membersImportsSyntax As SimpleImportsClauseSyntax,
                                                         binder As Binder,
                                                         data As ImportData,
-                                                        diagBag As DiagnosticBag)
+                                                        diagnostics As DiagnosticBag)
+                Dim diagBag = BindingDiagnosticBag.GetInstance()
+
                 Debug.Assert(membersImportsSyntax.Alias Is Nothing)
                 Dim importsName = membersImportsSyntax.Name
                 Dim importedSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(importsName, diagBag)
@@ -193,16 +205,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If importedSymbolIsValid Then
-                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart)
+                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, DirectCast(diagBag.DependenciesBag, IReadOnlyCollection(Of AssemblySymbol)), binder.BindingLocation = BindingLocation.ProjectImportsDeclaration)
                         End If
                     End If
                 End If
+
+                diagnostics.AddRange(diagBag.DiagnosticBag)
+                diagBag.Free()
             End Sub
 
             Private Shared Sub BindXmlNamespaceImportsClause(syntax As XmlNamespaceImportsClauseSyntax,
                                                              binder As Binder,
                                                              data As ImportData,
-                                                             diagBag As DiagnosticBag)
+                                                             diagnostics As DiagnosticBag)
+#If DEBUG Then
+                Dim diagBag = BindingDiagnosticBag.GetInstance()
+#Else
+                Dim diagBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+#End If
+
                 Dim prefix As String = Nothing
                 Dim namespaceName As String = Nothing
                 Dim [namespace] As BoundExpression = Nothing
@@ -215,9 +236,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' "XML namespace prefix '{0}' is already declared."
                         Binder.ReportDiagnostic(diagBag, syntax, ERRID.ERR_DuplicatePrefix, prefix)
                     Else
-                        data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(namespaceName, syntax.SpanStart))
+                        ' Do not expose any locations for project level xml namespaces.  This matches the effective
+                        ' logic we have for aliases, which are given NoLocation.Singleton (which never translates to a
+                        ' DeclaringSyntaxReference).
+                        Dim reference = If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration,
+                            Nothing,
+                            binder.GetSyntaxReference(syntax))
+                        data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(namespaceName, syntax.SpanStart, reference))
                     End If
                 End If
+#If DEBUG Then
+                Debug.Assert(diagBag.DependenciesBag.Count = 0)
+#End If
+                diagnostics.AddRange(diagBag.DiagnosticBag)
+                diagBag.Free()
             End Sub
         End Class
     End Class

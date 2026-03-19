@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private SequencePointList _next;  // Linked list of all points.
 
         // No sequence points.
-        private static readonly SequencePointList s_empty = new SequencePointList();
+        internal static readonly SequencePointList Empty = new SequencePointList();
 
         // Construct a list with no sequence points.
         private SequencePointList()
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             if (seqPointBuilder.Count == 0)
             {
-                return SequencePointList.s_empty;
+                return SequencePointList.Empty;
             }
 
             SequencePointList first = null, current = null;
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Represents the combination of an IL offset and a source text span.
         /// </summary>
-        private struct OffsetAndSpan
+        private readonly struct OffsetAndSpan
         {
             public readonly int Offset;
             public readonly TextSpan Span;

@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
+#nullable disable
+
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -17,7 +18,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly Type _typeDefinition;
         private readonly ReadOnlyCollection<byte> _dynamicFlags;
         private readonly int[] _dynamicFlagStartIndices;
-        private readonly ReadOnlyCollection<string> _tupleElementNames;
         private readonly int[] _tupleElementNameStartIndices;
 
         private CustomTypeInfoTypeArgumentMap()
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _typeDefinition = typeDefinition;
             _dynamicFlags = dynamicFlags;
             _dynamicFlagStartIndices = dynamicFlagStartIndices;
-            _tupleElementNames = tupleElementNames;
+            TupleElementNames = tupleElementNames;
             _tupleElementNameStartIndices = tupleElementNameStartIndices;
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 tupleElementNameStartIndices);
         }
 
-        internal ReadOnlyCollection<string> TupleElementNames => _tupleElementNames;
+        internal ReadOnlyCollection<string> TupleElementNames { get; }
 
         internal DkmClrCustomTypeInfo SubstituteCustomTypeInfo(Type type, DkmClrCustomTypeInfo customInfo)
         {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     AppendRangeFor(
                         curr,
-                        _tupleElementNames,
+                        TupleElementNames,
                         _tupleElementNameStartIndices,
                         CustomTypeInfo.GetTupleElementNameIfAny,
                         builder);

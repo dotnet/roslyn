@@ -2,312 +2,234 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+
+[Trait(Traits.Feature, Traits.Features.Completion)]
+public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
-    public class PartialTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
-    {
-        public PartialTypeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
+    internal override Type GetCompletionProviderType()
+        => typeof(PartialTypeCompletionProvider);
 
-        internal override Type GetCompletionProviderType()
-        {
-            return typeof(PartialTypeCompletionProvider);
-        }
+    [Fact]
+    public Task TestRecommendTypesWithoutPartial()
+        => VerifyItemIsAbsentAsync("""
+            class C { }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRecommendTypesWithoutPartial()
-        {
-            var text = @"
-class C { }
+            partial class $$
+            """, "C");
 
-partial class $$";
+    [Fact]
+    public Task TestPartialClass1()
+        => VerifyItemExistsAsync("""
+            partial class C { }
 
-            await VerifyItemIsAbsentAsync(text, "C");
-        }
+            partial class $$
+            """, "C");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialClass1()
-        {
-            var text = @"
-partial class C { }
+    [Fact]
+    public Task TestPartialGenericClass1()
+        => VerifyItemExistsAsync("""
+            class Bar { }
 
-partial class $$";
+            partial class C<Bar> { }
 
-            await VerifyItemExistsAsync(text, "C");
-        }
+            partial class $$
+            """, "C<Bar>");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialGenericClass1()
-        {
-            var text = @"
-class Bar { }
+    [Fact]
+    public Task TestPartialGenericClassCommitOnParen()
+        => VerifyProviderCommitAsync("""
+            class Bar { }
+
+            partial class C<Bar> { }
 
-partial class C<Bar> { }
+            partial class $$
+            """, "C<Bar>", """
+            class Bar { }
 
-partial class $$";
+            partial class C<Bar> { }
+
+            partial class C<
+            """, '<');
 
-            await VerifyItemExistsAsync(text, "C<Bar>");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialGenericClassCommitOnParen()
-        {
-            var text = @"
-class Bar { }
-
-partial class C<Bar> { }
-
-partial class $$";
-
-            var expected = @"
-class Bar { }
-
-partial class C<Bar> { }
-
-partial class C<";
-
-            await VerifyProviderCommitAsync(text, "C<Bar>", expected, '<', "");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialGenericClassCommitOnTab()
-        {
-            var text = @"
-class Bar { }
-
-partial class C<Bar> { }
-
-partial class $$";
-
-            var expected = @"
-class Bar { }
-
-partial class C<Bar> { }
-
-partial class C<Bar>";
-
-            await VerifyProviderCommitAsync(text, "C<Bar>", expected, null, "");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialGenericClassCommitOnSpace()
-        {
-            var text = @"
-partial class C<T> { }
-
-partial class $$";
-
-            var expected = @"
-partial class C<T> { }
-
-partial class C<T> ";
-
-            await VerifyProviderCommitAsync(text, "C<T>", expected, ' ', "");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialClassWithModifiers()
-        {
-            var text = @"
-partial class C { }
-
-internal partial class $$";
-
-            await VerifyItemExistsAsync(text, "C");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialStruct()
-        {
-            var text = @"
-partial struct S { }
-
-partial struct $$";
-
-            await VerifyItemExistsAsync(text, "S");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialInterface()
-        {
-            var text = @"
-partial interface I { }
-
-partial interface $$";
-
-            await VerifyItemExistsAsync(text, "I");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTypeKindMatches1()
-        {
-            var text = @"
-partial struct S { }
-
-partial class $$";
-
-            await VerifyNoItemsExistAsync(text);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTypeKindMatches2()
-        {
-            var text = @"
-partial class C { }
-
-partial struct $$";
-
-            await VerifyNoItemsExistAsync(text);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialClassesInSameNamespace()
-        {
-            var text = @"
-namespace N
-{
-    partial class Goo { }
-}
-
-namespace N
-{
-    partial class $$
-}";
-
-            await VerifyItemExistsAsync(text, "Goo");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestNotPartialClassesAcrossDifferentNamespaces()
-        {
-            var text = @"
-namespace N
-{
-    partial class Goo { }
-}
-
-partial class $$";
-
-            await VerifyNoItemsExistAsync(text);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestNotPartialClassesInOuterNamespaces()
-        {
-            var text = @"
-partial class C { }
-
-namespace N
-{
-    partial class $$
-}
-";
-
-            await VerifyNoItemsExistAsync(text);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestNotPartialClassesInOuterClass()
-        {
-            var text = @"
-partial class C
-{
-    partial class $$
-}
-";
-
-            await VerifyNoItemsExistAsync(text);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestClassWithConstraint()
-        {
-            var text = @"
-partial class C1<T> where T : System.Exception { }
-
-partial class $$";
-
-            var expected = @"
-partial class C1<T> where T : System.Exception { }
-
-partial class C1<T>";
-
-            await VerifyProviderCommitAsync(text, "C1<T>", expected, null, "");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestDoNotSuggestCurrentMember()
-        {
-            var text = @"partial class F$$";
-
-            await VerifyNoItemsExistAsync(text);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestNotInTrivia()
-        {
-            var text = @"
-partial class C1 { }
-
-partial class //$$";
-
-            await VerifyNoItemsExistAsync(text);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialClassWithReservedName()
-        {
-            var text = @"
-partial class @class { }
-
-partial class $$";
-
-            var expected = @"
-partial class @class { }
-
-partial class @class";
-
-            await VerifyProviderCommitAsync(text, "@class", expected, null, "");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialGenericClassWithReservedName()
-        {
-            var text = @"
-partial class @class<T> { }
-
-partial class $$";
-
-            var expected = @"
-partial class @class<T> { }
-
-partial class @class<T>";
-
-            await VerifyProviderCommitAsync(text, "@class<T>", expected, null, "");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialGenericInterfaceWithVariance()
-        {
-            var text = @"
-partial interface I<out T> { }
-
-partial interface $$";
-
-            var expected = @"
-partial interface I<out T> { }
-
-partial interface I<out T>";
-
-            await VerifyProviderCommitAsync(text, "I<out T>", expected, null, "");
-        }
-    }
+    [Fact]
+    public Task TestPartialGenericClassCommitOnTab()
+        => VerifyProviderCommitAsync("""
+            class Bar { }
+
+            partial class C<Bar> { }
+
+            partial class $$
+            """, "C<Bar>", """
+            class Bar { }
+
+            partial class C<Bar> { }
+
+            partial class C<Bar>
+            """, null);
+
+    [Fact]
+    public Task TestPartialGenericClassCommitOnSpace()
+        => VerifyProviderCommitAsync("""
+            partial class C<T> { }
+
+            partial class $$
+            """, "C<T>", """
+            partial class C<T> { }
+
+            partial class C<T> 
+            """, ' ');
+
+    [Fact]
+    public Task TestPartialClassWithModifiers()
+        => VerifyItemExistsAsync("""
+            partial class C { }
+
+            internal partial class $$
+            """, "C");
+
+    [Fact]
+    public Task TestPartialStruct()
+        => VerifyItemExistsAsync("""
+            partial struct S { }
+
+            partial struct $$
+            """, "S");
+
+    [Fact]
+    public Task TestPartialInterface()
+        => VerifyItemExistsAsync("""
+            partial interface I { }
+
+            partial interface $$
+            """, "I");
+
+    [Fact]
+    public Task TestTypeKindMatches1()
+        => VerifyNoItemsExistAsync("""
+            partial struct S { }
+
+            partial class $$
+            """);
+
+    [Fact]
+    public Task TestTypeKindMatches2()
+        => VerifyNoItemsExistAsync("""
+            partial class C { }
+
+            partial struct $$
+            """);
+
+    [Fact]
+    public Task TestPartialClassesInSameNamespace()
+        => VerifyItemExistsAsync("""
+            namespace N
+            {
+                partial class Goo { }
+            }
+
+            namespace N
+            {
+                partial class $$
+            }
+            """, "Goo");
+
+    [Fact]
+    public Task TestNotPartialClassesAcrossDifferentNamespaces()
+        => VerifyNoItemsExistAsync("""
+            namespace N
+            {
+                partial class Goo { }
+            }
+
+            partial class $$
+            """);
+
+    [Fact]
+    public Task TestNotPartialClassesInOuterNamespaces()
+        => VerifyNoItemsExistAsync("""
+            partial class C { }
+
+            namespace N
+            {
+                partial class $$
+            }
+            """);
+
+    [Fact]
+    public Task TestNotPartialClassesInOuterClass()
+        => VerifyNoItemsExistAsync("""
+            partial class C
+            {
+                partial class $$
+            }
+            """);
+
+    [Fact]
+    public Task TestClassWithConstraint()
+        => VerifyProviderCommitAsync("""
+            partial class C1<T> where T : System.Exception { }
+
+            partial class $$
+            """, "C1<T>", """
+            partial class C1<T> where T : System.Exception { }
+
+            partial class C1<T>
+            """, null);
+
+    [Fact]
+    public Task TestDoNotSuggestCurrentMember()
+        => VerifyNoItemsExistAsync(@"partial class F$$");
+
+    [Fact]
+    public Task TestNotInTrivia()
+        => VerifyNoItemsExistAsync("""
+            partial class C1 { }
+
+            partial class //$$
+            """);
+
+    [Fact]
+    public Task TestPartialClassWithReservedName()
+        => VerifyProviderCommitAsync("""
+            partial class @class { }
+
+            partial class $$
+            """, "@class", """
+            partial class @class { }
+
+            partial class @class
+            """, null);
+
+    [Fact]
+    public Task TestPartialGenericClassWithReservedName()
+        => VerifyProviderCommitAsync("""
+            partial class @class<T> { }
+
+            partial class $$
+            """, "@class<T>", """
+            partial class @class<T> { }
+
+            partial class @class<T>
+            """, null);
+
+    [Fact]
+    public Task TestPartialGenericInterfaceWithVariance()
+        => VerifyProviderCommitAsync("""
+            partial interface I<out T> { }
+
+            partial interface $$
+            """, "I<out T>", """
+            partial interface I<out T> { }
+
+            partial interface I<out T>
+            """, null);
 }

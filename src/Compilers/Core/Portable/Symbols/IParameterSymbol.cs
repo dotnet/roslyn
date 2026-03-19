@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -25,9 +23,24 @@ namespace Microsoft.CodeAnalysis
         RefKind RefKind { get; }
 
         /// <summary>
-        /// Returns true if the parameter was declared as a parameter array. 
+        /// Returns the scoped kind of the parameter.
+        /// </summary>
+        ScopedKind ScopedKind { get; }
+
+        /// <summary>
+        /// Returns true if the parameter was declared as a parameter array or as a parameter collection. 
         /// </summary>
         bool IsParams { get; }
+
+        /// <summary>
+        /// Returns true if the parameter was declared as a parameter array. 
+        /// </summary>
+        bool IsParamsArray { get; }
+
+        /// <summary>
+        /// Returns true if the parameter was declared as a parameter collection. 
+        /// </summary>
+        bool IsParamsCollection { get; }
 
         /// <summary>
         /// Returns true if the parameter is optional.
@@ -73,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the parameter specifies a default value to be passed
         /// when no value is provided as an argument to a call. The default value
-        /// can be obtained with the DefaultValue property.
+        /// can be obtained with the <see cref="ExplicitDefaultValue"/> property.
         /// </summary>
         bool HasExplicitDefaultValue { get; }
 

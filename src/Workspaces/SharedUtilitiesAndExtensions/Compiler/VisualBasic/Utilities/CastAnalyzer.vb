@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Friend Class CastAnalyzer
+    Friend NotInheritable Class CastAnalyzer
         Private ReadOnly _castNode As ExpressionSyntax
         Private ReadOnly _castExpressionNode As ExpressionSyntax
         Private ReadOnly _semanticModel As SemanticModel
@@ -18,12 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private ReadOnly _cancellationToken As CancellationToken
 
         Private Sub New(
-            castNode As ExpressionSyntax,
-            castExpressionNode As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            assumeCallKeyword As Boolean,
-            cancellationToken As CancellationToken
-        )
+                castNode As ExpressionSyntax,
+                castExpressionNode As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                assumeCallKeyword As Boolean,
+                cancellationToken As CancellationToken)
             _castNode = castNode
             _castExpressionNode = castExpressionNode
             _semanticModel = semanticModel
@@ -36,9 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Dim argument = TryCast(_castNode.WalkUpParentheses().Parent, ArgumentSyntax)
                 If argument IsNot Nothing Then
                     Dim parameter = argument.DetermineParameter(_semanticModel, cancellationToken:=_cancellationToken)
-                    If parameter IsNot Nothing AndAlso parameter.IsParams Then
-                        Debug.Assert(TypeOf parameter.Type Is IArrayTypeSymbol)
-
+                    If parameter?.IsParams = True AndAlso TypeOf parameter.Type Is IArrayTypeSymbol Then
                         Dim parameterType = DirectCast(parameter.Type, IArrayTypeSymbol)
 
                         Dim conversion = _semanticModel.Compilation.ClassifyConversion(castType, parameterType)
@@ -93,11 +90,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim parentAssignmentStatement = TryCast(parent, AssignmentStatementSyntax)
             If parentAssignmentStatement IsNot Nothing AndAlso parent.Kind = SyntaxKind.SimpleAssignmentStatement Then
-                Return semanticModel.GetTypeInfo(parentAssignmentStatement.Left).Type
+                Return semanticModel.GetTypeInfo(parentAssignmentStatement.Left, cancellationToken).Type
             End If
 
             Dim parentUnaryExpression = TryCast(parentExpression, UnaryExpressionSyntax)
-            If parentUnaryExpression IsNot Nothing AndAlso Not semanticModel.GetConversion(expression).IsUserDefined Then
+            If parentUnaryExpression IsNot Nothing AndAlso Not semanticModel.GetConversion(expression, cancellationToken).IsUserDefined Then
                 Dim parentTypeInfo = semanticModel.GetTypeInfo(parentUnaryExpression, cancellationToken)
                 Return GetOuterCastType(parentUnaryExpression, parentTypeInfo, semanticModel, cancellationToken)
             End If
@@ -110,13 +107,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                          parentTernaryConditional.WhenFalse,
                                          parentTernaryConditional.WhenTrue)
 
-                Return semanticModel.GetTypeInfo(otherExpression).Type
+                Return semanticModel.GetTypeInfo(otherExpression, cancellationToken).Type
+            End If
+
+            Dim parentSimpleArgument = TryCast(parent, SimpleArgumentSyntax)
+            If TypeOf parentSimpleArgument?.Expression Is CastExpressionSyntax OrElse
+               TypeOf parentSimpleArgument?.Expression Is PredefinedCastExpressionSyntax Then
+                Return semanticModel.GetTypeInfo(parentSimpleArgument.Expression, cancellationToken).Type
             End If
 
             Return expressionTypeInfo.ConvertedType
         End Function
 
-        Private Shared Function GetSpeculatedExpressionToOuterTypeConversion(speculatedExpression As ExpressionSyntax, speculationAnalyzer As SpeculationAnalyzer, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
+        Private Shared Function GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer As SpeculationAnalyzer, speculatedExpression As ExpressionSyntax, outerSpeculatedExpression As ExpressionSyntax, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
             Dim innerSpeculatedExpression = speculatedExpression.WalkDownParentheses()
             Dim typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(innerSpeculatedExpression, cancellationToken)
             Dim conv = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(innerSpeculatedExpression, cancellationToken)
@@ -129,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             speculatedExpression = speculatedExpression.WalkUpParentheses()
             typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculatedExpression, cancellationToken)
             speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, typeInfo, speculationAnalyzer.SpeculativeSemanticModel, cancellationToken)
-            If speculatedExpressionOuterType Is Nothing Then
+            If speculatedExpressionOuterType Is Nothing OrElse outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
                 Return Nothing
             End If
 
@@ -219,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             ' in order to call string.Format(...) anyway.
-            If (castType?.SpecialType = SpecialType.System_Object).GetValueOrDefault() AndAlso
+            If If(castType?.SpecialType = SpecialType.System_Object, False) AndAlso
                 _castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation) Then
                 Return True
             End If
@@ -236,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ' Simple case: If the conversion from the inner expression to the cast type is identity,
                 ' the cast can be removed.
                 Return True
-            ElseIf expressionToCastType.IsNarrowing AndAlso expressionToCastType.IsReference
+            ElseIf expressionToCastType.IsNarrowing AndAlso expressionToCastType.IsReference Then
                 ' If the conversion from the inner expression to the cast type is narrowing reference conversion,
                 ' the cast cannot be removed.
                 Return False
@@ -256,7 +259,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     speculatedExpressionOuterType = outerType
                     expressionToOuterType = _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
                 Else
-                    expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer.ReplacedExpression, speculationAnalyzer, _cancellationToken, speculatedExpressionOuterType)
+                    expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer, speculationAnalyzer.ReplacedExpression, outerSpeculatedExpression, _cancellationToken, speculatedExpressionOuterType)
+                    If expressionToOuterType = Nothing AndAlso outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
+                        ' If we are here we might be inside a SimpleArgument but it is
+                        ' not part of a ParamArray which is handled above.
+                        speculatedExpressionOuterType = outerType
+                        expressionToOuterType = _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
+                    End If
                 End If
 
                 ' CONSIDER: Anonymous function conversions cannot be compared from different semantic models as lambda symbol comparison requires syntax tree equality. Should this be a compiler bug?
@@ -266,12 +275,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 ' If there is an user-defined conversion from the expression to the cast type or the cast
-                ' to the outer type, we need to make sure that the same user-defined conversion will be 
+                ' to the outer type, we need to make sure that the same user-defined conversion will be
                 ' called if the cast is removed.
                 If castToOuterType.IsUserDefined OrElse expressionToCastType.IsUserDefined Then
                     Return (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) OrElse
                             HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) AndAlso
-                           (UserDefinedConversionIsAllowed(_castNode, _semanticModel) AndAlso
+                           (UserDefinedConversionIsAllowed(_castNode) AndAlso
                             Not expressionToCastType.IsNarrowing)
                 ElseIf expressionToOuterType.IsUserDefined Then
                     Return False
@@ -287,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim expressionToCastTypeIsWideningRefOrDefault As Boolean = expressionToCastType.IsWidening AndAlso (expressionToCastType.IsReference OrElse expressionToCastType.IsDefault)
                     Dim expressionToOuterTypeIsWideningRefOrDefault As Boolean = expressionToOuterType.IsWidening AndAlso (expressionToOuterType.IsReference OrElse expressionToOuterType.IsDefault)
 
-                    If (expressionToCastTypeIsWideningRefOrDefault AndAlso expressionToOuterTypeIsWideningRefOrDefault) Then
+                    If expressionToCastTypeIsWideningRefOrDefault AndAlso expressionToOuterTypeIsWideningRefOrDefault Then
                         If expressionToCastType.IsDefault Then
                             Return Not CastRemovalChangesDefaultValue(castType, outerType)
                         End If
@@ -305,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If Not castToOuterType.IsValueType AndAlso castToOuterType = expressionToOuterType Then
-                    If (castToOuterType.IsNullableValueType) Then
+                    If castToOuterType.IsNullableValueType Then
                         Return expressionToOuterType.IsWidening AndAlso
                             DirectCast(castExpressionType.OriginalDefinition, ITypeSymbol).SpecialType = SpecialType.System_Nullable_T
                     ElseIf expressionToCastType.IsWidening AndAlso expressionToCastType.IsNumeric AndAlso Not castToOuterType.IsIdentity Then
@@ -322,6 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         If expressionToCastType.IsWidening Then
                             Return True
                         End If
+
                         If expressionToCastType.IsNarrowing AndAlso
                             Not _semanticModel.OptionStrict = OptionStrict.On Then
                             Return True
@@ -346,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return conversion1.IsUserDefined AndAlso conversion2.IsUserDefined AndAlso conversion1.MethodSymbol.Equals(conversion2.MethodSymbol)
         End Function
 
-        Private Shared Function UserDefinedConversionIsAllowed(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function UserDefinedConversionIsAllowed(expression As ExpressionSyntax) As Boolean
             expression = expression.WalkUpParentheses()
 
             Dim parentNode = expression.Parent
@@ -384,9 +394,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Shared Function CastRemovalChangesDefaultValue(castType As ITypeSymbol, outerType As ITypeSymbol) As Boolean
             If castType.IsNumericType() Then
                 Return Not outerType.IsNumericType()
-            ElseIf castType.SpecialType = SpecialType.System_DateTime
+            ElseIf castType.SpecialType = SpecialType.System_DateTime Then
                 Return Not outerType.SpecialType = SpecialType.System_DateTime
-            ElseIf castType.SpecialType = SpecialType.System_Boolean
+            ElseIf castType.SpecialType = SpecialType.System_Boolean Then
                 Return Not (outerType.IsNumericType OrElse outerType.SpecialType = SpecialType.System_Boolean)
             End If
 

@@ -5,14 +5,13 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     Partial Friend Class VisualBasicSymbolDisplayService
-        Protected Class SymbolDescriptionBuilder
+        Protected NotInheritable Class SymbolDescriptionBuilder
             Inherits AbstractSymbolDescriptionBuilder
 
             Private Shared ReadOnly s_minimallyQualifiedFormat As SymbolDisplayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat _
@@ -27,13 +26,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Private Shared ReadOnly s_minimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants _
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
 
-            Public Sub New(displayService As ISymbolDisplayService,
-                           semanticModel As SemanticModel,
+            Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           workspace As Workspace,
-                           anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                           languageServices As Host.LanguageServices,
+                           options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)
-                MyBase.New(displayService, semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, languageServices, options, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()
@@ -68,6 +66,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Space())
             End Sub
 
+            Protected Overrides Sub AddEnumUnderlyingTypeSeparator()
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Space(),
+                    Keyword("As"),
+                    Space())
+            End Sub
+
             Protected Overrides Function GetInitializerSourcePartsAsync(symbol As ISymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 If TypeOf symbol Is IParameterSymbol Then
                     Return GetInitializerSourcePartsAsync(DirectCast(symbol, IParameterSymbol))
@@ -78,6 +83,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
 
                 Return SpecializedTasks.EmptyImmutableArray(Of SymbolDisplayPart)
+            End Function
+
+            Protected Overrides Function ToMinimalDisplayParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer, format As SymbolDisplayFormat) As ImmutableArray(Of SymbolDisplayPart)
+                Return CodeAnalysis.VisualBasic.ToMinimalDisplayParts(symbol, semanticModel, position, format)
+            End Function
+
+            Protected Overrides Function GetNavigationHint(symbol As ISymbol) As String
+                Return If(symbol Is Nothing, Nothing, CodeAnalysis.VisualBasic.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat))
             End Function
 
             Private Async Function GetFirstDeclarationAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of T)
@@ -144,39 +157,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
                     If semanticModel IsNot Nothing Then
                         Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            semanticModel, equalsValue.Value.Span,
-                            Me.Workspace, cancellationToken:=Me.CancellationToken).ConfigureAwait(False)
+                            LanguageServices, semanticModel, equalsValue.Value.Span, Options.ClassificationOptions, CancellationToken).ConfigureAwait(False)
                     End If
                 End If
 
                 Return Nothing
             End Function
 
-            Protected Overrides Sub AddCaptures(symbol As ISymbol)
+            Protected Overrides Sub AddCaptures(semanticModel As SemanticModel, symbol As ISymbol, typeDisplayInfo As StructuralTypeDisplayInfo)
                 Dim method = TryCast(symbol, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.ContainingSymbol.IsKind(SymbolKind.Method) Then
-                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
-                    AddCaptures(syntax)
+                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault(Function(r) r.SyntaxTree Is semanticModel.SyntaxTree)?.GetSyntax()
+                    AddCaptures(semanticModel, syntax, typeDisplayInfo)
                 End If
             End Sub
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormat
-                End Get
-            End Property
+            Protected Overrides Function GetCommentText(trivia As SyntaxTrivia) As String
+                Return trivia.ToFullString().Substring(1)
+            End Function
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormatWithConstants
-                End Get
-            End Property
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat = s_minimallyQualifiedFormat
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormatWithConstantsAndModifiers
-                End Get
-            End Property
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants
+
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstantsAndModifiers
         End Class
     End Class
 End Namespace

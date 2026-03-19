@@ -56,12 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 context.IsWithinIteratorContext = Me.ParsedInIterator
         End Function
 
-#Region "Serialization"
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-        End Sub
-#End Region
-
         ' The rest of this class is just a convenient place to put some helper functions that are shared by the 
         ' various subclasses.
 
@@ -87,20 +81,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Get
                 Return Me.Kind = SyntaxKind.DocumentationCommentTrivia
             End Get
-        End Property
-
-        Protected Overrides Function GetSlotCount() As Integer
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
-        Protected Property _slotCount As Integer
-            Get
-                Return Me.SlotCount
-            End Get
-
-            Set(value As Integer)
-                Me.SlotCount = value
-            End Set
         End Property
 
         Friend Function GetFirstToken() As SyntaxToken
@@ -223,7 +203,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Use conditional weak table so we always return same identity for structured trivia
-        Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, Dictionary(Of Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode))
+        '
+        ' As there are commonly few structured trivia per parent, use a SmallDictionary for
+        ' mapping from trivia to StructuredTriviaSyntax. Testing against roslyn, of parents
+        ' containing structured trivia:
+        ' 81.2% contain 1 structured trivia
+        ' 96.5% contain 2 or fewer structured trivia
+        ' 99.6% contain 4 or fewer structured trivia
+        ' 100% contain 7 or fewer structured trivia
+        Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, SmallDictionary(Of Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode))
 
         Public Overrides Function GetStructure(trivia As Microsoft.CodeAnalysis.SyntaxTrivia) As SyntaxNode
             If Not trivia.HasStructure Then
@@ -248,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return [structure]
         End Function
 
-        Public Overrides Function CreateSeparator(Of TNode As SyntaxNode)(element As SyntaxNode) As CodeAnalysis.SyntaxToken
+        Public Overrides Function CreateSeparator(element As SyntaxNode) As CodeAnalysis.SyntaxToken
             Dim separatorKind As SyntaxKind = SyntaxKind.CommaToken
             If element.Kind = SyntaxKind.JoinCondition Then
                 separatorKind = SyntaxKind.AndKeyword

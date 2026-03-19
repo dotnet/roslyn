@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         {
             _ignoreCase = ignoreCase;
             _languageId = languageId;
-            _requests = new Dictionary<Process, List<Request>>();
+            _requests = [];
         }
 
         internal void EnableResolution(Process process, Request request)
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             List<Request> requests;
             if (!_requests.TryGetValue(process, out requests))
             {
-                requests = new List<Request>();
+                requests = [];
                 _requests.Add(process, requests);
             }
             requests.Add(request);
@@ -61,10 +62,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return module.Name;
         }
 
-        internal override MetadataReader GetModuleMetadata(Module module)
-        {
-            return module.GetMetadata();
-        }
+        internal override unsafe bool TryGetMetadata(Module module, out byte* pointer, out int length)
+            => module.TryGetMetadata(out pointer, out length);
 
         internal override Request[] GetRequests(Process process)
         {

@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-
-#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -43,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool Visited = false;
         }
 
-        protected abstract TLocalFunctionState CreateLocalFunctionState();
+        protected abstract TLocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol);
 
         private SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>? _localFuncVarUsages = null;
 
@@ -51,16 +48,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _localFuncVarUsages ??= new SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>();
 
-            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState usages))
+            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState? usages))
             {
-                usages = CreateLocalFunctionState();
+                usages = CreateLocalFunctionState(localFunc);
                 _localFuncVarUsages[localFunc] = usages;
             }
             return usages;
         }
 
+        protected bool HasLocalFuncUsagesCreated(LocalFunctionSymbol localFunc)
+        {
+            return _localFuncVarUsages?.ContainsKey(localFunc) == true;
+        }
+
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
+            if (localFunc.Symbol.IsExtern)
+            {
+                // an extern local function is not permitted to have a body and thus shouldn't be flow analyzed
+                return null;
+            }
+
             var oldSymbol = this.CurrentSymbol;
             var localFuncSymbol = localFunc.Symbol;
             this.CurrentSymbol = localFuncSymbol;
@@ -86,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // transition the state of captured variables if the variables have state changes
             // across all branches leaving the local function
 
-            var localFunctionState = GetOrCreateLocalFuncUsages(localFuncSymbol);
+            var localFunctionState = GetOrCreateLocalFuncUsages((LocalFunctionSymbol)localFuncSymbol);
             var savedLocalFunctionState = LocalFunctionStart(localFunctionState);
 
             var oldPending2 = SavePending();
@@ -103,12 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
 
-            Location? location = null;
-
-            if (!localFuncSymbol.Locations.IsDefaultOrEmpty)
-            {
-                location = localFuncSymbol.Locations[0];
-            }
+            Location? location = localFuncSymbol.TryGetFirstLocation();
 
             LeaveParameters(localFuncSymbol.Parameters, localFunc.Syntax, location);
 

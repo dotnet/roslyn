@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// NOTE: Finally is a private void nonvirtual instance method with no parameters. 
     ///       It is a valid JIT inlining target as long as JIT may consider inlining profitable.
     /// </summary>
-    internal sealed class IteratorFinallyMethodSymbol : SynthesizedInstanceMethodSymbol, ISynthesizedMethodBodyImplementationSymbol
+    internal sealed class IteratorFinallyMethodSymbol : SynthesizedMethodSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly IteratorStateMachine _stateMachineType;
         private readonly string _name;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -253,5 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _stateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
     }
 }

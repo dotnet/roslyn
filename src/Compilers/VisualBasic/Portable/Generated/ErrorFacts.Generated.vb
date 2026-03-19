@@ -59,7 +59,6 @@
                      ERRID.WRN_MissingAsClauseinOperator,
                      ERRID.WRN_ConstraintsFailedForInferredArgs2,
                      ERRID.WRN_ConditionalNotValidOnFunction,
-                     ERRID.WRN_UseSwitchInsteadOfAttribute,
                      ERRID.WRN_TupleLiteralNameMismatch,
                      ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName,
                      ERRID.WRN_RecursiveAddHandlerCall,
@@ -170,7 +169,16 @@
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
                      ERRID.WRN_Experimental,
-                     ERRID.WRN_AttributeNotSupportedInVB
+                     ERRID.WRN_AttributeNotSupportedInVB,
+                     ERRID.WRN_GeneratorFailedDuringInitialization,
+                     ERRID.WRN_GeneratorFailedDuringGeneration,
+                     ERRID.WRN_AnalyzerReferencesFramework,
+                     ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
+                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
+                     ERRID.WRN_AnalyzerReferencesNewerCompiler,
+                     ERRID.WRN_DuplicateAnalyzerReference,
+                     ERRID.WRN_ConvertingLock,
+                     ERRID.WRN_ExperimentalWithMessage
                     Return True
                 Case Else
                     Return False

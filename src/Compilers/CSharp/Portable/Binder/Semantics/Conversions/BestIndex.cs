@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum BestIndexKind
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Ambiguous
     }
 
-    internal struct BestIndex
+    internal readonly struct BestIndex
     {
         internal readonly BestIndexKind Kind;
         internal readonly int Best;

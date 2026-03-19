@@ -7,14 +7,15 @@
 ' code-generated into SyntaxNodes.vb, but some are easier to hand-write.
 '-----------------------------------------------------------------------------------------------------------
 
-Imports System.Threading
+Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports System.Text
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-Imports Microsoft.CodeAnalysis.Syntax
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -33,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional path As String = "",
             Optional encoding As Encoding = Nothing) As SyntaxTree
 
-            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding)
+            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), If(DirectCast(options, VisualBasicParseOptions), VisualBasicParseOptions.Default), path, encoding, SourceHashAlgorithm.Sha1)
         End Function
 
         ''' <summary>
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             encoding As Encoding,
             cancellationToken As CancellationToken) As SyntaxTree
 
-            Return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken)
+            Return ParseSyntaxTree(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, cancellationToken)
         End Function
 
         ''' <summary>
@@ -137,6 +138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Parse tokens in the input.
+        ''' Since this API does not create a <see cref="SyntaxNode"/> that owns all produced tokens,
+        ''' the <see cref="SyntaxToken.GetLocation"/> API may yield surprising results for
+        ''' the produced tokens and its behavior is generally unspecified.
         ''' </summary>
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
@@ -182,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         disallowGenericArgumentsOnLastQualifiedName:=False,
                         allowEmptyGenericArguments:=True,
                         allowedEmptyGenericArguments:=True)
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), NameSyntax)
+                Return CreateRed(Of NameSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -191,12 +195,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
-        Public Shared Function ParseTypeName(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As TypeSyntax
-            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
+        Public Shared Function ParseTypeName(text As String, Optional offset As Integer = 0, Optional options As ParseOptions = Nothing, Optional consumeFullText As Boolean = True) As TypeSyntax
+            Dim vbOptions As VisualBasicParseOptions = DirectCast(options, VisualBasicParseOptions)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(vbOptions, VisualBasicParseOptions.Default))
                 p.GetNextToken()
                 Dim node = p.ParseGeneralType()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), TypeSyntax)
+                If consumeFullText Then
+                    node = p.ConsumeUnexpectedTokens(node)
+                End If
+                Return CreateRed(Of TypeSyntax)(node, p.Options)
             End Using
+        End Function
+
+        '' Backcompat overload, do not touch
+        ''' <summary>
+        ''' Parse a type name.
+        ''' </summary>
+        ''' <param name="text">The input string</param>
+        ''' <param name="offset">The starting offset in the string</param>
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Shared Function ParseTypeName(text As String, offset As Integer, consumeFullText As Boolean) As TypeSyntax
+            Return ParseTypeName(text, offset, options:=Nothing, consumeFullText)
         End Function
 
         ''' <summary>
@@ -208,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseExpression()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ExpressionSyntax)
+                Return CreateRed(Of ExpressionSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -220,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ParseExecutableStatement(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As StatementSyntax
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 Dim node = p.ParseExecutableStatement()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), StatementSyntax)
+                Return CreateRed(Of StatementSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -231,7 +250,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseCompilationUnit(text As String, Optional offset As Integer = 0, Optional options As VisualBasicParseOptions = Nothing) As CompilationUnitSyntax
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(options, VisualBasicParseOptions.Default))
-                Return DirectCast(p.ParseCompilationUnit().CreateRed(Nothing, 0), CompilationUnitSyntax)
+                Dim node = p.ParseCompilationUnit()
+                Return CreateRed(Of CompilationUnitSyntax)(node, p.Options)
             End Using
         End Function
 
@@ -244,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParameterList()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ParameterListSyntax)
+                Return CreateRed(Of ParameterListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -257,12 +277,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParenthesizedArguments()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ArgumentListSyntax)
+                Return CreateRed(Of ArgumentListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
         ''' <summary>
-        ''' Helper method for wrapping a string and offset in an SourceText.
+        ''' Helper method for wrapping a string and offset in a SourceText.
         ''' </summary>
         Friend Shared Function MakeSourceText(text As String, offset As Integer) As SourceText
             Return SourceText.From(text, Encoding.UTF8).GetSubText(offset)
@@ -277,18 +297,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using scanner As New InternalSyntax.Scanner(MakeSourceText(text, 0), VisualBasicParseOptions.Default) ' NOTE: Default options should be enough
                 scanner.ForceScanningXmlDocMode()
 
-                Dim parser = New InternalSyntax.Parser(scanner)
-                parser.GetNextToken(InternalSyntax.ScannerState.Element)
+                Using parser = New InternalSyntax.Parser(scanner)
+                    parser.GetNextToken(InternalSyntax.ScannerState.Element)
 
-                Dim xmlName = InternalSyntax.SyntaxFactory.XmlName(
+                    Dim xmlName = InternalSyntax.SyntaxFactory.XmlName(
                     Nothing, InternalSyntax.SyntaxFactory.XmlNameToken(parentElementName, SyntaxKind.XmlNameToken, Nothing, Nothing))
 
-                Return DirectCast(
-                    parser.ParseXmlAttribute(
+                    Dim xmlAttribute = parser.ParseXmlAttribute(
                         requireLeadingWhitespace:=False,
                         AllowNameAsExpression:=False,
-                        xmlElementName:=xmlName).CreateRed(Nothing, 0), BaseXmlAttributeSyntax)
+                        xmlElementName:=xmlName)
+                    Return CreateRed(Of BaseXmlAttributeSyntax)(xmlAttribute, scanner.Options)
+                End Using
             End Using
+        End Function
+
+        Private Shared Function CreateRed(Of TSyntax As VisualBasicSyntaxNode)(green As InternalSyntax.VisualBasicSyntaxNode, options As VisualBasicParseOptions) As TSyntax
+            Dim red = DirectCast(green.CreateRed(), TSyntax)
+            Debug.Assert(red._syntaxTree Is Nothing)
+#Disable Warning RS0030 ' Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
+            red._syntaxTree = VisualBasicSyntaxTree.CreateWithoutClone(red, options)
+#Enable Warning RS0030
+            Return red
         End Function
 
 #End Region

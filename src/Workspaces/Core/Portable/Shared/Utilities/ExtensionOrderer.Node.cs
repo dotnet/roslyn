@@ -5,41 +5,33 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal static partial class ExtensionOrderer
 {
-    internal partial class ExtensionOrderer
+    private sealed class Node<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
     {
-        private class Node<TExtension, TMetadata>
+        public readonly Lazy<TExtension, TMetadata> Extension = extension;
+        public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = [];
+
+        public void CheckForCycles()
+            => this.CheckForCycles([]);
+
+        private void CheckForCycles(
+            HashSet<Node<TExtension, TMetadata>> seenNodes)
         {
-            public readonly Lazy<TExtension, TMetadata> Extension;
-            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new HashSet<Node<TExtension, TMetadata>>();
-
-            public Node(Lazy<TExtension, TMetadata> extension)
+            if (!seenNodes.Add(this))
             {
-                this.Extension = extension;
+                // Cycle detected in extensions
+                throw new ArgumentException(WorkspacesResources.Cycle_detected_in_extensions);
             }
 
-            public void CheckForCycles()
+            foreach (var before in this.ExtensionsBeforeMeSet)
             {
-                this.CheckForCycles(new HashSet<Node<TExtension, TMetadata>>());
+                before.CheckForCycles(seenNodes);
             }
 
-            private void CheckForCycles(
-                HashSet<Node<TExtension, TMetadata>> seenNodes)
-            {
-                if (!seenNodes.Add(this))
-                {
-                    // Cycle detected in extensions
-                    throw new ArgumentException(WorkspacesResources.Cycle_detected_in_extensions);
-                }
-
-                foreach (var before in this.ExtensionsBeforeMeSet)
-                {
-                    before.CheckForCycles(seenNodes);
-                }
-
-                seenNodes.Remove(this);
-            }
+            seenNodes.Remove(this);
         }
     }
 }

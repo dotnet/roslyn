@@ -1,0 +1,91 @@
+﻿[$RootKey$\Menus]
+"{6cf2e545-6109-4730-8883-cf43d7aec3e1}"=", Menus.ctmenu, 22"
+
+// [ProvideUIContextRule(
+//      Guids.EncCapableProjectExistsInWorkspaceUIContextString,
+//      name: "Managed Edit and Continue capability",
+//      expression: "CS | VB",
+//      termNames: new[] { "CS", "VB" },
+//      termValues: new[] { Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString })]
+[$RootKey$\UIContextRules\{0c89ae24-6d19-474c-a3aa-dc3b66fdbb5f}]
+@="Managed Edit and Continue capability"
+"Expression"="CS | VB"
+"CS"="CA719A03-D55C-48F9-85DE-D934346E7F70"
+"VB"="EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
+
+// Register Hot Reload brokered service with the debugger.
+// This service is available once C# or VB project has been loaded.
+[$RootKey$\Debugger\ManagedHotReload\LanguageServices\{882A9AD6-1F3B-4AC0-BABC-DD6DB41714E7}]
+@="Roslyn"
+"UIContexts"="CA719A03-D55C-48F9-85DE-D934346E7F70;EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
+"ServiceMoniker"="Microsoft.CodeAnalysis.LanguageServer.ManagedHotReloadLanguageService"
+"ServiceVersion"="0.1"
+
+[$RootKey$\FeatureFlags\Roslyn\LSP\Editor]
+"Description"="Enables the LSP-powered C#/VB editing experience outside of CodeSpaces."
+"Value"=dword:00000000
+"Title"="C#/VB LSP editor (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\LSP\SemanticTokens]
+"Description"="Enables the LSP-powered C#/VB semantic tokens experience in the local editor."
+"Value"=dword:00000000
+"Title"="C#/VB LSP semantic tokens experience"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\SemanticSearchEnabled]
+"Description"="Enable C# Semantic Search."
+"Value"=dword:00000000
+"Title"="Enable C# Semantic Search"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\CopilotRenameGetContext]
+"Description"="Add semantic context to Copilot Rename Suggestions in C#."
+"Value"=dword:00000000
+"Title"="Semantic Context in C# Copilot Rename  (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+// Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
+[$RootKey$\FeatureFlags\Lsp\PullDiagnostics]
+"Description"="Enables the LSP-powered diagnostics for managed .Net projects"
+"Value"=dword:00000001
+
+// The option page configuration is duplicated in RoslynPackage
+// [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
+[$RootKey$\ToolWindows\{60a19d42-2dd7-43f3-be90-c7a9cb7d28f4}]
+"Name"="Microsoft.VisualStudio.LanguageServices.ValueTracking.ValueTrackingToolWindow"
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+
+// The tool window configuration is duplicated in RoslynPackage
+// [ProvideToolWindow(typeof(StackTraceExplorer.StackTraceExplorerToolWindow))]
+[$RootKey$\ToolWindows\{7FF2AB69-0A20-4BF5-BAEF-24D9EB6969E1}]
+"Name"="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer.StackTraceExplorerToolWindow"
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+
+// 68b46364-d378-42f2-9e72-37d86c5f4468 is the guid for SettingsEditorFactory
+// 6cf2e545-6109-4730-8883-cf43d7aec3e1 is the guid for RoslynPackage
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}]
+"DisplayName"="#101"
+"Package"="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\Extensions]
+// dword must be smaller that 0x26 (the priority of the textmate editor)
+// we set it to 0x25 here so it's below that but still higher than anything else that might be using it
+"editorconfig"=dword:0000025
+
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\LogicalViews]
+"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
+
+[$RootKey$\Services\{89e9dfce-d0f3-48c4-be76-140d5cce69ef}]
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+"Name"="RoslynPackageLoadService"
+"IsAsyncQueryable"=dword:00000001
+"IsCacheable"=dword:00000001
+"IsFreeThreaded"=dword:00000001
+
+// CacheTag value should be changed when registration file changes
+// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more infomation
+[$RootKey$\SettingsManifests\{6cf2e545-6109-4730-8883-cf43d7aec3e1}]
+@="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage"
+"ManifestPath"="$PackageFolder$\UnifiedSettings\roslynSettings.registration.json"
+"CacheTag"=qword:ABE9BBF01CC8B289

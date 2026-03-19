@@ -4,15 +4,14 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.MoveToNamespace
+namespace Microsoft.CodeAnalysis.MoveToNamespace;
+
+internal interface IMoveToNamespaceOptionsService : IWorkspaceService
 {
-    internal interface IMoveToNamespaceOptionsService : IWorkspaceService
-    {
-        MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
-            string defaultNamespace,
-            ImmutableArray<string> availableNamespaces,
-            ISyntaxFactsService syntaxFactsService);
-    }
+    MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
+        string defaultNamespace,
+        ImmutableArray<string> availableNamespaces,
+        ISyntaxFacts syntaxFactsService);
 }

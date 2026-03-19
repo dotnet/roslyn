@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -59,9 +57,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal const int E_NOTIMPL = unchecked((int)0x80004001);
         private static readonly IntPtr s_ignoreIErrorInfo = new IntPtr(-1);
 
-        public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
+        public static unsafe MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3? symReader,
-            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namesapace
+            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namespace
             int methodToken,
             int methodVersion,
             int ilOffset,
@@ -99,10 +97,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             try
             {
                 var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
-                if (symMethod != null)
-                {
-                    symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
-                }
+                symMethod?.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
 
                 ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups;
                 ImmutableArray<ExternAliasRecord> externAliasRecords;
@@ -175,6 +170,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
+                // containingDocumentName is not set since ISymUnmanagedMethod.GetDocumentsForMethod()
+                // may fail (see https://github.com/dotnet/roslyn/issues/66260). The result is that
+                // symbols from file-local types will not bind successfully in the EE.
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -184,7 +182,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName,
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
-                    reuseSpan);
+                    reuseSpan,
+                    containingDocumentName: null,
+                    isPrimaryConstructor: false);
             }
             catch (InvalidOperationException)
             {
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var importStringGroups = CustomDebugInfoReader.GetCSharpGroupedImportStrings(
                 methodToken,
-                KeyValuePairUtil.Create(reader, methodVersion),
+                KeyValuePair.Create(reader, methodVersion),
                 getMethodCustomDebugInfo: (token, arg) => GetCustomDebugInfoBytes(arg.Key, token, arg.Value),
                 getMethodImportStrings: (token, arg) => GetImportStrings(arg.Key, token, arg.Value),
                 externAliasStrings: out externAliasStrings);
@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ITypeSymbolInternal? type = null;
                 if (targetKind == ImportTargetKind.Type)
                 {
+                    RoslynDebug.Assert(targetString != null);
                     type = symbolProvider.GetTypeSymbolForSerializedType(targetString);
                     targetString = null;
                 }
@@ -423,7 +424,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 localBuilder ??= ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
                 localBuilder[slot] = flags;
             }
-
 
             if (localBuilder != null)
             {
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
                 methodToken,
-                KeyValuePairUtil.Create(reader, methodVersion),
+                KeyValuePair.Create(reader, methodVersion),
                 (token, arg) => GetImportStrings(arg.Key, token, arg.Value));
 
             if (importStrings.IsDefault)
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 RoslynDebug.AssertNotNull(importString);
 
-                if (importString.Length > 0 && importString[0] == '*')
+                if (importString is ['*', ..])
                 {
                     string? alias = null;
                     string? target = null;
@@ -600,10 +600,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out VBImportScopeKind scope)
         {
-            ImportTargetKind targetKind;
-            string alias;
-            string targetString;
-            if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out targetString, out targetKind, out scope))
+            if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out var alias, out var targetString, out var targetKind, out scope))
             {
                 record = new ImportRecord(
                     targetKind: targetKind,
@@ -668,10 +665,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
 
                     var dynamicFlags = default(ImmutableArray<bool>);
-                    if (dynamicLocalConstantMap != null)
-                    {
-                        dynamicLocalConstantMap.TryGetValue(name, out dynamicFlags);
-                    }
+                    dynamicLocalConstantMap?.TryGetValue(name, out dynamicFlags);
 
                     var tupleElementNames = default(ImmutableArray<string?>);
                     if (tupleLocalConstantMap != null)

@@ -2,60 +2,56 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
+
+internal sealed partial class CPSProject
 {
-    internal sealed partial class CPSProject
+    public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)
+        => _projectCodeModel.GetOrCreateRootCodeModel(parent);
+
+    public EnvDTE.FileCodeModel GetFileCodeModel(EnvDTE.ProjectItem item)
     {
-        public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)
+        if (!item.TryGetFullPath(out var filePath))
         {
-            return _projectCodeModel.GetOrCreateRootCodeModel(parent);
+            return null;
         }
 
-        public EnvDTE.FileCodeModel GetFileCodeModel(EnvDTE.ProjectItem item)
+        return _projectCodeModel.GetOrCreateFileCodeModel(filePath, item);
+    }
+
+    private sealed class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
+    {
+        private readonly CPSProject _project;
+
+        public CPSCodeModelInstanceFactory(CPSProject project)
+            => _project = project;
+
+        EnvDTE.FileCodeModel ICodeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem(string filePath)
         {
-            if (!item.TryGetFullPath(out var filePath))
+            var projectItem = GetProjectItem(filePath);
+            if (projectItem == null)
             {
                 return null;
             }
 
-            return _projectCodeModel.GetOrCreateFileCodeModel(filePath, item);
+            return _project._projectCodeModel.GetOrCreateFileCodeModel(filePath, projectItem);
         }
 
-        private class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
+        private EnvDTE.ProjectItem GetProjectItem(string filePath)
         {
-            private readonly CPSProject _project;
-
-            public CPSCodeModelInstanceFactory(CPSProject project)
+            var dteProject = _project._visualStudioWorkspace.TryGetDTEProject(_project._projectSystemProject.Id);
+            if (dteProject == null)
             {
-                _project = project;
+                return null;
             }
 
-            EnvDTE.FileCodeModel ICodeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem(string filePath)
-            {
-                var projectItem = GetProjectItem(filePath);
-                if (projectItem == null)
-                {
-                    return null;
-                }
-
-                return _project._projectCodeModel.GetOrCreateFileCodeModel(filePath, projectItem);
-            }
-
-            private EnvDTE.ProjectItem GetProjectItem(string filePath)
-            {
-                var dteProject = _project._visualStudioWorkspace.TryGetDTEProject(_project._visualStudioProject.Id);
-                if (dteProject == null)
-                {
-                    return null;
-                }
-
-                return dteProject.FindItemByPath(filePath, StringComparer.OrdinalIgnoreCase);
-            }
+            return dteProject.FindItemByPath(filePath, StringComparer.OrdinalIgnoreCase);
         }
     }
 }

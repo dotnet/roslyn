@@ -3,124 +3,173 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal enum LogMessageSeverity
 {
-    /// <summary>
-    /// Fixed size rolling tracing log. 
-    /// </summary>
-    /// <remarks>
-    /// Recent entries are captured in a memory dump.
-    /// If DEBUG is defined, all entries written to <see cref="DebugWrite(string)"/> or
-    /// <see cref="DebugWrite(string, Arg[])"/> are print to <see cref="Debug"/> output.
-    /// </remarks>
-    internal sealed class TraceLog
+    Info,
+    Warning,
+    Error
+}
+
+/// <summary>
+/// Implements EnC logging.
+/// 
+/// Writes log messages to:
+/// - fixed size rolling tracing log captured in a memory dump,
+/// - a file log, if a log directory is provided,
+/// - log service, if avaiable.
+/// </summary>
+internal sealed class TraceLog(string name, IEditAndContinueLogReporter? logService = null, int logSize = 2048)
+{
+    internal sealed class FileLogger(string logDirectory, TraceLog traceLog)
     {
-        internal readonly struct Arg
+        private readonly string _logDirectory = logDirectory;
+        private readonly TraceLog _traceLog = traceLog;
+
+        public void Append(string entry)
         {
-            public readonly object Object;
-            public readonly int Int32;
+            string? path = null;
 
-            public Arg(object value)
+            try
             {
-                Int32 = 0;
-                Object = value ?? "<null>";
+                path = Path.Combine(_logDirectory, _traceLog._name + ".log");
+                File.AppendAllLines(path, [entry]);
             }
-
-            public Arg(int value)
+            catch (Exception e)
             {
-                Int32 = value;
-                Object = null;
-            }
-
-            public override string ToString() => (Object is null) ? Int32.ToString() : Object.ToString();
-
-            public static implicit operator Arg(string value) => new Arg(value);
-            public static implicit operator Arg(int value) => new Arg(value);
-            public static implicit operator Arg(ProjectId value) => new Arg(value.Id.GetHashCode());
-            public static implicit operator Arg(ProjectAnalysisSummary value) => new Arg(ToString(value));
-            public static implicit operator Arg(Diagnostic value) => new Arg(value);
-
-            private static string ToString(ProjectAnalysisSummary summary)
-            {
-                switch (summary)
-                {
-                    case ProjectAnalysisSummary.CompilationErrors: return nameof(ProjectAnalysisSummary.CompilationErrors);
-                    case ProjectAnalysisSummary.NoChanges: return nameof(ProjectAnalysisSummary.NoChanges);
-                    case ProjectAnalysisSummary.RudeEdits: return nameof(ProjectAnalysisSummary.RudeEdits);
-                    case ProjectAnalysisSummary.ValidChanges: return nameof(ProjectAnalysisSummary.ValidChanges);
-                    case ProjectAnalysisSummary.ValidInsignificantChanges: return nameof(ProjectAnalysisSummary.ValidInsignificantChanges);
-                    default: return null;
-                }
+                _traceLog.AppendFileLoggingErrorInMemory(path, e);
             }
         }
 
-        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        internal readonly struct Entry
+        private string CreateSessionDirectory(DebuggingSessionId sessionId, string relativePath)
         {
-            public readonly string MessageFormat;
-            public readonly Arg[] ArgsOpt;
+            Contract.ThrowIfNull(_logDirectory);
+            var directory = Path.Combine(_logDirectory, sessionId.Ordinal.ToString(), relativePath);
+            Directory.CreateDirectory(directory);
+            return directory;
+        }
 
-            public Entry(string format, Arg[] argsOpt)
+        private string MakeSourceFileLogPath(Document document, string suffix, UpdateId updateId, int? generation)
+        {
+            Debug.Assert(document.FilePath != null);
+            Debug.Assert(document.Project.FilePath != null);
+
+            var projectDir = PathUtilities.GetDirectoryName(document.Project.FilePath)!;
+            var documentDir = PathUtilities.GetDirectoryName(document.FilePath)!;
+            var extension = PathUtilities.GetExtension(document.FilePath);
+            var fileName = PathUtilities.GetFileName(document.FilePath, includeExtension: false);
+
+            var relativeDir = PathUtilities.IsSameDirectoryOrChildOf(documentDir, projectDir) ? PathUtilities.GetRelativePath(projectDir, documentDir) : documentDir;
+            relativeDir = relativeDir.Replace('\\', '_').Replace('/', '_');
+
+            var directory = CreateSessionDirectory(updateId.SessionId, Path.Combine(document.Project.Name, relativeDir));
+            return Path.Combine(directory, $"{fileName}.{updateId.Ordinal}.{generation?.ToString() ?? "-"}.{suffix}{extension}");
+        }
+
+        public void Write(DebuggingSessionId sessionId, ImmutableArray<byte> bytes, string directory, string fileName)
+        {
+            string? path = null;
+            try
             {
-                MessageFormat = format;
-                ArgsOpt = argsOpt;
+                path = Path.Combine(CreateSessionDirectory(sessionId, directory), fileName);
+                File.WriteAllBytes(path, [.. bytes]);
+            }
+            catch (Exception e)
+            {
+                _traceLog.AppendFileLoggingErrorInMemory(path, e);
+            }
+        }
+
+        public async ValueTask WriteAsync(Func<Stream, CancellationToken, ValueTask> writer, DebuggingSessionId sessionId, string directory, string fileName, CancellationToken cancellationToken)
+        {
+            string? path = null;
+            try
+            {
+                path = Path.Combine(CreateSessionDirectory(sessionId, directory), fileName);
+                using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write | FileShare.Delete);
+                await writer(file, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _traceLog.AppendFileLoggingErrorInMemory(path, e);
+            }
+        }
+
+        public async ValueTask WriteDocumentAsync(Document document, string fileNameSuffix, UpdateId updateId, int? generation, CancellationToken cancellationToken)
+        {
+            Debug.Assert(document.FilePath != null);
+
+            string? path = null;
+            try
+            {
+                path = MakeSourceFileLogPath(document, fileNameSuffix, updateId, generation);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write | FileShare.Delete);
+                using var writer = new StreamWriter(file, text.Encoding ?? Encoding.UTF8);
+                text.Write(writer, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                _traceLog.AppendFileLoggingErrorInMemory(path, e);
+            }
+        }
+
+        public async ValueTask WriteDocumentChangeAsync(Document? oldDocument, Document? newDocument, UpdateId updateId, int? generation, CancellationToken cancellationToken)
+        {
+            if (oldDocument?.FilePath != null)
+            {
+                await WriteDocumentAsync(oldDocument, fileNameSuffix: "old", updateId, generation, cancellationToken).ConfigureAwait(false);
             }
 
-            internal string GetDebuggerDisplay() =>
-                (MessageFormat == null) ? "" : string.Format(MessageFormat, ArgsOpt?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
-        }
-
-        private readonly Entry[] _log;
-        private readonly string _id;
-        private int _currentLine;
-
-        public TraceLog(int logSize, string id)
-        {
-            _log = new Entry[logSize];
-            _id = id;
-        }
-
-        private void Append(Entry entry)
-        {
-            var index = Interlocked.Increment(ref _currentLine);
-            _log[(index - 1) % _log.Length] = entry;
-        }
-
-        public void Write(string str) => Write(str, null);
-
-        public void Write(string format, params Arg[] args)
-        {
-            Append(new Entry(format, args));
-        }
-
-        [Conditional("DEBUG")]
-        public void DebugWrite(string str) => DebugWrite(str, null);
-
-        [Conditional("DEBUG")]
-        public void DebugWrite(string format, params Arg[] args)
-        {
-            var entry = new Entry(format, args);
-            Append(entry);
-            Debug.WriteLine(entry.ToString(), _id);
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly TraceLog _traceLog;
-
-            public TestAccessor(TraceLog traceLog)
+            if (newDocument?.FilePath != null)
             {
-                _traceLog = traceLog;
+                await WriteDocumentAsync(newDocument, fileNameSuffix: "new", updateId, generation, cancellationToken).ConfigureAwait(false);
             }
-
-            internal Entry[] Entries => _traceLog._log;
         }
     }
+
+    private readonly string[] _log = new string[logSize];
+    private readonly string _name = name;
+    private int _currentLine;
+
+    public FileLogger? FileLog { get; private set; }
+
+    public void SetLogDirectory(string? logDirectory)
+    {
+        FileLog = (logDirectory != null) ? new FileLogger(logDirectory, this) : null;
+    }
+
+    private void AppendInMemory(string entry)
+    {
+        var index = Interlocked.Increment(ref _currentLine);
+        _log[(index - 1) % _log.Length] = entry;
+    }
+
+    private void AppendFileLoggingErrorInMemory(string? path, Exception e)
+        => AppendInMemory($"Error writing log file '{path}': {e.Message}");
+
+    public void Write(string message, LogMessageSeverity severity = LogMessageSeverity.Info)
+    {
+        AppendInMemory(message);
+        FileLog?.Append(message);
+        logService?.Report(message, severity);
+    }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(TraceLog traceLog)
+    {
+        internal string[] Entries => traceLog._log;
+    }
 }
+

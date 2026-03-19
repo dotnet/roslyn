@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -583,7 +585,7 @@ End Class
 
             Dim compilation = CreateEmptyCompilationWithReferences(
                 compilationDef,
-                {MsvbRef, TestReferences.NetFx.v2_0_50727.mscorlib},
+                {MsvbRef, Net20.References.mscorlib},
                 TestOptions.DebugExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             Dim verifier = CompileAndVerify(compilation)
@@ -644,7 +646,7 @@ End Class
   }
  -IL_0078:  ret
 }
-]]>, sequencePoints:="Test.TestProc1")
+]]>, sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             verifier.VerifyIL("Test.TestProc2",
             <![CDATA[

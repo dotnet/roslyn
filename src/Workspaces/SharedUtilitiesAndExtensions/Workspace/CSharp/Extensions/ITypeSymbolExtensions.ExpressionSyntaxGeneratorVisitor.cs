@@ -2,115 +2,114 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+internal partial class ITypeSymbolExtensions
 {
-    internal partial class ITypeSymbolExtensions
+    private sealed class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
     {
-        private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
+        private static readonly ExpressionSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
+        private static readonly ExpressionSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);
+
+        private readonly bool _nameOnly;
+
+        private ExpressionSyntaxGeneratorVisitor(bool nameOnly)
+            => _nameOnly = nameOnly;
+
+        public static ExpressionSyntaxGeneratorVisitor Create(bool nameOnly)
+            => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
+
+        public override ExpressionSyntax DefaultVisit(ISymbol symbol)
+            => symbol.Accept(TypeSyntaxGeneratorVisitor.Create(_nameOnly))!;
+
+        private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
+            where TExpressionSyntax : ExpressionSyntax
         {
-            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new ExpressionSyntaxGeneratorVisitor();
+            syntax = syntax.WithPrependedLeadingTrivia(ElasticMarker).WithAppendedTrailingTrivia(ElasticMarker);
+            syntax = syntax.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol));
 
-            private ExpressionSyntaxGeneratorVisitor()
+            return syntax;
+        }
+
+        public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
+        {
+            if (!_nameOnly && TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
+                return typeSyntax;
+
+            typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
+            if (typeSyntax is not SimpleNameSyntax)
+                return typeSyntax;
+
+            var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
+            if (symbol.ContainingType != null)
             {
-            }
-
-            public override ExpressionSyntax DefaultVisit(ISymbol symbol)
-            {
-                return symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
-            }
-
-            private TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
-                where TExpressionSyntax : ExpressionSyntax
-            {
-                syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
-                syntax = syntax.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol));
-
-                return syntax;
-            }
-
-            public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
-            {
-                var typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
+                if (symbol.ContainingType.TypeKind == TypeKind.Submission)
                 {
-                    return typeSyntax;
-                }
-
-                var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
-                if (symbol.ContainingType != null)
-                {
-                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
-                    {
-                        return simpleNameSyntax;
-                    }
-                    else
-                    {
-                        var container = symbol.ContainingType.Accept(this);
-                        return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
-                    }
-                }
-                else if (symbol.ContainingNamespace != null)
-                {
-                    if (symbol.ContainingNamespace.IsGlobalNamespace)
-                    {
-                        if (symbol.TypeKind != TypeKind.Error)
-                        {
-                            return AddInformationTo(
-                                SyntaxFactory.AliasQualifiedName(
-                                    SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                    simpleNameSyntax), symbol);
-                        }
-                    }
-                    else
-                    {
-                        var container = symbol.ContainingNamespace.Accept(this);
-                        return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
-                    }
-                }
-
-                return simpleNameSyntax;
-            }
-
-            public override ExpressionSyntax VisitNamespace(INamespaceSymbol symbol)
-            {
-                var syntax = AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
-                if (symbol.ContainingNamespace == null)
-                {
-                    return syntax;
-                }
-
-                if (symbol.ContainingNamespace.IsGlobalNamespace)
-                {
-                    return AddInformationTo(
-                        SyntaxFactory.AliasQualifiedName(
-                            SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                            syntax), symbol);
+                    return simpleNameSyntax;
                 }
                 else
                 {
-                    var container = symbol.ContainingNamespace.Accept(this);
-                    return CreateMemberAccessExpression(symbol, container, syntax);
+                    var container = symbol.ContainingType.Accept(this)!;
+                    return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
+                }
+            }
+            else if (symbol.ContainingNamespace != null)
+            {
+                if (symbol.ContainingNamespace.IsGlobalNamespace)
+                {
+                    if (symbol.TypeKind != TypeKind.Error)
+                    {
+                        return AddInformationTo(
+                            AliasQualifiedName(
+                                IdentifierName(GlobalKeyword),
+                                simpleNameSyntax), symbol);
+                    }
+                }
+                else
+                {
+                    var container = symbol.ContainingNamespace.Accept(this)!;
+                    return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
                 }
             }
 
-            private ExpressionSyntax CreateMemberAccessExpression(
-                ISymbol symbol, ExpressionSyntax container, SimpleNameSyntax syntax)
+            return simpleNameSyntax;
+        }
+
+        public override ExpressionSyntax VisitNamespace(INamespaceSymbol symbol)
+        {
+            var syntax = AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
+            if (symbol.ContainingNamespace == null)
             {
-                return AddInformationTo(SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    container, syntax), symbol);
+                return syntax;
             }
+
+            if (symbol.ContainingNamespace.IsGlobalNamespace)
+            {
+                return AddInformationTo(
+                    AliasQualifiedName(
+                        IdentifierName(GlobalKeyword),
+                        syntax), symbol);
+            }
+            else
+            {
+                var container = symbol.ContainingNamespace.Accept(this)!;
+                return CreateMemberAccessExpression(symbol, container, syntax);
+            }
+        }
+
+        private static MemberAccessExpressionSyntax CreateMemberAccessExpression(
+            ISymbol symbol, ExpressionSyntax container, SimpleNameSyntax syntax)
+        {
+            return AddInformationTo(MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                container, syntax), symbol);
         }
     }
 }

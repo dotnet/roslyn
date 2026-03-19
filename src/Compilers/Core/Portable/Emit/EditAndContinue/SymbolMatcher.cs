@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 
@@ -12,18 +14,26 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class SymbolMatcher
     {
-        public abstract Cci.ITypeReference MapReference(Cci.ITypeReference reference);
-        public abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
-        public abstract Cci.INamespace MapNamespace(Cci.INamespace @namespace);
+        public abstract Cci.ITypeReference? MapReference(Cci.ITypeReference reference);
+        public abstract Cci.IDefinition? MapDefinition(Cci.IDefinition definition);
+        public abstract Cci.INamespace? MapNamespace(Cci.INamespace @namespace);
+        protected abstract bool TryGetMatchingDelegateWithIndexedName(INamedTypeSymbolInternal delegateTemplate, ImmutableArray<AnonymousTypeValue> values, out AnonymousTypeValue match);
 
-        public ISymbolInternal MapDefinitionOrNamespace(ISymbolInternal symbol)
-            => (symbol is Cci.IDefinition definition) ? (ISymbolInternal)MapDefinition(definition) : (ISymbolInternal)MapNamespace((Cci.INamespace)symbol);
+        public ISymbolInternal? MapDefinitionOrNamespace(ISymbolInternal symbol)
+        {
+            var adapter = symbol.GetCciAdapter();
+            return (adapter is Cci.IDefinition definition) ?
+                MapDefinition(definition)?.GetInternalSymbol() :
+                MapNamespace((Cci.INamespace)adapter)?.GetInternalSymbol();
+        }
 
         public EmitBaseline MapBaselineToCompilation(
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers)
+            SynthesizedTypeMaps mappedSynthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -31,39 +41,44 @@ namespace Microsoft.CodeAnalysis.Emit
             var fieldsAdded = MapDefinitions(baseline.FieldsAdded);
             var methodsAdded = MapDefinitions(baseline.MethodsAdded);
             var propertiesAdded = MapDefinitions(baseline.PropertiesAdded);
+            var generationOrdinals = MapDefinitions(baseline.GenerationOrdinals);
 
             return baseline.With(
                 targetCompilation,
                 targetModuleBuilder,
                 baseline.Ordinal,
                 baseline.EncId,
+                generationOrdinals,
                 typesAdded,
                 eventsAdded,
                 fieldsAdded,
                 methodsAdded,
+                firstParamRowMap: baseline.FirstParamRowMap,
                 propertiesAdded,
                 eventMapAdded: baseline.EventMapAdded,
                 propertyMapAdded: baseline.PropertyMapAdded,
                 methodImplsAdded: baseline.MethodImplsAdded,
+                customAttributesAdded: baseline.CustomAttributesAdded,
                 tableEntriesAdded: baseline.TableEntriesAdded,
                 blobStreamLengthAdded: baseline.BlobStreamLengthAdded,
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
-                anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
+                synthesizedTypes: mappedSynthesizedTypes,
                 synthesizedMembers: mappedSynthesizedMembers,
+                deletedMembers: mappedDeletedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
                 debugInformationProvider: baseline.DebugInformationProvider,
                 localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
         private IReadOnlyDictionary<K, V> MapDefinitions<K, V>(IReadOnlyDictionary<K, V> items)
-            where K : Cci.IDefinition
+            where K : class, Cci.IDefinition
         {
-            var result = new Dictionary<K, V>();
+            var result = new Dictionary<K, V>(Cci.SymbolEquivalentEqualityComparer.Instance);
             foreach (var pair in items)
             {
-                var key = (K)MapDefinition(pair.Key);
+                var key = (K?)MapDefinition(pair.Key);
 
                 // Result may be null if the definition was deleted, or if the definition
                 // was synthesized (e.g.: an iterator type) and the method that generated
@@ -89,25 +104,95 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
+        /// <summary>
+        /// Merges anonymous types/delegates generated during lowering, or emit, of the current compilation with aggregate
+        /// types/delegates from all previous source generations (gen >= 1) similarly to <see cref="MapSynthesizedOrDeletedMembers"/>
+        /// </summary>
+        private static ImmutableSegmentedDictionary<TKey, TValue> MapAnonymousTypesAndDelegatesWithUniqueKey<TKey, TValue>(
+            ImmutableSegmentedDictionary<TKey, TValue> previousTypes,
+            ImmutableSegmentedDictionary<TKey, TValue> newTypes)
+            where TKey : IEquatable<TKey>
         {
-            var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
-
-            foreach (var pair in anonymousTypeMap)
+            if (previousTypes.Count == 0)
             {
-                var key = pair.Key;
-                var value = pair.Value;
-                var type = (Cci.ITypeDefinition)MapDefinition(value.Type);
-                Debug.Assert(type != null);
-                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+                return newTypes;
             }
 
-            return result;
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<TKey, TValue>();
+            builder.AddRange(newTypes);
+
+            foreach (var (key, previousValue) in previousTypes)
+            {
+                if (newTypes.ContainsKey(key))
+                {
+                    continue;
+                }
+
+                builder.Add(key, previousValue);
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
-        /// Merges synthesized members generated during lowering of the current compilation with aggregate synthesized members 
-        /// from all previous source generations (gen >= 1).
+        /// Merges anonymous delegates with indexed names generated during lowering, or emit, of the current compilation with aggregate
+        /// delegates from all previous source generations (gen >= 1) similarly to <see cref="MapSynthesizedOrDeletedMembers"/>
+        /// </summary>
+        private ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> MapAnonymousDelegatesWithIndexedNames(
+            ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> previousDelegates,
+            ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> newDelegates)
+        {
+            if (previousDelegates.Count == 0)
+            {
+                return newDelegates;
+            }
+
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>>();
+            builder.AddRange(newDelegates);
+
+            foreach (var (key, previousValues) in previousDelegates)
+            {
+                if (!newDelegates.TryGetValue(key, out var newValues))
+                {
+                    builder.Add(key, previousValues);
+                    continue;
+                }
+
+                ArrayBuilder<AnonymousTypeValue>? mergedValuesBuilder = null;
+
+                foreach (var previousValue in previousValues)
+                {
+                    var template = (INamedTypeSymbolInternal?)previousValue.Type.GetInternalSymbol();
+                    Debug.Assert(template is not null);
+
+                    if (TryGetMatchingDelegateWithIndexedName(template, newValues, out _))
+                    {
+                        continue;
+                    }
+
+                    mergedValuesBuilder ??= ArrayBuilder<AnonymousTypeValue>.GetInstance();
+                    mergedValuesBuilder.Add(previousValue);
+                }
+
+                if (mergedValuesBuilder != null)
+                {
+                    mergedValuesBuilder.AddRange(newValues);
+                    builder[key] = mergedValuesBuilder.ToImmutableAndFree();
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        internal SynthesizedTypeMaps MapSynthesizedTypes(SynthesizedTypeMaps previousTypes, SynthesizedTypeMaps newTypes)
+            => new SynthesizedTypeMaps(
+                MapAnonymousTypesAndDelegatesWithUniqueKey(previousTypes.AnonymousTypes, newTypes.AnonymousTypes),
+                MapAnonymousTypesAndDelegatesWithUniqueKey(previousTypes.AnonymousDelegates, newTypes.AnonymousDelegates),
+                MapAnonymousDelegatesWithIndexedNames(previousTypes.AnonymousDelegatesWithIndexedNames, newTypes.AnonymousDelegatesWithIndexedNames));
+
+        /// <summary>
+        /// Merges synthesized or deleted members generated during lowering, or emit, of the current compilation with aggregate
+        /// synthesized or deleted members from all previous source generations (gen >= 1).
         /// </summary>
         /// <remarks>
         /// Suppose {S -> {A, B, D}, T -> {E, F}} are all synthesized members in previous generations,
@@ -118,10 +203,13 @@ namespace Microsoft.CodeAnalysis.Emit
         /// 
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
+        /// 
+        /// Note that the results may include symbols declared in different compilations (previous generations).
         /// </remarks>
-        internal ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedMembers(
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers)
+        internal IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedOrDeletedMembers(
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers,
+            bool isDeletedMemberMapping)
         {
             // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
 
@@ -130,15 +218,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 return newMembers;
             }
 
-            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
+            var synthesizedMembersBuilder = ImmutableSegmentedDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
 
             synthesizedMembersBuilder.AddRange(newMembers);
 
-            foreach (var pair in previousMembers)
+            foreach (var (previousContainer, members) in previousMembers)
             {
-                var previousContainer = pair.Key;
-                var members = pair.Value;
-
                 var mappedContainer = MapDefinitionOrNamespace(previousContainer);
                 if (mappedContainer == null)
                 {
@@ -167,7 +252,11 @@ namespace Microsoft.CodeAnalysis.Emit
                         // If the matcher found a member in the current compilation corresponding to previous memberDef,
                         // then the member has to be synthesized and produced as a result of a method update 
                         // and thus already contained in newSynthesizedMembers.
-                        Debug.Assert(newSynthesizedMembers.Contains(mappedMember));
+                        // However, because this method is also used to map deleted members, it's possible that a method
+                        // could be renamed in the previous generation, and renamed back in this generation, which would
+                        // mean it could be mapped, but isn't in the newSynthesizedMembers list, so we allow the flag to
+                        // override this behaviour for deleted methods.
+                        Debug.Assert(isDeletedMemberMapping || newSynthesizedMembers.Contains(mappedMember));
                     }
                     else
                     {

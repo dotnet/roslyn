@@ -20,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic15_3 = 1503
         VisualBasic15_5 = 1505
         VisualBasic16 = 1600
+        VisualBasic16_9 = 1609
+        VisualBasic17_13 = 1713
 
         Latest = Integer.MaxValue
     End Enum
@@ -37,7 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic15,
                     LanguageVersion.VisualBasic15_3,
                     LanguageVersion.VisualBasic15_5,
-                    LanguageVersion.VisualBasic16
+                    LanguageVersion.VisualBasic16,
+                    LanguageVersion.VisualBasic16_9,
+                    LanguageVersion.VisualBasic17_13
 
                     Return True
             End Select
@@ -67,6 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "15.5"
                 Case LanguageVersion.VisualBasic16
                     Return "16"
+                Case LanguageVersion.VisualBasic16_9
+                    Return "16.9"
+                Case LanguageVersion.VisualBasic17_13
+                    Return "17.13"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select
@@ -82,9 +90,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
-                Case LanguageVersion.Latest,
-                     LanguageVersion.Default
-                    Return LanguageVersion.VisualBasic16
+                Case LanguageVersion.Latest
+                    Return LanguageVersion.VisualBasic17_13
+                Case LanguageVersion.Default
+                    Return LanguageVersion.VisualBasic17_13
                 Case Else
                     Return version
             End Select
@@ -92,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property CurrentVersion As LanguageVersion
             Get
-                Return LanguageVersion.VisualBasic16
+                Return LanguageVersion.VisualBasic17_13
             End Get
         End Property
 
@@ -121,6 +130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "15.5"
                 Case LanguageVersion.VisualBasic16
                     Return "16"
+                Case LanguageVersion.VisualBasic16_9
+                    Return "16.9"
+                Case LanguageVersion.VisualBasic17_13
+                    Return "17.13"
                 Case LanguageVersion.Default
                     Return "default"
                 Case LanguageVersion.Latest
@@ -156,8 +169,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = LanguageVersion.VisualBasic15_3
                 Case "15.5"
                     result = LanguageVersion.VisualBasic15_5
-                Case "16"
+                Case "16", "16.0"
                     result = LanguageVersion.VisualBasic16
+                Case "16.9"
+                    result = LanguageVersion.VisualBasic16_9
+                Case "17.13"
+                    result = LanguageVersion.VisualBasic17_13
                 Case "default"
                     result = LanguageVersion.Default
                 Case "latest"
@@ -172,12 +189,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>Inference of tuple element names was added in VB 15.3</summary>
         <Extension>
         Friend Function DisallowInferredTupleElementNames(self As LanguageVersion) As Boolean
-            Return self < Feature.InferredTupleNames.GetLanguageVersion()
+            Return self < Syntax.InternalSyntax.Feature.InferredTupleNames.GetLanguageVersion()
         End Function
 
         <Extension>
         Friend Function AllowNonTrailingNamedArguments(self As LanguageVersion) As Boolean
-            Return self >= Feature.NonTrailingNamedArguments.GetLanguageVersion()
+            Return self >= Syntax.InternalSyntax.Feature.NonTrailingNamedArguments.GetLanguageVersion()
         End Function
     End Module
 

@@ -2,287 +2,285 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
+
+internal sealed partial class CPSProject : IWorkspaceProjectContext
 {
-    internal sealed partial class CPSProject : IWorkspaceProjectContext
+    /// <summary>
+    /// Flag to control if this has already been disposed. Not a boolean only so it can be used with Interlocked.CompareExchange.
+    /// </summary>
+    private volatile int _disposed = 0;
+
+    private readonly ProjectSystemProject _projectSystemProject;
+
+    /// <summary>
+    /// The <see cref="ProjectSystemProjectOptionsProcessor"/> we're using to parse command line options. Null if we don't
+    /// have the ability to parse command line options.
+    /// </summary>
+    private readonly ProjectSystemProjectOptionsProcessor? _projectSystemProjectOptionsProcessor;
+
+    private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
+    private readonly IProjectCodeModel _projectCodeModel;
+    private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
+
+    public string DisplayName
     {
-        private readonly VisualStudioProject _visualStudioProject;
+        get => _projectSystemProject.DisplayName;
+        set => _projectSystemProject.DisplayName = value;
+    }
 
-        /// <summary>
-        /// The <see cref="VisualStudioProjectOptionsProcessor"/> we're using to parse command line options. Null if we don't
-        /// have the ability to parse command line options.
-        /// </summary>
-        private readonly VisualStudioProjectOptionsProcessor? _visualStudioProjectOptionsProcessor;
+    public string? ProjectFilePath
+    {
+        get => _projectSystemProject.FilePath;
+        set => _projectSystemProject.FilePath = value;
+    }
 
-        private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
-        private readonly IProjectCodeModel _projectCodeModel;
-        private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
+    public bool IsPrimary
+    {
+        get => _projectSystemProject.IsPrimary;
+        set => _projectSystemProject.IsPrimary = value;
+    }
 
-        public string DisplayName
+    public Guid Guid
+    {
+        get;
+        set; // VisualStudioProject doesn't allow GUID to be changed after creation
+    }
+
+    public bool LastDesignTimeBuildSucceeded
+    {
+        get => _projectSystemProject.HasAllInformation;
+        set => _projectSystemProject.HasAllInformation = value;
+    }
+
+    public CPSProject(ProjectSystemProject projectSystemProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid)
+    {
+        _projectSystemProject = projectSystemProject;
+        _visualStudioWorkspace = visualStudioWorkspace;
+
+        _externalErrorReporter = new Lazy<ProjectExternalErrorReporter?>(() =>
         {
-            get => _visualStudioProject.DisplayName;
-            set => _visualStudioProject.DisplayName = value;
-        }
-
-        public string? ProjectFilePath
-        {
-            get => _visualStudioProject.FilePath;
-            set => _visualStudioProject.FilePath = value;
-        }
-
-        public Guid Guid
-        {
-            get;
-            set; // VisualStudioProject doesn't allow GUID to be changed after creation
-        }
-
-        public bool LastDesignTimeBuildSucceeded
-        {
-            get => _visualStudioProject.HasAllInformation;
-            set => _visualStudioProject.HasAllInformation = value;
-        }
-
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string binOutputPath)
-        {
-            _visualStudioProject = visualStudioProject;
-            _visualStudioWorkspace = visualStudioWorkspace;
-
-            _externalErrorReporter = new Lazy<ProjectExternalErrorReporter?>(() =>
+            var prefix = projectSystemProject.Language switch
             {
-                var prefix = visualStudioProject.Language switch
-                {
-                    LanguageNames.CSharp => "CS",
-                    LanguageNames.VisualBasic => "BC",
-                    LanguageNames.FSharp => "FS",
-                    _ => null
-                };
+                LanguageNames.CSharp => "CS",
+                LanguageNames.VisualBasic => "BC",
+                LanguageNames.FSharp => "FS",
+                _ => null
+            };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
-            });
+            return (prefix != null) ? new ProjectExternalErrorReporter(projectSystemProject.Id, projectGuid, prefix, projectSystemProject.Language, visualStudioWorkspace) : null;
+        });
 
-            visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+        _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(projectSystemProject.Id, new CPSCodeModelInstanceFactory(this));
 
-            _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));
+        // If we have a command line parser service for this language, also set up our ability to process options if they come in
+        if (visualStudioWorkspace.Services.GetLanguageServices(projectSystemProject.Language).GetService<ICommandLineParserService>() != null)
+        {
+            _projectSystemProjectOptionsProcessor = new ProjectSystemProjectOptionsProcessor(_projectSystemProject, visualStudioWorkspace.Services.SolutionServices);
+            _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
+                projectSystemProject,
+                () => _projectSystemProjectOptionsProcessor.EffectiveRuleSetFilePath);
+        }
 
-            // If we have a command line parser service for this language, also set up our ability to process options if they come in
-            if (visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineParserService>() != null)
+        Guid = projectGuid;
+    }
+
+    public string? BinOutputPath
+    {
+        get => _projectSystemProject.OutputFilePath;
+        set
+        {
+            // If we don't have a path, always set it to null
+            if (string.IsNullOrEmpty(value))
             {
-                _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
-                _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
-                    visualStudioProject,
-                    () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
+                _projectSystemProject.OutputFilePath = null;
+                return;
             }
 
-            Guid = projectGuid;
-            BinOutputPath = binOutputPath;
-        }
-
-        public string? BinOutputPath
-        {
-            get => _visualStudioProject.OutputFilePath;
-            set
+            // If we only have a non-rooted path, make it full. This is apparently working around cases
+            // where CPS pushes us a temporary path when they're loading. It's possible this hack
+            // can be removed now, but we still have tests asserting it.
+            if (!PathUtilities.IsAbsolute(value))
             {
-                // If we don't have a path, always set it to null
-                if (string.IsNullOrEmpty(value))
-                {
-                    _visualStudioProject.OutputFilePath = null;
-                    _visualStudioProject.OutputRefFilePath = null;
-                    return;
-                }
+                var rootDirectory = _projectSystemProject.FilePath != null
+                                    ? Path.GetDirectoryName(_projectSystemProject.FilePath)
+                                    : Path.GetTempPath();
 
-                // If we only have a non-rooted path, make it full. This is apparently working around cases
-                // where CPS pushes us a temporary path when they're loading. It's possible this hack
-                // can be removed now, but we still have tests asserting it.
-                if (!PathUtilities.IsAbsolute(value))
-                {
-                    var rootDirectory = _visualStudioProject.FilePath != null
-                                        ? Path.GetDirectoryName(_visualStudioProject.FilePath)
-                                        : Path.GetTempPath();
-
-                    _visualStudioProject.OutputFilePath = Path.Combine(rootDirectory, value);
-                }
-                else
-                {
-                    _visualStudioProject.OutputFilePath = value;
-                }
-
-                // Compute the ref path based on the non-ref path. Ideally this should come from the
-                // project system but we don't have a way to fetch that.
-                _visualStudioProject.OutputRefFilePath =
-                    Path.Combine(Path.GetDirectoryName(_visualStudioProject.OutputFilePath),
-                    "ref",
-                    Path.GetFileName(_visualStudioProject.OutputFilePath));
+                _projectSystemProject.OutputFilePath = Path.Combine(rootDirectory, value);
             }
-        }
-
-        internal string? GetIntermediateOutputFilePath()
-        {
-            return _visualStudioProject.IntermediateOutputFilePath;
-        }
-
-        public ProjectId Id => _visualStudioProject.Id;
-
-        public void SetOptions(string commandLineForOptions)
-            => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
-
-        public string? DefaultNamespace
-        {
-            get => _visualStudioProject.DefaultNamespace;
-            private set => _visualStudioProject.DefaultNamespace = value;
-        }
-
-        public void SetProperty(string name, string? value)
-        {
-            if (name == AdditionalPropertyNames.RootNamespace)
+            else
             {
-                // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
-                // by assigning the value of the project's root namespace to it. So various feature can choose to 
-                // use it for their own purpose.
-                // In the future, we might consider officially exposing "default namespace" for VB project 
-                // (e.g. through a <defaultnamespace> msbuild property)
-                DefaultNamespace = value;
+                _projectSystemProject.OutputFilePath = value;
             }
-            else if (name == AdditionalPropertyNames.MaxSupportedLangVersion)
-            {
-                _visualStudioProject.MaxLangVersion = value;
-            }
-            else if (name == AdditionalPropertyNames.RunAnalyzers)
-            {
-                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
-                _visualStudioProject.RunAnalyzers = boolValue;
-            }
-            else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
-            {
-                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
-                _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
-            }
-        }
-
-        public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
-        {
-            referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
-            _visualStudioProject.AddMetadataReference(referencePath, properties);
-        }
-
-        public void RemoveMetadataReference(string referencePath)
-        {
-            referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
-            _visualStudioProject.RemoveMetadataReference(referencePath, _visualStudioProject.GetPropertiesForMetadataReference(referencePath).Single());
-        }
-
-        public void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties)
-        {
-            var otherProjectId = ((CPSProject)project)._visualStudioProject.Id;
-            _visualStudioProject.AddProjectReference(new ProjectReference(otherProjectId, properties.Aliases, properties.EmbedInteropTypes));
-        }
-
-        public void RemoveProjectReference(IWorkspaceProjectContext project)
-        {
-            var otherProjectId = ((CPSProject)project)._visualStudioProject.Id;
-            var otherProjectReference = _visualStudioProject.GetProjectReferences().Single(pr => pr.ProjectId == otherProjectId);
-            _visualStudioProject.RemoveProjectReference(otherProjectReference);
-        }
-
-        public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
-        }
-
-        public void RemoveSourceFile(string filePath)
-        {
-            _visualStudioProject.RemoveSourceFile(filePath);
-            _projectCodeModel.OnSourceFileRemoved(filePath);
-        }
-
-        public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
-        {
-            _visualStudioProject.AddAdditionalFile(filePath);
-        }
-
-        public void Dispose()
-        {
-            _projectCodeModel?.OnProjectClosed();
-            _visualStudioProjectOptionsProcessor?.Dispose();
-            _visualStudioProject.RemoveFromWorkspace();
-        }
-
-        public void AddAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.AddAnalyzerReference(referencePath);
-        }
-
-        public void RemoveAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.RemoveAnalyzerReference(referencePath);
-        }
-
-        public void RemoveAdditionalFile(string filePath)
-        {
-            _visualStudioProject.RemoveAdditionalFile(filePath);
-        }
-
-        public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
-        {
-            _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
-        }
-
-        public void RemoveDynamicFile(string filePath)
-        {
-            _visualStudioProject.RemoveDynamicSourceFile(filePath);
-        }
-
-        public void SetRuleSetFile(string filePath)
-        {
-            // This is now a no-op: we also receive the rule set file through SetOptions, and we'll just use that one
-        }
-
-        private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();
-
-        public void StartBatch()
-        {
-            _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
-        }
-
-        public void EndBatch()
-        {
-            Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
-            scope.Dispose();
-        }
-
-        public void ReorderSourceFiles(IEnumerable<string>? filePaths)
-        {
-            _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
-        }
-
-        internal VisualStudioProject GetProject_TestOnly()
-        {
-            return _visualStudioProject;
-        }
-
-        public void AddAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.AddAnalyzerConfigFile(filePath);
-        }
-
-        public void RemoveAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
         }
     }
+
+    internal string? CompilationOutputAssemblyFilePath
+    {
+        get => _projectSystemProject.CompilationOutputAssemblyFilePath;
+        set => _projectSystemProject.CompilationOutputAssemblyFilePath = value;
+    }
+
+    public ProjectId Id => _projectSystemProject.Id;
+
+    public void SetOptions(string commandLineForOptions)
+        => _projectSystemProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
+
+    public void SetOptions(ImmutableArray<string> arguments)
+        => _projectSystemProjectOptionsProcessor?.SetCommandLine(arguments);
+
+    public void SetProperty(string name, string? value)
+    {
+        if (name == BuildPropertyNames.RootNamespace)
+        {
+            // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+            // by assigning the value of the project's root namespace to it. So various feature can choose to 
+            // use it for their own purpose.
+            // In the future, we might consider officially exposing "default namespace" for VB project 
+            // (e.g. through a <defaultnamespace> msbuild property)
+            _projectSystemProject.DefaultNamespace = value;
+        }
+        else if (name == BuildPropertyNames.MaxSupportedLangVersion)
+        {
+            _projectSystemProject.MaxLangVersion = value;
+        }
+        else if (name == BuildPropertyNames.RunAnalyzers)
+        {
+            var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+            _projectSystemProject.RunAnalyzers = boolValue;
+        }
+        else if (name == BuildPropertyNames.RunAnalyzersDuringLiveAnalysis)
+        {
+            var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+            _projectSystemProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+        }
+        else if (name == BuildPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+        {
+            _projectSystemProject.DependencyNodeTargetIdentifier = value;
+        }
+        else if (name == BuildPropertyNames.TargetRefPath)
+        {
+            _projectSystemProject.OutputRefFilePath = GetAbsolutePath(value);
+        }
+        else if (name == BuildPropertyNames.CompilerGeneratedFilesOutputPath)
+        {
+            _projectSystemProject.GeneratedFilesOutputDirectory = GetAbsolutePath(value);
+        }
+
+        string? GetAbsolutePath(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+
+            if (PathUtilities.IsAbsolute(value))
+            {
+                return value;
+            }
+
+            var rootDirectory = _projectSystemProject.FilePath != null
+                ? Path.GetDirectoryName(_projectSystemProject.FilePath)
+                : Path.GetTempPath();
+
+            return Path.Combine(rootDirectory, value);
+        }
+    }
+
+    public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
+    {
+        referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
+        _projectSystemProject.AddMetadataReference(referencePath, properties);
+    }
+
+    public void RemoveMetadataReference(string referencePath)
+    {
+        referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
+        _projectSystemProject.RemoveMetadataReference(referencePath, _projectSystemProject.GetPropertiesForMetadataReference(referencePath).Single());
+    }
+
+    public void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties)
+    {
+        var otherProjectId = ((CPSProject)project)._projectSystemProject.Id;
+        _projectSystemProject.AddProjectReference(new ProjectReference(otherProjectId, properties.Aliases, properties.EmbedInteropTypes));
+    }
+
+    public void RemoveProjectReference(IWorkspaceProjectContext project)
+    {
+        var otherProjectId = ((CPSProject)project)._projectSystemProject.Id;
+        var otherProjectReference = _projectSystemProject.GetProjectReferences().Single(pr => pr.ProjectId == otherProjectId);
+        _projectSystemProject.RemoveProjectReference(otherProjectReference);
+    }
+
+    public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        => _projectSystemProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
+
+    public void RemoveSourceFile(string filePath)
+    {
+        _projectSystemProject.RemoveSourceFile(filePath);
+        _projectCodeModel.OnSourceFileRemoved(filePath);
+    }
+
+    public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
+        => _projectSystemProject.AddAdditionalFile(filePath);
+
+    public void AddAdditionalFile(string filePath, IEnumerable<string> folderNames, bool isInCurrentContext = true)
+        => _projectSystemProject.AddAdditionalFile(filePath, folders: [.. folderNames]);
+
+    public void Dispose()
+    {
+        if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
+        {
+            return;
+        }
+
+        _projectCodeModel?.OnProjectClosed();
+        _projectSystemProjectOptionsProcessor?.Dispose();
+        _projectSystemProject.RemoveFromWorkspace();
+    }
+
+    public void AddAnalyzerReference(string referencePath)
+        => _projectSystemProject.AddAnalyzerReference(referencePath);
+
+    public void RemoveAnalyzerReference(string referencePath)
+        => _projectSystemProject.RemoveAnalyzerReference(referencePath);
+
+    public void RemoveAdditionalFile(string filePath)
+        => _projectSystemProject.RemoveAdditionalFile(filePath);
+
+    public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
+        => _projectSystemProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
+
+    public void RemoveDynamicFile(string filePath)
+        => _projectSystemProject.RemoveDynamicSourceFile(filePath);
+
+    public void ReorderSourceFiles(IEnumerable<string>? filePaths)
+        => _projectSystemProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
+
+    internal ProjectSystemProject GetProject_TestOnly()
+        => _projectSystemProject;
+
+    public void AddAnalyzerConfigFile(string filePath)
+        => _projectSystemProject.AddAnalyzerConfigFile(filePath);
+
+    public void RemoveAnalyzerConfigFile(string filePath)
+        => _projectSystemProject.RemoveAnalyzerConfigFile(filePath);
+
+    public async ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken)
+        => await _projectSystemProject.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
 }

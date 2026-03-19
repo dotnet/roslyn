@@ -9,37 +9,21 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.VisualStudio.LanguageServices.Xaml;
 
-namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
+namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
+
+[DiagnosticAnalyzer(StringConstants.XamlLanguageName)]
+internal sealed class XamlDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(StringConstants.XamlLanguageName)]
-    internal class XamlDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
-    {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return XamlTextViewCreationListener.AnalyzerService?.SupportedDiagnostics ?? ImmutableArray<DiagnosticDescriptor>.Empty;
-            }
-        }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        => XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? [];
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (XamlTextViewCreationListener.AnalyzerService == null)
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+        => XamlProjectService.AnalyzerService is null || textDocument is not Document document
+            ? []
+            : await XamlProjectService.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
 
-            return await XamlTextViewCreationListener.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (XamlTextViewCreationListener.AnalyzerService == null)
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            return await XamlTextViewCreationListener.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-    }
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+        => XamlProjectService.AnalyzerService is null || textDocument is not Document document
+            ? []
+            : await XamlProjectService.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 }

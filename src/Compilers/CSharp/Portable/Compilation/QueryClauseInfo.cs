@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 using System;
 
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Semantic information associated with a query clause in a C# query expression.
     /// </summary>
-    public struct QueryClauseInfo : IEquatable<QueryClauseInfo>
+    public readonly struct QueryClauseInfo : IEquatable<QueryClauseInfo>
     {
         private readonly SymbolInfo _castInfo;
         private readonly SymbolInfo _operationInfo;

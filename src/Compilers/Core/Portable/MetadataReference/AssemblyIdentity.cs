@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -160,7 +158,8 @@ namespace Microsoft.CodeAnalysis
             Version version,
             string? cultureName,
             ImmutableArray<byte> publicKeyOrToken,
-            bool hasPublicKey)
+            bool hasPublicKey,
+            bool isRetargetable)
         {
             Debug.Assert(name != null);
             Debug.Assert(IsValid(version));
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             _name = name;
             _version = version ?? NullVersion;
             _cultureName = NormalizeCultureName(cultureName);
-            _isRetargetable = false;
+            _isRetargetable = isRetargetable;
             _contentType = AssemblyContentType.Default;
             InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
         }
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(name) && name.IndexOf('\0') < 0;
         }
 
-        internal readonly static Version NullVersion = new Version(0, 0, 0, 0);
+        internal static readonly Version NullVersion = new Version(0, 0, 0, 0);
 
         private static bool IsValid(Version? value)
         {

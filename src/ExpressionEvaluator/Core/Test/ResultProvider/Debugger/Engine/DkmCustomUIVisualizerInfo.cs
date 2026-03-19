@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
@@ -17,6 +19,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         public DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation;
         public string DebuggeeSideVisualizerTypeName;
         public string DebuggeeSideVisualizerAssemblyName;
+        public Guid ExtensionPartId;
 
         public static DkmCustomUIVisualizerInfo Create(uint Id, string MenuName, string Description, string Metric)
         {
@@ -50,6 +53,32 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
                 UISideVisualizerAssemblyLocation = UISideVisualizerAssemblyLocation,
                 DebuggeeSideVisualizerTypeName = DebuggeeSideVisualizerTypeName,
                 DebuggeeSideVisualizerAssemblyName = DebuggeeSideVisualizerAssemblyName
+            };
+        }
+
+        public static DkmCustomUIVisualizerInfo Create(uint Id,
+            string MenuName,
+            string Description,
+            string Metric,
+            string UISideVisualizerTypeName,
+            string UISideVisualizerAssemblyName,
+            DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation,
+            string DebuggeeSideVisualizerTypeName,
+            string DebuggeeSideVisualizerAssemblyName,
+            Guid ExtensionPartId)
+        {
+            return new DkmCustomUIVisualizerInfo
+            {
+                Id = Id,
+                MenuName = MenuName,
+                Description = Description,
+                Metric = Metric,
+                UISideVisualizerTypeName = UISideVisualizerTypeName,
+                UISideVisualizerAssemblyName = UISideVisualizerAssemblyName,
+                UISideVisualizerAssemblyLocation = UISideVisualizerAssemblyLocation,
+                DebuggeeSideVisualizerTypeName = DebuggeeSideVisualizerTypeName,
+                DebuggeeSideVisualizerAssemblyName = DebuggeeSideVisualizerAssemblyName,
+                ExtensionPartId = ExtensionPartId
             };
         }
     }

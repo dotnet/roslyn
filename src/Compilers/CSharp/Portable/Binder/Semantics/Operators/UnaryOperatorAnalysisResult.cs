@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct UnaryOperatorAnalysisResult
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    internal readonly struct UnaryOperatorAnalysisResult : IMemberResolutionResultWithPriority<MethodSymbol>
     {
         public readonly UnaryOperatorSignature Signature;
         public readonly Conversion Conversion;
@@ -31,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Kind != OperatorAnalysisResultKind.Undefined; }
         }
 
+        bool IMemberResolutionResultWithPriority<MethodSymbol>.IsApplicable => IsValid;
+        MethodSymbol IMemberResolutionResultWithPriority<MethodSymbol>.MemberWithPriority => Signature.Method;
+
         public static UnaryOperatorAnalysisResult Applicable(UnaryOperatorSignature signature, Conversion conversion)
         {
             return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Applicable, signature, conversion);
@@ -44,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public UnaryOperatorAnalysisResult Worse()
         {
             return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Worse, this.Signature, this.Conversion);
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return $"{Signature.Kind} {Kind} {Signature.Method?.ToDisplayString()}";
         }
     }
 }

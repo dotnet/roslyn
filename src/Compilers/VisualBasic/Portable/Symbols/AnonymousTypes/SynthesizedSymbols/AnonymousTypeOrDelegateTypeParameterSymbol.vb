@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class AnonymousTypeManager
 
-        Private Class AnonymousTypeOrDelegateTypeParameterSymbol
+        Private NotInheritable Class AnonymousTypeOrDelegateTypeParameterSymbol
             Inherits TypeParameterSymbol
 
             Private ReadOnly _container As AnonymousTypeOrDelegateTemplateSymbol
@@ -39,6 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
                 Get
                     Return ImmutableArray(Of TypeSymbol).Empty
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+                Get
+                    Return False
                 End Get
             End Property
 
@@ -93,6 +99,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property Variance As VarianceKind
                 Get
                     Return VarianceKind.None
@@ -108,6 +120,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Sub EnsureAllConstraintsAreResolved()
             End Sub
 
+            Public Overrides Function GetHashCode() As Integer
+                Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
+            End Function
+
+            Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+                Return other Is Me
+            End Function
         End Class
 
     End Class

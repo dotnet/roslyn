@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -681,7 +680,6 @@ End Class
                         New SpanResult(18, 28, 18, 39, "Init() + 12"),
                         New SpanResult(23, 28, 23, 32, "1234"))
         End Sub
-
 
         <Fact>
         Public Sub TestImplicitConstructorsWithLambdasSpans()

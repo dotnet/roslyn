@@ -2,80 +2,75 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class AsyncKeywordRecommenderTests
+        Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function KeywordsAfterAsyncTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Async |</ClassDeclaration>,
+        <Fact>
+        Public Sub KeywordsAfterAsyncTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Async |</ClassDeclaration>,
                                             "Friend", "Function", "Private", "Protected", "Protected Friend", "Public", "Sub")
-        End Function
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInMethodStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Async")
-        End Function
+        <Fact>
+        Public Sub NotInMethodStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Async")
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InMethodExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim z = |</MethodBody>, "Async")
-        End Function
+        <Fact>
+        Public Sub InMethodExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Dim z = |</MethodBody>, "Async")
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FunctionDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Async")
-        End Function
+        <Fact>
+        Public Sub FunctionDeclarationTest()
+            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Async")
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AlreadyAsyncFunctionDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>| Async</ClassDeclaration>, "Async")
-        End Function
+        <Fact>
+        Public Sub AlreadyAsyncFunctionDeclarationTest()
+            VerifyRecommendationsContain(<ClassDeclaration>| Async</ClassDeclaration>, "Async")
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SubDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>| Sub bar()</ClassDeclaration>, "Async")
-        End Function
+        <Fact>
+        Public Sub SubDeclarationTest()
+            VerifyRecommendationsContain(<ClassDeclaration>| Sub bar()</ClassDeclaration>, "Async")
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FunctionDeclarationInInterfaceTest() As Task
-            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Async")
-        End Function
+        <Fact>
+        Public Sub FunctionDeclarationInInterfaceTest()
+            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Async")
+        End Sub
 
-        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterAsyncTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Async |</ClassDeclaration>, "Async")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        Public Sub NotAfterAsyncTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Async")
+        End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterConstInClassTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Async")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
+        Public Sub NotAfterConstInClassTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Async")
+        End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterConstInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>Const |</ModuleDeclaration>, "Async")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
+        Public Sub NotAfterConstInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>Const |</ModuleDeclaration>, "Async")
+        End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterWithEventsInClassTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WithEvents |</ClassDeclaration>, "Async")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
+        Public Sub NotAfterWithEventsInClassTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>WithEvents |</ClassDeclaration>, "Async")
+        End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterWithEventsInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>WithEvents |</ModuleDeclaration>, "Async")
-        End Function
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
+        Public Sub NotAfterWithEventsInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>WithEvents |</ModuleDeclaration>, "Async")
+        End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterHashTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
+        Public Sub NotAfterHashTest()
+            VerifyRecommendationsMissing(<File>
 Imports System
 
 #|
@@ -85,6 +80,6 @@ Module Module1
 End Module
 
 </File>, "Async")
-        End Function
+        End Sub
     End Class
 End Namespace

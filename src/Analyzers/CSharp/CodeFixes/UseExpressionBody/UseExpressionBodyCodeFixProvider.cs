@@ -14,110 +14,81 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
+namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBody), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class UseExpressionBodyCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    private static readonly ImmutableArray<UseExpressionBodyHelper> s_helpers = UseExpressionBodyHelper.Helpers;
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = s_helpers.SelectAsArray(h => h.DiagnosticId);
+
+#if WORKSPACE
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
+
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        => !diagnostic.IsSuppressed ||
+           diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
+
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+        var diagnostic = context.Diagnostics.First();
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+        var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
+            ? CodeActionPriority.Low
+            : CodeActionPriority.Default;
 
-        private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
+        var title = diagnostic.GetMessage();
 
-        [ImportingConstructor]
-        public UseExpressionBodyCodeFixProvider()
+        RegisterCodeFix(context, title, title, priority);
+    }
+
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        var accessorLists = new HashSet<AccessorListSyntax>();
+        foreach (var diagnostic in diagnostics)
         {
-            FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
+            cancellationToken.ThrowIfCancellationRequested();
+            AddEdits(semanticModel, editor, diagnostic, accessorLists, cancellationToken);
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.IsSuppressed ||
-               diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
-
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        // Ensure that if we changed any accessors that the accessor lists they're contained
+        // in are formatted properly as well.  Do this as a last pass so that we see all
+        // individual changes made to the child accessors if we're doing a fix-all.
+        foreach (var accessorList in accessorLists)
         {
-            var diagnostic = context.Diagnostics.First();
-            var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
-
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            var codeAction = new MyCodeAction(diagnostic.GetMessage(), c => FixAsync(context.Document, diagnostic, c));
-#else
-            var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
-                ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
-
-            var codeAction = new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c));
-#endif
-
-            context.RegisterCodeFix(
-                codeAction,
-                diagnostic);
+            editor.ReplaceNode(accessorList, (current, _) => current.WithAdditionalAnnotations(Formatter.Annotation));
         }
+    }
 
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+    private static void AddEdits(
+        SemanticModel semanticModel, SyntaxEditor editor, Diagnostic diagnostic,
+        HashSet<AccessorListSyntax> accessorLists,
+        CancellationToken cancellationToken)
+    {
+        var declarationLocation = diagnostic.AdditionalLocations[0];
+        var helper = s_helpers.Single(h => h.DiagnosticId == diagnostic.Id);
+        var declaration = declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
+        var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
+
+        var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody, cancellationToken)
+                                       .WithAdditionalAnnotations(Formatter.Annotation);
+
+        editor.ReplaceNode(declaration, updatedDeclaration);
+
+        if (declaration.Parent is AccessorListSyntax accessorList)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var accessorLists = new HashSet<AccessorListSyntax>();
-            foreach (var diagnostic in diagnostics)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(semanticModel, editor, diagnostic, accessorLists, cancellationToken);
-            }
-
-            // Ensure that if we changed any accessors that the accessor lists they're contained
-            // in are formatted properly as well.  Do this as a last pass so that we see all
-            // individual changes made to the child accessors if we're doing a fix-all.
-            foreach (var accessorList in accessorLists)
-            {
-                editor.ReplaceNode(accessorList, (current, _) => current.WithAdditionalAnnotations(Formatter.Annotation));
-            }
-        }
-
-        private void AddEdits(
-            SemanticModel semanticModel, SyntaxEditor editor, Diagnostic diagnostic,
-            HashSet<AccessorListSyntax> accessorLists,
-            CancellationToken cancellationToken)
-        {
-            var declarationLocation = diagnostic.AdditionalLocations[0];
-            var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
-            var declaration = declarationLocation.FindNode(cancellationToken);
-            var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
-
-            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody)
-                                           .WithAdditionalAnnotations(Formatter.Annotation);
-
-            editor.ReplaceNode(declaration, updatedDeclaration);
-
-            if (declaration.Parent is AccessorListSyntax accessorList)
-            {
-                accessorLists.Add(accessorList);
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
-#else
-            internal override CodeActionPriority Priority { get; }
-
-            public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-                this.Priority = priority;
-            }
-#endif
+            accessorLists.Add(accessorList);
         }
     }
 }

@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -375,6 +375,8 @@ class C
     void Test()
     {
     }
+    static void F() { }
+    static void F(int i) { }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
@@ -383,7 +385,7 @@ class C
                 var context = CreateMethodContext(runtime, methodName: "C.Test");
 
                 VerifyErrorResultProperties(context, "x => x");
-                VerifyErrorResultProperties(context, "Test");
+                VerifyErrorResultProperties(context, "F");
                 VerifyErrorResultProperties(context, "Missing");
                 VerifyErrorResultProperties(context, "C");
             });

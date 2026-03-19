@@ -6,7 +6,7 @@
 set -u
 
 # Stop script if subcommand fails
-set -e 
+set -e
 
 usage()
 {
@@ -21,20 +21,27 @@ usage()
   echo "  --rebuild                  Rebuild all projects"
   echo "  --pack                     Build nuget packages"
   echo "  --publish                  Publish build artifacts"
+  echo "  --sign                     Sign build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
-  echo "Test actions:"     
+  echo "Test actions:"
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
+  echo "  --testCompilerOnly         Run only the compiler unit tests"
+  echo "  --testIOperation           Run unit tests with the IOperation test hook"
+  echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
-  echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
-  echo "  --skipAnalyzers            Do not run analyzers during build operations"
+  echo "  --runAnalyzers             Run analyzers during build operations"
+  echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
-  echo "  --sourceBuild              Simulate building for source-build"
+  echo "  --sourceBuild              Build the repository in source-only mode"
+  echo "  --productBuild             Build the repository in product-build mode."
+  echo "  --fromVMR                  Build the repository in product-build mode."
+  echo "  --solution                 Solution to build (default is Compilers.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -55,23 +62,32 @@ restore=false
 build=false
 rebuild=false
 pack=false
+sign=false
 publish=false
 test_core_clr=false
 test_mono=false
+test_ioperation=false
+test_runtime_async=false
+test_compiler_only=false
 
 configuration="Debug"
 verbosity='minimal'
 binary_log=false
 ci=false
+helix=false
+helix_queue_name=""
+helix_api_access_token=""
 bootstrap=false
-skip_analyzers=false
+run_analyzers=false
+skip_documentation=false
 prepare_machine=false
 warn_as_error=false
-properties=""
-disable_parallel_restore=false
+properties=()
 source_build=false
+product_build=false
+from_vmr=false
+solution_to_build="Compilers.slnf"
 
-docker=false
 args=""
 
 if [[ $# = 0 ]]
@@ -115,22 +131,50 @@ while [[ $# > 0 ]]; do
     --publish)
       publish=true
       ;;
+    --sign)
+      sign=true
+      ;;
     --testcoreclr|--test|-t)
       test_core_clr=true
       ;;
     --testmono)
       test_mono=true
       ;;
+    --testcompileronly)
+      test_compiler_only=true
+      ;;
+    --testioperation)
+      test_ioperation=true
+      ;;
+    --testruntimeasync)
+      test_runtime_async=true
+      ;;
     --ci)
       ci=true
+      ;;
+    --helix)
+      helix=true
+      ;;
+    --helixqueuename)
+      helix_queue_name=$2
+      args="$args $1"
+      shift
+      ;;
+    --helixapiaccesstoken)
+      helix_api_access_token=$2
+      args="$args $1"
+      shift
       ;;
     --bootstrap)
       bootstrap=true
       # Bootstrap requires restore
       restore=true
       ;;
-    --skipanalyzers)
-      skip_analyzers=true
+    --runanalyzers)
+      run_analyzers=true
+      ;;
+    --skipdocumentation)
+      skip_documentation=true
       ;;
     --preparemachine)
       prepare_machine=true
@@ -138,16 +182,23 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --docker)
-      docker=true
-      shift
-      continue
-      ;;
-    --sourcebuild)
+    --sourcebuild|--source-build|-sb)
       source_build=true
+      product_build=true
+      ;;
+    --productbuild|--product-build|-pb)
+      product_build=true
+      ;;
+    --fromvmr|--from-vmr)
+      from_vmr=true
+      ;;
+    --solution)
+      solution_to_build=$2
+      args="$args $1"
+      shift
       ;;
     /p:*)
-      properties="$properties $1"
+      properties+=("$1")
       ;;
     *)
       echo "Invalid argument: $1"
@@ -158,27 +209,6 @@ while [[ $# > 0 ]]; do
   args="$args $1"
   shift
 done
-
-if [[ "$docker" == true ]]
-then
-  echo "Docker exec: $args"
-
-  # Run this script with the same arguments (except for --docker) in a container that has Mono installed.
-  BUILD_COMMAND=/opt/code/eng/build.sh "$scriptroot"/docker/mono.sh $args
-  lastexitcode=$?
-  if [[ $lastexitcode != 0 ]]; then
-    echo "Docker build failed (exit code '$lastexitcode')." >&2
-    exit $lastexitcode
-  fi
-
-  # Ensure that all docker containers are stopped.
-  # Hence exit with true even if "kill" failed as it will fail if they stopped gracefully
-  if [[ "$prepare_machine" == true ]]; then
-    docker kill $(docker ps -q) || true
-  fi
-
-  exit
-fi
 
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
@@ -192,7 +222,7 @@ function MakeBootstrapBuild {
   mkdir -p $dir
 
   local package_name="Microsoft.Net.Compilers.Toolset"
-  local project_path=src/NuGet/$package_name/$package_name.Package.csproj
+  local project_path=src/NuGet/$package_name/AnyCpu/$package_name.Package.csproj
 
   dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
@@ -210,30 +240,41 @@ function MakeBootstrapBuild {
 }
 
 function BuildSolution {
-  local solution="Compilers.sln"
+  local solution=$solution_to_build
   echo "$solution:"
 
   InitializeToolset
   local toolset_build_proj=$_InitializeToolset
-  
+
   local bl=""
   if [[ "$binary_log" = true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
-  fi
-  
-  local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  local enable_analyzers=!$skip_analyzers
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    enable_analyzers=false
+    export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi
 
+  local projects="$repo_root/$solution"
+
+  UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    disable_parallel_restore=true
+    ulimit -n 6500 || echo "Cannot change ulimit"
+  fi
+
+  if [[ "$test_ioperation" == true ]]; then
+    export ROSLYN_TEST_IOPERATION="true"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
+  fi
+
+  if [[ "$test_runtime_async" == true ]]; then
+    export DOTNET_RuntimeAsync="1"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
   fi
 
   local test=false
@@ -252,16 +293,23 @@ function BuildSolution {
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
     test_runtime_args="--debug"
-  elif [[ "$test_core_clr" == true ]]; then
-    test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.1"
-    mono_tool=""
   fi
 
-  # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-  # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
-  # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-  # Warnings reported from other msbuild tasks are not treated as errors for now.
+  local msbuild_warn_as_error=""
+  if [[ "$warn_as_error" == true ]]; then
+    msbuild_warn_as_error="/warnAsError"
+  fi
+
+  local generate_documentation_file=""
+  if [[ "$skip_documentation" == true ]]; then
+    generate_documentation_file="/p:GenerateDocumentationFile=false"
+  fi
+
+  local roslyn_use_hard_links=""
+  if [[ "$ci" == true ]]; then
+    roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
+  fi
+
   MSBuild $toolset_build_proj \
     $bl \
     /p:Configuration=$configuration \
@@ -273,19 +321,54 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$enable_analyzers \
+    /p:Sign=$sign \
+    /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
-    /p:TreatWarningsAsErrors=true \
-    /p:RestoreDisableParallel=$disable_parallel_restore \
+    /p:TreatWarningsAsErrors=$warn_as_error \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    /p:DotNetBuildFromSource=$source_build \
+    /p:DotNetBuildSourceOnly=$source_build \
+    /p:DotNetBuild=$product_build \
+    /p:DotNetBuildFromVMR=$from_vmr \
     $test_runtime \
     $mono_tool \
-    $properties
+    $msbuild_warn_as_error \
+    $generate_documentation_file \
+    $roslyn_use_hard_links \
+    ${properties[@]+"${properties[@]}"}
 }
 
-InitializeDotNetCli $restore
+function GetCompilerTestAssembliesIncludePaths {
+  assemblies="--include '^Microsoft\.CodeAnalysis\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
+  assemblies+=" --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$'"
+  echo "$assemblies"
+}
+
+install=false
+if [[ "$restore" == true || "$test_core_clr" == true ]]; then
+  install=true
+fi
+InitializeDotNetCli $install
+# Source only builds would not have 'dotnet' ambiently available.
+if [[ "$restore" == true && "$source_build" != true ]]; then
+  dotnet tool restore
+fi
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
@@ -293,5 +376,32 @@ if [[ "$bootstrap" == true ]]; then
   bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-BuildSolution
+if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+  BuildSolution
+fi
+
+if [[ "$test_core_clr" == true ]]; then
+  runtests_args=""
+
+  if [[ -n "$test_compiler_only" ]]; then
+    runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
+  fi
+
+  if [[ -n "$helix_queue_name" ]]; then
+    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  fi
+
+  if [[ -n "$helix_api_access_token" ]]; then
+    runtests_args="$runtests_args --helixApiAccessToken $helix_api_access_token"
+  fi
+
+  if [[ "$helix" == true ]]; then
+    runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ "$ci" != true ]]; then
+    runtests_args="$runtests_args --html"
+  fi
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net10.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+fi
 ExitWithExitCode 0

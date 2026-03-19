@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
@@ -12,12 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Inherits VisualBasicSyntaxVisitor
 
         Private ReadOnly _tracker As ConflictingIdentifierTracker
-        Private ReadOnly _newSolution As Solution
+        Private ReadOnly _semanticModel As SemanticModel
         Private ReadOnly _cancellationToken As CancellationToken
 
-        Public Sub New(tokenBeingRenamed As SyntaxToken, newSolution As Solution, cancellationToken As CancellationToken)
+        Public Sub New(tokenBeingRenamed As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken)
             _tracker = New ConflictingIdentifierTracker(tokenBeingRenamed, CaseInsensitiveComparison.Comparer)
-            _newSolution = newSolution
+            _semanticModel = semanticModel
             _cancellationToken = cancellationToken
         End Sub
 
@@ -74,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             For Each clause In node.Clauses
                 Visit(clause)
             Next
+
             _tracker.RemoveIdentifiers(tokens)
         End Sub
 
@@ -95,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             For Each statement In block
                 Visit(statement)
             Next
+
             _tracker.RemoveIdentifiers(tokens)
         End Sub
 
@@ -146,8 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 ' it's only legal to have one name in the variable declarator for for and foreach loops.
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else
-                Dim semanticModel = _newSolution.GetDocument(controlVariable.SyntaxTree).GetSemanticModelAsync(_cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
-                Dim symbol = semanticModel.GetSymbolInfo(controlVariable).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(controlVariable, _cancellationToken).Symbol
 
                 ' if it is a field we don't care
                 If symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.Local) Then
@@ -188,11 +188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Public Overrides Sub VisitCatchBlock(node As CatchBlockSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            Dim semanticModel = _newSolution.GetDocument(node.SyntaxTree).GetSemanticModelAsync(_cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
             Dim identifierToken = node.CatchStatement.IdentifierName?.Identifier
 
             If identifierToken.HasValue Then
-                Dim symbol = semanticModel.GetSymbolInfo(identifierToken.Value).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(identifierToken.Value, _cancellationToken).Symbol
 
                 ' if it is a field we don't care
                 If symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.Local) Then

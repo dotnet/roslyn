@@ -2,83 +2,82 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+internal sealed class ParameterConfiguration(
+    ExistingParameter? thisParameter,
+    ImmutableArray<Parameter> parametersWithoutDefaultValues,
+    ImmutableArray<Parameter> remainingEditableParameters,
+    ExistingParameter? paramsParameter,
+    int selectedIndex)
 {
-    internal sealed class ParameterConfiguration
+    public readonly ExistingParameter? ThisParameter = thisParameter;
+    public readonly ImmutableArray<Parameter> ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
+    public readonly ImmutableArray<Parameter> RemainingEditableParameters = remainingEditableParameters;
+    public readonly ExistingParameter? ParamsParameter = paramsParameter;
+    public readonly int SelectedIndex = selectedIndex;
+
+    public static ParameterConfiguration Create(ImmutableArray<Parameter> parameters, bool isExtensionMethod, int selectedIndex)
     {
-        public readonly IParameterSymbol ThisParameter;
-        public readonly List<IParameterSymbol> ParametersWithoutDefaultValues;
-        public readonly List<IParameterSymbol> RemainingEditableParameters;
-        public readonly IParameterSymbol ParamsParameter;
-        public readonly int SelectedIndex;
+        var parametersList = parameters.ToList();
+        ExistingParameter? thisParameter = null;
+        var parametersWithoutDefaultValues = ArrayBuilder<Parameter>.GetInstance();
+        var remainingReorderableParameters = ArrayBuilder<Parameter>.GetInstance();
+        ExistingParameter? paramsParameter = null;
 
-        public ParameterConfiguration(IParameterSymbol thisParameter, List<IParameterSymbol> parametersWithoutDefaultValues, List<IParameterSymbol> remainingEditableParameters, IParameterSymbol paramsParameter, int selectedIndex)
+        if (parametersList.Count > 0 && isExtensionMethod)
         {
-            ThisParameter = thisParameter;
-            ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
-            RemainingEditableParameters = remainingEditableParameters;
-            ParamsParameter = paramsParameter;
-            SelectedIndex = selectedIndex;
+            // Extension method `this` parameters cannot be added, so must be pre-existing.
+            thisParameter = (ExistingParameter)parametersList[0];
+            parametersList.RemoveAt(0);
         }
 
-        public static ParameterConfiguration Create(List<IParameterSymbol> parameters, bool isExtensionMethod, int selectedIndex)
+        if ((parametersList.LastOrDefault() as ExistingParameter)?.Symbol.IsParams == true)
         {
-            IParameterSymbol thisParameter = null;
-            var parametersWithoutDefaultValues = new List<IParameterSymbol>();
-            var remainingReorderableParameters = new List<IParameterSymbol>();
-            IParameterSymbol paramsParameter = null;
-
-            if (parameters.Count > 0 && isExtensionMethod)
-            {
-                thisParameter = parameters[0];
-                parameters.RemoveAt(0);
-            }
-
-            if (parameters.Count > 0 && parameters[parameters.Count - 1].IsParams)
-            {
-                paramsParameter = parameters[parameters.Count - 1];
-                parameters.RemoveAt(parameters.Count - 1);
-            }
-
-            var seenDefaultValues = false;
-            foreach (var param in parameters)
-            {
-                if (param.HasExplicitDefaultValue)
-                {
-                    seenDefaultValues = true;
-                }
-
-                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
-            }
-
-            return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues, remainingReorderableParameters, paramsParameter, selectedIndex);
+            // Params arrays cannot be added, so must be pre-existing.
+            paramsParameter = (ExistingParameter)parametersList[^1];
+            parametersList.RemoveAt(parametersList.Count - 1);
         }
 
-        public List<IParameterSymbol> ToListOfParameters()
+        var seenDefaultValues = false;
+        foreach (var param in parametersList)
         {
-            var list = new List<IParameterSymbol>();
-
-            if (ThisParameter != null)
+            if (param.HasDefaultValue)
             {
-                list.Add(ThisParameter);
+                seenDefaultValues = true;
             }
 
-            list.AddRange(ParametersWithoutDefaultValues);
-            list.AddRange(RemainingEditableParameters);
-
-            if (ParamsParameter != null)
-            {
-                list.Add(ParamsParameter);
-            }
-
-            return list;
+            (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
         }
 
-        public bool IsChangeable()
+        return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues.ToImmutableAndFree(), remainingReorderableParameters.ToImmutableAndFree(), paramsParameter, selectedIndex);
+    }
+
+    internal ParameterConfiguration WithoutAddedParameters()
+        => Create([.. ToListOfParameters().OfType<ExistingParameter>()], ThisParameter != null, selectedIndex: 0);
+
+    public ImmutableArray<Parameter> ToListOfParameters()
+    {
+        var list = ArrayBuilder<Parameter>.GetInstance();
+
+        if (ThisParameter != null)
         {
-            return ParametersWithoutDefaultValues.Count > 0 || RemainingEditableParameters.Count > 0 || ParamsParameter != null;
+            list.Add(ThisParameter);
         }
+
+        list.AddRange(ParametersWithoutDefaultValues);
+        list.AddRange(RemainingEditableParameters);
+
+        if (ParamsParameter != null)
+        {
+            list.Add(ParamsParameter);
+        }
+
+        return list.ToImmutableAndFree();
     }
 }
+

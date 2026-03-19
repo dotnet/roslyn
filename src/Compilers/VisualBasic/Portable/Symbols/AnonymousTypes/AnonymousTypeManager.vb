@@ -34,7 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary> 
         ''' Given anonymous type descriptor provided construct an anonymous type symbol
         ''' </summary>
-        Public Function ConstructAnonymousTypeSymbol(typeDescr As AnonymousTypeDescriptor) As AnonymousTypePublicSymbol
+        Public Function ConstructAnonymousTypeSymbol(typeDescr As AnonymousTypeDescriptor, diagnostics As BindingDiagnosticBag) As AnonymousTypePublicSymbol
+            If diagnostics.AccumulatesDependencies Then
+                Dim dependencies = BindingDiagnosticBag.GetInstance(withDependencies:=True, withDiagnostics:=False)
+                ReportMissingOrErroneousSymbols(dependencies, hasClass:=True, hasDelegate:=False, hasKeys:=typeDescr.Fields.Any(Function(f) f.IsKey))
+                diagnostics.AddRange(dependencies)
+                dependencies.Free()
+            End If
+
             Return New AnonymousTypePublicSymbol(Me, typeDescr)
         End Function
 
@@ -42,33 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Given anonymous delegate descriptor provided, construct an anonymous delegate symbol
         ''' </summary>
         Public Function ConstructAnonymousDelegateSymbol(delegateDescriptor As AnonymousTypeDescriptor) As AnonymousDelegatePublicSymbol
+            ' ReportMissingOrErroneousSymbols reports only Special types for delegates.
+            ' Therefore, we have no additional dependencies to report here.
             Return New AnonymousDelegatePublicSymbol(Me, delegateDescriptor)
-        End Function
-
-        ''' <summary>
-        ''' Compares anonymous types
-        ''' </summary>
-        Public Shared Function IsSameType(left As TypeSymbol, right As TypeSymbol, compareKind As TypeCompareKind) As Boolean
-
-            If left.TypeKind <> right.TypeKind Then
-                Return False
-            End If
-
-            Dim leftDescr = DirectCast(left, AnonymousTypeOrDelegatePublicSymbol).TypeDescriptor
-            Dim rightDescr = DirectCast(right, AnonymousTypeOrDelegatePublicSymbol).TypeDescriptor
-
-            If leftDescr.Key <> rightDescr.Key Then
-                Return False
-            End If
-
-            Dim count As Integer = leftDescr.Fields.Length
-            Debug.Assert(count = rightDescr.Fields.Length)
-            For i = 0 To count - 1
-                If Not leftDescr.Fields(i).Type.IsSameType(rightDescr.Fields(i).Type, compareKind) Then
-                    Return False
-                End If
-            Next
-            Return True
         End Function
 
     End Class

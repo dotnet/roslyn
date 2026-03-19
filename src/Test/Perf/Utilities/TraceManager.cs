@@ -1,16 +1,18 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-using Roslyn.Test.Performance.Utilities;
+
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class TraceManagerFactory
+    public static class TraceManagerFactory
     {
         public static ITraceManager GetBestTraceManager()
         {
@@ -126,7 +128,7 @@ namespace Roslyn.Test.Performance.Utilities
 
     public class WallClockTraceManager : ITraceManager
     {
-        private readonly List<long> _durations = new List<long>();
+        private readonly List<long> _durations = [];
         private string _testName = "";
 
         private Stopwatch _stopwatch;

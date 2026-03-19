@@ -2,97 +2,51 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.IncrementalCaches;
-using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace AnalyzerRunner
 {
-    internal class IncrementalAnalyzerRunner
+    public sealed class IncrementalAnalyzerRunner
     {
+        private readonly Workspace _workspace;
         private readonly Options _options;
 
-        public IncrementalAnalyzerRunner(Options options)
+        public IncrementalAnalyzerRunner(Workspace workspace, Options options)
         {
+            _workspace = workspace;
             _options = options;
         }
 
         public bool HasAnalyzers => _options.IncrementalAnalyzerNames.Any();
 
-        internal async Task RunAsync(Workspace workspace, CancellationToken cancellationToken)
+        public async Task RunAsync(CancellationToken cancellationToken)
         {
             if (!HasAnalyzers)
             {
                 return;
             }
 
-            var usePersistentStorage = _options.UsePersistentStorage;
+            var exportProvider = _workspace.Services.SolutionServices.ExportProvider;
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope)
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)
-                .WithChangedOption(StorageOptions.Database, usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None)));
+            var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope);
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope);
 
-            if (!string.IsNullOrEmpty(_options.ProfileRoot))
+            var persistentStorageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
+            var persistentStorage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), cancellationToken).ConfigureAwait(false);
+            if (persistentStorage is NoOpPersistentStorage)
             {
-                ProfileOptimization.StartProfile(nameof(IIncrementalAnalyzer));
-            }
-
-            var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
-
-            var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            solutionCrawlerRegistrationService.Register(workspace);
-
-            if (usePersistentStorage)
-            {
-                var persistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
-                var persistentStorage = persistentStorageService.GetStorage(workspace.CurrentSolution);
-                if (persistentStorage is NoOpPersistentStorage)
-                {
-                    throw new InvalidOperationException("Benchmark is not configured to use persistent storage.");
-                }
-            }
-
-            Console.WriteLine("Pausing 5 seconds before continuing analysis...");
-            await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-
-            var incrementalAnalyzerProviders = exportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>();
-
-            foreach (var incrementalAnalyzerName in _options.IncrementalAnalyzerNames)
-            {
-                var incrementalAnalyzerProvider = incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds?.Contains(workspace.Kind) ?? false)?.Value;
-                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds?.Contains(WorkspaceKind.Host) ?? false)?.Value;
-                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).Single(provider => provider.Metadata.WorkspaceKinds is null).Value;
-                var incrementalAnalyzer = incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
-                solutionCrawlerRegistrationService.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(incrementalAnalyzer));
-
-                switch (incrementalAnalyzerName)
-                {
-                    case nameof(SymbolTreeInfoIncrementalAnalyzerProvider):
-                        var symbolTreeInfoCacheService = workspace.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
-                        var symbolTreeInfo = await symbolTreeInfoCacheService.TryGetSourceSymbolTreeInfoAsync(workspace.CurrentSolution.Projects.First(), cancellationToken).ConfigureAwait(false);
-                        if (symbolTreeInfo is null)
-                        {
-                            throw new InvalidOperationException("Benchmark failed to calculate symbol tree info.");
-                        }
-
-                        break;
-
-                    default:
-                        // No additional actions required
-                        break;
-                }
+                throw new InvalidOperationException("Benchmark is not configured to use persistent storage.");
             }
         }
     }

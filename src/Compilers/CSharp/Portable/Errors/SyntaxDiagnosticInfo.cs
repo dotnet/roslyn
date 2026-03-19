@@ -10,12 +10,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class SyntaxDiagnosticInfo : DiagnosticInfo
     {
-        static SyntaxDiagnosticInfo()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxDiagnosticInfo), r => new SyntaxDiagnosticInfo(r));
-        }
-
+        /// <summary>
+        /// The offset of this diagnostic, relative to the <em>Start</em> of the <see cref="GreenNode"/> (not the
+        /// FullStart) it is attached to.  (Note: 'Start'/'FullStart' are properties of red Syntax elements, not
+        /// GreenNodes. However, the above holds for the red elements created for the green node in its particular
+        /// context.
+        /// <para/>
+        /// It is legal for the offset to be negative.  Or for the final calculated position to extend beyond the
+        /// FullSpan or Span of the entity that it is on.  For example, a diagnostic may be placed on a node
+        /// corresponding to a token seen before/after that node.  Diagnostics are often attached to what is convenient
+        /// in the parser, not necessarily the exact syntactic construct they may be reporting their span under.
+        /// </summary>
         internal readonly int Offset;
+
+        /// <summary>
+        /// Represents the width of the diagnostic.  Must be non-negative, but may be zero.
+        /// </summary>
         internal readonly int Width;
 
         internal SyntaxDiagnosticInfo(int offset, int width, ErrorCode code, params object[] args)
@@ -46,22 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxDiagnosticInfo(offset, this.Width, (ErrorCode)this.Code, this.Arguments);
         }
 
-        #region Serialization
-
-        protected override void WriteTo(ObjectWriter writer)
+        protected SyntaxDiagnosticInfo(SyntaxDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
         {
-            base.WriteTo(writer);
-            writer.WriteInt32(this.Offset);
-            writer.WriteInt32(this.Width);
+            Offset = original.Offset;
+            Width = original.Width;
         }
 
-        protected SyntaxDiagnosticInfo(ObjectReader reader)
-            : base(reader)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
-            this.Offset = reader.ReadInt32();
-            this.Width = reader.ReadInt32();
+            return new SyntaxDiagnosticInfo(this, severity);
         }
-
-        #endregion
     }
 }

@@ -4,31 +4,26 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
+namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
+
+internal abstract class NestedSuppressionCodeAction(string title) : CodeAction
 {
-    internal abstract class NestedSuppressionCodeAction : CodeAction
-    {
-        protected NestedSuppressionCodeAction(string title)
-        {
-            Title = title;
-        }
+    public sealed override string Title { get; } = title;
 
-        // Put suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.None;
+    protected abstract string DiagnosticIdForEquivalenceKey { get; }
 
-        public sealed override string Title { get; }
+    public override string EquivalenceKey => Title + DiagnosticIdForEquivalenceKey;
 
-        protected abstract string DiagnosticIdForEquivalenceKey { get; }
+    // Put suppressions at the end of everything.
+    protected sealed override CodeActionPriority ComputePriority()
+        => CodeActionPriority.Lowest;
 
-        public override string EquivalenceKey => Title + DiagnosticIdForEquivalenceKey;
-
-        public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.in_Suppression_File);
-        public static bool IsEquivalenceKeyForPragmaWarning(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.in_Source);
-        public static bool IsEquivalenceKeyForRemoveSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.Remove_Suppression);
-        public static bool IsEquivalenceKeyForLocalSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.in_Source_attribute);
-    }
+    public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey)
+        => equivalenceKey.StartsWith(FeaturesResources.in_Suppression_File);
+    public static bool IsEquivalenceKeyForPragmaWarning(string equivalenceKey)
+        => equivalenceKey.StartsWith(FeaturesResources.in_Source);
+    public static bool IsEquivalenceKeyForRemoveSuppression(string equivalenceKey)
+        => equivalenceKey.StartsWith(FeaturesResources.Remove_Suppression);
+    public static bool IsEquivalenceKeyForLocalSuppression(string equivalenceKey)
+        => equivalenceKey.StartsWith(FeaturesResources.in_Source_attribute);
 }

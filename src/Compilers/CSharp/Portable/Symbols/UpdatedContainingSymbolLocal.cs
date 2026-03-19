@@ -1,10 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert(underlyingLocal is object);
             RoslynDebug.Assert(updatedContainingSymbol is object);
+            Debug.Assert(updatedContainingSymbol.DeclaringCompilation is not null);
             Debug.Assert(!assertContaining || updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
             ContainingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
@@ -86,17 +87,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsImportedFromMetadata => _underlyingLocal.IsImportedFromMetadata;
         internal override SyntaxToken IdentifierToken => _underlyingLocal.IdentifierToken;
         internal override bool IsPinned => _underlyingLocal.IsPinned;
+        internal override bool IsKnownToReferToTempIfReferenceType => _underlyingLocal.IsKnownToReferToTempIfReferenceType;
         internal override bool IsCompilerGenerated => _underlyingLocal.IsCompilerGenerated;
-        internal override uint RefEscapeScope => _underlyingLocal.RefEscapeScope;
-        internal override uint ValEscapeScope => _underlyingLocal.ValEscapeScope;
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag? diagnostics = null) =>
+        internal override ScopedKind Scope => _underlyingLocal.Scope;
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null) =>
             _underlyingLocal.GetConstantValue(node, inProgress, diagnostics);
-        internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
             _underlyingLocal.GetConstantValueDiagnostics(boundInitValue);
         internal override SyntaxNode GetDeclaratorSyntax() =>
             _underlyingLocal.GetDeclaratorSyntax();
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) =>
-            throw ExceptionUtilities.Unreachable;
+        internal override bool HasSourceLocation
+            => _underlyingLocal.HasSourceLocation;
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string? createdAtFilePath = null
+#endif
+            ) => throw ExceptionUtilities.Unreachable();
         #endregion
     }
 }

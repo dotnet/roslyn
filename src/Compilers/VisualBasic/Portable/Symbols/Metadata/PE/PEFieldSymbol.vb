@@ -14,6 +14,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -22,6 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' </summary>
     Friend NotInheritable Class PEFieldSymbol
         Inherits FieldSymbol
+
+        ''' <summary>
+        ''' This symbol is used as a type for a "fake" required custom modifier added for ByRef fields.
+        ''' This allows us to report use site errors for ByRef fields, and, at the same time, allows us
+        ''' to accurately match them by signature (since this instance is unique and is not used for anything else)
+        ''' without adding full support for RefKind and RefCustomModifiers
+        ''' </summary>
+        Private Shared ReadOnly _byRefPlaceholder As New UnsupportedMetadataTypeSymbol()
 
         Private ReadOnly _handle As FieldDefinitionHandle
         Private ReadOnly _name As String
@@ -32,8 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyConstantValue As ConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset
         Private _lazyDocComment As Tuple(Of CultureInfo, String)
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+        Private _lazyIsRequired As ThreeState = ThreeState.Unknown
 
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
@@ -54,13 +65,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     _name = String.Empty
                 End If
 
-                _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, Me)
+                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, Me))
             End Try
         End Sub
 
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -146,12 +163,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim value As ConstantValue
 
             If Me.Type.SpecialType = SpecialType.System_DateTime Then
-                value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 If value IsNot Nothing AndAlso value.Discriminator = ConstantValueTypeDiscriminator.DateTime Then
                     Return AttributeDescription.DateTimeConstantAttribute
                 End If
             ElseIf Me.Type.SpecialType = SpecialType.System_Decimal Then
-                value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 If value IsNot Nothing AndAlso value.Discriminator = ConstantValueTypeDiscriminator.Decimal Then
                     Return AttributeDescription.DecimalConstantAttribute
                 End If
@@ -160,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
             For Each attribute In GetAttributes()
                 Yield attribute
             Next
@@ -189,7 +206,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property IsNotSerialized As Boolean
             Get
+#Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
                 Return (_flags And FieldAttributes.NotSerialized) <> 0
+#Enable Warning SYSLIB0050
             End Get
         End Property
 
@@ -201,11 +220,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsConst As Boolean
             Get
-                Return (_flags And FieldAttributes.Literal) <> 0 OrElse GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty) IsNot Nothing
+                Return (_flags And FieldAttributes.Literal) <> 0 OrElse GetConstantValue(ConstantFieldsInProgress.Empty) IsNot Nothing
             End Get
         End Property
 
-        Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+        Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
             If _lazyConstantValue Is Microsoft.CodeAnalysis.ConstantValue.Unset Then
                 Dim value As ConstantValue = Nothing
 
@@ -272,6 +291,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return _lazyConstantValue
         End Function
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                If Not _lazyIsRequired.HasValue() Then
+                    _lazyIsRequired = PEModule.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute).ToThreeState()
+                End If
+
+                Return _lazyIsRequired.Value()
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
@@ -340,13 +369,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Sub EnsureSignatureIsLoaded()
             If _lazyType Is Nothing Then
                 Dim moduleSymbol = _containingType.ContainingPEModule
+                Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
+
+                Dim type As TypeSymbol = Nothing
                 Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
-                Dim type As TypeSymbol = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle, Nothing, customModifiers)
+                GetSignatureParts(fieldInfo, type, customModifiers)
 
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol)
 
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(customModifiers), Nothing)
                 Interlocked.CompareExchange(_lazyType, type, Nothing)
+            End If
+        End Sub
+
+        Friend Shared Sub GetSignatureParts(fieldInfo As FieldInfo(Of TypeSymbol), ByRef type As TypeSymbol, ByRef customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)))
+            type = fieldInfo.Type
+            customModifiers = fieldInfo.CustomModifiers.NullToEmpty
+
+            If fieldInfo.IsByRef Then
+                Dim refCustomModifiers = fieldInfo.RefCustomModifiers.NullToEmpty.Add(New ModifierInfo(Of TypeSymbol)(isOptional:=False, _byRefPlaceholder))
+                customModifiers = refCustomModifiers.AddRange(customModifiers)
+            ElseIf Not fieldInfo.RefCustomModifiers.IsDefaultOrEmpty Then
+                Throw ExceptionUtilities.Unreachable
             End If
         End Sub
 
@@ -370,28 +414,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, _lazyDocComment)
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                Dim fieldUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
 
-                ' if there was no previous use site error for this symbol, check the constant value
-                If fieldUseSiteErrorInfo Is Nothing Then
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                Dim fieldUseSiteInfo = CalculateUseSiteInfo()
 
-                    ' report use site errors for invalid constant values 
-                    Dim constantValue = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
-                    If constantValue IsNot Nothing AndAlso
-                        constantValue.IsBad Then
-                        fieldUseSiteErrorInfo = New DiagnosticInfo(MessageProvider.Instance,
-                                                                   ERRID.ERR_UnsupportedConstant2,
-                                                                   Me.ContainingType,
-                                                                   Me.Name)
+                If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
+                    Dim errorInfo = DeriveCompilerFeatureRequiredDiagnostic(fieldUseSiteInfo)
+                    If errorInfo IsNot Nothing Then
+                        fieldUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
                     End If
                 End If
 
-                _lazyUseSiteErrorInfo = fieldUseSiteErrorInfo
+                ' if there was no previous use site error for this symbol, check the constant value
+                If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
+
+                    ' report use site errors for invalid constant values 
+                    Dim constantValue = GetConstantValue(ConstantFieldsInProgress.Empty)
+                    If constantValue IsNot Nothing AndAlso
+                        constantValue.IsBad Then
+                        fieldUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(New DiagnosticInfo(MessageProvider.Instance,
+                                                                                                 ERRID.ERR_UnsupportedConstant2,
+                                                                                                 Me.ContainingType,
+                                                                                                 Me.Name))
+                    End If
+                End If
+
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, fieldUseSiteInfo)
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
+        End Function
+
+        Private Function DeriveCompilerFeatureRequiredDiagnostic(ByRef result As UseSiteInfo(Of AssemblySymbol)) As DiagnosticInfo
+            Dim containingModule = _containingType.ContainingPEModule
+            Return If(DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, containingModule, Handle, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(containingModule, _containingType)),
+                      _containingType.GetCompilerFeatureRequiredDiagnostic())
         End Function
 
         Friend ReadOnly Property Handle As FieldDefinitionHandle

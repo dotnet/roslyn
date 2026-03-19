@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal SubstitutedParameterSymbol(PropertySymbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
+            this((Symbol)containingSymbol, map, originalParameter)
+        {
+        }
+
+        internal SubstitutedParameterSymbol(NamedTypeSymbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
             this((Symbol)containingSymbol, map, originalParameter)
         {
         }
@@ -65,6 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+
+        internal override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -73,6 +85,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var map = _mapOrType as TypeMap;
                 return map != null ? map.SubstituteCustomModifiers(this._underlyingParameter.RefCustomModifiers) : this._underlyingParameter.RefCustomModifiers;
             }
+        }
+
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
         }
 
         public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
@@ -88,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReferenceEquals.
 
             var other = obj as SubstitutedParameterSymbol;
-            return (object)other != null &&
+            return other is not null &&
                 this.Ordinal == other.Ordinal &&
                 this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
         }
@@ -97,5 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return Roslyn.Utilities.Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
         }
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

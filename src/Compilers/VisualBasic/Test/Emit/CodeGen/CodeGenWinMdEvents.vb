@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 
@@ -29,7 +31,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of CompilationVerifier.EmitException)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -57,7 +59,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of CompilationVerifier.EmitException)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -85,7 +87,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of CompilationVerifier.EmitException)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -113,7 +115,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of CompilationVerifier.EmitException)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -161,7 +163,7 @@ End Namespace
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "RaiseEvent E()").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.get_InvocationList"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of CompilationVerifier.EmitException)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact>
@@ -203,7 +205,7 @@ End Class
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Runtime.InteropServices.WindowsRuntime"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of CompilationVerifier.EmitException)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -455,7 +457,7 @@ End Class
         ''' I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
         ''' </remarks>
         <WorkItem(1003209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003209")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub FieldLikeEventSerialization()
 
             Dim source1 =
@@ -535,7 +537,7 @@ End Namespace
             Dim comp1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp1.VerifyDiagnostics()
 
-            Dim serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization
+            Dim serializationRef = Net461.References.SystemRuntimeSerialization
             Dim comp2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, expectedOutput:=<![CDATA[
 A

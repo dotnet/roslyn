@@ -1300,4 +1300,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 End Namespace
 
-

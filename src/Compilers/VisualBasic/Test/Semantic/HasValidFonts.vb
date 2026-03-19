@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Drawing
+Imports System.Runtime.InteropServices
 Imports Roslyn.Test.Utilities
 
 Friend Class HasValidFonts
@@ -11,8 +12,15 @@ Friend Class HasValidFonts
     Public Overrides ReadOnly Property ShouldSkip As Boolean
         Get
             Try
-                Dim result = SystemFonts.DefaultFont
-                Return result Is Nothing
+                If RuntimeInformation.IsOSPlatform(OSPlatform.Windows) Then
+#Disable Warning CA1416 ' Validate platform compatibility, we don't run tests on Windows < 6.1
+                    Dim result = SystemFonts.DefaultFont
+#Enable Warning CA1416 ' Validate platform compatibility
+                    Return result Is Nothing
+                Else
+                    ' The only tests using fonts are Windows-only.
+                    Return True
+                End If
             Catch ex As Exception
                 ' Motivating issue: https://github.com/dotnet/roslyn/issues/11278
                 '

@@ -51,17 +51,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
 
-                If containingAssembly.IsMissing Then
+                If containingAssembly?.IsMissing Then
                     Dim arg = If(Me.SpecialType <> SpecialType.None, DirectCast(CustomSymbolDisplayFormatter.DefaultErrorFormat(Me), Object), Me)
                     Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, containingAssembly.Identity, arg)
                 Else
                     Dim containingModule As ModuleSymbol = Me.ContainingModule
 
-                    If containingModule.IsMissing Then
-                        Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, containingModule.Name, Me)
+                    If containingModule IsNot Nothing Then
+                        If containingModule.IsMissing Then
+                            Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, containingModule.Name, Me)
+                        End If
+
+                        Return ErrorFactory.ErrorInfo(ERRID.ERR_TypeRefResolutionError3, Me, containingModule.Name)
                     End If
 
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_TypeRefResolutionError3, Me, containingModule.Name)
+                    Return If(TryCast(ContainingType, ErrorTypeSymbol)?.ErrorInfo,
+                              ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty)) ' This is the best we can do at this point
                 End If
             End Get
         End Property
@@ -91,10 +96,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _containingModule = [module]
             End Sub
 
-            Public Sub New([module] As ModuleSymbol, ByRef fullname As MetadataTypeName, Optional typeId As SpecialType = CType(-1, SpecialType))
+            Public Sub New([module] As ModuleSymbol, ByRef fullname As MetadataTypeName, typeId As ExtendedSpecialType)
                 Me.New([module], fullname, fullname.ForcedArity = -1 OrElse fullname.ForcedArity = fullname.InferredArity)
-                Debug.Assert(typeId = CType(-1, SpecialType) OrElse typeId = SpecialType.None OrElse Arity = 0 OrElse MangleName)
-                _lazyTypeId = typeId
+                Debug.Assert(typeId = Nothing OrElse Arity = 0 OrElse MangleName)
+                _lazyTypeId = CInt(typeId)
+            End Sub
+
+            Public Sub New([module] As ModuleSymbol, ByRef fullname As MetadataTypeName)
+                Me.New([module], fullname, fullname.ForcedArity = -1 OrElse fullname.ForcedArity = fullname.InferredArity)
             End Sub
 
             Private Sub New([module] As ModuleSymbol, ByRef fullname As MetadataTypeName, mangleName As Boolean)
@@ -169,10 +178,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property SpecialType As SpecialType
+            Public Overrides ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
                 Get
                     If _lazyTypeId = -1 Then
-                        Dim typeId As SpecialType = SpecialType.None
+                        Dim typeId As ExtendedSpecialType = Nothing
                         Dim containingAssembly As AssemblySymbol = _containingModule.ContainingAssembly
 
                         If (Arity = 0 OrElse MangleName) AndAlso
@@ -182,21 +191,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             typeId = SpecialTypes.GetTypeFromMetadataName(emittedName)
                         End If
 
-                        Interlocked.CompareExchange(_lazyTypeId, typeId, -1)
+                        Interlocked.CompareExchange(_lazyTypeId, CInt(typeId), -1)
                     End If
 
                     Return CType(_lazyTypeId, SpecialType)
                 End Get
             End Property
 
-            Public Overrides Function GetHashCode() As Integer
+            Public NotOverridable Overrides Function GetHashCode() As Integer
                 Return Hash.Combine(_containingModule, Hash.Combine(MetadataName, Hash.Combine(_namespaceName, Arity)))
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
+            Protected NotOverridable Overrides Function SpecializedEquals(obj As InstanceErrorTypeSymbol) As Boolean
+                Debug.Assert(obj IsNot Me)
 
                 Dim other = TryCast(obj, TopLevel)
 
@@ -251,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Represents nested missing type.
         ''' </summary>
-        Friend Class Nested
+        Friend NotInheritable Class Nested
             Inherits MissingMetadataTypeSymbol
 
             Private ReadOnly _containingType As NamedTypeSymbol
@@ -259,6 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Sub New(containingType As NamedTypeSymbol, name As String, arity As Integer, mangleName As Boolean)
                 MyBase.New(name, arity, mangleName)
                 Debug.Assert(containingType IsNot Nothing)
+                Debug.Assert(containingType.IsDefinition)
 
                 _containingType = containingType
             End Sub
@@ -280,9 +288,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property SpecialType As SpecialType
+            Public Overrides ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
                 Get
-                    Return SpecialType.None ' do not have nested types among CORE types yet.
+                    Return Nothing ' do not have nested types among CORE types yet.
                 End Get
             End Property
 
@@ -290,10 +298,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Hash.Combine(_containingType, Hash.Combine(MetadataName, Arity))
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
+            Protected Overrides Function SpecializedEquals(obj As InstanceErrorTypeSymbol) As Boolean
+                Debug.Assert(Me IsNot obj)
 
                 Dim other = TryCast(obj, Nested)
 
@@ -301,19 +307,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Arity = other.Arity AndAlso
                     _containingType.Equals(other._containingType)
             End Function
-
-            Private Function GetDebuggerDisplay() As String
-                Dim fullName As String
-
-                fullName = _containingType.ToString() & "." & Me.Name
-
-                If _arity > 0 Then
-                    fullName = fullName & "(Of " & New String(","c, _arity - 1) & ")"
-                End If
-
-                Return fullName & "[missing]"
-            End Function
-
         End Class
 
     End Class

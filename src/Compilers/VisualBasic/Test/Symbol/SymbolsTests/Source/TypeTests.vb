@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -673,7 +673,7 @@ End Namespace
         <WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
         <Fact>
         Public Sub UseTypeInNetModule()
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim module1Ref = TestReferences.SymbolsTests.netModule.netModule1
             Dim text = <literal>
 Class Test
@@ -917,7 +917,6 @@ End Namespace
     End Namespace
     </file>
 </compilation>, {compRef1})
-
 
             Dim ns = DirectCast(comp.SourceModule.GlobalNamespace.GetMembers("SS").Single(), NamespaceSymbol)
             Dim type1 = DirectCast(ns.GetTypeMembers("Goo", 0).Single(), NamedTypeSymbol)
@@ -1514,7 +1513,6 @@ End Structure
         </compilation>, {New VisualBasicCompilationReference(compilation1)})
             CompilationUtils.AssertNoErrors(compilation2)
 
-
             Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="MultiplyCyclesInStructure05_I">
             <file name="a.vb">
@@ -1537,6 +1535,239 @@ BC30294: Structure 'SI_1' cannot contain an instance of itself:
     Public s4 As SII_4
            ~~
 </errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_01()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of B(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As D(Of T)
+End Structure
+    
+Structure D(Of T)
+    Dim x As C(Of D(Of T))
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'D(Of T)' (variable 'x').
+    'D(Of T)' contains 'C(Of D(Of T))' (variable 'x').
+    Dim x As D(Of T)
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'D(Of T)' (variable 'x').
+    'D(Of T)' contains 'C(Of D(Of T))' (variable 'x').
+    Dim x As D(Of T)
+        ~
+BC30294: Structure 'D' cannot contain an instance of itself: 
+    'D(Of T)' contains 'C(Of D(Of T))' (variable 'x').
+    'C(Of D(Of T))' contains 'D(Of D(Of T))' (variable 'x').
+    Dim x As C(Of D(Of T))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_02()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of C(Of B(Of T)))
+End Structure
+
+Structure C(Of T)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_04()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As C(Of C(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of B(Of T))
+    Dim y As C(Of C(Of T))
+    Dim z As B(Of T)
+End Structure
+    
+Structure D
+    Dim x As B(Of Integer)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'C(Of C(Of T))' (variable 'x').
+    Dim x As C(Of C(Of T))
+        ~
+BC30294: Structure 'B' cannot contain an instance of itself: 
+    'B(Of T)' contains 'B(Of T)' (variable 'z').
+    Dim z As B(Of T)
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_05()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As C(Of C(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim z As B(Of T)
+    Dim x As A(Of B(Of T))
+    Dim y As C(Of C(Of T))
+End Structure
+    
+Structure D
+    Dim x As B(Of Integer)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'C(Of C(Of T))' (variable 'x').
+    Dim x As C(Of C(Of T))
+        ~
+BC30294: Structure 'B' cannot contain an instance of itself: 
+    'B(Of T)' contains 'B(Of T)' (variable 'z').
+    Dim z As B(Of T)
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_06()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As C(Of C(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of B(Of T))
+    Dim z As B(Of T)
+    Dim y As C(Of C(Of T))
+End Structure
+    
+Structure D
+    Dim x As B(Of Integer)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'C(Of C(Of T))' (variable 'x').
+    Dim x As C(Of C(Of T))
+        ~
+BC30294: Structure 'B' cannot contain an instance of itself: 
+    'B(Of T)' contains 'B(Of T)' (variable 'z').
+    Dim z As B(Of T)
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub StaticMemberExplosion_01()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Shared x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Shared x As A(Of B(Of T))
+End Structure
+
+Structure C(Of T)
+    Shared x As D(Of T)
+End Structure
+    
+Structure D(Of T)
+    Shared x As C(Of D(Of T))
+End Structure
+")
+
+            CompileAndVerify(compilation, verify:=Verification.Skipped).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub StaticMemberExplosion_02()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Shared x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Shared x As A(Of C(Of B(Of T)))
+End Structure
+
+Structure C(Of T)
+End Structure
+")
+
+            CompileAndVerify(compilation, verify:=Verification.Skipped).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -2107,7 +2338,6 @@ BC31089: Types declared 'Private' must be inside another type.
 Private delegate Sub D11()
                      ~~~
 </expected>)
-
 
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                <compilation name="Bug4136">
@@ -3199,7 +3429,7 @@ BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, 
                 }, TestOptions.ReleaseDll)
 
             ' Exported types in .NET modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify:=Verification.Fails).VerifyDiagnostics()
+            CompileAndVerify(compilation, verify:=Verification.FailsPEVerify).VerifyDiagnostics()
 
             compilation = CreateCompilationWithMscorlib40AndReferences(emptySource,
                 {
@@ -3942,11 +4172,28 @@ BC31091: Import of type 'C(Of ).D(Of )' from assembly or module 'TypeSymbolGetHa
             AssertHashCodesMatch(definition, t1)
         End Sub
 
-        Private Shared Sub AssertHashCodesMatch(c As TypeSymbol, c2 As TypeSymbol)
+        Private Shared Sub AssertHashCodesMatch(c As NamedTypeSymbol, c2 As NamedTypeSymbol)
             Assert.False(c.IsSameType(c2, TypeCompareKind.ConsiderEverything))
             Assert.True(c.IsSameType(c2, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
+            Assert.False(c2.IsSameType(c, TypeCompareKind.ConsiderEverything))
+            Assert.True(c2.IsSameType(c, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
 
             Assert.Equal(c2.GetHashCode(), c.GetHashCode())
+
+            If c.Arity <> 0 Then
+                Dim ctp = c.TypeParameters(0)
+                Dim ctp2 = c2.TypeParameters(0)
+
+                If ctp IsNot ctp2 Then
+                    Assert.False(ctp.IsSameType(ctp2, TypeCompareKind.ConsiderEverything))
+                    Assert.True(ctp.IsSameType(ctp2, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
+
+                    Assert.False(ctp2.IsSameType(ctp, TypeCompareKind.ConsiderEverything))
+                    Assert.True(ctp2.IsSameType(ctp, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
+
+                    Assert.Equal(ctp2.GetHashCode(), ctp.GetHashCode())
+                End If
+            End If
         End Sub
     End Class
 

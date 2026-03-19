@@ -5,10 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.ErrorReporting
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities.DocumentationCommentXmlNames
@@ -21,11 +22,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(s_defaultRules)
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Private Shared ReadOnly s_keywordNames As ImmutableArray(Of String)
+
+        Shared Sub New()
+            Dim keywordsBuilder As New List(Of String)
+
+            For Each keywordKind In SyntaxFacts.GetKeywordKinds()
+                keywordsBuilder.Add(SyntaxFacts.GetText(keywordKind))
+            Next
+
+            s_keywordNames = keywordsBuilder.ToImmutableArray()
+        End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Dim isStartOfTag = text(characterPosition) = "<"c
             Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
             Dim isDoubleQuote = text(characterPosition) = """"c
@@ -34,15 +54,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                    IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
 
-        Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
+        Public Shared Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
             Return If(token.IntersectsWith(position) AndAlso IsText(token),
                       token.GetPreviousToken(includeSkipped:=True),
                       token)
         End Function
 
-        Private Function IsText(token As SyntaxToken) As Boolean
+        Private Shared Function IsText(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.XmlNameToken, SyntaxKind.XmlTextLiteralToken, SyntaxKind.IdentifierToken)
         End Function
 
@@ -59,6 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 ' If the user is typing in xml text, don't trigger on backspace.
                 If token.IsKind(SyntaxKind.XmlTextLiteralToken) AndAlso
+                    Not token.Parent.IsKind(SyntaxKind.XmlString) AndAlso
                     trigger.Kind = CompletionTriggerKind.Deletion Then
                     Return Nothing
                 End If
@@ -93,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return GetCloseTagItem(token.GetPreviousToken())
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
                 Dim symbol As ISymbol = Nothing
 
                 If declaration IsNot Nothing Then
@@ -157,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Return items
-            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken)
                 Return SpecializedCollections.EmptyEnumerable(Of CompletionItem)
             End Try
         End Function
@@ -192,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
+                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, beforeCaretText:=nameToken.ValueText & ">", afterCaretText:=String.Empty))
             End If
 
             Return Nothing
@@ -229,20 +250,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent Is tagNameSyntax Then
                     ' <exception |
-                    items.AddRange(GetAttributes(tagName, tagAttributes))
+                    items.AddRange(GetAttributes(token, tagName, tagAttributes))
                 End If
 
                 '<exception a|
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                     ' <exception |
-                    items.AddRange(GetAttributes(tagName, tagAttributes))
+                    items.AddRange(GetAttributes(token, tagName, tagAttributes))
                 End If
 
                 '<exception a=""|
                 If (targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute)) OrElse
                     targetToken.IsChildToken(Function(a As XmlNameAttributeSyntax) a.EndQuoteToken) OrElse
                     targetToken.IsChildToken(Function(a As XmlCrefAttributeSyntax) a.EndQuoteToken) Then
-                    items.AddRange(GetAttributes(tagName, tagAttributes))
+                    items.AddRange(GetAttributes(token, tagName, tagAttributes))
                 End If
 
                 ' <param name="|"
@@ -262,16 +283,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Sub
 
-        Protected Overrides Iterator Function GetKeywordNames() As IEnumerable(Of String)
-            Yield SyntaxFacts.GetText(SyntaxKind.NothingKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.SharedKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.OverridableKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.TrueKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.FalseKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.MustInheritKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.NotOverridableKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.AsyncKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
+        Protected Overrides Function GetKeywordNames() As ImmutableArray(Of String)
+            Return s_keywordNames
         End Function
 
         Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
@@ -296,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return attributeValues
         End Function
 
-        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
+        Private Shared Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
             Dim nameSyntax As XmlNameSyntax = Nothing
             Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
 
@@ -322,9 +335,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return TryCast(attribute, XmlNameAttributeSyntax)?.Reference?.Identifier.ValueText
         End Function
 
-        Private Function GetAttributes(tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
+        Private Function GetAttributes(token As SyntaxToken, tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
             Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull().ToSet()
-            Return GetAttributeItems(tagName, existingAttributeNames)
+            Dim nextToken = token.GetNextToken()
+            Return GetAttributeItems(tagName, existingAttributeNames,
+                                     addEqualsAndQuotes:=Not nextToken.IsKind(SyntaxKind.EqualsToken) Or nextToken.HasLeadingTrivia)
         End Function
 
         Private Shared Function GetAttributeName(node As XmlNodeSyntax) As String
@@ -336,7 +351,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return nameSyntax?.LocalName.ValueText
         End Function
 
-        Private Shared s_defaultRules As CompletionItemRules =
+        Protected Overrides Function GetParameters(symbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
+            Dim declaredParameters = symbol.GetParameters()
+            Dim namedTypeSymbol = TryCast(symbol, INamedTypeSymbol)
+            If namedTypeSymbol IsNot Nothing Then
+                If namedTypeSymbol.DelegateInvokeMethod IsNot Nothing Then
+                    declaredParameters = namedTypeSymbol.DelegateInvokeMethod.Parameters
+                End If
+            End If
+
+            Return declaredParameters
+        End Function
+
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(
                 filterCharacterRules:=FilterRules,
                 enterKeyRule:=EnterKeyRule.Never)

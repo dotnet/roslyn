@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct SyntaxList<TNode> where TNode : GreenNode
     {
         internal struct Enumerator
         {
-            private SyntaxList<TNode> _list;
+            private readonly SyntaxList<TNode> _list;
             private int _index;
 
             internal Enumerator(SyntaxList<TNode> list)

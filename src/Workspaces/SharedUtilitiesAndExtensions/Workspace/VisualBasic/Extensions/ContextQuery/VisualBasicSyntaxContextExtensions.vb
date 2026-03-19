@@ -3,16 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
     Friend Module VisualBasicSyntaxTreeExtensions
 
         <Extension>
-        Friend Function IsAccessibleEventContext(context As VisualBasicSyntaxContext, startAtEnclosingBaseType As Boolean, cancellationToken As CancellationToken) As Boolean
+        Friend Function IsAccessibleEventContext(context As VisualBasicSyntaxContext, startAtEnclosingBaseType As Boolean) As Boolean
             If context.FollowsEndOfStatement Then
                 Return False
             End If
@@ -21,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If targetToken.IsChildToken(Of HandlesClauseSyntax)(Function(hc) hc.HandlesKeyword) OrElse
                 targetToken.IsChildSeparatorToken(Function(hc As HandlesClauseSyntax) hc.Events) Then
 
-                Dim container = context.EnclosingNamedType.GetValue(cancellationToken)
-
+                Dim container = context.EnclosingNamedType
                 If container Is Nothing Then
                     Return False
                 End If

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -18,6 +19,32 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class MetadataHelpers
     {
+        /// <summary>
+        /// Once the #UserString heap reaches this size, we can't emit any more string literals to it.
+        /// 
+        /// The max number of bytes that can fit into #US the heap is 2^29 - 1,
+        /// but each string also needs to have an offset that's at most 0xffffff (2^24 - 1) to be addressable by a token.
+        /// First byte of the heap is reserved (0), hence there is 2 ^ 24 - 2 bytes available for user strings.
+        /// 
+        /// See https://github.com/dotnet/runtime/blob/2bd17019c1c01a6bf17a2de244ff92591fc3c334/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/Ecma335/MetadataBuilder.Heaps.cs#L82
+        /// </summary>
+        internal const int UserStringHeapCapacity = 0xfffffe;
+
+        // https://github.com/dotnet/roslyn/issues/73548:
+        // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
+        // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
+        public const System.Reflection.GenericParameterAttributes GenericParameterAttributesAllowByRefLike = (System.Reflection.GenericParameterAttributes)0x0020;
+
+        extension(System.Reflection.TypeAttributes)
+        {
+            public static System.Reflection.TypeAttributes ExtendedLayout => (System.Reflection.TypeAttributes)0x0018;
+        }
+
+        extension(System.Runtime.InteropServices.LayoutKind)
+        {
+            public static System.Runtime.InteropServices.LayoutKind Extended => (System.Runtime.InteropServices.LayoutKind)1;
+        }
+
         public const char DotDelimiter = '.';
         public const string DotDelimiterString = ".";
         public const char GenericTypeNameManglingChar = '`';
@@ -30,26 +57,26 @@ namespace Microsoft.CodeAnalysis
         public const char MangledNameRegionStartChar = '<';
         public const char MangledNameRegionEndChar = '>';
 
-        internal struct AssemblyQualifiedTypeName
+        internal readonly struct AssemblyQualifiedTypeName
         {
-            internal readonly string TopLevelType;
-            internal readonly string[] NestedTypes;
-            internal readonly AssemblyQualifiedTypeName[] TypeArguments;
+            internal readonly string? TopLevelType;
+            internal readonly string[]? NestedTypes;
+            internal readonly AssemblyQualifiedTypeName[]? TypeArguments;
             internal readonly int PointerCount;
 
             /// <summary>
             /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
             /// </summary>
-            internal readonly int[] ArrayRanks;
-            internal readonly string AssemblyName;
+            internal readonly int[]? ArrayRanks;
+            internal readonly string? AssemblyName;
 
             internal AssemblyQualifiedTypeName(
-                string topLevelType,
-                string[] nestedTypes,
-                AssemblyQualifiedTypeName[] typeArguments,
+                string? topLevelType,
+                string[]? nestedTypes,
+                AssemblyQualifiedTypeName[]? typeArguments,
                 int pointerCount,
-                int[] arrayRanks,
-                string assemblyName)
+                int[]? arrayRanks,
+                string? assemblyName)
             {
                 this.TopLevelType = topLevelType;
                 this.NestedTypes = nestedTypes;
@@ -108,14 +135,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private int Offset
-            {
-                get
-                {
-                    return _offset;
-                }
-            }
-
             private char Current
             {
                 get
@@ -133,12 +152,12 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(!isTypeArgumentWithAssemblyName || isTypeArgument);
 
-                string topLevelType = null;
-                ArrayBuilder<string> nestedTypesBuilder = null;
-                AssemblyQualifiedTypeName[] typeArguments = null;
+                string? topLevelType = null;
+                ArrayBuilder<string>? nestedTypesBuilder = null;
+                AssemblyQualifiedTypeName[]? typeArguments = null;
                 int pointerCount = 0;
-                ArrayBuilder<int> arrayRanksBuilder = null;
-                string assemblyName = null;
+                ArrayBuilder<int>? arrayRanksBuilder = null;
+                string? assemblyName = null;
                 bool decodingTopLevelType = true;
                 bool isGenericTypeName = false;
 
@@ -277,7 +296,7 @@ ExitDecodeTypeName:
                     assemblyName);
             }
 
-            private static void HandleDecodedTypeName(string decodedTypeName, bool decodingTopLevelType, ref string topLevelType, ref ArrayBuilder<string> nestedTypesBuilder)
+            private static void HandleDecodedTypeName(string decodedTypeName, bool decodingTopLevelType, ref string? topLevelType, ref ArrayBuilder<string>? nestedTypesBuilder)
             {
                 if (decodedTypeName.Length != 0)
                 {
@@ -319,7 +338,7 @@ ExitDecodeTypeName:
                 return _input.Substring(start, _offset - start);
             }
 
-            private AssemblyQualifiedTypeName[] DecodeTypeArguments()
+            private AssemblyQualifiedTypeName[]? DecodeTypeArguments()
             {
                 if (EndOfInput)
                 {
@@ -381,7 +400,7 @@ ExitDecodeTypeName:
                 return result;
             }
 
-            private string DecodeAssemblyName(bool isTypeArgumentWithAssemblyName)
+            private string? DecodeAssemblyName(bool isTypeArgumentWithAssemblyName)
             {
                 if (EndOfInput)
                 {
@@ -410,7 +429,7 @@ ExitDecodeTypeName:
             /// <summary>
             /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
             /// </summary>
-            private void DecodeArrayShape(StringBuilder typeNameBuilder, ref ArrayBuilder<int> arrayRanksBuilder)
+            private void DecodeArrayShape(StringBuilder typeNameBuilder, ref ArrayBuilder<int>? arrayRanksBuilder)
             {
                 Debug.Assert(Current == '[');
 
@@ -476,18 +495,18 @@ ExitDecodeTypeName:
             return (arity <= 9) ? s_aritySuffixesOneToNine[arity - 1] : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
         }
 
-        internal static string ComposeAritySuffixedMetadataName(string name, int arity)
+        internal static string ComposeAritySuffixedMetadataName(string name, int arity, string? associatedFileIdentifier)
         {
-            return arity == 0 ? name : name + GetAritySuffix(arity);
+            return associatedFileIdentifier + (arity == 0 ? name : name + GetAritySuffix(arity));
         }
 
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {
             int suffixStartsAt;
-            return InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
+            return InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt);
         }
 
-        private static short InferTypeArityFromMetadataName(string emittedTypeName, out int suffixStartsAt)
+        private static short InferTypeArityFromMetadataName(ReadOnlySpan<char> emittedTypeName, out int suffixStartsAt)
         {
             Debug.Assert(emittedTypeName != null, "NULL actual name unexpected!!!");
             int emittedTypeNameLength = emittedTypeName.Length;
@@ -509,28 +528,56 @@ ExitDecodeTypeName:
                 return 0;
             }
 
-            // Given a name corresponding to <unmangledName>`<arity>,
-            // extract the arity.
-            string stringRepresentingArity = emittedTypeName.Substring(indexOfManglingChar);
-
-            int arity;
-            bool nonNumericCharFound = !int.TryParse(stringRepresentingArity, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
-
-            if (nonNumericCharFound || arity < 0 || arity > short.MaxValue ||
-                stringRepresentingArity != arity.ToString())
+            // Given a name corresponding to <unmangledName>`<arity>, extract the arity.
+            if (tryScanArity(emittedTypeName[indexOfManglingChar..]) is not short arity)
             {
                 suffixStartsAt = -1;
                 return 0;
             }
 
             suffixStartsAt = indexOfManglingChar - 1;
-            return (short)arity;
+            return arity;
+
+            static short? tryScanArity(ReadOnlySpan<char> aritySpan)
+            {
+                // Arity must have at least one character and must not have leading zeroes.
+                // Also, in order to fit into short.MaxValue (32767), it must be at most 5 characters long. 
+                if (aritySpan is { Length: >= 1 and <= 5 } and not ['0', ..])
+                {
+                    int intArity = 0;
+                    foreach (char digit in aritySpan)
+                    {
+                        // Accepting integral decimal digits only
+                        if (digit is < '0' or > '9')
+                            return null;
+
+                        intArity = intArity * 10 + (digit - '0');
+                    }
+
+                    Debug.Assert(intArity > 0);
+
+                    if (intArity <= short.MaxValue)
+                        return (short)intArity;
+                }
+
+                return null;
+            }
         }
 
         internal static string InferTypeArityAndUnmangleMetadataName(string emittedTypeName, out short arity)
         {
+            var emittedTypeNameMemory = emittedTypeName.AsMemory();
+            var resultMemory = InferTypeArityAndUnmangleMetadataName(emittedTypeNameMemory, out arity);
+            var resultString = resultMemory.ToString();
+
+            Debug.Assert(!resultMemory.Equals(emittedTypeNameMemory) || ReferenceEquals(resultString, emittedTypeName), "If the name was not mangled, we should get the original string instance back.");
+            return resultString;
+        }
+
+        internal static ReadOnlyMemory<char> InferTypeArityAndUnmangleMetadataName(ReadOnlyMemory<char> emittedTypeName, out short arity)
+        {
             int suffixStartsAt;
-            arity = InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
+            arity = InferTypeArityFromMetadataName(emittedTypeName.Span, out suffixStartsAt);
 
             if (arity == 0)
             {
@@ -539,7 +586,7 @@ ExitDecodeTypeName:
             }
 
             Debug.Assert(suffixStartsAt > 0 && suffixStartsAt < emittedTypeName.Length - 1);
-            return emittedTypeName.Substring(0, suffixStartsAt);
+            return emittedTypeName[..suffixStartsAt];
         }
 
         internal static string UnmangleMetadataNameForArity(string emittedTypeName, int arity)
@@ -547,10 +594,10 @@ ExitDecodeTypeName:
             Debug.Assert(arity > 0);
 
             int suffixStartsAt;
-            if (arity == InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt))
+            if (arity == InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt))
             {
                 Debug.Assert(suffixStartsAt > 0 && suffixStartsAt < emittedTypeName.Length - 1);
-                return emittedTypeName.Substring(0, suffixStartsAt);
+                return emittedTypeName[..suffixStartsAt];
             }
 
             return emittedTypeName;
@@ -560,22 +607,30 @@ ExitDecodeTypeName:
         /// An ImmutableArray representing the single string "System"
         /// </summary>
         private static readonly ImmutableArray<string> s_splitQualifiedNameSystem = ImmutableArray.Create(SystemString);
+        private static readonly ImmutableArray<ReadOnlyMemory<char>> s_splitQualifiedNameSystemMemory = ImmutableArray.Create(SystemString.AsMemory());
 
-        internal static ImmutableArray<string> SplitQualifiedName(
-              string name)
+        internal static ImmutableArray<string> SplitQualifiedName(string name)
+            => SplitQualifiedNameWorker(name.AsMemory(), s_splitQualifiedNameSystem, static memory => memory.ToString());
+
+        internal static ImmutableArray<ReadOnlyMemory<char>> SplitQualifiedName(ReadOnlyMemory<char> name)
+            => SplitQualifiedNameWorker(name, s_splitQualifiedNameSystemMemory, static memory => memory);
+
+        internal static ImmutableArray<T> SplitQualifiedNameWorker<T>(
+            ReadOnlyMemory<char> nameMemory, ImmutableArray<T> splitSystemString, Func<ReadOnlyMemory<char>, T> convert)
         {
-            Debug.Assert(name != null);
+            Debug.Assert(!nameMemory.Equals(default(ReadOnlyMemory<char>)));
 
-            if (name.Length == 0)
+            if (nameMemory.Length == 0)
             {
-                return ImmutableArray<string>.Empty;
+                return ImmutableArray<T>.Empty;
             }
 
             // PERF: Avoid String.Split because of the allocations. Also, we can special-case
             // for "System" if it is the first or only part.
 
             int dots = 0;
-            foreach (char ch in name)
+            var nameSpan = nameMemory.Span;
+            foreach (char ch in nameSpan)
             {
                 if (ch == DotDelimiter)
                 {
@@ -585,24 +640,24 @@ ExitDecodeTypeName:
 
             if (dots == 0)
             {
-                return name == SystemString ? s_splitQualifiedNameSystem : ImmutableArray.Create(name);
+                return nameMemory.Span.SequenceEqual(SystemString.AsSpan()) ? splitSystemString : ImmutableArray.Create(convert(nameMemory));
             }
 
-            var result = ArrayBuilder<string>.GetInstance(dots + 1);
+            var result = ArrayBuilder<T>.GetInstance(dots + 1);
 
             int start = 0;
             for (int i = 0; dots > 0; i++)
             {
-                if (name[i] == DotDelimiter)
+                if (nameSpan[i] == DotDelimiter)
                 {
                     int len = i - start;
-                    if (len == 6 && start == 0 && name.StartsWith(SystemString, StringComparison.Ordinal))
+                    if (len == 6 && start == 0 && nameSpan.StartsWith(SystemString.AsSpan(), StringComparison.Ordinal))
                     {
-                        result.Add(SystemString);
+                        result.Add(convert(SystemString.AsMemory()));
                     }
                     else
                     {
-                        result.Add(name.Substring(start, len));
+                        result.Add(convert(nameMemory.Slice(start, len)));
                     }
 
                     dots--;
@@ -610,7 +665,7 @@ ExitDecodeTypeName:
                 }
             }
 
-            result.Add(name.Substring(start));
+            result.Add(convert(nameMemory[start..]));
 
             return result.ToImmutableAndFree();
         }
@@ -618,6 +673,15 @@ ExitDecodeTypeName:
         internal static string SplitQualifiedName(
             string pstrName,
             out string qualifier)
+        {
+            ReadOnlyMemory<char> nameMemory = SplitQualifiedName(pstrName, out ReadOnlyMemory<char> qualifierMemory);
+            qualifier = qualifierMemory.ToString();
+            return nameMemory.ToString();
+        }
+
+        internal static ReadOnlyMemory<char> SplitQualifiedName(
+            string pstrName,
+            out ReadOnlyMemory<char> qualifier)
         {
             Debug.Assert(pstrName != null);
 
@@ -651,24 +715,24 @@ ExitDecodeTypeName:
 
             if (delimiter < 0)
             {
-                qualifier = string.Empty;
-                return pstrName;
+                qualifier = string.Empty.AsMemory();
+                return pstrName.AsMemory();
             }
 
             if (delimiter == 6 && pstrName.StartsWith(SystemString, StringComparison.Ordinal))
             {
-                qualifier = SystemString;
+                qualifier = SystemString.AsMemory();
             }
             else
             {
-                qualifier = pstrName.Substring(0, delimiter);
+                qualifier = pstrName.AsMemory()[..delimiter];
             }
 
-            return pstrName.Substring(delimiter + 1);
+            return pstrName.AsMemory()[(delimiter + 1)..];
         }
 
         internal static string BuildQualifiedName(
-            string qualifier,
+            string? qualifier,
             string name)
         {
             Debug.Assert(name != null);
@@ -722,8 +786,8 @@ ExitDecodeTypeName:
             int namespaceNameLength,
             IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS,
             StringComparer nameComparer,
-            out IEnumerable<IGrouping<string, TypeDefinitionHandle>> types,
-            out IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> namespaces)
+            [NotNull] out IEnumerable<IGrouping<string, TypeDefinitionHandle>>? types,
+            [NotNull] out IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>>? namespaces)
         {
             Debug.Assert(typesByNS != null);
             Debug.Assert(namespaceNameLength >= 0);
@@ -749,11 +813,11 @@ ExitDecodeTypeName:
                     var pair = enumerator.Current;
 
                     // Simple name of the last encountered child namespace.
-                    string lastChildNamespaceName = null;
+                    string? lastChildNamespaceName = null;
 
                     // A list accumulating information about types within the last encountered child namespace.
                     // The list is similar to the sequence passed to this function.
-                    List<IGrouping<string, TypeDefinitionHandle>> typesInLastChildNamespace = null;
+                    List<IGrouping<string, TypeDefinitionHandle>>? typesInLastChildNamespace = null;
 
                     // if there are any types in this namespace,
                     // they will be in the first several groups if their key length 
@@ -785,6 +849,11 @@ ExitDecodeTypeName:
                         int cmp = nameComparer.Compare(lastChildNamespaceName, childNamespaceName);
                         if (cmp == 0)
                         {
+                            // This cannot be null because the starting state for lastChildNamespaceName is null and 
+                            // hence we can't hit this branch in the first iteration. The else branch will always 
+                            // allocate this value.
+                            Debug.Assert((object?)typesInLastChildNamespace != null);
+
                             // We are still processing the same child namespace
                             typesInLastChildNamespace.Add(pair);
                         }
@@ -794,13 +863,14 @@ ExitDecodeTypeName:
                             if (cmp > 0)
                             {
                                 // The sort order is violated for child namespace names. Obfuscation is the likely reason for this. 
-                                Debug.Assert((object)lastChildNamespaceName != null);
+                                Debug.Assert(lastChildNamespaceName != null);
                                 possiblyHavePairsWithDuplicateKey = true;
                             }
 
                             // Preserve information about previous child namespace.
                             if (typesInLastChildNamespace != null)
                             {
+                                Debug.Assert(lastChildNamespaceName != null);
                                 Debug.Assert(typesInLastChildNamespace.Count != 0);
                                 nestedNamespaces.Add(
                                     new KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>(
@@ -809,7 +879,6 @@ ExitDecodeTypeName:
 
                             typesInLastChildNamespace = new List<IGrouping<string, TypeDefinitionHandle>>();
                             lastChildNamespaceName = childNamespaceName;
-                            Debug.Assert((object)lastChildNamespaceName != null);
 
                             typesInLastChildNamespace.Add(pair);
                         }
@@ -819,6 +888,7 @@ ExitDecodeTypeName:
                     // Preserve information about last child namespace.
                     if (typesInLastChildNamespace != null)
                     {
+                        Debug.Assert(lastChildNamespaceName != null);
                         Debug.Assert(typesInLastChildNamespace.Count != 0);
                         nestedNamespaces.Add(
                             new KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>(
@@ -853,7 +923,7 @@ DoneWithSequence:
                         {
                             Debug.Assert(keyIndex < i);
                             var primaryPair = nestedNamespaces[keyIndex];
-                            nestedNamespaces[keyIndex] = KeyValuePairUtil.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
+                            nestedNamespaces[keyIndex] = KeyValuePair.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
                             nestedNamespaces[i] = default(KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>);
                         }
                     }
@@ -899,9 +969,9 @@ DoneWithSequence:
         }
 
         /// <summary>
-        /// Determines whether given string can be used as a non-empty metadata identifier (a NUL-terminated UTF8 string).
+        /// Determines whether given string can be used as a non-empty metadata identifier (a NUL-terminated UTF-8 string).
         /// </summary>
-        internal static bool IsValidMetadataIdentifier(string str)
+        internal static bool IsValidMetadataIdentifier(string? str)
         {
             return !string.IsNullOrEmpty(str) && str.IsValidUnicodeString() && str.IndexOf('\0') == -1;
         }
@@ -909,19 +979,19 @@ DoneWithSequence:
         /// <summary>
         /// True if the string doesn't contain incomplete surrogates.
         /// </summary>
-        internal static bool IsValidUnicodeString(string str)
+        internal static bool IsValidUnicodeString(string? str)
         {
             return str == null || str.IsValidUnicodeString();
         }
 
-        internal static bool IsValidAssemblyOrModuleName(string name)
+        internal static bool IsValidAssemblyOrModuleName(string? name)
         {
             return GetAssemblyOrModuleNameErrorArgumentResourceName(name) == null;
         }
 
         internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, DiagnosticBag diagnostics)
         {
-            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            string? errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
             if (errorArgumentResourceId != null)
             {
                 diagnostics.Add(
@@ -932,7 +1002,7 @@ DoneWithSequence:
 
         internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, ArrayBuilder<Diagnostic> builder)
         {
-            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            string? errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
             if (errorArgumentResourceId != null)
             {
                 builder.Add(
@@ -941,7 +1011,7 @@ DoneWithSequence:
             }
         }
 
-        private static string GetAssemblyOrModuleNameErrorArgumentResourceName(string name)
+        private static string? GetAssemblyOrModuleNameErrorArgumentResourceName(string? name)
         {
             if (name == null)
             {
@@ -978,7 +1048,7 @@ DoneWithSequence:
         /// 22.30.2: "The format of Name is {file name}.{file extension} with no path or drive letter; on POSIX-compliant systems Name contains no colon, no forward-slash, no backslash."
         ///          As Microsoft specific constraint.
         /// 
-        /// A reasonable restriction seems to be a valid UTF8 non-empty string that doesn't contain '\0', '\', '/', ':' characters.
+        /// A reasonable restriction seems to be a valid UTF-8 non-empty string that doesn't contain '\0', '\', '/', ':' characters.
         /// </summary>
         internal static bool IsValidMetadataFileName(string name)
         {
@@ -1016,6 +1086,36 @@ DoneWithSequence:
             s.Replace('.', '_');
 
             return pooledStrBuilder.ToStringAndFree();
+        }
+
+        /// <summary>
+        /// Calculates the number of bytes written on #UserHeap for the given string.
+        /// See https://github.com/dotnet/runtime/blob/5bfc0bec9d627c946f154dd99103a393d278f841/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/BlobBuilder.cs#L1044
+        /// </summary>
+        internal static int GetUserStringBlobSize(string value)
+        {
+            var byteLength = value.Length * 2 + 1;
+            return GetCompressedIntegerSize(byteLength) + byteLength;
+        }
+
+        /// <summary>
+        /// See https://github.com/dotnet/runtime/blob/5bfc0bec9d627c946f154dd99103a393d278f841/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/BlobWriterImpl.cs#L16
+        /// </summary>
+        private static int GetCompressedIntegerSize(int value)
+        {
+            Debug.Assert(value <= 0x1fffffff);
+
+            if (value <= 0x7f)
+            {
+                return 1;
+            }
+
+            if (value <= 0x3fff)
+            {
+                return 2;
+            }
+
+            return 4;
         }
     }
 }

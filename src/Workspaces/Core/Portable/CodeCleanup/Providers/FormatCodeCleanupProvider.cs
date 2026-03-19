@@ -6,48 +6,37 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
+namespace Microsoft.CodeAnalysis.CodeCleanup.Providers;
+
+internal sealed class FormatCodeCleanupProvider(ImmutableArray<AbstractFormattingRule> rules = default) : ICodeCleanupProvider
 {
-    internal class FormatCodeCleanupProvider : ICodeCleanupProvider
+    public string Name => PredefinedCodeCleanupProviderNames.Format;
+
+    public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
-        public string Name => PredefinedCodeCleanupProviderNames.Format;
+        var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var result = formatter.GetFormattingResult(root, spans, options.FormattingOptions, rules, cancellationToken);
 
-        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
-        {
-            // If the old text already exists, use the fast path for formatting.
-            if (document.TryGetText(out var oldText))
-            {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var textChanges = Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, cancellationToken: cancellationToken);
-                if (textChanges.Count == 0)
-                {
-                    return document;
-                }
+        // apply changes to an old text if it already exists
+        return document.TryGetText(out var oldText)
+            ? document.WithText(oldText.WithChanges(result.GetTextChanges(cancellationToken)))
+            : document.WithSyntaxRoot(result.GetFormattedRoot(cancellationToken));
+    }
 
-                var newText = oldText.WithChanges(textChanges);
-                return document.WithText(newText);
-            }
+    public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
+    {
+        var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(root.Language);
+        var result = formatter.GetFormattingResult(root, spans, options, rules, cancellationToken);
 
-            return await Formatter.FormatAsync(document, spans, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
-        {
-            // If the old text already exists, use the fast path for formatting.
-            if (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out var oldText))
-            {
-                var changes = Formatter.GetFormattedTextChanges(root, spans, workspace, cancellationToken: cancellationToken);
-                if (changes.Count == 0)
-                {
-                    return root;
-                }
-
-                return await root.SyntaxTree.WithChangedText(oldText.WithChanges(changes)).GetRootAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return Formatter.Format(root, spans, workspace, cancellationToken: cancellationToken);
-        }
+        // apply changes to an old text if it already exists
+        return (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out var oldText))
+            ? root.SyntaxTree.WithChangedText(oldText.WithChanges(result.GetTextChanges(cancellationToken))).GetRootAsync(cancellationToken)
+            : Task.FromResult(result.GetFormattedRoot(cancellationToken));
     }
 }

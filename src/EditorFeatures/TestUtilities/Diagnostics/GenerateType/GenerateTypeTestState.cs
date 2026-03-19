@@ -2,103 +2,77 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
+
+internal sealed class GenerateTypeTestState
 {
-    internal sealed class GenerateTypeTestState : IDisposable
+    public static List<string> FixIds = ["CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456"];
+    private readonly EditorTestHostDocument _testDocument;
+    public EditorTestWorkspace Workspace { get; }
+    public Document InvocationDocument { get; }
+    public Document ExistingDocument { get; }
+    public Project ProjectToBeModified { get; }
+    public Project TriggeredProject { get; }
+    public string TypeName { get; }
+
+    public GenerateTypeTestState(
+        EditorTestWorkspace workspace,
+        string projectToBeModified,
+        string typeName,
+        string existingFileName)
     {
-        public static List<string> FixIds = new List<string>(new[] { "CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456" });
-        private TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; }
-        public Document InvocationDocument { get; }
-        public Document ExistingDocument { get; }
-        public Project ProjectToBeModified { get; }
-        public Project TriggeredProject { get; }
-        public string TypeName { get; }
+        Workspace = workspace;
+        _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
+        Contract.ThrowIfNull(_testDocument, "markup does not contain a cursor position");
 
-        public static GenerateTypeTestState Create(
-            string initial,
-            string projectToBeModified,
-            string typeName,
-            string existingFileName,
-            string languageName)
+        TriggeredProject = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
+
+        if (projectToBeModified == null)
         {
-            var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial)
-                : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial)
-                  : TestWorkspace.CreateVisualBasic(initial);
-
-            return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
+            // Select the project from which the Codefix was triggered
+            ProjectToBeModified = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
+        }
+        else
+        {
+            ProjectToBeModified = Workspace.CurrentSolution.Projects.FirstOrDefault(proj => proj.Name.Equals(projectToBeModified));
+            Contract.ThrowIfNull(ProjectToBeModified, "Project with the given name does not exist");
         }
 
-        private GenerateTypeTestState(string projectToBeModified, string typeName, string existingFileName, TestWorkspace testWorkspace)
+        InvocationDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
+        if (projectToBeModified == null && existingFileName == null)
         {
-            Workspace = testWorkspace;
-            _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
-
-            if (_testDocument == null)
-            {
-                throw new ArgumentException("markup does not contain a cursor position", "workspace");
-            }
-
-            TriggeredProject = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
-
-            if (projectToBeModified == null)
-            {
-                // Select the project from which the Codefix was triggered
-                ProjectToBeModified = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
-            }
-            else
-            {
-                ProjectToBeModified = Workspace.CurrentSolution.Projects.FirstOrDefault(proj => proj.Name.Equals(projectToBeModified));
-                if (ProjectToBeModified == null)
-                {
-                    throw new ArgumentException("Project with the given name does not exist", "workspace");
-                }
-            }
-
-            InvocationDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
-            if (projectToBeModified == null && existingFileName == null)
-            {
-                ExistingDocument = InvocationDocument;
-            }
-            else if (existingFileName != null)
-            {
-                ExistingDocument = ProjectToBeModified.Documents.FirstOrDefault(doc => doc.Name.Equals(existingFileName));
-            }
-
-            TypeName = typeName;
+            ExistingDocument = InvocationDocument;
+        }
+        else if (existingFileName != null)
+        {
+            ExistingDocument = ProjectToBeModified.Documents.FirstOrDefault(doc => doc.Name.Equals(existingFileName));
         }
 
-        public TestGenerateTypeOptionsService TestGenerateTypeOptionsService
-        {
-            get
-            {
-                return (TestGenerateTypeOptionsService)InvocationDocument.Project.Solution.Workspace.Services.GetService<IGenerateTypeOptionsService>();
-            }
-        }
+        TypeName = typeName;
+    }
 
-        public TestProjectManagementService TestProjectManagementService
+    public TestGenerateTypeOptionsService TestGenerateTypeOptionsService
+    {
+        get
         {
-            get
-            {
-                return (TestProjectManagementService)InvocationDocument.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
-            }
+            return (TestGenerateTypeOptionsService)InvocationDocument.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
         }
+    }
 
-        public void Dispose()
+    public TestProjectManagementService TestProjectManagementService
+    {
+        get
         {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
+            return (TestProjectManagementService)InvocationDocument.Project.Solution.Services.GetService<IProjectManagementService>();
         }
     }
 }

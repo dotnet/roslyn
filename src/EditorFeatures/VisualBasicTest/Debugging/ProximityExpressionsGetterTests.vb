@@ -5,21 +5,15 @@
 Imports System.IO
 Imports System.Text
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
+    <Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
     Partial Public Class ProximityExpressionsGetterTests
 
         Private Shared s_lazyTestFileContent As String
@@ -36,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             Return s_lazyTestFileContent
         End Function
 
-        Public Function GetTree() As SyntaxTree
+        Public Shared Function GetTree() As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(GetTestFileContent())
         End Function
 
@@ -45,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
         ''' ProximityExpressionsGetterTests.Expressions.vb) The test file comes from the TestFiles
         ''' folder in this project.
         ''' </summary>
-        Public Async Function GenerateBaselineAsync() As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(GetTestFileContent())
+        Public Shared Async Function GenerateBaselineAsync() As Task
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(GetTestFileContent())
                 Dim languageDebugInfo = New VisualBasicLanguageDebugInfoService()
 
                 Dim hostdoc = workspace.Documents.First()
@@ -143,9 +137,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 
         End Function
 
-        Private Async Function TestProximityExpressionsGetterAsync(markup As String,
+        Private Shared Async Function TestProximityExpressionsGetterAsync(markup As String,
                                                    continuation As Func(Of VisualBasicProximityExpressionsService, Document, Integer, Task)) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(markup)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(markup)
                 Dim testDocument = workspace.Documents.Single()
                 Dim snapshot = testDocument.GetTextBuffer().CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
@@ -156,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             End Using
         End Function
 
-        Public Async Function TestTryDoAsync(input As String,
+        Public Shared Async Function TestTryDoAsync(input As String,
                              ParamArray expectedTerms As String()) As Task
             Await TestProximityExpressionsGetterAsync(input,
                                                       Async Function(getter, semanticSnapshot, point)
@@ -170,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
                                                       End Function)
         End Function
 
-        Public Async Function TestIsValidAsync(input As String, expression As String, expectedValid As Boolean) As Task
+        Public Shared Async Function TestIsValidAsync(input As String, expression As String, expectedValid As Boolean) As Task
             Await TestProximityExpressionsGetterAsync(input,
                                                       Async Function(getter, semanticSnapshot, point)
                                                           Dim actualValid = Await getter.IsValidAsync(semanticSnapshot, point, expression, CancellationToken.None)
@@ -178,9 +172,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
                                                       End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        <WorkItem(538819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
-        <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValid1() As Task
             Await TestIsValidAsync(<text>Module M
     Sub S
@@ -190,43 +183,38 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 End Module</text>.Value, "local", True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidWithDiagnostics() As Task
             ' local doesn't exist in this context
             Await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidReferencingLocalBeforeDeclaration() As Task
             Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidReferencingUndefinedVariable() As Task
             Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidNoTypeSymbol() As Task
             Await TestIsValidAsync("namespace Namespace$$ { }", "goo", False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        <WorkItem(527754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527754")>
         Public Async Function TestIsValidLocalAfterPosition() As Task
             Await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", False)
         End Function
 
-        Private Async Function TestLanguageDebugInfoTryGetProximityExpressionsAsync(input As String, expectedResults As IEnumerable(Of String), expectedResult As Boolean) As Task
+        Private Shared Async Function TestLanguageDebugInfoTryGetProximityExpressionsAsync(input As String) As Task
             Dim parsedInput As String = input
             Dim caretPosition As Integer
             MarkupTestFile.GetPosition(input, parsedInput, caretPosition)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(parsedInput)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(parsedInput)
                 Dim service = New VisualBasicProximityExpressionsService()
                 Dim hostdoc = workspace.Documents.First()
                 Dim snapshot = hostdoc.GetTextBuffer().CurrentSnapshot
@@ -237,13 +225,12 @@ End Module</text>.Value, "local", True)
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        <WorkItem(538819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
         Public Async Function TestDebugInfo1() As Task
-            Await TestLanguageDebugInfoTryGetProximityExpressionsAsync("$$Module M : End Module", Array.Empty(Of String)(), False)
+            Await TestLanguageDebugInfoTryGetProximityExpressionsAsync("$$Module M : End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Async Function TestTryDo1() As Task
             Await TestTryDoAsync(<text>Module M
     Sub S
@@ -253,18 +240,18 @@ End Module</text>.Value, "local", True)
 End Module</text>.NormalizedValue, "local")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Async Function TestStatementTerminatorToken() As Task
             Await TestTryDoAsync(<text>Module M$$
 </text>.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Async Function TestNoParentToken() As Task
             Await TestTryDoAsync(<text>$$</text>.NormalizedValue)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact>
         Public Async Function TestCatchParameters() As Task
             Await TestTryDoAsync(<text>
 Module M
@@ -280,8 +267,7 @@ End Module
                       </text>.NormalizedValue, "x", "e")
         End Function
 
-        <WorkItem(538847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538847")>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538847")>
         Public Async Function TestMultipleStatementsOnSameLine() As Task
             Await TestTryDoAsync(<text>
 Imports System

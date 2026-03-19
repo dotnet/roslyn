@@ -196,7 +196,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return XmlMakeTextLiteralToken(precedingTrivia, TokenWidth, Scratch)
         End Function
 
-
         Private Function XmlMakeEntityLiteralToken(
                 precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode),
                 TokenWidth As Integer,

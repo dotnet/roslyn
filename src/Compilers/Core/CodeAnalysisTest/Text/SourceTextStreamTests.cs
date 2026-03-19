@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Text;
@@ -42,11 +44,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         [Fact]
         public void Issue1197()
         {
-            var baseText = "food time";
+            var baseText = new string('a', SourceTextStream.BufferSize - 1);
             var text = string.Format("{0}{1}", baseText, '\u2019');
             var encoding = s_utf8NoBom;
             var sourceText = SourceText.From(text, encoding);
-            using (var stream = new SourceTextStream(sourceText, bufferSize: text.Length * 2))
+            using (var stream = new SourceTextStream(sourceText))
             {
                 var buffer = new byte[baseText.Length + 1];
                 Assert.Equal(baseText.Length, stream.Read(buffer, 0, buffer.Length));

@@ -3,10 +3,33 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="Microsoft.Managed.Core.targets"/>
 
-  <PropertyGroup Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') AND
-                            ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '2.1')">
-    <MaxSupportedLangVersion Condition="'$(MaxSupportedLangVersion)' == ''">7.3</MaxSupportedLangVersion>
-    <LangVersion Condition="'$(LangVersion)' == ''">$(MaxSupportedLangVersion)</LangVersion>
+  <PropertyGroup>
+    <!-- .NETCoreApp < 3.0, .NETStandard < 2.1, or any other target framework -->
+    <_MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') AND
+                                         ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '2.1')">7.3</_MaxSupportedLangVersion>
+
+    <!-- .NETCoreApp < 5.0, .NETStandard == 2.1 -->
+    <_MaxSupportedLangVersion Condition="(('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0') OR
+                                          ('$(TargetFrameworkIdentifier)' == '.NETStandard' AND '$(_TargetFrameworkVersionWithoutV)' == '2.1')) AND
+                                          '$(_MaxSupportedLangVersion)' == ''">8.0</_MaxSupportedLangVersion>
+
+    <!-- 
+      Automatically calculate the maximum supported C# language version based on the .NET Target Framework.
+      - Pattern: .NET 5.0 uses C# 9.0, .NET 6.0 uses C# 10.0, and so on.
+      - Starting from C# 9.0 for .NET 5.0, we add the difference between the major .NET version and 5 
+        to determine the correct language version.
+      NOTE: `.Split('.')[0]` needed due to https://github.com/dotnet/msbuild/issues/9757.
+    -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">$([MSBuild]::Add(9, $([MSBuild]::Subtract($(_TargetFrameworkVersionWithoutV.Split('.')[0]), 5)))).0</_MaxSupportedLangVersion>
+
+    <!-- Cap _MaxSupportedLangVersion if it exceeds _MaxAvailableLangVersion -->
+    <_MaxAvailableLangVersion>14.0</_MaxAvailableLangVersion>
+    <_MaxSupportedLangVersion Condition="'$(_MaxSupportedLangVersion)' != '' AND
+                                         '$(_MaxSupportedLangVersion)' &gt; '$(_MaxAvailableLangVersion)'">$(_MaxAvailableLangVersion)</_MaxSupportedLangVersion>
+
+    <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
+    <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
 
   <Target Name="CoreCompile"
@@ -14,7 +37,7 @@
                   @(Compile);
                   @(_CoreCompileResourceInputs);
                   $(ApplicationIcon);
-                  $(AssemblyOriginatorKeyFile);
+                  $(KeyOriginatorFile);
                   @(ReferencePathWithRefAssemblies);
                   @(CompiledLicenseFile);
                   @(LinkResource);
@@ -25,7 +48,9 @@
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
-                  @(EditorConfigFiles)"
+                  @(Analyzer);
+                  @(EditorConfigFiles);
+                  $(SourceLink)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
@@ -44,6 +69,11 @@
     <PropertyGroup>
       <!-- To match historical behavior, when inside VS11+ disable the warning from csc.exe indicating that no sources were passed in-->
       <NoWarn Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '$(VisualStudioVersion)' != '' AND '$(VisualStudioVersion)' &gt; '10.0'">$(NoWarn);2008</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <!-- CS8002 is not relevant when targeting .NET Core because it ignores strong naming -->
+      <NoWarn>$(NoWarn);8002</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -83,7 +113,10 @@
          ErrorLog="$(ErrorLog)"
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
+         InterceptorsNamespaces="$(InterceptorsNamespaces)"
+         InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
          FileAlignment="$(FileAlignment)"
+         GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          GenerateFullPaths="$(GenerateFullPaths)"
          HighEntropyVA="$(HighEntropyVA)"
          Instrument="$(Instrument)"
@@ -107,18 +140,22 @@
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
+         ProjectName="$(MSBuildProjectName)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
          References="@(ReferencePathWithRefAssemblies)"
          RefOnly="$(ProduceOnlyReferenceAssembly)"
          ReportAnalyzer="$(ReportAnalyzer)"
+         ReportIVTs="$(ReportIVTs)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
          SharedCompilationId="$(SharedCompilationId)"
+         SkipAnalyzers="$(_SkipAnalyzers)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"
          TargetType="$(OutputType)"
+         TargetFramework="$(TargetFramework)"
          ToolExe="$(CscToolExe)"
          ToolPath="$(CscToolPath)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
@@ -143,4 +180,30 @@
 
     <CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
   </Target>
+
+  <!-- When we load a project in Visual Studio, the project system first does an evaluation pass of the
+       project, and hands the resulting list of <Compile> items to the language service. It then does an
+       execution pass executing CoreCompile passing SkipCompilerExecution=true and ProvideCommandLineArgs=true,
+       that resulting command line string is where we get our compiler switches. The execution pass is much
+       slower than the evaluation pass, so there's a window of time where we have a list of files, but not
+       any options yet.
+
+       Because there's a gap, that means there's a time where we are parsing source files with the default
+       parse options. We'll then have to reparse them a second time which isn't great. It also means any
+       cache lookups we do won't have the right options either, so the cache lookups might miss.
+
+       To help this, we'll have properties for the evaluation pass which is an "approximation" of the
+       options that would come out of CoreCompile, but only the ones that are required to be specified
+       and we don't expect them to change after evaluation phase or those that matter for parsing.
+
+       It's acceptable for the options that affect parsing to be imperfect: once the execution pass is complete we'll use those options instead,
+       so any behaviors here that don't match the real command line generation will only be temporary, and
+       probably won't be any worse than having no options at all. -->
+  <PropertyGroup>
+    <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(Features)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(Features)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(DocumentationFile)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -doc:"$(DocumentationFile)"</CommandLineArgsForDesignTimeEvaluation>
+  </PropertyGroup>
 </Project>

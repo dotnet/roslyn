@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1192,7 +1194,7 @@ class DerivedClass : BaseInterface
 {
     protected int field;
     public ref readonly int Method1(in int a) { return ref field; }
-    public ref readonly int Property1 { get { return ref field; } }
+    public ref readonly int Property1 { get { return ref @field; } }
     public ref readonly int this[int a] { get { return ref field; } }
 }";
 

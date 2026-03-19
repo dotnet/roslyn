@@ -3,9 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
@@ -542,7 +541,6 @@ Module M
 End Module
         ]]>)
     End Sub
-
 
     <WorkItem(539209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539209")>
     <Fact>
@@ -1928,7 +1926,6 @@ End Module
         statement = SyntaxFactory.ParseExecutableStatement(str)
         Assert.Equal(False, statement.ContainsDiagnostics)
         Assert.Equal(SyntaxKind.EmptyStatement, statement.Kind)
-
 
         str = "     " & vbCrLf & vbCrLf
 

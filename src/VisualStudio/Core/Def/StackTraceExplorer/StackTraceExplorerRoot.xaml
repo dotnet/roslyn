@@ -1,0 +1,176 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer.StackTraceExplorerRoot"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.StackTraceExplorer"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="Root"
+             vsui:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <Style TargetType="TabControl">
+                <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
+            <vsui:BrushToColorConverter x:Key="BrushToColorConverter" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" MinHeight="20" MinWidth="20" Margin="5">
+            <Button Click="Clear_Click" x:Name="ClearButton" AutomationProperties.Name="{Binding ElementName=Root, Path=Clear_Text}" KeyboardNavigation.TabIndex="0">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ClearCollection}" Margin="0 0 5 0" />
+                        <TextBlock Text="{Binding ElementName=Root, Path=Clear_Text}" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+        </StackPanel>
+        <TabControl x:Name="TabControl"
+            Grid.Row="1"
+            TabStripPlacement="Top"
+            ItemsSource="{Binding Tabs, Mode=OneWay}"
+            SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+
+            <!-- Container template for the tab control header to allow for horizontal scrolling of tabs -->
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" >
+                            <TabPanel x:Name="HeaderPanel"
+                              Panel.ZIndex ="1" 
+                              KeyboardNavigation.TabIndex="1"
+                              Grid.Column="0"
+                              Grid.Row="0"
+                              Margin="2,2,2,0"
+                              IsItemsHost="true"/>
+                        </ScrollViewer>
+                        <ContentPresenter x:Name="PART_SelectedContentHost"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                      Margin="{TemplateBinding Padding}"
+                                      ContentSource="SelectedContent" 
+                                      Grid.Row="1"
+                                      Focusable="True"
+                                      KeyboardNavigation.TabIndex="3"
+                                      AutomationProperties.Name="{Binding ElementName=Root, Path=StackTrace}" />
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
+
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="TabItem">
+                    <Setter Property="Header" Value="{Binding Header}" />
+                    <Setter Property="Content" Value="{Binding Content}" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                    <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
+                    <Setter Property="Padding" Value="20,0,20,0" />
+                    <Setter Property="FocusVisualStyle" Value="{DynamicResource ControlsFocusVisualStyle}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type TabItem}">
+                                <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="16" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter  
+                                        Grid.Row="0" 
+                                        x:Name="contentPresenter" 
+                                        ContentSource="Header" 
+                                        Focusable="False"
+                                        HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
+                                        Margin="5 0 5 0" 
+                                        RecognizesAccessKey="True" 
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                        VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+
+                                    <Button 
+                                        Grid.Row="0" 
+                                        Grid.Column="1" 
+                                        Command="{Binding CloseClick}" 
+                                        Margin="0" 
+                                        Padding="0" 
+                                        BorderThickness="0" 
+                                        Width="16" 
+                                        MinWidth="16" 
+                                        MinHeight="16" 
+                                        Height="16" 
+                                        AutomationProperties.Name="{Binding CloseTab}" 
+                                        KeyboardNavigation.TabIndex="2"
+                                        vsui:ImageThemingUtilities.ImageBackgroundColor="{Binding RelativeSource={RelativeSource Self}, Path=Background, Converter={StaticResource BrushToColorConverter}}">
+                                        <Button.Style>
+                                            <Style TargetType="{x:Type Button}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsFocused" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowButtonDownKey}}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsFocused" Value="False">
+                                                        <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" Margin="0" Width="14" Height="14" />
+                                    </Button>
+
+                                    <!-- the line under the text to indicate that this label is selected -->
+                                    <Rectangle
+                                        x:Name="_underline"
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="2"
+                                        Height="3"
+                                        Visibility="Collapsed"
+                                        Width="96"
+                                        HorizontalAlignment="Center"
+                                        Focusable="False"
+                                        Fill="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey}}"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey }}" />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="true"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" TargetName="_underline" Value="Visible" />
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextFocusedBrushKey }}" />
+                                    </MultiDataTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.ItemContainerStyle>
+        </TabControl>
+    </Grid>
+</UserControl>

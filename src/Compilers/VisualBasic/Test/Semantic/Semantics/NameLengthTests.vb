@@ -3,13 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 'Imports Microsoft.CodeAnalysis.VisualBasic.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Xunit
-Imports Microsoft.Cci
-Imports System
-Imports System.Xml.Linq
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class NameLengthTests : Inherits BasicTestBase
@@ -144,10 +141,10 @@ BC37220: Name 'get_<%= s_longSymbolName %>' exceeds the maximum length allowed i
 BC37220: Name 'set_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
     Property <%= s_longSymbolName %> As Integer     ' Fine (except accessors And backing field)
              <%= _longSquiggle_ %>
-BC37220: Name '_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
     Property <%= s_longSymbolName %>1 As Integer    ' Too long
              <%= _longSquiggle_ %>~
-BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name '_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
     Property <%= s_longSymbolName %>1 As Integer    ' Too long
              <%= _longSquiggle_ %>~
 BC37220: Name 'get_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
@@ -290,9 +287,11 @@ End Class
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
 BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
-BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
     Sub <%= s_longSymbolName %>1()
         <%= _longSquiggle_ %>~
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+        Sub <%= s_longSymbolName %>1()
+            <%= _longSquiggle_ %>~
 BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
         Sub <%= s_longSymbolName %>1()
             <%= _longSquiggle_ %>~

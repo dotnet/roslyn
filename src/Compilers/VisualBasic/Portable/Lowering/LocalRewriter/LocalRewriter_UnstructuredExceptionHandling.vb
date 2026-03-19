@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
 
         Private Const s_activeHandler_None As Integer = 0
         Private Const s_activeHandler_ResumeNext As Integer = 1
@@ -370,7 +370,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             statements.Add(nodeFactory.AssignmentExpression(nodeFactory.Local(_unstructuredExceptionHandling.ActiveHandlerTemporary, isLValue:=True),
                                                             nodeFactory.Literal(newErrorHandlerIndex)).ToStatement())
 Done:
-
             Debug.Assert(Not node.WasCompilerGenerated)
             Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
 

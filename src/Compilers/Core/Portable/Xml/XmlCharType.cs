@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // turns on tables that are stored as literals in this file
 // to generate new literals undef this constant and examine 
 // result of Dump() function.
@@ -79,9 +81,6 @@ namespace Microsoft.CodeAnalysis
 
         // bitmap for public ID characters - 1 bit per character 0x0 - 0x80; no character > 0x80 is a PUBLIC ID char
         private const string s_PublicIdBitmap = "\u2400\u0000\uffbb\uafff\uffff\u87ff\ufffe\u07ff";
-
-        // size of XmlCharType table
-        private const uint CharPropertiesSize = (uint)char.MaxValue + 1;
 
         // 8 results in the smaller combined size of the tables.
         // if anything changes (like we do not care about some of the char flags), try 
@@ -472,7 +471,7 @@ namespace Microsoft.CodeAnalysis
              0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0x00, 0x00,
         };
 
-        private static byte charProperties(char i)
+        private static byte GetCharProperties(char i)
         {
             // The index entry, table, identifies the start of the appropriate 256-entry table within s_charProperties
             byte table = s_charPropertiesIndex[i >> innerSizeBits];
@@ -481,6 +480,9 @@ namespace Microsoft.CodeAnalysis
 
 #else
         private static byte[][] s_charProperties = InitInstance();
+
+        // size of XmlCharType table
+        private const uint CharPropertiesSize = (uint)char.MaxValue + 1;
 
         static byte[][] InitInstance()
         {
@@ -908,7 +910,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsWhiteSpace(char ch)
         {
-            return (charProperties(ch) & fWhitespace) != 0;
+            return (GetCharProperties(ch) & fWhitespace) != 0;
         }
 
         public static bool IsExtender(char ch)
@@ -918,7 +920,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsNCNameSingleChar(char ch)
         {
-            return (charProperties(ch) & fNCNameSC) != 0;
+            return (GetCharProperties(ch) & fNCNameSC) != 0;
         }
 
 #if XML10_FIFTH_EDITION
@@ -953,7 +955,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsStartNCNameSingleChar(char ch)
         {
-            return (charProperties(ch) & fNCStartNameSC) != 0;
+            return (GetCharProperties(ch) & fNCStartNameSC) != 0;
         }
 
 #if XML10_FIFTH_EDITION
@@ -980,7 +982,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsCharData(char ch)
         {
-            return (charProperties(ch) & fCharData) != 0;
+            return (GetCharProperties(ch) & fCharData) != 0;
         }
 
         // [13] PubidChar ::=  #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%] Section 2.3 of spec
@@ -996,26 +998,26 @@ namespace Microsoft.CodeAnalysis
         // TextChar = CharData - { 0xA, 0xD, '<', '&', ']' }
         internal static bool IsTextChar(char ch)
         {
-            return (charProperties(ch) & fText) != 0;
+            return (GetCharProperties(ch) & fText) != 0;
         }
 
         // AttrValueChar = CharData - { 0xA, 0xD, 0x9, '<', '>', '&', '\'', '"' }
         internal static bool IsAttributeValueChar(char ch)
         {
-            return (charProperties(ch) & fAttrValue) != 0;
+            return (GetCharProperties(ch) & fAttrValue) != 0;
         }
 
         // XML 1.0 Fourth Edition definitions
         //
         public static bool IsLetter(char ch)
         {
-            return (charProperties(ch) & fLetter) != 0;
+            return (GetCharProperties(ch) & fLetter) != 0;
         }
 
         // This method uses the XML 4th edition name character ranges
         public static bool IsNCNameCharXml4e(char ch)
         {
-            return (charProperties(ch) & fNCNameXml4e) != 0;
+            return (GetCharProperties(ch) & fNCNameXml4e) != 0;
         }
 
         // This method uses the XML 4th edition name character ranges
@@ -1087,7 +1089,7 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = 0; i < str.Length; i++)
                 {
-                    if ((charProperties(str[i]) & fWhitespace) == 0)
+                    if ((GetCharProperties(str[i]) & fWhitespace) == 0)
                     {
                         return i;
                     }
@@ -1102,7 +1104,7 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = 0; i < str.Length; i++)
                 {
-                    if ((charProperties(str[i]) & fCharData) == 0)
+                    if ((GetCharProperties(str[i]) & fCharData) == 0)
                     {
                         if (i + 1 >= str.Length || !(XmlCharType.IsHighSurrogate(str[i]) && XmlCharType.IsLowSurrogate(str[i + 1])))
                         {
@@ -1118,7 +1120,7 @@ namespace Microsoft.CodeAnalysis
             return -1;
         }
 
-        static internal bool IsOnlyDigits(string str, int startPos, int len)
+        internal static bool IsOnlyDigits(string str, int startPos, int len)
         {
             Debug.Assert(str != null);
             Debug.Assert(startPos + len <= str.Length);
@@ -1134,7 +1136,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        static internal bool IsOnlyDigits(char[] chars, int startPos, int len)
+        internal static bool IsOnlyDigits(char[] chars, int startPos, int len)
         {
             Debug.Assert(chars != null);
             Debug.Assert(startPos + len <= chars.Length);

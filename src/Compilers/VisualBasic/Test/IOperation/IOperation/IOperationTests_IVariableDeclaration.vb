@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -124,7 +124,6 @@ BC42024: Unused local variable: 'i1'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -457,7 +456,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -1282,7 +1280,6 @@ BC30053: Arrays cannot be declared with 'New'.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub MultipleIdentifiers_MultipleArrays()
@@ -1392,7 +1389,6 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17917"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -2071,7 +2067,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
-        Public Sub StaticMulipleDeclarationAsNew()
+        Public Sub StaticMultipleDeclarationAsNew()
             Dim source = <![CDATA[
 Imports System
 Imports System.Collections.Generic

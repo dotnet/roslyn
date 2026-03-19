@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,12 +14,20 @@ namespace Microsoft.CodeAnalysis
     internal sealed class ExternalFileLocation : Location, IEquatable<ExternalFileLocation?>
     {
         private readonly TextSpan _sourceSpan;
-        private readonly FileLinePositionSpan _lineSpan;
+        private readonly FileLinePositionSpan _lineSpan, _mappedLineSpan;
 
         internal ExternalFileLocation(string filePath, TextSpan sourceSpan, LinePositionSpan lineSpan)
         {
             _sourceSpan = sourceSpan;
             _lineSpan = new FileLinePositionSpan(filePath, lineSpan);
+            _mappedLineSpan = _lineSpan;
+        }
+
+        internal ExternalFileLocation(string filePath, TextSpan sourceSpan, LinePositionSpan lineSpan, string mappedFilePath, LinePositionSpan mappedLineSpan)
+        {
+            _sourceSpan = sourceSpan;
+            _lineSpan = new FileLinePositionSpan(filePath, lineSpan);
+            _mappedLineSpan = new FileLinePositionSpan(mappedFilePath, mappedLineSpan, hasMappedPath: true);
         }
 
         public override TextSpan SourceSpan
@@ -39,7 +45,7 @@ namespace Microsoft.CodeAnalysis
 
         public override FileLinePositionSpan GetMappedLineSpan()
         {
-            return _lineSpan;
+            return _mappedLineSpan;
         }
 
         public override LocationKind Kind
@@ -64,12 +70,14 @@ namespace Microsoft.CodeAnalysis
 
             return obj != null
                 && _sourceSpan == obj._sourceSpan
-                && _lineSpan.Equals(obj._lineSpan);
+                && _lineSpan.Equals(obj._lineSpan)
+                && _mappedLineSpan.Equals(obj._mappedLineSpan);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_lineSpan.GetHashCode(), _sourceSpan.GetHashCode());
+            return Hash.Combine(_lineSpan.GetHashCode(),
+                Hash.Combine(_mappedLineSpan.GetHashCode(), _sourceSpan.GetHashCode()));
         }
     }
 }

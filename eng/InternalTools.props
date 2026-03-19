@@ -1,0 +1,11 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+    <ItemGroup Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
+        <!-- Add explicit top-level dependencies to override the implicit versions brought in by Microsoft.DevDiv.Optimization.Data.PowerShell -->
+        <PackageReference Include="Microsoft.Identity.Client" Version="$(MicrosoftIdentityClientVersion)"/>
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="$(MicrosoftIdentityModelJsonWebTokensVersion)"/>
+        <PackageReference Include="Microsoft.DevDiv.Optimization.Data.PowerShell" Version="$(MicrosoftDevDivOptimizationDataPowerShellVersion)" ExcludeAssets="all"/>
+        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="$(SystemIdentityModelTokensJwtVersion)"/>
+    </ItemGroup>
+</Project>

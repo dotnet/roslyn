@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Separate from <see cref="T:Microsoft.CodeAnalysis.CSharp.SymbolDisplay"/> because we want to link this functionality into
     /// the Formatter project and we don't want it to be public there.
     /// </remarks>
-    /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.ObjectDisplay"/>
+    /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay"/>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     internal static class ObjectDisplay
     {
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <c>null</c>.
         /// </remarks>
-        public static string FormatPrimitive(object obj, ObjectDisplayOptions options)
+        public static string? FormatPrimitive(object? obj, ObjectDisplayOptions options)
         {
             if (obj == null)
             {
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if the character should be replaced and sets
         /// <paramref name="replaceWith"/> to the replacement text.
         /// </summary>
-        private static bool TryReplaceChar(char c, out string replaceWith)
+        private static bool TryReplaceChar(char c, [NotNullWhen(returnValue: true)] out string? replaceWith)
         {
             replaceWith = null;
             switch (c)
@@ -322,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
             {
                 builder.Append(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString());
-                builder.Append(" ");
+                builder.Append(' ');
             }
 
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
@@ -333,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append(quote);
             }
 
-            string replaceWith;
+            string? replaceWith;
             if (escapeNonPrintable && TryReplaceChar(c, out replaceWith))
             {
                 builder.Append(replaceWith);
@@ -356,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(sbyte value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(sbyte value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -370,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(byte value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(byte value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -382,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(short value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(short value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -396,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(ushort value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(ushort value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -408,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(int value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(int value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -420,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(uint value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(uint value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -443,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(long value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(long value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -466,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(ulong value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(ulong value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -489,28 +487,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(double value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(double value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             var result = value.ToString("R", GetFormatCulture(cultureInfo));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "D" : result;
         }
 
-        internal static string FormatLiteral(float value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(float value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             var result = value.ToString("R", GetFormatCulture(cultureInfo));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "F" : result;
         }
 
-        internal static string FormatLiteral(decimal value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
+        internal static string FormatLiteral(decimal value, ObjectDisplayOptions options, CultureInfo? cultureInfo = null)
         {
             var result = value.ToString(GetFormatCulture(cultureInfo));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "M" : result;
         }
 
-        private static CultureInfo GetFormatCulture(CultureInfo cultureInfo)
+        private static CultureInfo GetFormatCulture(CultureInfo? cultureInfo)
         {
             return cultureInfo ?? CultureInfo.InvariantCulture;
         }

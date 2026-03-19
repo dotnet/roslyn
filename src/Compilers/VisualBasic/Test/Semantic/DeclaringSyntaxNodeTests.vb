@@ -3,11 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -138,7 +134,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 CheckDeclaringSyntaxNodes(comp, p, 1)
             Next
         End Sub
-
 
         <Fact>
         Public Sub SourceNamedTypeDeclaringSyntax()
@@ -271,7 +266,6 @@ End Class
             Dim localA1 = DirectCast(model.GetDeclaredSymbol(declaratorA1.Names(0)), LocalSymbol)
             Dim localA1Type = localA1.Type
 
-
             Dim declaringNodes As ImmutableArray(Of SyntaxReference) = localA1Type.DeclaringSyntaxReferences
 
             Assert.False(localA1Type.IsAnonymousType)  'Object Not Anonymous Type
@@ -313,7 +307,6 @@ End Class
             Dim localA1 = DirectCast(model.GetDeclaredSymbol(declaratorA1.Names(0)), LocalSymbol)
             Dim localA1Type = localA1.Type
 
-
             Dim declaringNodes As ImmutableArray(Of SyntaxReference) = localA1Type.DeclaringSyntaxReferences
 
             'Object Not Anonymous Type - when multiple modifier issues is resolved
@@ -330,7 +323,6 @@ End Class
             Next
 
         End Sub
-
 
         <Fact>
         Public Sub NamespaceDeclaringSyntax()
@@ -393,7 +385,6 @@ End Namespace
             CheckDeclaringSyntaxNodes(comp, n4, 1)
             CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, n1, 1, SyntaxKind.CompilationUnit)
         End Sub
-
 
         <Fact>
         Public Sub TypeParameterDeclaringSyntax()
@@ -509,7 +500,6 @@ Namespace N1
 End Namespace
     </file>
     </compilation>)
-
 
             Dim globalNS = comp.GlobalNamespace
             Dim n1 = TryCast(globalNS.GetMembers("N1").Single(), NamespaceSymbol)
@@ -648,6 +638,40 @@ End Class
             CheckDeclaringSyntaxIsNoDeclaration(Of ForStatementSyntax)(comp, tree, "loc8")
             CheckDeclaringSyntax(Of ModifiedIdentifierSyntax)(comp, tree, "loc9", SymbolKind.Local)
             CheckDeclaringSyntaxIsNoDeclaration(Of ForEachStatementSyntax)(comp, tree, "loc10")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6209")>
+        Public Sub CatchVariableDeclaringSyntax()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
+    <compilation name="CatchVariableDeclaringSyntax">
+        <file name="a.vb">
+Imports System
+
+Class C1
+    Sub m()
+        Try
+            Console.WriteLine()
+        Catch exc As Exception
+            Console.WriteLine(exc.ToString())
+        End Try
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim identifierName = root.DescendantNodes().OfType(Of IdentifierNameSyntax).First(Function(i) i.Identifier.ValueText = "exc")
+
+            Dim localSymbol As ISymbol = model.GetSymbolInfo(identifierName).Symbol
+            Assert.NotNull(localSymbol)
+            Assert.Equal(SymbolKind.Local, localSymbol.Kind)
+            Assert.Equal("exc", localSymbol.Name)
+
+            Dim declaredSyntax = localSymbol.DeclaringSyntaxReferences.Single().GetSyntax()
+            Assert.IsType(Of IdentifierNameSyntax)(declaredSyntax)
+            Assert.Equal("exc", DirectCast(declaredSyntax, IdentifierNameSyntax).Identifier.ValueText)
         End Sub
 
         <Fact>

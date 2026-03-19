@@ -1684,7 +1684,7 @@ Module Module1
         PrintResult("UI ^ SB", UI ^ SB)
         PrintResult("UI ^ By", UI ^ By)
         PrintResult("UI ^ Sh", UI ^ Sh)
-        PrintResult("UI ^ US", UI ^ US)
+        ' PrintResult("UI ^ US", UI ^ US) ' https://github.com/dotnet/roslyn/issues/78117
         PrintResult("UI ^ [In]", UI ^ [In])
         PrintResult("UI ^ UI", UI ^ UI)
         PrintResult("UI ^ Lo", UI ^ Lo)
@@ -1739,7 +1739,7 @@ Module Module1
         PrintResult("De ^ UL", De ^ UL)
         PrintResult("De ^ De", De ^ De)
         PrintResult("De ^ Si", De ^ Si)
-        PrintResult("De ^ [Do]", De ^ [Do])
+        ' PrintResult("De ^ [Do]", De ^ [Do]) ' https://github.com/dotnet/roslyn/issues/78117
         PrintResult("De ^ St", De ^ St)
         PrintResult("De ^ Ob", De ^ Ob)
         PrintResult("De ^ Tc", De ^ Tc)

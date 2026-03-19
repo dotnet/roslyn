@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
@@ -15,9 +14,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
             Return New VisualBasicProject(projectName,
                                           If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
                                           environment.CreateHierarchy(projectName, projectBinPath, projectRefPath:=Nothing, "VB"),
+                                          isIntellisenseProject:=False,
                                           environment.ServiceProvider,
-                                          environment.ThreadingContext,
-                                          commandLineParserServiceOpt:=New VisualBasicCommandLineParserService())
+                                          environment.ThreadingContext)
         End Function
 
         Public Function CreateMinimalCompilerOptions(project As VisualBasicProject) As VBCompilerOptions

@@ -9,24 +9,24 @@ Imports Microsoft.CodeAnalysis.QuickInfo
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
     <ExportLanguageServiceFactory(GetType(QuickInfoService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicQuickInfoServiceFactory
+    Friend NotInheritable Class VisualBasicQuickInfoServiceFactory
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicQuickInfoService(languageServices.WorkspaceServices.Workspace)
+            Return New VisualBasicQuickInfoService(languageServices.LanguageServices)
         End Function
 
-    End Class
+        Private NotInheritable Class VisualBasicQuickInfoService
+            Inherits QuickInfoServiceWithProviders
 
-    Friend Class VisualBasicQuickInfoService
-        Inherits QuickInfoServiceWithProviders
-
-        Public Sub New(workspace As Workspace)
-            MyBase.New(workspace, LanguageNames.VisualBasic)
-        End Sub
+            Public Sub New(services As LanguageServices)
+                MyBase.New(services)
+            End Sub
+        End Class
     End Class
 End Namespace

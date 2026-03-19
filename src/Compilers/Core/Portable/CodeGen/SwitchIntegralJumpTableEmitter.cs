@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal partial struct SwitchIntegralJumpTableEmitter
     {
         private readonly ILBuilder _builder;
+
+        /// <summary>
+        /// Associated syntax for diagnostic reporting.
+        /// </summary>
+        private readonly SyntaxNode _syntax;
 
         /// <summary>
         /// Switch key for the jump table
@@ -50,12 +53,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal SwitchIntegralJumpTableEmitter(
             ILBuilder builder,
+            SyntaxNode syntax,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             Cci.PrimitiveTypeCode keyTypeCode,
             LocalOrParameter key)
         {
             _builder = builder;
+            _syntax = syntax;
             _key = key;
             _keyTypeCode = keyTypeCode;
             _fallThroughLabel = fallThroughLabel;
@@ -96,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //  c)	After bucketing, generate code to perform a binary search on these buckets array, 
             //      emitting conditional jumps if current bucket sub-array has more than one bucket and
             //      emitting the switch instruction when we are down to a single bucket in the sub-array.
-
 
             // (a) Sort switch labels: This was done in the constructor
 
@@ -197,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 //          merge top bucket on stack into newBucket, and pop bucket from stack
                 //      End While
 
-                while (!switchBucketsStack.IsEmpty())
+                while (!switchBucketsStack.IsEmpty)
                 {
                     // get the bucket at top of the stack
                     SwitchBucket prevBucket = switchBucketsStack.Peek();
@@ -220,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 curStartLabelIndex++;
             }
 
-            Debug.Assert(!switchBucketsStack.IsEmpty());
+            Debug.Assert(!switchBucketsStack.IsEmpty);
 
             // crumble leaf buckets into degenerate buckets where possible
             var crumbled = ArrayBuilder<SwitchBucket>.GetInstance();
@@ -426,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // branch branchCode targetLabel
 
             _builder.EmitLoad(_key);
-            _builder.EmitConstantValue(constant);
+            _builder.EmitConstantValue(constant, _syntax);
             _builder.EmitBranch(branchCode, targetLabel, GetReverseBranchCode(branchCode));
         }
 
@@ -446,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                _builder.EmitConstantValue(constant);
+                _builder.EmitConstantValue(constant, _syntax);
                 _builder.EmitBranch(ILOpCode.Beq, targetLabel);
             }
         }
@@ -461,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //          sub
             if (!startConstant.IsDefaultValue)
             {
-                _builder.EmitConstantValue(startConstant);
+                _builder.EmitConstantValue(startConstant, _syntax);
                 _builder.EmitOpCode(ILOpCode.Sub);
             }
 
@@ -524,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //          sub
             if (!startConstant.IsDefaultValue)
             {
-                _builder.EmitConstantValue(startConstant);
+                _builder.EmitConstantValue(startConstant, _syntax);
                 _builder.EmitOpCode(ILOpCode.Sub);
             }
 

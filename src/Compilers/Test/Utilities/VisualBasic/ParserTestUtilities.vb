@@ -2,19 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Microsoft.CodeAnalysis.Collections
-Imports System.Collections.Immutable
 
 Friend Module ParserTestUtilities
     Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool(64)
@@ -105,8 +102,12 @@ Friend Module ParserTestUtilities
         Return Parse(code, fileName:="", options:=options)
     End Function
 
-    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
+    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing, Optional encoding As Encoding = Nothing) As SyntaxTree
+        If encoding Is Nothing Then
+            encoding = Encoding.UTF8
+        End If
+
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding), options:=If(options, TestOptions.RegularLatest), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)
@@ -569,7 +570,7 @@ Public Module VerificationHelpers
         With errorString.Builder
             .Append(vbTab)
             .Append("<error id=""")
-            .Append(id)
+            .Append(id.ToString(Globalization.CultureInfo.InvariantCulture))
             .Append("""")
             If message IsNot Nothing Then
                 .Append(" message=""")
@@ -1021,16 +1022,19 @@ Public Module VerificationHelpers
 
         Public Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
             _Items.Add(Node)
-            If _Dict.ContainsKey(NodeKey) Then
-                _Dict(NodeKey) = _Dict(NodeKey) + 1 'Increment Count
+
+            Dim count As Integer = Nothing
+            If _Dict.TryGetValue(NodeKey, count) Then
+                _Dict(NodeKey) = count + 1 'Increment Count
             Else
                 _Dict.Add(NodeKey, 1) ' New Item
             End If
         End Sub
 
         Public Function GetCount(Node As String) As Integer
-            If _Dict.ContainsKey(Node) Then
-                Return _Dict(Node)
+            Dim count As Integer = Nothing
+            If _Dict.TryGetValue(Node, count) Then
+                Return count
             Else
                 Return 0
             End If

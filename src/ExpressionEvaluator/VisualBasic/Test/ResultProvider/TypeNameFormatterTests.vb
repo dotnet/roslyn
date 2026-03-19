@@ -2,14 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.ObjectModel
-Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
@@ -35,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Assert.Equal("Date", GetType(Date).GetTypeName())
         End Sub
 
-        <Fact, WorkItem(1016796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016796")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016796")>
         Public Sub NestedTypes()
             Dim source = "
 Public Class A
@@ -268,15 +264,13 @@ End Namespace
             Assert.Equal("[Return].[From](Of [Return].[False].[Nothing]).[Await]", constructedAwaitType.GetTypeName(escapeKeywordIdentifiers:=True))
         End Sub
 
-        <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
         Public Sub DynamicAttribute_ValidFlags()
             Assert.Equal("Object", GetType(Object).GetTypeName(MakeCustomTypeInfo(True)))
             Assert.Equal("Object()", GetType(Object()).GetTypeName(MakeCustomTypeInfo(False, True)))
         End Sub
 
-        <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
         Public Sub DynamicAttribute_OtherGuid()
             Dim typeInfo = DkmClrCustomTypeInfo.Create(Guid.NewGuid(), New ReadOnlyCollection(Of Byte)({1}))
             Assert.Equal("Object", GetType(Object).GetTypeName(typeInfo))

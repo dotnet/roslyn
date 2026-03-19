@@ -3,26 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal readonly struct ActiveStatementExceptionRegions
 {
-    internal readonly struct ActiveStatementExceptionRegions
+    /// <summary>
+    /// Exception region spans corresponding to an active statement.
+    /// </summary>
+    public readonly ImmutableArray<SourceFileSpan> Spans;
+
+    /// <summary>
+    /// True if the active statement is covered by any of the exception region spans.
+    /// </summary>
+    public readonly bool IsActiveStatementCovered;
+
+    public ActiveStatementExceptionRegions(ImmutableArray<SourceFileSpan> spans, bool isActiveStatementCovered)
     {
-        /// <summary>
-        /// Exception region spans corresponding to an active statement.
-        /// </summary>
-        public readonly ImmutableArray<LinePositionSpan> Spans;
+        Contract.ThrowIfTrue(spans.IsDefault);
 
-        /// <summary>
-        /// True if the active statement is covered by any of the exception region spans.
-        /// </summary>
-        public readonly bool IsActiveStatementCovered;
-
-        public ActiveStatementExceptionRegions(ImmutableArray<LinePositionSpan> spans, bool isActiveStatementCovered)
-        {
-            Spans = spans;
-            IsActiveStatementCovered = isActiveStatementCovered;
-        }
+        Spans = spans;
+        IsActiveStatementCovered = isActiveStatementCovered;
     }
 }

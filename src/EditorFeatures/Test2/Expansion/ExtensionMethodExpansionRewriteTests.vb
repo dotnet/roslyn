@@ -2,14 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
+    <Trait(Traits.Feature, Traits.Features.Expansion)>
     Public Class ExtensionMethodExpansionRewriteTests
         Inherits AbstractExpansionTest
 
 #Region "Visual Basic ExtensionMethodRewrite Expansion tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandSingleExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -56,7 +55,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandSingleExtensionMethodWithArgument() As Task
             Dim input =
 <Workspace>
@@ -88,7 +87,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))))
     End Sub
 End Class
 
@@ -103,7 +102,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandMultiExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -150,7 +149,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandMultiExtensionMethodWithArgument() As Task
             Dim input =
 <Workspace>
@@ -182,7 +181,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))))), Global.Program)), (CStr((""))))
     End Sub
 End Class
 
@@ -197,7 +196,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandMultiExtensionMethodWithMoreArgument() As Task
             Dim input =
 <Workspace>
@@ -229,7 +228,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))), (CStr((""))), (CStr((""))))), Global.Program)), (CStr((""))), (CStr((""))), (CStr((""))))
     End Sub
 End Class
 
@@ -244,7 +243,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandSimplifySingleExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -291,7 +290,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandSimplifyChainedExtensionMethodMoreArguments() As Task
             Dim input =
 <Workspace>
@@ -338,7 +337,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestVisualBasic_ExpandSimplifyChainedExtensionMethodMoreArgumentsWithStatic() As Task
             Dim input =
 <Workspace>
@@ -391,8 +390,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(654403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
         Public Async Function TestVB_ExtensionMethodRewriteRoundTripsTrivia() As Task
             Dim input =
 <Workspace>
@@ -459,9 +457,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInMemberAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -516,9 +513,9 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WpfFact(Skip:="3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInConditionalAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -573,9 +570,8 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInMemberAccessExpression_2() As Task
             Dim input =
 <Workspace>
@@ -636,9 +632,9 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WpfFact(Skip:="3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInConditionalAccessExpression_2() As Task
             Dim input =
 <Workspace>
@@ -701,7 +697,7 @@ End Class]]>
 #End Region
 
 #Region "CSharp ExtensionMethodRewrite Expansion tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandSingleExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -750,7 +746,7 @@ public static class ProgramExtensions
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandSingleExtensionMethodWithArgument() As Task
             Dim input =
 <Workspace>
@@ -809,7 +805,7 @@ public class Second
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandMultiExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -858,7 +854,7 @@ public static class ProgramExtensions
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandMultiExtensionMethodWithArgument() As Task
             Dim input =
 <Workspace>
@@ -917,7 +913,7 @@ public class Second
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandMultiExtensionMethodWithMoreArgument() As Task
             Dim input =
 <Workspace>
@@ -976,7 +972,7 @@ public class Second
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandSimplifySingleExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -1025,7 +1021,7 @@ public static class ProgramExtensions
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandSimplifyChainedExtensionMethodWithMoreArgument() As Task
             Dim input =
 <Workspace>
@@ -1084,7 +1080,7 @@ public class Second
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandSimplifyWithStaticFieldExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -1141,8 +1137,7 @@ public static class ProgramExtensions
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(654403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
         Public Async Function TestCSharp_ExtensionMethodRewriteRoundTripsTrivia() As Task
             Dim input =
 <Workspace>
@@ -1191,9 +1186,8 @@ public static class GooExtension
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInMemberAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -1256,9 +1250,9 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WpfFact(Skip:="3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInConditionalAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -1321,9 +1315,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInMemberAccessExpression_2() As Task
             Dim input =
 <Workspace>
@@ -1396,9 +1389,9 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WpfFact(Skip:="3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInConditionalAccessExpression_2() As Task
             Dim input =
 <Workspace>

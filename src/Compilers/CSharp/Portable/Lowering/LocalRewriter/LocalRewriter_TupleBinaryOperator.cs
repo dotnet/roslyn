@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -61,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Push tuple conversions down to the elements.
                         if (!IsLikeTupleExpression(o, out tuple)) return false;
                         var underlyingConversions = c.UnderlyingConversions;
+                        c.AssertUnderlyingConversionsChecked();
                         var resultTypes = conversion.Type.TupleElementTypesWithAnnotations;
                         var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Arguments.Length);
                         for (int i = 0; i < tuple.Arguments.Length; i++)
@@ -75,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 @checked: conversion.Checked,
                                 explicitCastInCode: conversion.ExplicitCastInCode,
                                 conversionGroupOpt: null,
+                                InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
                                 constantValueOpt: null,
                                 type: elementType,
                                 hasErrors: conversion.HasErrors);
@@ -113,12 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
                 var savedTuple = DeferSideEffectingArgumentToTempForTupleEquality(LowerConversions(boundConversion.Operand), initEffects, temps);
                 var elementConversions = conversion.UnderlyingConversions;
+                conversion.AssertUnderlyingConversionsChecked();
 
                 for (int i = 0; i < numElements; i++)
                 {
                     var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
                     var convertedFieldAccess = new BoundConversion(
-                        syntax, fieldAccess, elementConversions[i], boundConversion.Checked, boundConversion.ExplicitCastInCode, null, null, destElementTypes[i].Type, boundConversion.HasErrors);
+                        syntax, fieldAccess, elementConversions[i], boundConversion.Checked, boundConversion.ExplicitCastInCode,
+                        conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
+                        constantValueOpt: null, destElementTypes[i].Type, boundConversion.HasErrors);
                     fieldAccessorsBuilder.Add(convertedFieldAccess);
                 }
 
@@ -185,15 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (expr)
             {
-                case { ConstantValue: { } }:
+                case { ConstantValueOpt: { } }:
                     return VisitExpression(expr);
-                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }:
-                    // This conversion can be performed lazily, but need not be saved.  It is treated as non-side-effecting.
+                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }: // This conversion can be performed lazily, but need not be saved. It is treated as non-side-effecting.
+                case BoundConversion { Conversion.IsTupleConversion: true }: // If we were not able to push this conversion down the tree before getting here, it must be performed early, otherwise it won't be properly lowered by this machinery.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
-                case BoundConversion { Conversion: { Kind: var conversionKind } conversion } bc when conversionMustBePerformedOnOriginalExpression(bc, conversionKind):
+                case BoundConversion { Conversion: { Kind: var conversionKind } conversion } when conversionMustBePerformedOnOriginalExpression(conversionKind):
                     // Some conversions cannot be performed on a copy of the argument and must be done early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
-                case BoundConversion { Conversion: { IsUserDefined: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit:
+                case BoundConversion { Conversion: { IsUserDefined: true } or { IsUnion: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit: // https://github.com/dotnet/roslyn/issues/82636: Add coverage
                     // A user-defined conversion triggered by a cast must be performed early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion conv:
@@ -208,10 +211,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var deferredOperand = DeferSideEffectingArgumentToTempForTupleEquality(
                             creation.Arguments[0], effects, temps, enclosingConversionWasExplicit: true);
+                        var conversion = Conversion.MakeNullableConversion(ConversionKind.ImplicitNullable, Conversion.Identity);
+                        conversion.MarkUnderlyingConversionsChecked();
                         return new BoundConversion(
                             syntax: expr.Syntax, operand: deferredOperand,
-                            conversion: Conversion.MakeNullableConversion(ConversionKind.ImplicitNullable, Conversion.Identity),
-                            @checked: false, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null,
+                            conversion: conversion,
+                            @checked: false, explicitCastInCode: true,
+                            conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
+                            constantValueOpt: null,
                             type: eType, hasErrors: expr.HasErrors);
                     }
                 default:
@@ -219,10 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
             }
 
-            bool conversionMustBePerformedOnOriginalExpression(BoundConversion expr, ConversionKind kind)
+            bool conversionMustBePerformedOnOriginalExpression(ConversionKind kind)
             {
-                // These are conversions from-expression that do not produce a constant,
-                // and which must be performed on the original expression, not on a copy of it.
+                // These are conversions from-expression that
+                // must be performed on the original expression, not on a copy of it.
                 switch (kind)
                 {
                     case ConversionKind.AnonymousFunction:       // a lambda cannot be saved without a target type
@@ -230,7 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.InterpolatedString:      // an interpolated string must be saved in interpolated form
                     case ConversionKind.SwitchExpression:        // a switch expression must have its arms converted
                     case ConversionKind.StackAllocToPointerType: // a stack alloc is not well-defined without an enclosing conversion
+                    case ConversionKind.ConditionalExpression:   // a conditional expression must have its alternatives converted
                     case ConversionKind.StackAllocToSpanType:
+                    case ConversionKind.ObjectCreation:
                         return true;
                     default:
                         return false;
@@ -295,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Produces:
             //     ... logical expression using leftValue and rightValue ...
-            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, temps, innerEffects, operatorKind);
+            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, temps, operatorKind);
 
             // Produces:
             //     leftValue = left.GetValueOrDefault(); (or left if !leftNullable)
@@ -311,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool boolValue = operatorKind == BinaryOperatorKind.Equal; // true/false
 
-            if (rightHasValue.ConstantValue == ConstantValue.False)
+            if (rightHasValue.ConstantValueOpt == ConstantValue.False)
             {
                 // The outer sequence degenerates when we known that `rightHasValue` is false
                 // Produce: !leftHasValue (or leftHasValue for inequality comparison)
@@ -319,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result: boolValue ? _factory.Not(leftHasValue) : leftHasValue);
             }
 
-            if (leftHasValue.ConstantValue == ConstantValue.False)
+            if (leftHasValue.ConstantValueOpt == ConstantValue.False)
             {
                 // The outer sequence degenerates when we known that `leftHasValue` is false
                 // Produce: !rightHasValue (or rightHasValue for inequality comparison)
@@ -396,14 +405,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
                         return makeNullableHasValue(o);
-                    case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var underlying }, Operand: var o }
-                            when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && !underlying[0].IsUserDefined:
+                    case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var underlying } conversion, Operand: var o }
+                            when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && !underlying[0].IsUserDefined: // https://github.com/dotnet/roslyn/issues/82636: Confirm union conversions don't need special handling here
                         // Note that a user-defined conversion from K to Nullable<R> which may translate
                         // a non-null K to a null value gives rise to a lifted conversion from Nullable<K> to Nullable<R> with the same property.
                         // We therefore do not attempt to optimize nullable conversions with an underlying user-defined conversion.
+                        conversion.AssertUnderlyingConversionsChecked();
                         return makeNullableHasValue(o);
                     default:
-                        return MakeNullableHasValue(expr.Syntax, expr);
+                        return _factory.MakeNullableHasValue(expr.Syntax, expr);
                 }
             }
         }
@@ -433,11 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expr.Type is { } exprType && exprType.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && nested[0] is { IsTupleConversion: true } tupleConversion:
                     {
                         Debug.Assert(expr.Type is { });
+                        conv.Conversion.AssertUnderlyingConversionsChecked();
                         var operand = MakeValueOrDefaultTemp(o, temps, effects);
                         Debug.Assert(operand.Type is { });
                         var types = expr.Type.GetNullableUnderlyingType().TupleElementTypesWithAnnotations;
                         int tupleCardinality = operand.Type.TupleElementTypesWithAnnotations.Length;
                         var underlyingConversions = tupleConversion.UnderlyingConversions;
+                        tupleConversion.AssertUnderlyingConversionsChecked();
                         Debug.Assert(underlyingConversions.Length == tupleCardinality);
                         var argumentBuilder = ArrayBuilder<BoundExpression>.GetInstance(tupleCardinality);
                         for (int i = 0; i < tupleCardinality; i++)
@@ -462,12 +474,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-
             BoundExpression MakeBoundConversion(BoundExpression expr, Conversion conversion, TypeWithAnnotations type, BoundConversion enclosing)
             {
                 return new BoundConversion(
                     expr.Syntax, expr, conversion, enclosing.Checked, enclosing.ExplicitCastInCode,
-                    conversionGroupOpt: null, constantValueOpt: null, type: type.Type);
+                    conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering, constantValueOpt: null, type: type.Type);
             }
 
         }
@@ -477,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteNonNullableNestedTupleOperators(TupleBinaryOperatorInfo.Multiple operators,
             BoundExpression left, BoundExpression right, TypeSymbol type,
-            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, BinaryOperatorKind operatorKind)
+            ArrayBuilder<LocalSymbol> temps, BinaryOperatorKind operatorKind)
         {
             ImmutableArray<TupleBinaryOperatorInfo> nestedOperators = operators.Operators;
 
@@ -549,11 +560,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression dynamicResult = _dynamicFactory.MakeDynamicBinaryOperator(single.Kind, left, right, isCompoundAssignment: false, _compilation.DynamicType).ToExpression();
                 if (operatorKind == BinaryOperatorKind.Equal)
                 {
-                    return _factory.Not(MakeUnaryOperator(UnaryOperatorKind.DynamicFalse, left.Syntax, method: null, dynamicResult, boolType));
+                    return _factory.Not(MakeUnaryOperator(UnaryOperatorKind.DynamicFalse, left.Syntax, method: null, constrainedToTypeOpt: null, dynamicResult, boolType));
                 }
                 else
                 {
-                    return MakeUnaryOperator(UnaryOperatorKind.DynamicTrue, left.Syntax, method: null, dynamicResult, boolType);
+                    return MakeUnaryOperator(UnaryOperatorKind.DynamicTrue, left.Syntax, method: null, constrainedToTypeOpt: null, dynamicResult, boolType);
                 }
             }
 
@@ -563,36 +574,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(left.Syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
             }
 
-            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
+            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt, single.ConstrainedToTypeOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
-            Conversion boolConversion = single.ConversionForBool;
 
             BoundExpression result;
+            BoundExpression convertedBinary = ApplyConversionIfNotIdentity(single.ConversionForBool, single.ConversionForBoolPlaceholder, binary);
+
             if (boolOperator.Kind != UnaryOperatorKind.Error)
             {
                 // Produce
                 // !((left == right).op_false)
                 // (left != right).op_true
-                BoundExpression convertedBinary = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolOperator.OperandType, @checked: false);
-
                 Debug.Assert(boolOperator.ReturnType.SpecialType == SpecialType.System_Boolean);
-                result = MakeUnaryOperator(boolOperator.Kind, binary.Syntax, boolOperator.Method, convertedBinary, boolType);
+                result = MakeUnaryOperator(boolOperator.Kind, binary.Syntax, boolOperator.Method, boolOperator.ConstrainedToTypeOpt, convertedBinary, boolType);
 
                 if (operatorKind == BinaryOperatorKind.Equal)
                 {
                     result = _factory.Not(result);
                 }
             }
-            else if (!boolConversion.IsIdentity)
+            else
             {
                 // Produce
                 // (bool)(left == right)
                 // (bool)(left != right)
-                result = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolType, @checked: false);
-            }
-            else
-            {
-                result = binary;
+                result = convertedBinary;
             }
 
             return result;
@@ -608,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? MakeConversionNode(
                     oldNodeOpt: conv, syntax: conv.Syntax, rewrittenOperand: LowerConversions(conv.Operand),
                     conversion: conv.Conversion, @checked: conv.Checked, explicitCastInCode: conv.ExplicitCastInCode,
-                    constantValueOpt: conv.ConstantValue, rewrittenType: conv.Type)
+                    constantValueOpt: conv.ConstantValueOpt, rewrittenType: conv.Type)
                 : expr;
         }
     }

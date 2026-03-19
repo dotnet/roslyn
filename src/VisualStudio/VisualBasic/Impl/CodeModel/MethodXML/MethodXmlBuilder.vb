@@ -500,7 +500,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
-        Private Function GetSpecialCastKind(castExpression As CastExpressionSyntax) As SpecialCastKind?
+        Private Shared Function GetSpecialCastKind(castExpression As CastExpressionSyntax) As SpecialCastKind?
             Select Case castExpression.Kind()
                 Case SyntaxKind.DirectCastExpression
                     Return SpecialCastKind.DirectCast
@@ -531,7 +531,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                 Return False
             End If
 
-            If Not TypeOf constantValue.Value Is Integer Then
+            If TypeOf constantValue.Value IsNot Integer Then
                 Return False
             End If
 
@@ -547,7 +547,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
         End Function
 
         Private Function TryGenerateSimpleArrayBound(argument As ArgumentSyntax) As Boolean
-            If Not TypeOf argument Is SimpleArgumentSyntax Then
+            If TypeOf argument IsNot SimpleArgumentSyntax Then
                 Return False
             End If
 
@@ -555,7 +555,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
         End Function
 
         Private Function TryGenerateRangeArrayBound(argument As ArgumentSyntax) As Boolean
-            If Not TypeOf argument Is RangeArgumentSyntax Then
+            If TypeOf argument IsNot RangeArgumentSyntax Then
                 Return False
             End If
 
@@ -578,7 +578,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
 
                 If arrayBounds IsNot Nothing Then
 
-                    If Not TryGenerateArrayBounds(arrayBounds, type) Then
+                    If Not TryGenerateArrayBounds(arrayBounds) Then
                         Return False
                     End If
 
@@ -599,7 +599,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                                         Return False
                                     End If
                                 Case SyntaxKind.CollectionInitializer
-                                    If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax), type) Then
+                                    If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax)) Then
                                         Return False
                                     End If
                                 Case Else
@@ -616,7 +616,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             End Using
         End Function
 
-        Private Function TryGenerateArrayBounds(argumentList As ArgumentListSyntax, type As ITypeSymbol) As Boolean
+        Private Function TryGenerateArrayBounds(argumentList As ArgumentListSyntax) As Boolean
             For Each argument In argumentList.Arguments
                 Using BoundTag()
                     If Not TryGenerateSimpleArrayBound(argument) AndAlso
@@ -629,7 +629,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
-        Private Function TryGenerateArrayInitializer(collectionInitializer As CollectionInitializerSyntax, type As ITypeSymbol) As Boolean
+        Private Function TryGenerateArrayInitializer(collectionInitializer As CollectionInitializerSyntax) As Boolean
             Using BoundTag()
                 Using ExpressionTag()
                     Using LiteralTag()

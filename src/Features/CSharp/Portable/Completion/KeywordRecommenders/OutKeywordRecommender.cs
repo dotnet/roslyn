@@ -5,34 +5,27 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class OutKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.OutKeyword)
 {
-    internal class OutKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public OutKeywordRecommender()
-            : base(SyntaxKind.OutKeyword)
-        {
-        }
+        var syntaxTree = context.SyntaxTree;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var syntaxTree = context.SyntaxTree;
+        return
+            context.TargetToken.IsTypeParameterVarianceContext() ||
+            IsOutParameterModifierContext(position, context) ||
+            syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+            syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+            context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
+            context.TargetToken.IsXmlCrefParameterModifierContext();
+    }
 
-            // TODO(cyrusn): lambda/anon methods can have out/ref parameters
-            return
-                context.TargetToken.IsTypeParameterVarianceContext() ||
-                IsOutParameterModifierContext(position, context) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
-                context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
-                context.TargetToken.IsXmlCrefParameterModifierContext();
-        }
-
-        private static bool IsOutParameterModifierContext(int position, CSharpSyntaxContext context)
-        {
-            return context.SyntaxTree.IsParameterModifierContext(
-                       position, context.LeftToken, includeOperators: false, out _, out var previousModifier) &&
-                   previousModifier == SyntaxKind.None;
-        }
+    private static bool IsOutParameterModifierContext(int position, CSharpSyntaxContext context)
+    {
+        return context.SyntaxTree.IsParameterModifierContext(
+                   position, context.LeftToken, includeOperators: false, out _, out var previousModifier) &&
+               previousModifier is SyntaxKind.None or SyntaxKind.ScopedKeyword;
     }
 }

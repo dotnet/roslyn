@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -18,18 +16,20 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Shows the name and the parameters of the delegate (e.g. "SomeDelegate(int x)").  
+        /// <para>
+        /// This option determines whether the parameter list (the <c>(...)</c> part) is shown.
+        /// The content of the parameter list is controlled by <see cref="SymbolDisplayParameterOptions"/>.
+        /// </para>
         /// </summary>
-        /// <remarks>
-        /// The format of the parameters will be determined by the other flags passed.
-        /// </remarks>
         NameAndParameters = 1,
 
         /// <summary>
-        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").  
+        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").
+        /// <para>
+        /// This option determines whether the full signature (return type and parameter list) is shown.
+        /// The content of the parameter list is controlled by <see cref="SymbolDisplayParameterOptions"/>.
+        /// </para>
         /// </summary>
-        /// <remarks>
-        /// The format of the signature will be determined by the other flags passed.
-        /// </remarks>
         NameAndSignature = 2,
     }
 }

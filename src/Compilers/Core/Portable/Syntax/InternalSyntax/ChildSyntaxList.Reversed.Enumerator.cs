@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct ChildSyntaxList
     {
-        internal partial struct Reversed
+        internal readonly partial struct Reversed
         {
             internal struct Enumerator
             {

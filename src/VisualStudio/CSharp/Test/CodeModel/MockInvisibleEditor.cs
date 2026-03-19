@@ -2,33 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
+
+internal sealed class MockInvisibleEditor : IInvisibleEditor
 {
-    internal class MockInvisibleEditor : IInvisibleEditor
+    private readonly DocumentId _documentId;
+    private readonly EditorTestWorkspace _workspace;
+
+    public MockInvisibleEditor(DocumentId document, EditorTestWorkspace workspace)
     {
-        private readonly DocumentId _documentId;
-        private readonly TestWorkspace _workspace;
+        _documentId = document;
+        _workspace = workspace;
+    }
 
-        public MockInvisibleEditor(DocumentId document, TestWorkspace workspace)
+    public Microsoft.VisualStudio.Text.ITextBuffer TextBuffer
+    {
+        get
         {
-            _documentId = document;
-            _workspace = workspace;
+            return _workspace.GetTestDocument(_documentId).GetTextBuffer();
         }
+    }
 
-        public Microsoft.VisualStudio.Text.ITextBuffer TextBuffer
-        {
-            get
-            {
-                return _workspace.GetTestDocument(_documentId).GetTextBuffer();
-            }
-        }
-
-        public void Dispose()
-        {
-        }
+    public void Dispose()
+    {
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol KickoffMethod;
 
         public StateMachineTypeSymbol(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
-            : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal), kickoffMethod)
+            : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal), TypeMap.ConcatMethodTypeParameters(kickoffMethod, stopAt: null))
         {
             Debug.Assert(kickoffMethod != null);
             this.KickoffMethod = kickoffMethod;
@@ -27,22 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return slotAllocatorOpt?.PreviousStateMachineTypeName ??
                    GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, kickoffMethodOrdinal, compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
-        }
-
-        private static int SequenceNumber(MethodSymbol kickoffMethod)
-        {
-            // return a unique sequence number for the async implementation class that is independent of the compilation state.
-            int count = 0;
-            foreach (var m in kickoffMethod.ContainingType.GetMembers(kickoffMethod.Name))
-            {
-                count++;
-                if ((object)kickoffMethod == m)
-                {
-                    return count;
-                }
-            }
-
-            return count;
         }
 
         public override Symbol ContainingSymbol
@@ -76,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kickoffType = KickoffMethod.ContainingType;
                 foreach (var attribute in kickoffType.GetAttributes())
                 {
-                    if (attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerNonUserCodeAttribute) ||
-                        attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerStepThroughAttribute))
+                    if (attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute))
                     {
                         if (builder == null)
                         {
@@ -99,5 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool AreLocalsZeroed => KickoffMethod.AreLocalsZeroed;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsUnionTypeCore => false;
     }
 }

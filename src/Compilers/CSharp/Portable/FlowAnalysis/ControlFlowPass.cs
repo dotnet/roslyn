@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState, ControlFlowPass.LocalFunctionState>
     {
-        private readonly PooledDictionary<LabelSymbol, BoundBlock> _labelsDefined = PooledDictionary<LabelSymbol, BoundBlock>.GetInstance();
+        private readonly PooledDictionary<LabelSymbol, BoundNode> _labelsDefined = PooledDictionary<LabelSymbol, BoundNode>.GetInstance();
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { }
         }
 
-        protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
+        protected override LocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol) => new LocalFunctionState(UnreachableState());
 
         protected override bool Meet(ref LocalState self, ref LocalState other)
         {
@@ -131,11 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Diagnostics.Clear();  // clear reported diagnostics
             var result = base.Scan(ref badRegion);
-            foreach (var label in _labelsDefined.Keys)
+            foreach (var (label, node) in _labelsDefined)
             {
+                if (node is BoundSwitchStatement) continue;
+
                 if (!_labelsUsed.Contains(label))
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLabel, label.Locations[0]);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLabel, label.GetFirstLocation());
                 }
             }
 
@@ -266,33 +270,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
+        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node)
         {
             if (node.CatchBlocks.IsEmpty)
             {
-                base.VisitTryBlock(tryBlock, node, ref tryState);
+                base.VisitTryBlock(tryBlock, node);
                 return;
             }
 
             var oldPending = SavePending(); // we do not support branches into a try block
-            base.VisitTryBlock(tryBlock, node, ref tryState);
+            base.VisitTryBlock(tryBlock, node);
             RestorePending(oldPending);
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             var oldPending = SavePending(); // we do not support branches into a catch block
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
             RestorePending(oldPending);
+            return null;
         }
 
-        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState endState)
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock)
         {
             var oldPending1 = SavePending(); // we do not support branches into a finally block
             var oldPending2 = SavePending(); // track only the branches out of the finally block
-            base.VisitFinallyBlock(finallyBlock, ref endState);
+            base.VisitFinallyBlock(finallyBlock);
             RestorePending(oldPending2); // resolve branches that remain within the finally block
-            foreach (var branch in PendingBranches)
+            foreach (var branch in PendingBranches.AsEnumerable())
             {
                 if (branch.Branch == null) continue; // a tracked exception
                 var location = new SourceLocation(branch.Branch.Syntax.GetFirstToken());
@@ -335,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check for illegal jumps across using declarations
             var sourceLocation = node.Syntax.Location;
             var sourceStart = sourceLocation.SourceSpan.Start;
-            var targetStart = node.Label.Locations[0].SourceSpan.Start;
+            var targetStart = node.Label.GetFirstLocation().SourceSpan.Start;
 
             foreach (var usingDecl in _usingDeclarations)
             {
-                var usingStart = usingDecl.symbol.Locations[0].SourceSpan.Start;
+                var usingStart = usingDecl.symbol.GetFirstLocation().SourceSpan.Start;
                 if (sourceStart < usingStart && targetStart > usingStart)
                 {
                     // No forward jumps
@@ -348,11 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (sourceStart > usingStart && targetStart < usingStart)
                 {
-                    // Backwards jump, so we must have already seen the label
-                    Debug.Assert(_labelsDefined.ContainsKey(node.Label));
+                    // Backwards jump, so we must have already seen the label, or it must be a switch case label, or it might be in outer scope. If it is a switch case label, we know
+                    // that either the user received an error for having a using declaration at the top level in a switch statement, or the label is a valid
+                    // target to branch to.
 
                     // Error if label and using are part of the same block
-                    if (_labelsDefined[node.Label] == usingDecl.block)
+                    if (_labelsDefined.TryGetValue(node.Label, out BoundNode target) && target == usingDecl.block)
                     {
                         Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
                         break;
@@ -370,10 +376,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                var syntax = node.SwitchLabels.Last().Pattern.Syntax;
+                var syntax = node.SwitchLabels.Last().Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
             }
+        }
+
+        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
+        {
+            foreach (var section in node.SwitchSections)
+            {
+                foreach (var label in section.SwitchLabels)
+                {
+                    _labelsDefined[label.Label] = node;
+                }
+            }
+
+            return base.VisitSwitchStatement(node);
         }
 
         public override BoundNode VisitBlock(BoundBlock node)

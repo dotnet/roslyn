@@ -1,19 +1,21 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-extern alias DSR;
 
+#nullable disable
+
+extern alias DSR;
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using DSR::Microsoft.DiaSymReader;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using DSR::Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 
 namespace Roslyn.Test.Utilities
@@ -26,7 +28,7 @@ namespace Roslyn.Test.Utilities
             return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
         }
 
-        public unsafe static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
+        public static unsafe EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
         {
             const int S_OK = 0;
 
@@ -39,12 +41,13 @@ namespace Roslyn.Test.Utilities
                 {
                     var pdbReader = new MetadataReader(metadata, size);
 
-                    ImmutableArray<byte> GetCdiBytes(Guid kind) =>
-                        TryGetCustomDebugInformation(pdbReader, handle, kind, out var info) ? pdbReader.GetBlobContent(info.Value) : default(ImmutableArray<byte>);
+                    ImmutableArray<byte> GetCdiBytes(Guid kind)
+                        => TryGetCustomDebugInformation(pdbReader, handle, kind, out var info) ? pdbReader.GetBlobContent(info.Value) : default(ImmutableArray<byte>);
 
                     return EditAndContinueMethodDebugInformation.Create(
                         compressedSlotMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                        compressedLambdaMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
+                        compressedLambdaMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
+                        compressedStateMachineStateMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncStateMachineStateMap));
                 }
             }
 

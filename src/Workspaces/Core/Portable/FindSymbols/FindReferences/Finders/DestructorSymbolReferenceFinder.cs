@@ -2,48 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class DestructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
-    internal class DestructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    protected override bool CanFind(IMethodSymbol symbol)
+        => symbol.MethodKind == MethodKind.Destructor;
+
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        IMethodSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.Destructor;
-        }
+    }
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbol,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
-        }
-
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol,
-            Project project,
-            IImmutableSet<Document> documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyImmutableArray<Document>();
-        }
-
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IMethodSymbol methodSymbol,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
-        }
+    protected override void FindReferencesInDocument<TData>(
+        IMethodSymbol methodSymbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
     }
 }

@@ -1,0 +1,228 @@
+parameters:
+  # These are actually booleans but must be defined as string.
+  # Parameters are evaluated at compile time, but all variables are strings at compile time.
+  # So in order to pass a parameter that comes from a variable these must be typed as string.
+  - name: createDraftPR
+    type: string
+    default: ''
+  - name: autoComplete
+    type: string
+    default: ''
+  - name: insertToolset
+    type: string
+    default: ''
+  - name: queueSpeedometerValidation
+    type: string
+    default: 'true'
+  - name: retainInsertedBuild
+    type: string
+    default: 'true'
+
+  - name: devDivAzdoToken
+    type: string
+  - name: dncEngAzdoToken
+    type: string
+
+  - name: publishDataURI
+    type: string
+  - name: publishDataAccessToken
+    type: string
+    default: ''
+
+  - name: vsBranchName
+    type: string
+    default: ''
+  - name: componentBuildProjectName
+    type: string
+    default: ''
+  - name: titlePrefix
+    type: string
+    default: ''
+
+  - name: sourceBranch
+    type: string
+
+  - name: dropPath
+    type: string
+    default: ''
+
+  - name: cherryPick
+    type: string
+    default: ''
+
+steps:
+  - checkout: none
+
+  - script: dotnet tool install Microsoft.RoslynTools --tool-path .tools --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+    displayName: 'Install roslyn-tools'
+
+  - powershell: |
+      $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
+      $response = Invoke-RestMethod -Headers @{Authorization = $authorization} "${{ parameters.publishDataURI }}"
+      $branchName = "${{ parameters.sourceBranch }}"
+      $insertionData = $response.branchInfo
+
+      # Set our template variables to reasonable defaults
+      Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
+      Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$($false)"
+      Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.TitleSuffix]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($true)"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.DropPath]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.CherryPick]$('')"
+
+      Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
+      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($insertionData.vsBranch)"
+
+      # Overwrite the default template variables with the values from PublishData for this sourceBranch
+      if ($null -ne $insertionData.insertionCreateDraftPR)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($insertionData.insertionCreateDraftPR)"
+      }
+
+      if ($null -ne $insertionData.insertionCreateDraftPR)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $insertionData.insertionCreateDraftPR)"
+      }
+
+      if ($null -ne $insertionData.insertionTitlePrefix)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$($insertionData.insertionTitlePrefix)"
+      }
+
+      if ($null -ne $insertionData.insertToolset)
+      {
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($insertionData.insertToolset)"
+      }
+
+    displayName: Set Variables from PublishData
+    env:
+      PublishDataAccessToken: ${{ parameters.publishDataAccessToken }}
+
+  - powershell: |
+      # Overwrite template variables with values passed into this template as parameters
+      if ("" -ne $Env:CreateDraftPR)
+      {
+        Write-Host "Setting CreateDraftPR to $Env:CreateDraftPR"
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$Env:CreateDraftPR"
+      }
+
+      if ("" -ne $Env:AutoComplete)
+      {
+        Write-Host "Setting AutoComplete to $Env:AutoComplete"
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$Env:AutoComplete"
+      }
+
+      if ("" -ne $Env:TitlePrefix)
+      {
+        Write-Host "Setting TitlePrefix to $Env:TitlePrefix"
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$Env:TitlePrefix"
+      }
+
+      if ("" -ne $Env:InsertToolset)
+      {
+        Write-Host "Setting InsertToolset to $Env:InsertToolset"
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$Env:InsertToolset"
+      }
+
+      # Workaround for pipeline parameters not supporting optional empty parameters.
+      if ("" -ne $Env:VSBranchName -and "default" -ne $Env:VSBranchName)
+      {
+        Write-Host "Setting VSBranchName to $Env:VSBranchName"
+        Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$Env:VSBranchName"
+      }
+
+      if ("" -ne $Env:ComponentBuildProjectName)
+      {
+        Write-Host "Setting component Azdo parameters $('$(System.CollectionUri)') and $Env:ComponentBuildProjectName"
+        Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('$(System.CollectionUri)')"
+        Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$Env:ComponentBuildProjectName"
+      }
+
+      if ("" -ne $Env:DropPath)
+      {
+        Write-Host "Setting DropPath to $Env:DropPath"
+        Write-Host "##vso[task.setvariable variable=Template.DropPath]$Env:DropPath"
+      }
+
+      if ("" -ne $Env:CherryPick -and "(default)" -ne $Env:CherryPick)
+      {
+        Write-Host "Setting CherryPick to $Env:CherryPick"
+        Write-Host "##vso[task.setvariable variable=Template.CherryPick]$Env:CherryPick"
+      }
+
+    displayName: Set Variables from Input Parameters
+    env:
+      CreateDraftPR: ${{ parameters.createDraftPR }}
+      AutoComplete: ${{ parameters.autoComplete }}
+      TitlePrefix: ${{ parameters.titlePrefix }}
+      InsertToolset: ${{ parameters.insertToolset }}
+      VSBranchName: ${{ parameters.vsBranchName }}
+      ComponentBuildProjectName: ${{ parameters.componentBuildProjectName }}
+      DropPath: ${{ parameters.dropPath }}
+      CherryPick: ${{ parameters.cherryPick }}
+
+  # Now that everything is set, actually perform the insertion.
+  - powershell: |
+      $arguments = @(
+        "create-insertion"
+        "--insertion-name", "Roslyn"
+        "--vs-branch", "$(Template.VSBranchName)"
+        "--component-branch", "$(Template.ComponentBranchName)"
+        "--component-build-queue", "$(Build.DefinitionName)"
+        "--specific-build", "$(Build.BuildNumber)"
+        "--create-draft-pr", "$(Template.CreateDraftPR)"
+        "--set-auto-complete", "$(Template.AutoComplete)"
+        "--insert-toolset", "$(Template.InsertToolset)"
+        "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
+        "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
+        "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
+        "--devdiv-azdo-token", $Env:DevDivToken
+        "--dnceng-azdo-token", $Env:DncEngToken
+        "--ci"
+      )
+
+      $componentAzdoUri = "$(Template.ComponentAzdoUri)"
+      if ($componentAzdoUri -ne "")
+      {
+        $arguments += "--component-azdo-uri", $componentAzdoUri
+      }
+
+      $componentProjectName = "$(Template.ComponentProjectName)"
+      if ($componentProjectName -ne "")
+      {
+        $arguments += "--component-project", $componentProjectName
+      }
+
+      $dropPath = "$(Template.DropPath)"
+      if ($dropPath -ne "")
+      {
+        $arguments += "--build-drop-path", $dropPath
+      }
+
+      $titlePrefix = "$(Template.TitlePrefix)"
+      if ($titlePrefix -ne "")
+      {
+        $arguments += "--title-prefix", $titlePrefix
+      }
+
+      $titleSuffix = "$(Template.TitleSuffix)"
+      if ($titleSuffix -ne "")
+      {
+        $arguments += "--title-suffix", $titleSuffix
+      }
+
+      $cherryPick = "$(Template.CherryPick)"
+      if ($cherryPick -ne "")
+      {
+        $arguments += "--cherry-pick", $cherryPick
+      }
+
+      & ./.tools/roslyn-tools @arguments
+    displayName: 'Create VS Insertion PR'
+    env:
+      DevDivToken: ${{ parameters.devDivAzdoToken }}
+      DncEngToken: ${{ parameters.dncEngAzdoToken }}
+      DOTNET_ROLL_FORWARD: Major

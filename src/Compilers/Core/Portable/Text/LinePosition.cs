@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -12,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable representation of a line number and position within a SourceText instance.
     /// </summary>
+    [DataContract]
     public readonly struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
     {
         /// <summary>
@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static LinePosition Zero => default(LinePosition);
 
+        [DataMember(Order = 0)]
         private readonly int _line;
+
+        [DataMember(Order = 1)]
         private readonly int _character;
 
         /// <summary>

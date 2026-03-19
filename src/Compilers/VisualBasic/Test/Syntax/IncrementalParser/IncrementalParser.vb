@@ -2,15 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.ObjectModel
 Imports System.Text
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
@@ -1704,7 +1701,6 @@ End Class
         ' Class declaration is reused.
         Assert.Same(extractGreenClassC(oldTree1), extractGreenClassC(newTree1))
 
-
         ''''''''''
         ' Check reuse after a trivial change in an annotated tree.
         ''''''''''
@@ -1729,7 +1725,6 @@ End Class
         ' ...even though the text is the same.
         Assert.Equal(oldClassC2.ToFullString(), newClassC2.ToFullString())
 
-
         Dim oldToken2 = DirectCast(oldClassC2, Syntax.InternalSyntax.ClassStatementSyntax).Identifier
         Dim newToken2 = DirectCast(newClassC2, Syntax.InternalSyntax.ClassStatementSyntax).Identifier
 
@@ -1740,7 +1735,6 @@ End Class
         Assert.NotSame(oldToken2, newToken2)
         ' ...even though the text is the same.
         Assert.Equal(oldToken2.ToFullString(), newToken2.ToFullString())
-
 
     End Sub
 
@@ -1870,7 +1864,6 @@ Imports Microsoft.Visualbasic
         Dim newTree = oldTree.WithChangedText(newText)
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
-
 
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxDelegateSub()

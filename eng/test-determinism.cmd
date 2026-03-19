@@ -1,2 +1,3 @@
 @echo off
-powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\test-determinism.ps1" %*
+set PSMODULEPATH=
+powershell -noprofile -executionPolicy Unrestricted -file "%~dp0\test-determinism.ps1" %*

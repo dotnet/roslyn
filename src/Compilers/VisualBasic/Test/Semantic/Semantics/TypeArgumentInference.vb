@@ -2,14 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -779,7 +772,6 @@ BC30518: Overload resolution failed because no accessible 'Goo' can be called wi
 </expected>)
         End Sub
 
-
         <Fact>
         Public Sub ERRID_TypeInferenceFailure2()
             Dim compilationDef =
@@ -865,7 +857,6 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
 <expected>
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub InferFromAddressOf1()
@@ -1011,7 +1002,6 @@ BC36564: Type arguments could not be inferred from the delegate.
                                                 ~~
 </expected>)
         End Sub
-
 
         <WorkItem(540950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540950")>
         <Fact>

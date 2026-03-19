@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -9,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// might have a CallerMemberName parameter, we need to keep track of which method/property/event
     /// the attribute is on/in (e.g. on a parameter) so that we can use the name of that member as the 
     /// CallerMemberName argument.
+    /// This binder is also needed when a <see cref="NameofBinder"/> introduces type parameters to a scope within an attribute.
     /// </summary>
     internal sealed class ContextualAttributeBinder : Binder
     {
@@ -20,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ContextualAttributeBinder(Binder enclosing, Symbol symbol)
             : base(enclosing, enclosing.Flags | BinderFlags.InContextualAttributeBinder)
         {
+            Debug.Assert(symbol is not null);
             _attributeTarget = symbol;
             _attributedMember = GetAttributedMember(symbol);
         }
@@ -43,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Walk up to the nearest method/property/event.
         /// </summary>
-        private static Symbol GetAttributedMember(Symbol symbol)
+        internal static Symbol GetAttributedMember(Symbol symbol)
         {
             for (; (object)symbol != null; symbol = symbol.ContainingSymbol)
             {

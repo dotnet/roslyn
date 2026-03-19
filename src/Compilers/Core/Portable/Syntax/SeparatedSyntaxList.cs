@@ -2,18 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    public static class SeparatedSyntaxList
+    {
+        public static SeparatedSyntaxList<TNode> Create<TNode>(ReadOnlySpan<TNode> nodes) where TNode : SyntaxNode
+        {
+            if (nodes.Length == 0)
+                return default;
+
+            if (nodes.Length == 1)
+                return new SeparatedSyntaxList<TNode>(new SyntaxNodeOrTokenList(nodes[0], index: 0));
+
+            var builder = new CodeAnalysis.Syntax.SeparatedSyntaxListBuilder<TNode>(nodes.Length);
+
+            builder.Add(nodes[0]);
+
+            var separator = nodes[0].Green.CreateSeparator(nodes[0]);
+
+            for (int i = 1, n = nodes.Length; i < n; i++)
+            {
+                builder.AddSeparator(separator);
+                builder.Add(nodes[i]);
+            }
+
+            return builder.ToList();
+        }
+    }
+
+    [CollectionBuilder(typeof(SeparatedSyntaxList), "Create")]
     public readonly partial struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>>, IReadOnlyList<TNode> where TNode : SyntaxNode
     {
         private readonly SyntaxNodeOrTokenList _list;
@@ -401,7 +429,7 @@ namespace Microsoft.CodeAnalysis
                     // if item before insertion point is a node, add a separator
                     if (nodesToInsertWithSeparators.Count > 0 || (insertionIndex > 0 && nodesWithSeps[insertionIndex - 1].IsNode))
                     {
-                        nodesToInsertWithSeparators.Add(item.Green.CreateSeparator<TNode>(item));
+                        nodesToInsertWithSeparators.Add(item.Green.CreateSeparator(item));
                     }
 
                     nodesToInsertWithSeparators.Add(item);
@@ -413,7 +441,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var node = nodesWithSeps[insertionIndex].AsNode();
                 Debug.Assert(node is object);
-                nodesToInsertWithSeparators.Add(node.Green.CreateSeparator<TNode>(node)); // separator
+                nodesToInsertWithSeparators.Add(node.Green.CreateSeparator(node)); // separator
             }
 
             return new SeparatedSyntaxList<TNode>(nodesWithSeps.InsertRange(insertionIndex, nodesToInsertWithSeparators));
@@ -545,19 +573,24 @@ namespace Microsoft.CodeAnalysis
             var index = nodesWithSeps.IndexOf(separatorToken);
             if (index < 0)
             {
-                throw new ArgumentException("separatorToken");
+                throw new ArgumentException(CodeAnalysisResources.MissingListItem, nameof(separatorToken));
             }
 
-            if (newSeparator.RawKind != nodesWithSeps[index].RawKind ||
-                newSeparator.Language != nodesWithSeps[index].Language)
+            if (newSeparator.RawKind != nodesWithSeps[index].RawKind)
             {
-                throw new ArgumentException("newSeparator");
+                throw new ArgumentException(CodeAnalysisResources.SeparatorTokenMustHaveSameRawKind, nameof(newSeparator));
+            }
+
+            if (newSeparator.Language != nodesWithSeps[index].Language)
+            {
+                throw new ArgumentException(CodeAnalysisResources.SeparatorTokenMustHaveSameLanguage, nameof(newSeparator));
             }
 
             return new SeparatedSyntaxList<TNode>(nodesWithSeps.Replace(separatorToken, newSeparator));
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
         {
             get { return this.ToArray(); }
@@ -567,8 +600,11 @@ namespace Microsoft.CodeAnalysis
         {
             get { return _list.ToArray(); }
         }
+#pragma warning restore IDE0051 // Remove unused private members
 
+#pragma warning disable RS0041 // uses oblivious reference types
         public Enumerator GetEnumerator()
+#pragma warning restore RS0041 // uses oblivious reference types
         {
             return new Enumerator(this);
         }
@@ -598,7 +634,14 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
         }
 
-        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
+        [Obsolete("This method is preserved for binary compatibility only. Use explicit cast instead.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SeparatedSyntaxList<TNode> op_Implicit(SeparatedSyntaxList<SyntaxNode> nodes)
+        {
+            return new SeparatedSyntaxList<TNode>(nodes._list);
+        }
+
+        public static explicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
         {
             return new SeparatedSyntaxList<TNode>(nodes._list);
         }

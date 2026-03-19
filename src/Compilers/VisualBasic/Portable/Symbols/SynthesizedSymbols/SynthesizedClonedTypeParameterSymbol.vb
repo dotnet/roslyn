@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Type parameter that represents another type parameter while being applied on a different symbol
     ''' </summary>
     Friend NotInheritable Class SynthesizedClonedTypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         Private ReadOnly _typeMapFactory As Func(Of Symbol, TypeSubstitution)
         Private ReadOnly _container As Symbol
@@ -45,6 +45,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _correspondingMethodTypeParameter = correspondingMethodTypeParameter
             _name = name
             _typeMapFactory = typeMapFactory
+
+            Debug.Assert(Me.TypeParameterKind = If(TypeOf Me.ContainingSymbol Is MethodSymbol, TypeParameterKind.Method,
+                                                If(TypeOf Me.ContainingSymbol Is NamedTypeSymbol, TypeParameterKind.Type,
+                                                TypeParameterKind.Cref)),
+                $"Container is {Me.ContainingSymbol?.Kind}, TypeParameterKind is {Me.TypeParameterKind}")
         End Sub
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
@@ -71,6 +76,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return _correspondingMethodTypeParameter.HasUnmanagedTypeConstraint
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return _container
@@ -92,6 +103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
             Get
                 Return _correspondingMethodTypeParameter.HasValueTypeConstraint
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return _correspondingMethodTypeParameter.AllowsRefLikeType
             End Get
         End Property
 

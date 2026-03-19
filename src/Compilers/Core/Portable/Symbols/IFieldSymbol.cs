@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -44,11 +42,34 @@ namespace Microsoft.CodeAnalysis
         bool IsVolatile { get; }
 
         /// <summary>
+        /// True if this field is required to be set in an object initializer during construction.
+        /// </summary>
+        bool IsRequired { get; }
+
+        /// <summary>
         /// Returns true if this field was declared as "fixed".
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
         bool IsFixedSizeBuffer { get; }
+
+        /// <summary>
+        /// If IsFixedSizeBuffer is true, the value between brackets in the fixed-size-buffer declaration.
+        /// If IsFixedSizeBuffer is false or there is an error (such as a bad constant value in source), FixedSize is 0.
+        /// Note that for fixed-size buffer declaration, this.Type will be a pointer type, of which
+        /// the pointed-to type will be the declared element type of the fixed-size buffer.
+        /// </summary>
+        int FixedSize { get; }
+
+        /// <summary>
+        /// Returns the RefKind of the field.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Gets the type of this field.
@@ -58,12 +79,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the top-level nullability of this field.
         /// </summary>
+        /// <remarks>
+        /// The inferred nullability of a backing field symbol (for example, the symbol for a <see langword="field"/> keyword) is not exposed by this API.
+        /// In that case, this API returns the nullable annotation of the associated property.
+        /// The inferred nullability is only exposed indirectly via APIs that give information about expressions, such as <see cref="SemanticModel.GetTypeInfo"/> when called with a <see langword="field"/> expression.
+        /// </remarks>
         NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>
         /// Returns false if the field wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(ConstantValue))]
         bool HasConstantValue { get; }
 
         /// <summary>
@@ -93,5 +120,10 @@ namespace Microsoft.CodeAnalysis
         /// to the corresponding default element field such as "Item1"
         /// </remarks>
         IFieldSymbol? CorrespondingTupleField { get; }
+
+        /// <summary>
+        /// Returns true if this field represents a tuple element which was given an explicit name.
+        /// </summary>
+        bool IsExplicitlyNamedTupleElement { get; }
     }
 }

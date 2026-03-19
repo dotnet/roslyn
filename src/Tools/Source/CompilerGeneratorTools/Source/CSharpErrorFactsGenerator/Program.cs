@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
     {
         public static int Main(string[] args)
         {
-            if (args.Length != 2)
+            if (args is not [string inputPath, string outputPath])
             {
                 Console.WriteLine(
 @"Usage: CSharpErrorFactsGenerator.exe input output
@@ -24,9 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
                 return -1;
             }
 
-            string inputPath = args[0];
-            string outputPath = args[1];
+            return Generate(inputPath, outputPath);
+        }
 
+        public static int Generate(string inputPath, string outputPath)
+        {
             var outputText = new StringBuilder();
             outputText.AppendLine("namespace Microsoft.CodeAnalysis.CSharp");
             outputText.AppendLine("{");

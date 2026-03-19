@@ -3,20 +3,21 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class GoToKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GoToAfterOnErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>On Error |</MethodBody>, "GoTo")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GoToNotAfterOnErrorInLambdaTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>
+        Public Sub GoToAfterOnErrorTest()
+            VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "GoTo")
+        End Sub
+
+        <Fact>
+        Public Sub GoToNotAfterOnErrorInLambdaTest()
+            VerifyRecommendationsAreExactly(<MethodBody>
 Dim x = Sub()
             On Error |
         End Sub</MethodBody>, Array.Empty(Of String)())
-        End Function
+        End Sub
     End Class
 End Namespace

@@ -9,12 +9,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Roslyn.Utilities
 {
     internal static class StringExtensions
     {
+        private static readonly Func<char, char> s_toLower = char.ToLower;
+        private static readonly Func<char, char> s_toUpper = char.ToUpper;
         private static ImmutableArray<string> s_lazyNumerals;
+        private static UTF8Encoding? s_lazyUtf8;
 
         internal static string GetNumeral(int number)
         {
@@ -26,23 +30,11 @@ namespace Roslyn.Utilities
             }
 
             Debug.Assert(number >= 0);
-            return (number < numerals.Length) ? numerals[number] : number.ToString();
+            return (number < numerals.Length) ? numerals[number] : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public static string Join(this IEnumerable<string?> source, string separator)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (separator == null)
-            {
-                throw new ArgumentNullException(nameof(separator));
-            }
-
-            return string.Join(separator, source);
-        }
+            => string.Join(separator, source);
 
         public static bool LooksLikeInterfaceName(this string name)
         {
@@ -54,10 +46,7 @@ namespace Roslyn.Utilities
             return name.Length >= 3 && name[0] == 'T' && char.IsUpper(name[1]) && char.IsLower(name[2]);
         }
 
-        private static readonly Func<char, char> s_toLower = char.ToLower;
-        private static readonly Func<char, char> s_toUpper = char.ToUpper;
-
-        [return: NotNullIfNotNull(parameterName: "shortName")]
+        [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         public static string? ToPascalCase(
             this string? shortName,
             bool trimLeadingTypePrefix = true)
@@ -65,7 +54,7 @@ namespace Roslyn.Utilities
             return ConvertCase(shortName, trimLeadingTypePrefix, s_toUpper);
         }
 
-        [return: NotNullIfNotNull(parameterName: "shortName")]
+        [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         public static string? ToCamelCase(
             this string? shortName,
             bool trimLeadingTypePrefix = true)
@@ -73,7 +62,7 @@ namespace Roslyn.Utilities
             return ConvertCase(shortName, trimLeadingTypePrefix, s_toLower);
         }
 
-        [return: NotNullIfNotNull(parameterName: "shortName")]
+        [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         private static string? ConvertCase(
             this string? shortName,
             bool trimLeadingTypePrefix,
@@ -149,20 +138,20 @@ namespace Roslyn.Utilities
         }
 
         internal static string? GetWithoutAttributeSuffix(
-            this string name,
+            this string? name,
             bool isCaseSensitive)
         {
             return TryGetWithoutAttributeSuffix(name, isCaseSensitive, out var result) ? result : null;
         }
 
         internal static bool TryGetWithoutAttributeSuffix(
-            this string name,
+            this string? name,
             bool isCaseSensitive,
             [NotNullWhen(returnValue: true)] out string? result)
         {
             if (name.HasAttributeSuffix(isCaseSensitive))
             {
-                result = name.Substring(0, name.Length - AttributeSuffix.Length);
+                result = name[..^AttributeSuffix.Length];
                 return true;
             }
 
@@ -170,8 +159,11 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        internal static bool HasAttributeSuffix(this string name, bool isCaseSensitive)
+        internal static bool HasAttributeSuffix([NotNullWhen(true)] this string? name, bool isCaseSensitive)
         {
+            if (name is null)
+                return false;
+
             var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             return name.Length > AttributeSuffix.Length && name.EndsWith(AttributeSuffix, comparison);
         }
@@ -211,7 +203,7 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static string Unquote(this string arg)
         {
-            return Unquote(arg, out var quoted);
+            return Unquote(arg, out _);
         }
 
         internal static string Unquote(this string arg, out bool quoted)
@@ -226,57 +218,6 @@ namespace Roslyn.Utilities
                 quoted = false;
                 return arg;
             }
-        }
-
-        internal static int IndexOfBalancedParenthesis(this string str, int openingOffset, char closing)
-        {
-            char opening = str[openingOffset];
-
-            int depth = 1;
-            for (int i = openingOffset + 1; i < str.Length; i++)
-            {
-                var c = str[i];
-                if (c == opening)
-                {
-                    depth++;
-                }
-                else if (c == closing)
-                {
-                    depth--;
-                    if (depth == 0)
-                    {
-                        return i;
-                    }
-                }
-            }
-
-            return -1;
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static char First(this string arg)
-        {
-            return arg[0];
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static char Last(this string arg)
-        {
-            return arg[arg.Length - 1];
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static bool All(this string arg, Predicate<char> predicate)
-        {
-            foreach (char c in arg)
-            {
-                if (!predicate(c))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public static int GetCaseInsensitivePrefixLength(this string string1, string string2)
@@ -301,6 +242,26 @@ namespace Roslyn.Utilities
             }
 
             return x;
+        }
+
+        internal static bool TryGetUtf8ByteRepresentation(
+            this string s,
+            [NotNullWhen(returnValue: true)] out byte[]? result,
+            [NotNullWhen(returnValue: false)] out string? error)
+        {
+            s_lazyUtf8 ??= new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            try
+            {
+                result = s_lazyUtf8.GetBytes(s);
+                error = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                result = null;
+                error = ex.Message;
+                return false;
+            }
         }
     }
 }

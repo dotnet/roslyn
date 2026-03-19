@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
@@ -31,6 +33,9 @@ namespace BoundTreeGenerator
 
         [XmlAttribute]
         public string HasValidate;
+
+        [XmlAttribute]
+        public string UpdateMethodModifiers;
     }
 
     public class PredefinedNode : TreeType
@@ -43,7 +48,7 @@ namespace BoundTreeGenerator
         public List<Field> Fields;
     }
 
-    public class Node : TreeType
+    public class Node : AbstractNode
     {
         [XmlAttribute]
         public string Root;
@@ -58,17 +63,11 @@ namespace BoundTreeGenerator
         [XmlAttribute]
         public string SkipInNullabilityRewriter;
 
-        [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
-        public List<Kind> Kinds;
-
-        [XmlElement(ElementName = "Field", Type = typeof(Field))]
-        public List<Field> Fields;
-    }
-
-    public class Kind
-    {
+        /// <summary>
+        /// See PipelinePhase enum
+        /// </summary>
         [XmlAttribute]
-        public string Name;
+        public string DoesNotSurvive;
     }
 
     public class Field

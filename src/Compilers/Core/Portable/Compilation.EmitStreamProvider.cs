@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -23,43 +21,51 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Abstraction that allows the caller to delay the creation of the <see cref="Stream"/> values 
-        /// until they are actually needed.
+        /// until they are actually needed. The <see cref="Stream"/> provided here is owned by 
+        /// this type and consumers should not dispose it.
         /// </summary>
         internal abstract class EmitStreamProvider
         {
-            /// <summary>
-            /// Returns an existing open stream or null if no stream has been open.
-            /// </summary>
-            public abstract Stream Stream { get; }
+            private Stream? _stream;
+
+            protected EmitStreamProvider(Stream? stream = null)
+            {
+                _stream = stream;
+            }
 
             /// <summary>
             /// This method will be called once during Emit at the time the Compilation needs 
             /// to create a stream for writing. It will not be called in the case of
             /// user errors in code. Shall not be called when <see cref="Stream"/> returns non-null.
             /// </summary>
-            public abstract Stream CreateStream(DiagnosticBag diagnostics);
+            protected abstract Stream? CreateStream(DiagnosticBag diagnostics);
 
-            public Stream GetOrCreateStream(DiagnosticBag diagnostics)
+            /// <summary>
+            /// Returns a <see cref="Stream"/>. If one cannot be gotten or created then a diagnostic will 
+            /// be added to <paramref name="diagnostics"/>
+            /// </summary>
+            public Stream? GetOrCreateStream(DiagnosticBag diagnostics)
             {
-                return Stream ?? CreateStream(diagnostics);
+                if (_stream is null)
+                {
+                    _stream = CreateStream(diagnostics);
+                }
+
+                return _stream;
             }
         }
 
         internal sealed class SimpleEmitStreamProvider : EmitStreamProvider
         {
-            private readonly Stream _stream;
-
             internal SimpleEmitStreamProvider(Stream stream)
+                : base(stream)
             {
                 RoslynDebug.Assert(stream != null);
-                _stream = stream;
             }
 
-            public override Stream Stream => _stream;
-
-            public override Stream CreateStream(DiagnosticBag diagnostics)
+            protected override Stream CreateStream(DiagnosticBag diagnostics)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

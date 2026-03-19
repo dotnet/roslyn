@@ -6,21 +6,15 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor
-{
-    /// <summary>
-    /// Specifies the exact type of the service exported by the ILanguageService.
-    /// </summary>
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportContentTypeLanguageServiceAttribute : ExportLanguageServiceAttribute
-    {
-        public string DefaultContentType { get; set; }
+namespace Microsoft.CodeAnalysis.Editor;
 
-        public ExportContentTypeLanguageServiceAttribute(string defaultContentType, string language, string layer = ServiceLayer.Default)
-            : base(typeof(IContentTypeLanguageService), language, layer)
-        {
-            this.DefaultContentType = defaultContentType ?? throw new ArgumentNullException(nameof(defaultContentType));
-        }
-    }
+/// <summary>
+/// Specifies the exact type of the service exported by the ILanguageService.
+/// </summary>
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportContentTypeLanguageServiceAttribute(string defaultContentType, string language, string layer = ServiceLayer.Default)
+    : ExportLanguageServiceAttribute(typeof(IContentTypeLanguageService), language, layer)
+{
+    public string DefaultContentType { get; set; } = defaultContentType;
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Linq;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             string source = @"
 public class A
 {
@@ -703,7 +706,7 @@ class Test
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.Fails);
+            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -737,7 +740,7 @@ class Test
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.Fails);
+            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
         }
     }
 }

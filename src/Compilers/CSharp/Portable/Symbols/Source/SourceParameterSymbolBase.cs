@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceParameterSymbolBase(Symbol containingSymbol, int ordinal)
         {
             Debug.Assert((object)containingSymbol != null);
+            Debug.Assert(containingSymbol.ContainingAssembly != null);
             _ordinal = (ushort)ordinal;
             _containingSymbol = containingSymbol;
         }
@@ -32,8 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            if (obj is NativeIntegerParameterSymbol nps)
+            {
+                return nps.Equals(this, compareKind);
+            }
+
             var symbol = obj as SourceParameterSymbolBase;
-            return (object)symbol != null
+            return symbol is not null
                 && symbol.Ordinal == this.Ordinal
                 && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
@@ -58,33 +64,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol.ContainingAssembly; }
         }
 
-        internal abstract ConstantValue DefaultValueFromAttributes { get; }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
+        }
 
-            var compilation = this.DeclaringCompilation;
+        internal static void AddSynthesizedAttributes(ParameterSymbol parameter, PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            var compilation = parameter.DeclaringCompilation;
 
-            if (this.IsParams)
+            if (parameter.IsParamsArray)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
+            else if (parameter.IsParamsCollection)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(parameter));
+            }
 
             // Synthesize DecimalConstantAttribute if we don't have an explicit custom attribute already:
-            var defaultValue = this.ExplicitDefaultConstantValue;
+            var defaultValue = parameter.ExplicitDefaultConstantValue;
             if (defaultValue != ConstantValue.NotAvailable &&
                 defaultValue.SpecialType == SpecialType.System_Decimal &&
-                DefaultValueFromAttributes == ConstantValue.NotAvailable)
+                parameter is SourceParameterSymbolBase sourceParameter &&
+                sourceParameter.DefaultValueFromAttributes == ConstantValue.NotAvailable)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
             }
 
-            var type = this.TypeWithAnnotations;
+            var type = parameter.TypeWithAnnotations;
 
             if (type.Type.ContainsDynamic())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + parameter.RefCustomModifiers.Length, parameter.RefKind));
+            }
+
+            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(parameter, type.Type));
+            }
+
+            if (ParameterHelpers.RequiresScopedRefAttribute(parameter))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(parameter, parameter.EffectiveScope));
             }
 
             if (type.Type.ContainsTupleNames())
@@ -93,14 +116,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (this.RefKind == RefKind.RefReadOnly)
+            switch (parameter.RefKind)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+                case RefKind.In:
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(parameter));
+                    break;
+                case RefKind.RefReadOnlyParameter:
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRequiresLocationAttribute(parameter));
+                    break;
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this))
+            if (compilation.ShouldEmitNullableAttributes(parameter))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(parameter, parameter.GetNullableContextValue(), type));
             }
         }
 

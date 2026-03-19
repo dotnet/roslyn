@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -9,340 +11,309 @@ using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
+
+public abstract class AbstractExternalCodeElement : AbstractCodeModelObject, ICodeElementContainer<AbstractExternalCodeElement>, EnvDTE.CodeElement, EnvDTE80.CodeElement2
 {
-    public abstract class AbstractExternalCodeElement : AbstractCodeModelObject, ICodeElementContainer<AbstractExternalCodeElement>, EnvDTE.CodeElement, EnvDTE80.CodeElement2
+    protected readonly ProjectId ProjectId;
+    internal readonly SymbolKey SymbolKey;
+
+    internal AbstractExternalCodeElement(CodeModelState state, ProjectId projectId, ISymbol symbol)
+        : base(state)
     {
-        protected readonly ProjectId ProjectId;
-        internal readonly SymbolKey SymbolKey;
+        Debug.Assert(projectId != null);
+        Debug.Assert(symbol != null);
 
-        internal AbstractExternalCodeElement(CodeModelState state, ProjectId projectId, ISymbol symbol)
-            : base(state)
+        this.ProjectId = projectId;
+        this.SymbolKey = symbol.GetSymbolKey();
+    }
+
+    internal Compilation GetCompilation()
+    {
+        var project = this.State.Workspace.CurrentSolution.GetProject(this.ProjectId);
+
+        if (project == null)
         {
-            Debug.Assert(projectId != null);
-            Debug.Assert(symbol != null);
-
-            this.ProjectId = projectId;
-            this.SymbolKey = symbol.GetSymbolKey();
+            throw Exceptions.ThrowEFail();
         }
 
-        internal Compilation GetCompilation()
+        return project.GetCompilationAsync(CancellationToken.None).Result;
+    }
+
+    internal ISymbol LookupSymbol()
+    {
+        var symbol = CodeModelService.ResolveSymbol(this.State.Workspace, this.ProjectId, this.SymbolKey);
+
+        if (symbol == null)
         {
-            var project = this.State.Workspace.CurrentSolution.GetProject(this.ProjectId);
-
-            if (project == null)
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            return project.GetCompilationAsync(CancellationToken.None).Result;
+            throw Exceptions.ThrowEFail();
         }
 
-        internal ISymbol LookupSymbol()
+        return symbol;
+    }
+
+    protected virtual EnvDTE.vsCMAccess GetAccess()
+        => CodeModelService.GetAccess(LookupSymbol());
+
+    private static bool TryParseDocCommentXml(string text, out XElement xml)
+    {
+        try
         {
-            var symbol = CodeModelService.ResolveSymbol(this.State.Workspace, this.ProjectId, this.SymbolKey);
+            xml = XElement.Parse(text);
+            return true;
+        }
+        catch (XmlException)
+        {
+            xml = null;
+            return false;
+        }
+    }
 
-            if (symbol == null)
-            {
-                throw Exceptions.ThrowEFail();
-            }
+    protected virtual string GetDocComment()
+    {
+        var symbol = LookupSymbol();
 
-            return symbol;
+        if (symbol == null)
+        {
+            throw Exceptions.ThrowEFail();
         }
 
-        protected virtual EnvDTE.vsCMAccess GetAccess()
+        var documentationCommentXml = symbol.OriginalDefinition.GetDocumentationCommentXml();
+        if (string.IsNullOrWhiteSpace(documentationCommentXml))
         {
-            return CodeModelService.GetAccess(LookupSymbol());
+            return string.Empty;
         }
 
-        private static bool TryParseDocCommentXml(string text, out XElement xml)
+        if (!TryParseDocCommentXml(documentationCommentXml, out var xml))
         {
-            try
-            {
-                xml = XElement.Parse(text);
-                return true;
-            }
-            catch (XmlException)
-            {
-                xml = null;
-                return false;
-            }
-        }
+            // If we failed to parse, maybe it was because the XML fragment represents multiple elements.
+            // Try surrounding with <doc></doc> and parse again.
 
-        protected virtual string GetDocComment()
-        {
-            var symbol = LookupSymbol();
-
-            if (symbol == null)
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            var documentationCommentXml = symbol.OriginalDefinition.GetDocumentationCommentXml();
-            if (string.IsNullOrWhiteSpace(documentationCommentXml))
+            if (!TryParseDocCommentXml($"<doc>{documentationCommentXml}</doc>", out xml))
             {
                 return string.Empty;
             }
-
-            if (!TryParseDocCommentXml(documentationCommentXml, out var xml))
-            {
-                // If we failed to parse, maybe it was because the XML fragment represents multiple elements.
-                // Try surrounding with <doc></doc> and parse again.
-
-                if (!TryParseDocCommentXml($"<doc>{documentationCommentXml}</doc>", out xml))
-                {
-                    return string.Empty;
-                }
-            }
-
-            // Surround with <doc> element. Or replace <member> element with <doc>, if it exists.
-            if (xml.Name == "member")
-            {
-                xml.Name = "doc";
-                xml.RemoveAttributes();
-            }
-            else if (xml.Name != "doc")
-            {
-                xml = new XElement("doc", xml);
-            }
-
-            return xml.ToString();
         }
 
-        protected virtual string GetFullName()
+        // Surround with <doc> element. Or replace <member> element with <doc>, if it exists.
+        if (xml.Name == "member")
         {
-            return CodeModelService.GetExternalSymbolFullName(LookupSymbol());
+            xml.Name = "doc";
+            xml.RemoveAttributes();
         }
-
-        protected virtual bool GetIsShared()
+        else if (xml.Name != "doc")
         {
-            var symbol = LookupSymbol();
-            return symbol.IsStatic;
+            xml = new XElement("doc", xml);
         }
 
-        protected virtual string GetName()
+        return xml.ToString();
+    }
+
+    protected virtual string GetFullName()
+        => CodeModelService.GetExternalSymbolFullName(LookupSymbol());
+
+    protected virtual bool GetIsShared()
+    {
+        var symbol = LookupSymbol();
+        return symbol.IsStatic;
+    }
+
+    protected virtual string GetName()
+        => CodeModelService.GetExternalSymbolName(LookupSymbol());
+
+    protected virtual object GetParent()
+    {
+        var symbol = LookupSymbol();
+
+        if (symbol is INamespaceSymbol { IsGlobalNamespace: true })
         {
-            return CodeModelService.GetExternalSymbolName(LookupSymbol());
+            // TODO: We should be returning the RootCodeModel object here.
+            throw new NotImplementedException();
         }
 
-        protected virtual object GetParent()
+        if (symbol.ContainingType != null)
         {
-            var symbol = LookupSymbol();
-
-            if (symbol.Kind == SymbolKind.Namespace &&
-                ((INamespaceSymbol)symbol).IsGlobalNamespace)
-            {
-                // TODO: We should be returning the RootCodeModel object here.
-                throw new NotImplementedException();
-            }
-
-            if (symbol.ContainingType != null)
-            {
-                return CodeModelService.CreateCodeType(this.State, this.ProjectId, symbol.ContainingType);
-            }
-            else if (symbol.ContainingNamespace != null)
-            {
-                return CodeModelService.CreateExternalCodeElement(this.State, this.ProjectId, symbol.ContainingNamespace);
-            }
-
-            throw Exceptions.ThrowEFail();
+            return CodeModelService.CreateCodeType(this.State, this.ProjectId, symbol.ContainingType);
         }
-
-        public EnvDTE.vsCMAccess Access
+        else if (symbol.ContainingNamespace != null)
         {
-            get
-            {
-                return GetAccess();
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
+            return CodeModelService.CreateExternalCodeElement(this.State, this.ProjectId, symbol.ContainingNamespace);
         }
 
-        public EnvDTE.CodeElements Attributes
+        throw Exceptions.ThrowEFail();
+    }
+
+    public EnvDTE.vsCMAccess Access
+    {
+        get
         {
-            get { return EmptyCollection.Create(this.State, this); }
+            return GetAccess();
         }
 
-        public virtual EnvDTE.CodeElements Children
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        EnvDTE.CodeElements ICodeElementContainer<AbstractExternalCodeElement>.GetCollection()
-        {
-            return Children;
-        }
-
-        protected virtual EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<AbstractExternalCodeElement>(this.Parent);
-        }
-
-        public EnvDTE.CodeElements Collection
-        {
-            get { return GetCollection(); }
-        }
-
-        public string Comment
-        {
-            get
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
-
-        public string DocComment
-        {
-            get
-            {
-                return GetDocComment();
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
-
-        public object Parent
-        {
-            get { return GetParent(); }
-        }
-
-        public EnvDTE.TextPoint EndPoint
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
-
-        public string FullName
-        {
-            get { return GetFullName(); }
-        }
-
-        public bool IsShared
-        {
-            get
-            {
-                return GetIsShared();
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
-
-        public EnvDTE.TextPoint GetEndPoint(EnvDTE.vsCMPart part)
+        set
         {
             throw Exceptions.ThrowEFail();
-        }
-
-        public EnvDTE.TextPoint GetStartPoint(EnvDTE.vsCMPart part)
-        {
-            throw Exceptions.ThrowEFail();
-        }
-
-        public EnvDTE.vsCMInfoLocation InfoLocation
-        {
-            get { return EnvDTE.vsCMInfoLocation.vsCMInfoLocationExternal; }
-        }
-
-        public virtual bool IsCodeType
-        {
-            get { return false; }
-        }
-
-        public abstract EnvDTE.vsCMElement Kind { get; }
-
-        public string Name
-        {
-            get
-            {
-                return GetName();
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
-
-        public EnvDTE.ProjectItem ProjectItem
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
-
-        public EnvDTE.TextPoint StartPoint
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
-
-        public string ExtenderCATID
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        protected virtual object GetExtenderNames()
-        {
-            throw Exceptions.ThrowENotImpl();
-        }
-
-        public object ExtenderNames
-        {
-            get { return GetExtenderNames(); }
-        }
-
-        protected virtual object GetExtender(string name)
-        {
-            throw Exceptions.ThrowENotImpl();
-        }
-
-        public object get_Extender(string extenderName)
-        {
-            return GetExtender(extenderName);
-        }
-
-        public string ElementID
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public EnvDTE.CodeAttribute AddAttribute(string name, string value, object position)
-        {
-            throw Exceptions.ThrowEFail();
-        }
-
-        public EnvDTE.CodeParameter AddParameter(string name, object type, object position)
-        {
-            throw Exceptions.ThrowEFail();
-        }
-
-        public void RenameSymbol(string newName)
-        {
-            throw Exceptions.ThrowEFail();
-        }
-
-        public void RemoveParameter(object element)
-        {
-            throw Exceptions.ThrowEFail();
-        }
-
-        [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
-        public string get_Prototype(int flags = 0)
-        {
-            return CodeModelService.GetPrototype(null, LookupSymbol(), (PrototypeFlags)flags);
         }
     }
+
+    public EnvDTE.CodeElements Attributes
+    {
+        get { return EmptyCollection.Create(this.State, this); }
+    }
+
+    public virtual EnvDTE.CodeElements Children
+    {
+        get { throw new NotImplementedException(); }
+    }
+
+    EnvDTE.CodeElements ICodeElementContainer<AbstractExternalCodeElement>.GetCollection()
+        => Children;
+
+    protected virtual EnvDTE.CodeElements GetCollection()
+        => GetCollection<AbstractExternalCodeElement>(this.Parent);
+
+    public EnvDTE.CodeElements Collection
+    {
+        get { return GetCollection(); }
+    }
+
+    public string Comment
+    {
+        get
+        {
+            throw Exceptions.ThrowEFail();
+        }
+
+        set
+        {
+            throw Exceptions.ThrowEFail();
+        }
+    }
+
+    public string DocComment
+    {
+        get
+        {
+            return GetDocComment();
+        }
+
+        set
+        {
+            throw Exceptions.ThrowEFail();
+        }
+    }
+
+    public object Parent
+    {
+        get { return GetParent(); }
+    }
+
+    public EnvDTE.TextPoint EndPoint
+    {
+        get { throw Exceptions.ThrowEFail(); }
+    }
+
+    public string FullName
+    {
+        get { return GetFullName(); }
+    }
+
+    public bool IsShared
+    {
+        get
+        {
+            return GetIsShared();
+        }
+
+        set
+        {
+            throw Exceptions.ThrowEFail();
+        }
+    }
+
+    public EnvDTE.TextPoint GetEndPoint(EnvDTE.vsCMPart part)
+        => throw Exceptions.ThrowEFail();
+
+    public EnvDTE.TextPoint GetStartPoint(EnvDTE.vsCMPart part)
+        => throw Exceptions.ThrowEFail();
+
+    public EnvDTE.vsCMInfoLocation InfoLocation
+    {
+        get { return EnvDTE.vsCMInfoLocation.vsCMInfoLocationExternal; }
+    }
+
+    public virtual bool IsCodeType
+    {
+        get { return false; }
+    }
+
+    public abstract EnvDTE.vsCMElement Kind { get; }
+
+    public string Name
+    {
+        get
+        {
+            return GetName();
+        }
+
+        set
+        {
+            throw Exceptions.ThrowEFail();
+        }
+    }
+
+    public EnvDTE.ProjectItem ProjectItem
+    {
+        get { throw Exceptions.ThrowEFail(); }
+    }
+
+    public EnvDTE.TextPoint StartPoint
+    {
+        get { throw Exceptions.ThrowEFail(); }
+    }
+
+    public string ExtenderCATID
+    {
+        get { throw new NotImplementedException(); }
+    }
+
+    protected virtual object GetExtenderNames()
+        => throw Exceptions.ThrowENotImpl();
+
+    public object ExtenderNames
+    {
+        get { return GetExtenderNames(); }
+    }
+
+    protected virtual object GetExtender(string name)
+        => throw Exceptions.ThrowENotImpl();
+
+    public object get_Extender(string extenderName)
+        => GetExtender(extenderName);
+
+    public string ElementID
+    {
+        get { throw new NotImplementedException(); }
+    }
+
+#pragma warning disable IDE0060 // Remove unused parameter - Implements interface methods for sub-types.
+    public EnvDTE.CodeAttribute AddAttribute(string name, string value, object position)
+        => throw Exceptions.ThrowEFail();
+
+    public EnvDTE.CodeParameter AddParameter(string name, object type, object position)
+        => throw Exceptions.ThrowEFail();
+
+    public void RenameSymbol(string newName)
+        => throw Exceptions.ThrowEFail();
+
+    public void RemoveParameter(object element)
+        => throw Exceptions.ThrowEFail();
+
+    [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
+    public string get_Prototype(int flags = 0)
+        => CodeModelService.GetPrototype(null, LookupSymbol(), (PrototypeFlags)flags);
+#pragma warning restore IDE0060 // Remove unused parameter
 }

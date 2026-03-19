@@ -2,12 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
 
 Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
@@ -23,24 +17,6 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Dim text As String = tree.GetText().ToString()
         Dim position As Integer = text.IndexOf(textToFind, StringComparison.Ordinal)
         Return position
-    End Function
-
-    Private Function GetAncestor(Of T As VisualBasicSyntaxNode)(node As VisualBasicSyntaxNode) As T
-        If node Is Nothing Then
-            Throw New ArgumentNullException(NameOf(node))
-        End If
-
-        Dim parent = node.Parent
-        While parent IsNot Nothing
-            Dim result = TryCast(parent, T)
-            If result IsNot Nothing Then
-                Return result
-            End If
-
-            parent = parent.Parent
-        End While
-
-        Return Nothing
     End Function
 
     Protected Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As TNode
@@ -116,7 +92,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Return DirectCast(semanticModel.GetAliasInfo(node), AliasSymbol)
     End Function
 
-    Protected Function GetBlockOrStatementInfoForTest(Of StmtSyntax As SyntaxNode, ISM As SemanticModel)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional useParent As Boolean = False) As Object
+    Protected Function GetBlockOrStatementInfoForTest(Of StmtSyntax As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional useParent As Boolean = False) As Object
         Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of StmtSyntax)(compilation, fileName, which)
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
         Dim semanticModel = CType(compilation.GetSemanticModel(tree), VBSemanticModel)

@@ -5,53 +5,57 @@
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#endif
+namespace Microsoft.CodeAnalysis.CodeStyle;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
-namespace Microsoft.CodeAnalysis.CodeStyle
-#endif
+/// <inheritdoc cref="NotificationOption2"/>
+public sealed class NotificationOption
 {
+    private readonly NotificationOption2 _notificationOptionImpl;
+
     /// <summary>
-    /// Offers different notification styles for enforcing
-    /// a code style. Under the hood, it simply maps to <see cref="DiagnosticSeverity"/>
+    /// Name for the notification option.
     /// </summary>
-    /// <remarks>
-    /// This also supports various properties for databinding.
-    /// </remarks>
-    /// <completionlist cref="NotificationOption"/>
-    public class NotificationOption
+    public string Name
     {
-        public string Name { get; set; }
+        get => Severity.GetDisplayString();
 
-        public ReportDiagnostic Severity
-        {
-            get;
-            set;
-        }
-
-        [Obsolete("Use " + nameof(Severity) + " instead.")]
-        public DiagnosticSeverity Value
-        {
-            get => Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
-            set => Severity = value.ToReportDiagnostic();
-        }
-
-        public static readonly NotificationOption None = new NotificationOption(WorkspacesResources.None, ReportDiagnostic.Suppress);
-        public static readonly NotificationOption Silent = new NotificationOption(WorkspacesResources.Refactoring_Only, ReportDiagnostic.Hidden);
-        public static readonly NotificationOption Suggestion = new NotificationOption(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
-        public static readonly NotificationOption Warning = new NotificationOption(WorkspacesResources.Warning, ReportDiagnostic.Warn);
-        public static readonly NotificationOption Error = new NotificationOption(WorkspacesResources.Error, ReportDiagnostic.Error);
-
-        private NotificationOption(string name, ReportDiagnostic severity)
-        {
-            Name = name;
-            Severity = severity;
-        }
-
-        public override string ToString() => Name;
+        [Obsolete("Modifying a NotificationOption is not supported.", error: true)]
+        set => throw new InvalidOperationException();
     }
+
+    /// <inheritdoc cref="NotificationOption2.Severity"/>
+    public ReportDiagnostic Severity
+    {
+        get => _notificationOptionImpl.Severity;
+
+        [Obsolete("Modifying a NotificationOption is not supported.", error: true)]
+        set => throw new InvalidOperationException();
+    }
+
+    [Obsolete("Use " + nameof(Severity) + " instead.")]
+    public DiagnosticSeverity Value
+    {
+        get => Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
+        set => throw new InvalidOperationException();
+    }
+
+    /// <inheritdoc cref="NotificationOption2.None"/>
+    public static readonly NotificationOption None = new(NotificationOption2.None);
+
+    /// <inheritdoc cref="NotificationOption2.Silent"/>
+    public static readonly NotificationOption Silent = new(NotificationOption2.Silent);
+
+    /// <inheritdoc cref="NotificationOption2.Suggestion"/>
+    public static readonly NotificationOption Suggestion = new(NotificationOption2.Suggestion);
+
+    /// <inheritdoc cref="NotificationOption2.Warning"/>
+    public static readonly NotificationOption Warning = new(NotificationOption2.Warning);
+
+    /// <inheritdoc cref="NotificationOption2.Error"/>
+    public static readonly NotificationOption Error = new(NotificationOption2.Error);
+
+    private NotificationOption(NotificationOption2 notificationOptionImpl)
+        => _notificationOptionImpl = notificationOptionImpl;
+
+    public override string ToString() => Name;
 }

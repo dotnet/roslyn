@@ -6,92 +6,91 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+internal sealed class BlockSpanCollector
 {
-    internal class BlockSpanCollector
+    private readonly BlockStructureOptions _options;
+    private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
+    private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
+    private readonly CancellationToken _cancellationToken;
+
+    private BlockSpanCollector(
+        BlockStructureOptions options,
+        ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
+        ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
+        CancellationToken cancellationToken)
     {
-        private readonly Document _document;
-        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
-        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
-        private readonly ArrayBuilder<BlockSpan> _spans;
-        private readonly CancellationToken _cancellationToken;
+        _options = options;
+        _nodeProviderMap = nodeOutlinerMap;
+        _triviaProviderMap = triviaOutlinerMap;
+        _cancellationToken = cancellationToken;
+    }
 
-        private BlockSpanCollector(
-            Document document,
-            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
-            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
-            ArrayBuilder<BlockSpan> spans,
-            CancellationToken cancellationToken)
+    public static void CollectBlockSpans(
+        SyntaxNode syntaxRoot,
+        BlockStructureOptions options,
+        ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
+        ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
+        ArrayBuilder<BlockSpan> spans,
+        CancellationToken cancellationToken)
+    {
+        var collector = new BlockSpanCollector(options, nodeOutlinerMap, triviaOutlinerMap, cancellationToken);
+        collector.Collect(syntaxRoot, spans);
+    }
+
+    private void Collect(SyntaxNode root, ArrayBuilder<BlockSpan> spans)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        SyntaxToken previousToken = default;
+        foreach (var nodeOrToken in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
         {
-            _document = document;
-            _nodeProviderMap = nodeOutlinerMap;
-            _triviaProviderMap = triviaOutlinerMap;
-            _spans = spans;
-            _cancellationToken = cancellationToken;
-        }
-
-        public static void CollectBlockSpans(
-            Document document,
-            SyntaxNode syntaxRoot,
-            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
-            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
-            ArrayBuilder<BlockSpan> spans,
-            CancellationToken cancellationToken)
-        {
-            var collector = new BlockSpanCollector(document, nodeOutlinerMap, triviaOutlinerMap, spans, cancellationToken);
-            collector.Collect(syntaxRoot);
-        }
-
-        private void Collect(SyntaxNode root)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            foreach (var nodeOrToken in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
+            if (nodeOrToken.AsNode(out var childNode))
             {
-                if (nodeOrToken.IsNode)
-                {
-                    GetBlockSpans(nodeOrToken.AsNode());
-                }
-                else
-                {
-                    GetBlockSpans(nodeOrToken.AsToken());
-                }
+                GetBlockSpans(previousToken, childNode, spans);
+            }
+            else
+            {
+                GetBlockSpans(nodeOrToken.AsToken(), spans);
+                previousToken = nodeOrToken.AsToken();
             }
         }
+    }
 
-        private void GetBlockSpans(SyntaxNode node)
+    private void GetBlockSpans(SyntaxToken previousToken, SyntaxNode node, ArrayBuilder<BlockSpan> spans)
+    {
+        if (_nodeProviderMap.TryGetValue(node.GetType(), out var providers))
         {
-            if (_nodeProviderMap.TryGetValue(node.GetType(), out var providers))
+            foreach (var provider in providers)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+
+                provider.CollectBlockSpans(previousToken, node, spans, _options, _cancellationToken);
+            }
+        }
+    }
+
+    private void GetBlockSpans(SyntaxToken token, ArrayBuilder<BlockSpan> spans)
+    {
+        GetOutliningSpans(token.LeadingTrivia, spans);
+        GetOutliningSpans(token.TrailingTrivia, spans);
+    }
+
+    private void GetOutliningSpans(SyntaxTriviaList triviaList, ArrayBuilder<BlockSpan> spans)
+    {
+        foreach (var trivia in triviaList)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+            if (_triviaProviderMap.TryGetValue(trivia.RawKind, out var providers))
             {
                 foreach (var provider in providers)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    provider.CollectBlockSpans(_document, node, _spans, _cancellationToken);
-                }
-            }
-        }
-
-        private void GetBlockSpans(SyntaxToken token)
-        {
-            GetOutliningSpans(token.LeadingTrivia);
-            GetOutliningSpans(token.TrailingTrivia);
-        }
-
-        private void GetOutliningSpans(SyntaxTriviaList triviaList)
-        {
-            foreach (var trivia in triviaList)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                if (_triviaProviderMap.TryGetValue(trivia.RawKind, out var providers))
-                {
-                    foreach (var provider in providers)
-                    {
-                        _cancellationToken.ThrowIfCancellationRequested();
-
-                        provider.CollectBlockSpans(_document, trivia, _spans, _cancellationToken);
-                    }
+                    provider.CollectBlockSpans(trivia, spans, _options, _cancellationToken);
                 }
             }
         }

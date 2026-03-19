@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 {
@@ -322,20 +325,20 @@ public class LocalTypes3
             var fullName_S1 = MetadataTypeName.FromFullName("S1");
             var fullName_S2 = MetadataTypeName.FromFullName("NS1.S2");
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_I1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_I2));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_S1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_S2));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_I1));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_I2));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_S1));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_S2));
 
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_I1.FullName));
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_I2.FullName));
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_S1.FullName));
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_S2.FullName));
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_I1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_I2));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_S1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_S2));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_I1));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_I2));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_S1));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_S2));
 
             Assert.Null(assemblies[1].GetTypeByMetadataName(fullName_I1.FullName));
             Assert.Null(assemblies[1].GetTypeByMetadataName(fullName_I2.FullName));
@@ -644,12 +647,12 @@ public class LocalTypes3
         public void LocalTypeSubstitution1_2()
         {
             var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
             var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes2);
 
@@ -944,16 +947,16 @@ public class LocalTypes3
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_3()
         {
-            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1", targetFramework: TargetFramework.StandardCompat);
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1", targetFramework: TargetFramework.Standard);
             CompileAndVerify(Pia1);
 
             var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
             var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes2);
 
@@ -2635,7 +2638,7 @@ public struct Test
 }
 ";
 
-            var piaCompilation = CreateCompilationWithMscorlib45(pia, options: TestOptions.DebugDll, assemblyName: "Pia");
+            var piaCompilation = CreateEmptyCompilation(pia, references: [Net40.References.mscorlib], options: TestOptions.DebugDll, assemblyName: "Pia");
 
             string consumer1 = @"
 public class UsePia1
@@ -2659,11 +2662,11 @@ class UsePia2
 
             foreach (MetadataReference piaRef in new[] { piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference() })
             {
-                var compilation1 = CreateCompilationWithMscorlib45(consumer1, references: new[] { piaRef.WithEmbedInteropTypes(true) });
+                var compilation1 = CreateEmptyCompilation(consumer1, references: [Net40.References.mscorlib, piaRef.WithEmbedInteropTypes(true)]);
 
                 foreach (MetadataReference consumer1Ref in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
                 {
-                    var compilation2 = CreateCompilationWithMscorlib46(consumer2, references: new[] { piaRef, consumer1Ref });
+                    var compilation2 = CreateEmptyCompilation(consumer2, references: [Net461.References.mscorlib, piaRef, consumer1Ref]);
 
                     compilation2.VerifyDiagnostics();
 

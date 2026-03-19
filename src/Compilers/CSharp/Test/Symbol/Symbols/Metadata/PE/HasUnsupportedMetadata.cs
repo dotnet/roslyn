@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -152,7 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
   } // end of property C3::P1
 } // end of class C3
 ";
-
 
             var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 
@@ -357,7 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
   } // end of property X::Token
 } // end of class X
 ";
-
 
             var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 

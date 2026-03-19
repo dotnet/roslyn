@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundReturnStatement
+    Partial Friend Class BoundReturnStatement
 
         Friend Function IsEndOfMethodReturn() As Boolean
             Return Me.ExitLabelOpt is nothing

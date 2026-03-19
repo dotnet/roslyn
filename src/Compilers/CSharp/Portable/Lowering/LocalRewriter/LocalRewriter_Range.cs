@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -45,12 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.Type.IsNullableType())
                 {
-                    if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
-                    {
-                        return BadExpression(node.Syntax, node.Type, node);
-                    }
-
-                    return new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeCreation);
+                    return ConvertToNullable(node.Syntax, node.Type, rangeCreation);
                 }
 
                 return rangeCreation;
@@ -105,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeExpr);
+            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, rangeExpr);
 
             // default
             BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);
@@ -148,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-                        condition = MakeBinaryOperator(node.Syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null);
+                        condition = MakeBinaryOperator(node.Syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null, constrainedToTypeOpt: null);
                     }
 
                     return MakeOptimizedGetValueOrDefault(tempOperand.Syntax, tempOperand);

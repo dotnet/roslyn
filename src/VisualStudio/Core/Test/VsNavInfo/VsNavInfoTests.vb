@@ -2,23 +2,21 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
 Imports Microsoft.VisualStudio.Shell.Interop
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
     Public Class VsNavInfoTests
 
 #Region "C# Tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestNamespace() As Task
             Dim workspace =
 <Workspace>
@@ -31,16 +29,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestClass() As Task
             Dim workspace =
 <Workspace>
@@ -56,18 +54,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMethod() As Task
             Dim workspace =
 <Workspace>
@@ -86,20 +84,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMethod_Parameters() As Task
             Dim workspace =
 <Workspace>
@@ -121,20 +119,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(int, int)")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(int, int)")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(int, int)")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(int, int)")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMetadata_Class1() As Task
             Dim workspace =
 <Workspace>
@@ -151,18 +149,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMetadata_Class2() As Task
             Dim workspace =
 <Workspace>
@@ -179,19 +177,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMetadata_Ctor1() As Task
             Dim workspace =
 <Workspace>
@@ -208,21 +206,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder"),
-                    Member("StringBuilder()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("StringBuilder()")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder"),
-                    Member("StringBuilder()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("StringBuilder()")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMetadata_Ctor2() As Task
             Dim workspace =
 <Workspace>
@@ -239,20 +237,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("String(char, int)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("String(char, int)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("String(char, int)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("String(char, int)")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMetadata_Method() As Task
             Dim workspace =
 <Workspace>
@@ -269,20 +267,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(char, char)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(char, char)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(char, char)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(char, char)")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMetadata_GenericType() As Task
             Dim workspace =
 <Workspace>
@@ -299,20 +297,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Collections"),
-                    [Namespace]("Generic"),
-                    [Class]("List<T>")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Collections"),
+                    NamespaceNode("Generic"),
+                    ClassNode("List<T>")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Collections.Generic"),
-                    [Class]("List<T>")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Collections.Generic"),
+                    ClassNode("List<T>")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestMetadata_GenericMethod() As Task
             Dim workspace =
 <Workspace>
@@ -333,20 +331,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly<T>(T[])")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly<T>(T[])")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly<T>(T[])")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly<T>(T[])")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestNull_Parameter() As Task
             Dim workspace =
 <Workspace>
@@ -363,7 +361,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Await TestIsNullAsync(workspace)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestNull_Local() As Task
             Dim workspace =
 <Workspace>
@@ -383,7 +381,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Await TestIsNullAsync(workspace)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestCSharp_TestNull_Label() As Task
             Dim workspace =
 <Workspace>
@@ -408,7 +406,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
 #Region "Visual Basic Tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestNamespace() As Task
             Dim workspace =
 <Workspace>
@@ -422,16 +420,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestClass() As Task
             Dim workspace =
 <Workspace>
@@ -447,18 +445,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMember_Sub() As Task
             Dim workspace =
 <Workspace>
@@ -476,20 +474,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMember_Function() As Task
             Dim workspace =
 <Workspace>
@@ -507,20 +505,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M() As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M() As Integer")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M() As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M() As Integer")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMember_Parameters() As Task
             Dim workspace =
 <Workspace>
@@ -538,20 +536,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(Integer, Integer) As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(Integer, Integer) As Integer")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(Integer, Integer) As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(Integer, Integer) As Integer")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMetadata_Class1() As Task
             Dim workspace =
 <Workspace>
@@ -567,18 +565,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMetadata_Class2() As Task
             Dim workspace =
 <Workspace>
@@ -594,19 +592,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMetadata_Ctor1() As Task
             Dim workspace =
 <Workspace>
@@ -622,21 +620,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder"),
-                    Member("New()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("New()")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder"),
-                    Member("New()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("New()")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMetadata_Ctor2() As Task
             Dim workspace =
 <Workspace>
@@ -652,20 +650,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("New(Char, Integer)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("New(Char, Integer)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("New(Char, Integer)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("New(Char, Integer)")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMetadata_Method() As Task
             Dim workspace =
 <Workspace>
@@ -681,20 +679,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(Char, Char) As String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(Char, Char) As String")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(Char, Char) As String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(Char, Char) As String")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMetadata_GenericType() As Task
             Dim workspace =
 <Workspace>
@@ -710,20 +708,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Collections"),
-                    [Namespace]("Generic"),
-                    [Class]("List(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Collections"),
+                    NamespaceNode("Generic"),
+                    ClassNode("List(Of T)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Collections.Generic"),
-                    [Class]("List(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Collections.Generic"),
+                    ClassNode("List(Of T)")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestMetadata_GenericMethod() As Task
             Dim workspace =
 <Workspace>
@@ -742,20 +740,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
                  })
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestNull_Parameter() As Task
             Dim workspace =
 <Workspace>
@@ -772,7 +770,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Await TestIsNullAsync(workspace)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestNull_Local() As Task
             Dim workspace =
 <Workspace>
@@ -790,7 +788,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Await TestIsNullAsync(workspace)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact>
         Public Async Function TestVisualBasic_TestNull_Label() As Task
             Dim workspace =
 <Workspace>
@@ -821,7 +819,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Optional presentationNodes As NodeVerifier() = Nothing
         ) As Task
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 
@@ -859,7 +857,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Optional useExpandedHierarchy As Boolean = False
         ) As Task
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 

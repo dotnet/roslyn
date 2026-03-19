@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Interactive
@@ -20,9 +19,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             public ShadowCopyReference(MetadataShadowCopyProvider provider, string originalPath, MetadataReferenceProperties properties)
                 : base(properties, originalPath)
             {
-                Debug.Assert(originalPath != null);
-                Debug.Assert(provider != null);
-
                 _provider = provider;
             }
 
@@ -39,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             {
-                return new ShadowCopyReference(_provider, this.FilePath, properties);
+                return new ShadowCopyReference(_provider, FilePath!, properties);
             }
         }
     }

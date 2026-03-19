@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatterHelpers;
 
@@ -36,24 +37,24 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
-        protected virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
-            new BuilderOptions(
+        protected virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions)
+            => new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
                 ellipsis: printOptions.Ellipsis,
                 maximumLineLength: int.MaxValue,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        protected virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
-            new CommonPrimitiveFormatterOptions(
+        protected virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions)
+            => new CommonPrimitiveFormatterOptions(
                 numberRadix: printOptions.NumberRadix,
                 includeCodePoints: false,
                 quoteStringsAndCharacters: true,
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
                 cultureInfo: CultureInfo.CurrentUICulture);
 
-        protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
-            new CommonTypeNameFormatterOptions(
+        protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions)
+            => new CommonTypeNameFormatterOptions(
                 arrayBoundRadix: printOptions.NumberRadix,
                 showNamespaces: false);
 

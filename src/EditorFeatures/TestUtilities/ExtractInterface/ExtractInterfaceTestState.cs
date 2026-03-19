@@ -2,100 +2,128 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.ExtractInterface;
-using Microsoft.VisualStudio.Composition;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
+
+internal sealed class ExtractInterfaceTestState : IDisposable
 {
-    internal class ExtractInterfaceTestState : IDisposable
+    public static readonly TestComposition Composition = EditorTestCompositions.EditorFeatures.AddParts(
+        typeof(TestExtractInterfaceOptionsService));
+
+    private readonly TestHostDocument _testDocument;
+    public EditorTestWorkspace Workspace { get; }
+    public Document ExtractFromDocument { get; }
+    public AbstractExtractInterfaceService ExtractInterfaceService { get; }
+    public Solution OriginalSolution { get; }
+    public string ErrorMessage { get; private set; }
+    public NotificationSeverity ErrorSeverity { get; private set; }
+
+    public static ExtractInterfaceTestState Create(
+        string markup,
+        string languageName,
+        CompilationOptions compilationOptions = null,
+        ParseOptions parseOptions = null,
+        OptionsCollection options = null)
     {
-        private TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; }
-        public Document ExtractFromDocument { get; }
-        public AbstractExtractInterfaceService ExtractInterfaceService { get; }
-        public Solution OriginalSolution { get; }
-        public string ErrorMessage { get; private set; }
-        public NotificationSeverity ErrorSeverity { get; private set; }
+        var workspace =
+            markup.Trim().StartsWith("<Workspace>")
+                ? EditorTestWorkspace.CreateWorkspace(XElement.Parse(markup), composition: Composition)
+                : languageName == LanguageNames.CSharp
+                    ? EditorTestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions)
+                    : EditorTestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions);
+        workspace.SetAnalyzerFallbackAndGlobalOptions(options);
 
-        public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
+        return new ExtractInterfaceTestState(workspace);
+    }
+
+    public ExtractInterfaceTestState(EditorTestWorkspace workspace)
+    {
+        Workspace = workspace;
+
+        OriginalSolution = Workspace.CurrentSolution;
+        _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
+
+        if (_testDocument == null)
         {
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
-            var workspace = languageName == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, compilationOptions: compilationOptions);
-            return new ExtractInterfaceTestState(workspace);
+            throw new ArgumentException("markup does not contain a cursor position", nameof(workspace));
         }
 
-        public ExtractInterfaceTestState(TestWorkspace workspace)
+        ExtractFromDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
+        ExtractInterfaceService = ExtractFromDocument.GetLanguageService<AbstractExtractInterfaceService>();
+    }
+
+    public TestExtractInterfaceOptionsService TestExtractInterfaceOptionsService
+    {
+        get
         {
-            Workspace = workspace;
+            return (TestExtractInterfaceOptionsService)ExtractFromDocument.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
+        }
+    }
 
-            OriginalSolution = Workspace.CurrentSolution;
-            _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
+    public Task<ExtractInterfaceTypeAnalysisResult> GetTypeAnalysisResultAsync(TypeDiscoveryRule typeDiscoveryRule)
+    {
+        return ExtractInterfaceService.AnalyzeTypeAtPositionAsync(
+            ExtractFromDocument,
+            _testDocument.CursorPosition.Value,
+            typeDiscoveryRule,
+            CancellationToken.None);
+    }
 
-            if (_testDocument == null)
+    public Task<ExtractInterfaceResult> ExtractViaCommandAsync()
+    {
+        return ExtractInterfaceService.ExtractInterfaceAsync(
+            ExtractFromDocument,
+            _testDocument.CursorPosition.Value,
+            (errorMessage, severity) =>
             {
-                throw new ArgumentException("markup does not contain a cursor position", nameof(workspace));
-            }
+                this.ErrorMessage = errorMessage;
+                this.ErrorSeverity = severity;
+            },
+            CancellationToken.None);
+    }
 
-            ExtractFromDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
-            ExtractInterfaceService = ExtractFromDocument.GetLanguageService<AbstractExtractInterfaceService>();
-        }
+    public async Task<Solution> ExtractViaCodeAction()
+    {
+        var actions = await ExtractInterfaceService.GetExtractInterfaceCodeActionAsync(
+            ExtractFromDocument,
+            new TextSpan(_testDocument.CursorPosition.Value, 1),
+            CancellationToken.None);
 
-        public static readonly IExportProviderFactory ExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestExtractInterfaceOptionsService))
-                    .WithPart(typeof(CSharpExtractInterfaceService))
-                    .WithPart(typeof(VisualBasicExtractInterfaceService)));
+        var action = actions.Single();
 
-        public TestExtractInterfaceOptionsService TestExtractInterfaceOptionsService
+        var options = (ExtractInterfaceOptionsResult)action.GetOptions(CancellationToken.None);
+        var changedOptions = new ExtractInterfaceOptionsResult(
+            options.IsCancelled,
+            options.IncludedMembers,
+            options.InterfaceName,
+            options.FileName,
+            ExtractInterfaceOptionsResult.ExtractLocation.SameFile);
+
+        var operations = await action.GetOperationsAsync(
+            this.OriginalSolution, changedOptions, CodeAnalysisProgress.None, CancellationToken.None);
+        foreach (var operation in operations)
         {
-            get
-            {
-                return (TestExtractInterfaceOptionsService)ExtractFromDocument.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
-            }
+            operation.Apply(Workspace, CancellationToken.None);
         }
 
-        public Task<ExtractInterfaceTypeAnalysisResult> GetTypeAnalysisResultAsync(TypeDiscoveryRule typeDiscoveryRule)
-        {
-            return ExtractInterfaceService.AnalyzeTypeAtPositionAsync(
-                ExtractFromDocument,
-                _testDocument.CursorPosition.Value,
-                typeDiscoveryRule,
-                CancellationToken.None);
-        }
+        return Workspace.CurrentSolution;
+    }
 
-        public Task<ExtractInterfaceResult> ExtractViaCommandAsync()
-        {
-            return ExtractInterfaceService.ExtractInterfaceAsync(
-                ExtractFromDocument,
-                _testDocument.CursorPosition.Value,
-                (errorMessage, severity) =>
-                {
-                    this.ErrorMessage = errorMessage;
-                    this.ErrorSeverity = severity;
-                },
-                CancellationToken.None);
-        }
-
-        public void Dispose()
-        {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
-        }
+    public void Dispose()
+    {
+        Workspace?.Dispose();
     }
 }

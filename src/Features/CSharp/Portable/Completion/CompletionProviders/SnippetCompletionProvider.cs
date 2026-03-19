@@ -12,115 +12,136 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Snippets;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
+[ExportCompletionProvider(nameof(SnippetCompletionProvider), LanguageNames.CSharp), Shared]
+[ExtensionOrder(After = nameof(CrefCompletionProvider))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SnippetCompletionProvider() : LSPCompletionProvider
 {
-    [ExportCompletionProvider(nameof(SnippetCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(CrefCompletionProvider))]
-    [Shared]
-    internal sealed class SnippetCompletionProvider : LSPCompletionProvider
+    private static readonly HashSet<string> s_snippetsWithReplacements =
+    [
+        CSharpSnippetIdentifiers.Class,
+        CommonSnippetIdentifiers.ConsoleWriteLine,
+        CommonSnippetIdentifiers.Constructor,
+        CSharpSnippetIdentifiers.Do,
+        CSharpSnippetIdentifiers.Else,
+        CSharpSnippetIdentifiers.Enum,
+        CSharpSnippetIdentifiers.For,
+        CSharpSnippetIdentifiers.ReversedFor,
+        CSharpSnippetIdentifiers.ForEach,
+        CSharpSnippetIdentifiers.If,
+        CSharpSnippetIdentifiers.Interface,
+        CSharpSnippetIdentifiers.Lock,
+        CommonSnippetIdentifiers.Property,
+        CommonSnippetIdentifiers.GetOnlyProperty,
+        CSharpSnippetIdentifiers.StaticIntMain,
+        CSharpSnippetIdentifiers.Struct,
+        CSharpSnippetIdentifiers.StaticVoidMain,
+        CSharpSnippetIdentifiers.Unsafe,
+        CSharpSnippetIdentifiers.Using,
+        CSharpSnippetIdentifiers.While
+    ];
+
+    internal override bool IsSnippetProvider => true;
+
+    internal override string Language => LanguageNames.CSharp;
+
+    public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+        => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+    public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+
+    public override async Task ProvideCompletionsAsync(CompletionContext context)
     {
-        internal override bool IsSnippetProvider => true;
-
-        [ImportingConstructor]
-        public SnippetCompletionProvider()
+        try
         {
-        }
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
-
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
-
-        public override async Task ProvideCompletionsAsync(CompletionContext context)
-        {
-            try
+            using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
             {
-                var document = context.Document;
-                var position = context.Position;
-                var options = context.Options;
-                var cancellationToken = context.CancellationToken;
-
-                using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
+                // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
+                var solution = document.Project.Solution;
+                if (!solution.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                     solution.WorkspaceKind is WorkspaceKind.Debugger or WorkspaceKind.Interactive)
                 {
-                    // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
-                    var workspace = document.Project.Solution.Workspace;
-                    if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                         workspace.Kind == WorkspaceKind.Debugger ||
-                         workspace.Kind == WorkspaceKind.Interactive)
-                    {
-                        return;
-                    }
-
-                    var snippetCompletionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
-                        UnionCompletionItemComparer.Instance,
-                        (d, c) => GetSnippetsForDocumentAsync(d, position, workspace, c),
-                        cancellationToken).ConfigureAwait(false);
-
-                    context.AddItems(snippetCompletionItems);
+                    return;
                 }
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-            {
-                // nop
+
+                context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                    UnionCompletionItemComparer.Instance,
+                    document => GetSnippetsForDocumentAsync(document, context, cancellationToken)).ConfigureAwait(false));
             }
         }
-
-        private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(
-            Document document, int position, Workspace workspace, CancellationToken cancellationToken)
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            // nop
+        }
+    }
 
-            var leftToken = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true);
-            var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+    private static async Task<ImmutableArray<CompletionItem>> GetSnippetsForDocumentAsync(
+        Document document, CompletionContext completionContext, CancellationToken cancellationToken)
+    {
+        var position = completionContext.Position;
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
-            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
-                syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
-                syntaxFacts.GetContainingTypeDeclaration(await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false), position) is EnumDeclarationSyntax)
-            {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-            }
+        var root = syntaxTree.GetRoot(cancellationToken);
+        var leftToken = root.FindTokenOnLeftOfPosition(position, includeDirectives: true);
+        var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-            var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            var isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken);
+        if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
+            syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
+            syntaxFacts.GetContainingTypeDeclaration(root, position) is EnumDeclarationSyntax ||
+            syntaxTree.IsPossibleTupleContext(leftToken, position))
+        {
+            return [];
+        }
 
-            if (semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
-            {
-                var directive = leftToken.GetAncestor<DirectiveTriviaSyntax>();
-                if (directive.DirectiveNameToken.IsKind(
-                    SyntaxKind.IfKeyword,
-                    SyntaxKind.RegionKeyword,
-                    SyntaxKind.ElseKeyword,
-                    SyntaxKind.ElifKeyword,
-                    SyntaxKind.ErrorKeyword,
-                    SyntaxKind.LineKeyword,
-                    SyntaxKind.PragmaKeyword,
-                    SyntaxKind.EndIfKeyword,
-                    SyntaxKind.UndefKeyword,
-                    SyntaxKind.EndRegionKeyword,
+        var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+        var semanticModel = context.SemanticModel;
+
+        if (syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
+        {
+            var directive = leftToken.GetAncestor<DirectiveTriviaSyntax>();
+            Contract.ThrowIfNull(directive);
+
+            if (directive.DirectiveNameToken.Kind() is not (
+                    SyntaxKind.IfKeyword or
+                    SyntaxKind.RegionKeyword or
+                    SyntaxKind.ElseKeyword or
+                    SyntaxKind.ElifKeyword or
+                    SyntaxKind.ErrorKeyword or
+                    SyntaxKind.LineKeyword or
+                    SyntaxKind.PragmaKeyword or
+                    SyntaxKind.EndIfKeyword or
+                    SyntaxKind.UndefKeyword or
+                    SyntaxKind.EndRegionKeyword or
                     SyntaxKind.WarningKeyword))
-                {
-                    return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-                }
-
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true,
-                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+            {
+                return GetSnippetCompletionItems(
+                    completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: true);
             }
-
+        }
+        else
+        {
             if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsExpressionContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsStatementContext(semanticModel, position, cancellationToken) ||
@@ -131,45 +152,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
             {
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false,
-                    isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return GetSnippetCompletionItems(
+                    completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: false);
             }
-
-            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
-          WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+        return [];
+    }
 
-        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
-            Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
+    private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
+        CompletionContext context, SolutionServices services, SemanticModel semanticModel, bool isPreProcessorContext)
+    {
+        var service = services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
+        if (service == null)
+            return [];
+
+        var snippets = service.GetSnippetsIfAvailable();
+        if (context.CompletionOptions.ShouldShowNewSnippetExperience(context.Document))
         {
-            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
-            if (service == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-            }
-
-            var snippets = service.GetSnippetsIfAvailable();
-            if (isPreProcessorContext)
-            {
-                snippets = snippets.Where(snippet => snippet.Shortcut != null && snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
-            }
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            return snippets.Select(snippet =>
-            {
-                var rules = isTupleContext ? s_tupleRules : CompletionItemRules.Default;
-                rules = rules.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
-
-                return CommonCompletionItem.Create(
-                                displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                                displayTextSuffix: "",
-                                sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
-                                glyph: Glyph.Snippet,
-                                rules: rules);
-            }).ToImmutableArray();
+            snippets = snippets.Where(snippet => !s_snippetsWithReplacements.Contains(snippet.Shortcut));
         }
+
+        if (isPreProcessorContext)
+        {
+            snippets = snippets.Where(snippet => snippet.Shortcut != null && snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
+        }
+
+        return snippets.SelectAsArray(snippet =>
+        {
+            var rules = CompletionItemRules.Default.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
+
+            return CommonCompletionItem.Create(
+                displayText: isPreProcessorContext ? snippet.Shortcut[1..] : snippet.Shortcut,
+                displayTextSuffix: "",
+                sortText: isPreProcessorContext ? snippet.Shortcut[1..] : snippet.Shortcut,
+                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
+                glyph: Glyph.Snippet,
+                rules: rules);
+        });
     }
 }
