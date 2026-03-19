@@ -309,4 +309,28 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword(":"),
             PPKeyword("property"));
+
+    // Space between `#` and `:` causes the directive to not be treated as an ignored/FBA directive.
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Spaces_01(TestHost testHost)
+        => TestAsync("""
+            # :  property  name=value
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPText(":  property  name=value"));
+
+    // Space between `#:` and kind is allowed.
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Spaces_02(TestHost testHost)
+        => TestAsync("""
+            #:  property  name = value
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("property"),
+            Identifier("name "),
+            PunctuationText("="),
+            String(" value"));
 }
