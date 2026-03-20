@@ -55,21 +55,21 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
 
-            var generatedCodeOptionsMap = new ConcurrentDictionary<SyntaxTree, (bool ExcludesGeneratedCode, bool? IsGeneratedCodeFromOptions)>();
+            var shouldAnalyzeMap = new ConcurrentDictionary<SyntaxTree, bool>();
 
             if (ShouldAnalyzeAttributes())
             {
                 compilationContext.RegisterCompilationEndAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes(), isGeneratedCode: null, context.CancellationToken);
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes(), isGeneratedCode: null, context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes(), context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes(), context.CancellationToken);
                     });
 
                 compilationContext.RegisterSymbolAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.IsGeneratedCode, context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken);
                     },
                     SymbolKind.NamedType,
                     SymbolKind.Method,
@@ -256,25 +256,39 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             bool ShouldAnalyzeInTree(SyntaxTree tree, bool? isGeneratedCode, CancellationToken cancellationToken)
             {
-                var generatedCodeOptions = generatedCodeOptionsMap.GetOrAdd(
+                if (isGeneratedCode == false)
+                {
+                    _ = shouldAnalyzeMap.TryAdd(tree, true);
+                    return true;
+                }
+
+                return shouldAnalyzeMap.GetOrAdd(
                     tree,
                     tree =>
                     {
                         var options = compilationContext.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
                         var excludesGeneratedCode =
                             options.TryGetValue(ExcludeGeneratedCodeOptionName, out var optionValue) &&
-                            bool.TryParse(optionValue, out var excludeGeneratedCode) &&
-                            excludeGeneratedCode;
-                        return (excludesGeneratedCode, GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable());
-                    });
+                            bool.TryParse(optionValue, out var val) &&
+                            val;
 
-                return !generatedCodeOptions.ExcludesGeneratedCode ||
-                    !(isGeneratedCode ??
-                      generatedCodeOptions.IsGeneratedCodeFromOptions ??
-                      GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken));
+                        if (!excludesGeneratedCode)
+                        {
+                            return true;
+                        }
+
+                        var generatedCodeKind = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options);
+
+                        return generatedCodeKind switch
+                        {
+                            GeneratedKind.MarkedGenerated => false,
+                            GeneratedKind.NotGenerated => true,
+                            _ => GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken),
+                        };
+                    });
             }
 
-            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, bool? isGeneratedCode, CancellationToken cancellationToken)
+            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 foreach (var attribute in attributes)
@@ -283,10 +297,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (applicationSyntaxReference == null)
                         continue;
 
-                    if (applicationSyntaxReference.SyntaxTree == null)
-                        continue;
-
-                    if (ShouldSkipTreeAnalysis(applicationSyntaxReference.SyntaxTree, isGeneratedCode, cancellationToken))
+                    if (ShouldSkipTreeAnalysis(applicationSyntaxReference.SyntaxTree, isGeneratedCode: null, cancellationToken))
                         continue;
 
                     var node = applicationSyntaxReference.GetSyntax(cancellationToken);

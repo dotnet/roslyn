@@ -482,6 +482,86 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
         [Fact]
         [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedAttributeSkippedWhenConfiguredAsync()
+        {
+            const string bannedText = "T:BannedAttribute";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        using System;
+
+                        [{|#0:Banned|}]
+                        class C
+                        {
+                        }
+                        """),
+                        ("Shared.cs", """
+                        using System;
+
+                        [AttributeUsage(AttributeTargets.All, Inherited = true)]
+                        class BannedAttribute : Attribute
+                        {
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Imports System
+
+                        <{|#0:Banned|}>
+                        Class C
+                        End Class
+                        """),
+                        ("Shared.vb", """
+                        Imports System
+
+                        <AttributeUsage(AttributeTargets.All, Inherited:=True)>
+                        Class BannedAttribute
+                            Inherits Attribute
+                        End Class
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
         public async Task GeneratedDeclarationDoesNotSkipNonGeneratedPartialSymbolAttributeAnalysisAsync()
         {
             const string bannedText = "T:BannedAttribute";
