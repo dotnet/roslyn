@@ -8,75 +8,56 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+using Microsoft.CodeAnalysis.CallHierarchy;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.LanguageServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
+
+internal readonly record struct CallHierarchySearchCategoryEntry(
+    CallHierarchySearchDescriptor SearchDescriptor,
+    string SearchCategory,
+    string DisplayName);
 
 internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
 {
     private readonly Workspace _workspace;
     private readonly INavigableLocation _navigableLocation;
     private readonly ImmutableArray<CallHierarchyDetail> _callsites;
-    private readonly ImmutableArray<AbstractCallFinder> _finders;
+    private readonly ImmutableArray<CallHierarchySearchCategoryEntry> _searchCategories;
+    private readonly Dictionary<string, CancellationTokenSource> _searches = [];
     private readonly Func<ImageSource> _glyphCreator;
     private readonly CallHierarchyProvider _provider;
 
     public CallHierarchyItem(
         CallHierarchyProvider provider,
-        ISymbol symbol,
+        CallHierarchyItemDescriptor descriptor,
         INavigableLocation navigableLocation,
-        ImmutableArray<AbstractCallFinder> finders,
+        ImmutableArray<CallHierarchySearchCategoryEntry> searchCategories,
         Func<ImageSource> glyphCreator,
+        string sortText,
+        string projectName,
         ImmutableArray<Location> callsites,
         Project project)
     {
         _workspace = project.Solution.Workspace;
         _provider = provider;
         _navigableLocation = navigableLocation;
-        _finders = finders;
-        ContainingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);
-        ContainingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
+        _searchCategories = searchCategories;
+        ContainingTypeName = descriptor.ContainingTypeName;
+        ContainingNamespaceName = descriptor.ContainingNamespaceName;
         _glyphCreator = glyphCreator;
-        MemberName = symbol.ToDisplayString(MemberNameFormat);
+        MemberName = descriptor.MemberName;
         _callsites = callsites.SelectAsArray(loc => new CallHierarchyDetail(provider, loc, _workspace));
-        SortText = symbol.ToDisplayString();
-        ProjectName = project.Name;
+        SortText = sortText;
+        ProjectName = projectName;
     }
-
-    public static readonly SymbolDisplayFormat MemberNameFormat =
-        new(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface,
-            parameterOptions:
-                SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                SymbolDisplayParameterOptions.IncludeExtensionThis |
-                SymbolDisplayParameterOptions.IncludeType,
-            miscellaneousOptions:
-                SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-    public static readonly SymbolDisplayFormat ContainingTypeFormat =
-        new(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions:
-                SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-    public static readonly SymbolDisplayFormat ContainingNamespaceFormat =
-       new(
-           globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-           typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
     public string ProjectName { get; }
 
@@ -104,7 +85,7 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
     {
         get
         {
-            return _finders.Select(s => new CallHierarchySearchCategory(s.SearchCategory, s.DisplayName));
+            return _searchCategories.Select(s => new CallHierarchySearchCategory(s.SearchCategory, s.DisplayName));
         }
     }
 
@@ -118,8 +99,8 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
 
     public void CancelSearch(string categoryName)
     {
-        var finder = _finders.FirstOrDefault(s => s.SearchCategory == categoryName);
-        finder.CancelSearch();
+        if (_searches.TryGetValue(categoryName, out var cancellationSource))
+            cancellationSource.Cancel();
     }
 
     public void FindReferences()
@@ -145,10 +126,7 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
     }
 
     public void StartSearch(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
-    {
-        var finder = _finders.FirstOrDefault(s => s.SearchCategory == categoryName);
-        finder.StartSearch(_workspace, searchScope, callback);
-    }
+        => StartSearchWorker(categoryName, searchScope, callback, documents: null);
 
     public void ResumeSearch(string categoryName)
     {
@@ -163,9 +141,65 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
 
     // For Testing only
     internal void StartSearchWithDocuments(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents)
+        => StartSearchWorker(categoryName, searchScope, callback, documents);
+
+    private void StartSearchWorker(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents)
     {
-        var finder = _finders.FirstOrDefault(s => s.SearchCategory == categoryName);
-        finder.SetDocuments(documents);
-        finder.StartSearch(_workspace, searchScope, callback);
+        var searchCategory = _searchCategories.FirstOrDefault(s => s.SearchCategory == categoryName);
+        if (searchCategory == default)
+            return;
+
+        CancelSearch(categoryName);
+
+        var cancellationSource = new CancellationTokenSource();
+        _searches[categoryName] = cancellationSource;
+        var asyncToken = _provider.AsyncListener.BeginAsyncOperation(this.GetType().Name + ".Search");
+
+        Task.Run(async () =>
+        {
+            string completionErrorMessage = null;
+            try
+            {
+                var results = await _provider.SearchAsync(
+                    _workspace, searchCategory.SearchDescriptor, searchScope, documents, cancellationSource.Token).ConfigureAwait(false);
+                foreach (var result in results)
+                {
+                    switch (result)
+                    {
+                        case CallHierarchyItemSearchResult itemResult:
+                            var item = await _provider.CreateItemAsync(itemResult.Item, _workspace, itemResult.ReferenceLocations, cancellationSource.Token).ConfigureAwait(false);
+                            callback.AddResult(item);
+                            break;
+                        case CallHierarchyLocationSearchResult locationResult:
+                            var details = locationResult.ReferenceLocations.SelectAsArray(loc => new CallHierarchyDetail(_provider, loc, _workspace));
+                            callback.AddResult(_provider.CreateInitializerItem(details));
+                            break;
+                    }
+
+                    cancellationSource.Token.ThrowIfCancellationRequested();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                completionErrorMessage = EditorFeaturesResources.Canceled;
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+                completionErrorMessage = e.Message;
+            }
+            finally
+            {
+                _searches.Remove(categoryName);
+
+                if (completionErrorMessage != null)
+                {
+                    callback.SearchFailed(completionErrorMessage);
+                }
+                else
+                {
+                    callback.SearchSucceeded();
+                }
+            }
+        }, CancellationToken.None).CompletesAsyncOperation(asyncToken);
     }
 }
