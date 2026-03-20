@@ -3030,6 +3030,7 @@ class Collection<T>
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
+            // Slice is assumed to be never null
         }
 
         [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
