@@ -66,39 +66,14 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         Directory.CreateDirectory(_tempDirectory);
         var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
 
-        const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-
-        var logger = _loggerFactory.CreateLogger<CanonicalMiscellaneousFilesProjectProvider>();
-        var knownCommandLineParserLanguages = _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
-        if (knownCommandLineParserLanguages is [])
-        {
-            logger.LogError("No languages found to load canonical project with.");
-        }
-
         await using var buildHostProcessManager = new BuildHostProcessManager(
-            knownCommandLineParserLanguages,
+            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
             globalMSBuildProperties: [],
             binaryLogPathProvider: null,
             _loggerFactory);
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
-
-        var projectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
-        if (projectFileInfos is [])
-        {
-            logger.LogError("Did not obtain any ProjectFileInfos to load canonical project with.");
-        }
-
-        foreach (var projectFileInfo in projectFileInfos)
-        {
-            logger.LogDebug("Loaded canonical project with {projectFileInfo.Documents.Length} documents:", projectFileInfo.Documents.Length);
-            foreach (var document in projectFileInfo.Documents)
-            {
-                logger.LogDebug("- {document.FilePath}", document.FilePath);
-            }
-        }
-
-        return projectFileInfos;
+        return await loadedFile.GetProjectFileInfosAsync(cancellationToken);
     }
 
     public void Dispose()
