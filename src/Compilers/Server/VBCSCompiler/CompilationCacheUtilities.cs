@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -43,14 +44,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             var dllName = arguments.OutputFileName;
-            deterministicKey = compilation.GetDeterministicKey(
-                additionalTexts,
-                analyzers,
-                generators,
-                arguments.PathMap,
-                arguments.EmitOptions,
-                sourceLinkStream: null,
-                arguments.ManifestResources);
+            try
+            {
+                deterministicKey = compilation.GetDeterministicKey(
+                    additionalTexts,
+                    analyzers,
+                    generators,
+                    arguments.PathMap,
+                    arguments.EmitOptions,
+                    sourceLinkStream: null,
+                    arguments.ManifestResources);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"Failed to compute deterministic key, skipping cache: {ex.Message}");
+                return null;
+            }
 
             hashKey = CompilationCache.ComputeHashKey(deterministicKey);
 
