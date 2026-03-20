@@ -21,13 +21,14 @@ try {
     
     git remote add gh https://github.com/dotnet/roslyn.git
 
+    Write-Host "Getting the hash of refs/pull/$prNumber/head..."
+    $remoteRef = git ls-remote gh refs/pull/$prNumber/head
+    Write-Host ($remoteRef | Out-String)
+
+    $prHeadSHA = $remoteRef.Split()[0]
+
     if ($enforceLatestCommit) {
       Write-Host "Validating the PR head matches the specified commit SHA ($commitSHA)..."
-      Write-Host "Getting the hash of refs/pull/$prNumber/head..."
-      $remoteRef = git ls-remote gh refs/pull/$prNumber/head
-      Write-Host ($remoteRef | Out-String)
-
-      $prHeadSHA = $remoteRef.Split()[0]
       if (!$prHeadSHA.StartsWith($commitSHA)) {
         Write-Host "##vso[task.LogIssue type=error;]The PR's Head SHA ($prHeadSHA) does not begin with the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
         exit 1
@@ -48,9 +49,8 @@ try {
     }
 
     if (!$enforceLatestCommit) {
-      $headSHA = git rev-parse HEAD
-      if ($headSHA.StartsWith($commitSHA)) {
-        Write-Host "HEAD ($headSHA) already matches the specified commit SHA ($commitSHA), skipping checkout."
+      if ($prHeadSHA.StartsWith($commitSHA)) {
+        Write-Host "PR head SHA ($prHeadSHA) already matches the specified commit SHA ($commitSHA), skipping checkout."
       }
       else {
         Write-Host "Checking out the specified commit SHA ($commitSHA)..."
