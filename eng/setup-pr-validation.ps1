@@ -35,7 +35,7 @@ try {
     }
 
     Write-Host "Setting up the build for PR validation by pulling refs/pull/$prNumber/merge..."
-    git pull origin refs/pull/$prNumber/merge
+    git pull gh refs/pull/$prNumber/merge
     if (!$?) {
       Write-Host "##vso[task.LogIssue type=error;]Pulling branch refs/pull/$prNumber/merge failed."
       exit 1

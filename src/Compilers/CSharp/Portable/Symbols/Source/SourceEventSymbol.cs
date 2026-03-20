@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (NeedsSynthesizedRequiresUnsafeAttribute)
             {
                 Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
             }
         }
 
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
                 MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, location);
-                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor, diagnostics, location);
+                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor, diagnostics, location);
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();

@@ -190,6 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override int TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         #endregion
     }
 }

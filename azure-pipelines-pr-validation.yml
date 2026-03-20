@@ -19,9 +19,6 @@ parameters:
 - name: VisualStudioBranchName
   type: string
   default: default
-- name: OptionalTitlePrefix
-  type: string
-  default: '[PR Validation]'
 - name: VisualStudioCherryPickSHA
   type: string
   default: '(default)'
@@ -53,7 +50,7 @@ extends:
     sdl:
       enableAllTools: false
     pool:
-      name: VSEngSS-MicroBuild2022-1ES
+      name: VSEng-MicroBuildVSStable
       demands:
       - msbuild
       - visualstudio
@@ -203,6 +200,12 @@ extends:
               Write-Host "##vso[task.setvariable variable=BuildNumber;isoutput=true;isreadonly=true]$buildNumberName"
               Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
 
+              $email = git log -1 --pretty=format:"%ae" ${{ parameters.CommitSHA }}
+              $parts = $email -split '@', 2
+              $localPart = $parts[0]
+              $prTitlePrefix = "[PR #${{ parameters.PRNumber }} $localPart]"
+              Write-Host "##vso[task.setvariable variable=PRTitlePrefix;isoutput=true;isreadonly=true]$prTitlePrefix"
+
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(OriginalBuildNumber)"
           displayName: Setting VisualStudio.DropName variable
 
@@ -326,6 +329,7 @@ extends:
       jobs:
       - job: insert
         variables:
+          PRTitlePrefix: $[stageDependencies.build.PRValidationBuild.outputs['FancyBuild.PRTitlePrefix']]
           FancyBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['FancyBuild.BuildNumber']]
           OriginalBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['SetOriginalBuildNumber.OutputOriginalBuildNumber']]
         displayName: Insert to VS
@@ -353,8 +357,9 @@ extends:
             devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
             dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
-            titlePrefix: ${{ parameters.OptionalTitlePrefix }}
+            titlePrefix: $(PRTitlePrefix)
             sourceBranch: $(ComponentBranchName)
+            componentBuildProjectName: $(System.TeamProject)
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'

@@ -259,7 +259,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                results = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjectOptions);
+                results = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.ToString(), runningProjectOptions);
             }
 
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.

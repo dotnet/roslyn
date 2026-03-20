@@ -6,9 +6,9 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26160.1</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26160.1</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26160.1</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26168.1</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26168.1</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26168.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet-arcade-services dependencies -->
     <MicrosoftDotNetDarcLibPackageVersion>1.1.0-beta.25161.2</MicrosoftDotNetDarcLibPackageVersion>
     <!-- dotnet-dotnet dependencies -->
@@ -22,9 +22,9 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsPackageVersion>10.0.1</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.1</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.1</MicrosoftExtensionsPrimitivesPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.6.0-2.26160.112</RoslynDiagnosticsAnalyzersPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.6.0-2.26168.109</RoslynDiagnosticsAnalyzersPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.1</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-preview.3.26160.112</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-preview.3.26168.109</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.1</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>10.0.1</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.1</SystemConfigurationConfigurationManagerPackageVersion>
@@ -41,10 +41,10 @@ This file should be imported by eng/Versions.props
     <SystemThreadingTasksDataflowPackageVersion>10.0.1</SystemThreadingTasksDataflowPackageVersion>
     <SystemWindowsExtensionsPackageVersion>10.0.1</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet-roslyn dependencies -->
-    <MicrosoftCodeAnalysisPackageVersion>5.6.0-2.26151.2</MicrosoftCodeAnalysisPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.6.0-2.26151.2</MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.6.0-2.26151.2</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
-    <MicrosoftNetCompilersToolsetPackageVersion>5.6.0-2.26151.2</MicrosoftNetCompilersToolsetPackageVersion>
+    <MicrosoftCodeAnalysisPackageVersion>5.6.0-2.26163.11</MicrosoftCodeAnalysisPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.6.0-2.26163.11</MicrosoftCodeAnalysisAnalyzersPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.6.0-2.26163.11</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>5.6.0-2.26163.11</MicrosoftNetCompilersToolsetPackageVersion>
     <!-- dotnet-symreader dependencies -->
     <MicrosoftDiaSymReaderPackageVersion>2.0.0</MicrosoftDiaSymReaderPackageVersion>
   </PropertyGroup>
