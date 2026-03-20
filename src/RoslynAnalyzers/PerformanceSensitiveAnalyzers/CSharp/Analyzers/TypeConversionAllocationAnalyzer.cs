@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static void BinaryExpressionCheck(BinaryExpressionSyntax binaryExpression, SemanticModel semanticModel, bool isAssignmentToReadonly, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             // as expression
-            if (binaryExpression.IsKind(SyntaxKind.AsExpression) && binaryExpression.Left != null && binaryExpression.Right != null)
+            if (binaryExpression.IsKind(SyntaxKind.AsExpression) && binaryExpression is { Left: not null, Right: not null })
             {
                 var leftT = semanticModel.GetTypeInfo(binaryExpression.Left, cancellationToken);
                 var rightT = semanticModel.GetTypeInfo(binaryExpression.Right, cancellationToken);

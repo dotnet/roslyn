@@ -569,10 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType, isChecked: false, ref useSiteInfo);
                 Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
+                CodeGen.CodeGenerator.AssertIsEmitConversionKind(conversion.Kind);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
                     Debug.Assert(CurrentFunction.RefKind == RefKind.None);
-                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
+                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
                 }
             }
 
@@ -1494,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// It is intentional that there is no 'Convert' helper that calls this method automatically
-        /// and then calls <see cref="Convert(TypeSymbol, BoundExpression, Conversion, bool)"/>.
+        /// and then calls <see cref="Convert(TypeSymbol, BoundExpression, Conversion, bool, bool)"/>.
         /// For the benefit of clarity and readability, consumer is expected to assert at the use-site
         /// what specific conversions are expected as the result of classification.
         /// </summary>
@@ -1511,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Note, this API is expected to be called only for <paramref name="conversion"/> that is natively supported by Emit layer.
         /// </summary>
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, Conversion conversion, bool isChecked = false)
+        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, Conversion conversion, bool isChecked = false, bool explicitCastInCode = true)
         {
             CodeGen.CodeGenerator.AssertIsEmitConversionKind(conversion.Kind);
 
@@ -1526,7 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(arg.Type is { });
-            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, null, type) { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)

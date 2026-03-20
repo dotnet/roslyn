@@ -242,7 +242,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
             var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
 
-            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            string isUnion = "";
+            if (conversion.IsUnion)
+            {
+                isUnion = ", " + FormatBoolProperty(nameof(conversion.IsUnion), conversion.IsUnion);
+            }
+
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}{isUnion}) (");
             LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
             LogString(")");
         }
@@ -1143,6 +1149,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(PlaceholderKind.AggregationGroup, operation.PlaceholderKind);
         }
 
+        public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
+        {
+            LogString(nameof(ICollectionExpressionElementsPlaceholderOperation));
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         public override void VisitUnaryOperator(IUnaryOperation operation)
         {
             LogString(nameof(IUnaryOperation));
@@ -1614,6 +1626,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogSymbol(operation.ConstructMethod, $", {nameof(operation.ConstructMethod)}");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+
+            if (operation.ConstructArguments.Length > 0)
+                VisitArray(operation.ConstructArguments, nameof(operation.ConstructArguments), logElementCount: true);
 
             VisitArray(operation.Elements, nameof(operation.Elements), logElementCount: true);
         }

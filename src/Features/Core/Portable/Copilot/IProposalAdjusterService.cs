@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
-using Adjuster = Func<Document, Document, CancellationToken, Task<Document>>;
+using Adjuster = Func<Document, Document, LineFormattingOptions?, CancellationToken, Task<Document>>;
 
 internal static class ProposalAdjusterKinds
 {
@@ -46,7 +46,8 @@ internal interface ICopilotProposalAdjusterService : ILanguageService
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Document document,
-        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
+        CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
@@ -54,7 +55,8 @@ internal interface IRemoteCopilotProposalAdjusterService
     /// <inheritdoc cref="ICopilotProposalAdjusterService.TryAdjustProposalAsync"/>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Checksum solutionChecksum,
-        DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        DocumentId documentId, ImmutableArray<TextChange> normalizedChanges,
+        LineFormattingOptions? lineFormattingOptions, CancellationToken cancellationToken);
 }
 
 internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
@@ -67,9 +69,9 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     {
         this.globalOptions = globalOptions;
         _adjusters = [
-            (ProposalAdjusterKinds.AddMissingTokens, this.AddMissingTokensIfAppropriateAsync),
-            (ProposalAdjusterKinds.AddMissingImports, this.TryGetAddImportTextChangesAsync),
-            (ProposalAdjusterKinds.FormatCode, this.TryGetFormattingTextChangesAsync),
+            (ProposalAdjusterKinds.AddMissingTokens, (original, forked, _, ct) => this.AddMissingTokensIfAppropriateAsync(original, forked, ct)),
+            (ProposalAdjusterKinds.AddMissingImports, static (original, forked, _, ct) => TryGetAddImportTextChangesAsync(original, forked, ct)),
+            (ProposalAdjusterKinds.FormatCode, static (original, forked, lineFormatting, ct) => TryGetFormattingTextChangesAsync(original, forked, lineFormatting, ct)),
         ];
     }
 
@@ -78,7 +80,8 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Document document,
-        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
+        CancellationToken cancellationToken)
     {
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
@@ -89,19 +92,22 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
             var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, ProposalAdjustmentResult>(
                 document.Project,
                 (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(
-                    allowableAdjustments, checksum, document.Id, normalizedChanges, cancellationToken),
+                    allowableAdjustments, checksum, document.Id, normalizedChanges,
+                    lineFormattingOptions, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : default;
         }
 
         return await TryAdjustProposalInCurrentProcessAsync(
-            allowableAdjustments, document, normalizedChanges, cancellationToken).ConfigureAwait(false);
+            allowableAdjustments, document, normalizedChanges, lineFormattingOptions,
+            cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
         ImmutableHashSet<string> allowableAdjustments, Document originalDocument,
-        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
+        CancellationToken cancellationToken)
     {
         Debug.Assert(allowableAdjustments is not null);
 
@@ -130,7 +136,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
                 continue;
 
             var timer = SharedStopwatch.StartNew();
-            var adjustedDocument = await adjuster(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
+            var adjustedDocument = await adjuster(originalDocument, forkedDocument, lineFormattingOptions, cancellationToken).ConfigureAwait(false);
             if (forkedDocument != adjustedDocument)
             {
                 adjustmentResults.Add(new(adjusterName, AdjustmentTime: timer.Elapsed));
@@ -147,12 +153,72 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         // Get the final set of changes between the original document and the new document.
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
-        var totalChanges = allChanges.AsImmutableOrEmpty();
+        var totalChanges = FixLineEndingBoundaries(oldText, allChanges.AsImmutableOrEmpty());
 
         return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
 
-    private async Task<Document> TryGetAddImportTextChangesAsync(
+    /// <summary>
+    /// If replacement text starts with \n adjacent to \r, or ends with \r adjacent to
+    /// \n, strip the offending character and shrink the span when the original text at the boundary
+    /// matches the dropped character.
+    /// </summary>
+    private static ImmutableArray<TextChange> FixLineEndingBoundaries(
+        SourceText originalText, ImmutableArray<TextChange> changes)
+    {
+        if (changes.IsDefaultOrEmpty)
+            return changes;
+
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
+        var anyFixed = false;
+
+        foreach (var change in changes)
+        {
+            var span = change.Span;
+            var newText = change.NewText ?? "";
+            var changed = false;
+
+            if (newText.Length > 0)
+            {
+                if (newText[0] == '\n' &&
+                    span.Start > 0 &&
+                    originalText[span.Start - 1] == '\r')
+                {
+                    // The replacement text would add a \n to a \r, changing the nature of the line break.
+                    if (originalText[span.Start] == '\n')
+                    {
+                        // The \n exists in the original text. There is no reason to replace it.
+                        span = TextSpan.FromBounds(span.Start + 1, Math.Max(span.Start + 1, span.End));
+                    }
+
+                    newText = newText[1..];
+                    changed = true;
+                }
+
+                if (newText.Length > 0 && newText[^1] == '\r' &&
+                    span.End < originalText.Length &&
+                    originalText[span.End] == '\n')
+                {
+                    // The replacement text would add a \r to a \n, changing the nature of the line break.
+                    if (originalText[span.End - 1] == '\r')
+                    {
+                        // The \r already exists in the original text. There is no reason to replace it.
+                        span = TextSpan.FromBounds(Math.Min(span.Start, span.End - 1), span.End - 1);
+                    }
+
+                    newText = newText[..^1];
+                    changed = true;
+                }
+            }
+
+            anyFixed = anyFixed || changed;
+            result.Add(changed ? new TextChange(span, newText) : change);
+        }
+
+        return anyFixed ? result.ToImmutableAndClear() : changes;
+    }
+
+    private static async Task<Document> TryGetAddImportTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
@@ -170,12 +236,18 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         return withImportsDocument;
     }
 
-    private async Task<Document> TryGetFormattingTextChangesAsync(
-        Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
+    private static async Task<Document> TryGetFormattingTextChangesAsync(
+        Document originalDocument, Document forkedDocument,
+        LineFormattingOptions? lineFormattingOptions, CancellationToken cancellationToken)
     {
         var syntaxFormattingService = originalDocument.GetRequiredLanguageService<ISyntaxFormattingService>();
 
         var formattingOptions = await originalDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        // Override with the buffer-derived line formatting options if available, so the formatter
+        // uses the file's actual newline character and inferred indentation settings.
+        if (lineFormattingOptions is not null)
+            formattingOptions = formattingOptions with { LineFormatting = lineFormattingOptions };
 
         // Find the span of changes made to the forked document.
         var totalNewSpan = await GetSpanOfChangesAsync(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
@@ -214,5 +286,12 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var totalSpans = CopilotUtilities.GetTextSpansFromTextChanges(changes);
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, totalSpans);
         return totalNewSpan;
+    }
+
+    internal readonly struct TestAccessor
+    {
+        internal static ImmutableArray<TextChange> FixLineEndingBoundaries(
+            SourceText originalText, ImmutableArray<TextChange> changes)
+            => AbstractCopilotProposalAdjusterService.FixLineEndingBoundaries(originalText, changes);
     }
 }

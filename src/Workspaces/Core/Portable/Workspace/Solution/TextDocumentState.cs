@@ -178,15 +178,15 @@ internal abstract partial class TextDocumentState
         return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
     }
 
-    private ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
+    private async ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
     {
         if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
         {
-            return new ValueTask<TextAndVersion>(textAndVersion);
+            return textAndVersion;
         }
         else
         {
-            return new ValueTask<TextAndVersion>(TextAndVersionSource.GetValueAsync(LoadTextOptions, cancellationToken));
+            return await TextAndVersionSource.GetValueAsync(LoadTextOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 

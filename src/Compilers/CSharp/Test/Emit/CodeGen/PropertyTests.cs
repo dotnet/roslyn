@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -48,6 +49,45 @@ class C
   IL_0007:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82122")]
+        public void PropertyIsReadOnly_WithTypeArgumentFromUnrelatedAssembly()
+        {
+            string source1 = """
+                public class C0<T>
+                {
+                    public virtual int P { get; set; }
+                }
+
+                public class C1<T> : C0<T>
+                {
+                    public override int P { get; set; }
+                }
+                """;
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            string source2 = """
+                internal class C2 { }
+
+                internal class C3 : C1<C2>
+                {
+                    public override int P { get; set; }
+                }
+                """;
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics();
+
+            // Get the property symbol and check IsReadOnly
+            var c3 = comp2.GlobalNamespace.GetTypeMember("C3");
+            var property = c3.BaseTypeNoUseSiteDiagnostics.GetMember<PropertySymbol>("P");
+
+            // These should not throw an assertion
+            Assert.False(property.IsReadOnly);
+            Assert.False(property.IsWriteOnly);
         }
     }
 }

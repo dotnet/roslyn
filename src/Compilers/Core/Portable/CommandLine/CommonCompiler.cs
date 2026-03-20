@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis
                                                   .ReplaceAdditionalTexts(additionalTexts);
             }
 
-            driver ??= CreateGeneratorDriver(generatedFilesBaseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            driver ??= CreateGeneratorDriver(generatedFilesBaseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts, Arguments.ChecksumAlgorithm);
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected abstract GeneratorDriver CreateGeneratorDriver(string baseDirectory, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+        private protected abstract GeneratorDriver CreateGeneratorDriver(string baseDirectory, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, SourceHashAlgorithm checksumAlgorithm);
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
@@ -1250,11 +1250,6 @@ namespace Microsoft.CodeAnalysis
                     emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
                 }
 
-                if (Arguments.ParseOptions.HasFeature(Feature.DebugDeterminism))
-                {
-                    EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, emitOptions);
-                }
-
                 if (Arguments.SourceLink != null)
                 {
                     var sourceLinkStreamOpt = OpenFile(
@@ -1272,6 +1267,20 @@ namespace Microsoft.CodeAnalysis
                             diagnostics,
                             MessageProvider);
                     }
+                }
+
+                if (Arguments.ParseOptions.HasFeature(Feature.DebugDeterminism))
+                {
+                    EmitDeterminismKey(
+                        compilation,
+                        FileSystem,
+                        additionalTextFiles,
+                        analyzers,
+                        generators,
+                        Arguments.PathMap,
+                        emitOptions,
+                        sourceLinkStreamDisposerOpt?.Stream,
+                        Arguments.ManifestResources);
                 }
 
                 // Need to ensure the PDB file path validation is done on the original path as that is the
@@ -1735,9 +1744,19 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
-            EmitOptions? emitOptions)
+            EmitOptions? emitOptions,
+            Stream? sourceLinkStream,
+            ImmutableArray<ResourceDescription> resources)
         {
-            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, pathMap, emitOptions);
+            var key = compilation.GetDeterministicKey(
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                sourceLinkStream,
+                resources);
+
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             var bytes = Encoding.UTF8.GetBytes(key);

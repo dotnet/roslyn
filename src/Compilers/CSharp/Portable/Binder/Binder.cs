@@ -485,6 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual bool BindingCollectionExpressionWithArguments => false;
+
         internal virtual NamedTypeSymbol? ParamsCollectionTypeInProgress => null;
 
         internal virtual MethodSymbol? ParamsCollectionConstructorInProgress => null;

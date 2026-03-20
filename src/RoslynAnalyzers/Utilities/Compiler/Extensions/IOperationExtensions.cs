@@ -119,7 +119,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsOperationNoneRoot(this IOperation operation)
         {
-            return operation.Kind == OperationKind.None && operation.Parent == null;
+            return operation is { Kind: OperationKind.None, Parent: null };
         }
 
         /// <summary>

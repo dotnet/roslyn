@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Sort_Imports">
         <source>Sort Imports</source>
-        <target state="new">Sort Imports</target>
+        <target state="translated">Trier les importations</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Imports_with_accelerator">
         <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
+        <target state="translated">&amp;Trier les importations</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">

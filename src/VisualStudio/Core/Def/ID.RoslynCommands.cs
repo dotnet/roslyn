@@ -37,6 +37,7 @@ internal static partial class ID
         public const int RemoveUnusedReferences = 0x0202;
         public const int GoToValueTrackingWindow = 0x0203;
         public const int SyncNamespaces = 0x0204;
+        public const int ShowInheritanceMargin = 0x0205;
 
         // Document Outline
         public const int DocumentOutlineToolbar = 0x300;
@@ -51,5 +52,7 @@ internal static partial class ID
         public const int SolutionExplorerSymbolItemGoToBase = 0x402;
         public const int SolutionExplorerSymbolItemGoToImplementation = 0x403;
         public const int SolutionExplorerSymbolItemFindAllReferences = 0x404;
+
+        public const int LogRoslynWorkspaceStructure = 0x500;
     }
 }

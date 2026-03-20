@@ -72,6 +72,7 @@ parameters:
   type: string
   default: windows.vs2026preview.scout.amd64.open
   values:
+  - windows.vs2022.amd64.open
   - windows.vs2026preview.scout.amd64.open
 - name: timeout
   displayName: Timeout in Minutes
@@ -83,6 +84,7 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
     testRuns:
@@ -98,6 +100,7 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
     testRuns:

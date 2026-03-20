@@ -4,8 +4,10 @@
     <!-- Semantic search queries run in VS OOP. -->
     <TargetFramework>$(NetVS)</TargetFramework>
 
-    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BuildTaskTfm>
-    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
+    <_BuildTaskRuntime>*</_BuildTaskRuntime>
+    <_BuildTaskRuntime Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildAssemblyVersion)', '18.0'))">NET</_BuildTaskRuntime>
+    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core' or '$(_BuildTaskRuntime)' == 'NET'">$(NetRoslyn)</_BuildTaskTfm>
+    <_BuildTaskTfm Condition="'$(_BuildTaskTfm)' == ''">net472</_BuildTaskTfm>
     <_BuildTaskAssemblyFile>$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll</_BuildTaskAssemblyFile>
     <_ApisDir>$(MSBuildThisFileDirectory)Apis\</_ApisDir>
 
@@ -42,7 +44,7 @@
     in subsequent builds because the task assembly can't be written by the
     next build.
   -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" Runtime="$(_BuildTaskRuntime)" />
 
   <Target Name="_CalculateFilteredReferenceAssembliesInputsAndOutputs" DependsOnTargets="ResolveAssemblyReferences">
     <PropertyGroup>

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
@@ -22,6 +21,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
@@ -37,10 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup;
 [Guid(Guids.RoslynPackageIdString)]
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
+[ProvideService(typeof(RoslynPackageLoadService), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = true)]
 internal sealed class RoslynPackage : AbstractPackage
 {
     private static RoslynPackage? s_lazyInstance;
 
+    private ThreadSafeMenuCommandService? _menuCommandService;
     private RuleSetEventHandler? _ruleSetEventHandler;
     private SolutionEventMonitor? _solutionEventMonitor;
 
@@ -73,25 +75,39 @@ internal sealed class RoslynPackage : AbstractPackage
 
         async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
+            AddService(typeof(RoslynPackageLoadService), (_, _, _) => Task.FromResult((object?)new RoslynPackageLoadService()), promote: true);
+
+            var menuCommandService = await this.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
+            Assumes.Present(menuCommandService);
+            _menuCommandService = new ThreadSafeMenuCommandService(menuCommandService);
+
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RemoveUnusedReferences,
+                (s, e) => ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().OnRemoveUnusedReferencesForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().OnRemoveUnusedReferencesForSelectedProjectStatus(s, e));
+
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SyncNamespaces,
+                (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProjectStatus(s, e));
+
+            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.RunCodeAnalysisForSelectedProjectCommandId,
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject,
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
+                (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
+
+            _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.LogRoslynWorkspaceStructure,
+                (_, _) => ProjectSystem.Logging.RoslynWorkspaceStructureLogger.ShowSaveDialogAndLog(this));
+
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0100,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnExecute(s, e));
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0101,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnPaste(s, e));
+            _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0102,
+                (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnClear(s, e));
+
             await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
             await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
-        }
-    }
-
-    protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
-    {
-        base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
-
-        afterPackageLoadedTasks.AddTask(isMainThreadTask: true, task: OnAfterPackageLoadedMainThreadAsync);
-
-        return;
-
-        Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
-        {
-            // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
-            return Task.CompletedTask;
         }
     }
 
@@ -110,22 +126,23 @@ internal sealed class RoslynPackage : AbstractPackage
             (_, _, _, _) => ValueTask.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 
-    protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
+    protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
     {
-        await TaskScheduler.Default;
+        Assumes.Present(_menuCommandService);
 
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-        await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
-        await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
-        await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+        await LoadAnalyzerNodeComponentsAsync(_menuCommandService, cancellationToken).ConfigureAwait(false);
 
-        await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
+        // Ensure the stack trace explorer handler is created so it subscribes to broadcast messages
+        // if the "open on focus" option is enabled.
+        await ComponentModel.GetService<StackTraceExplorerCommandHandler>().EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
-        LoadComponentsBackgroundAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
+        // Initialize keybinding reset detector
+        await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(false);
     }
 
     // Overrides for VSSDK003 fix 
@@ -151,26 +168,6 @@ internal sealed class RoslynPackage : AbstractPackage
     protected override Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         => Task.FromResult((object?)null);
 
-    private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
-    {
-        await TaskScheduler.Default;
-
-        await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
-
-        // Initialize keybinding reset detector
-        await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(true);
-    }
-
-    private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)
-    {
-        // Obtain services and QueryInterface from the main thread
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var menuCommandService = (OleMenuCommandService?)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
-        Assumes.Present(menuCommandService);
-        StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);
-    }
-
     protected override void Dispose(bool disposing)
     {
         UnregisterAnalyzerTracker();
@@ -191,9 +188,9 @@ internal sealed class RoslynPackage : AbstractPackage
         FeaturesSessionTelemetry.Report();
     }
 
-    private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)
+    private async Task LoadAnalyzerNodeComponentsAsync(ThreadSafeMenuCommandService menuCommandService, CancellationToken cancellationToken)
     {
-        await this.ComponentModel.GetService<IAnalyzerNodeSetup>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+        await this.ComponentModel.GetService<IAnalyzerNodeSetup>().InitializeAsync(this, menuCommandService, cancellationToken).ConfigureAwait(false);
 
         _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
         if (_ruleSetEventHandler != null)

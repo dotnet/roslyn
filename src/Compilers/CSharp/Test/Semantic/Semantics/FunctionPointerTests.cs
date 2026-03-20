@@ -14,6 +14,7 @@ using static Microsoft.CodeAnalysis.CSharp.UnitTests.FunctionPointerUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class FunctionPointerTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
@@ -607,7 +608,8 @@ unsafe class C
 
                 var typeInfo = model.GetTypeInfo(decl);
                 var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-                Assert.Equal(conversion, classifiedConversion);
+                Assert.Equal(conversion.Kind, classifiedConversion.Kind);
+                Assert.Equal(conversion.Method, classifiedConversion.Method);
             }
         }
 

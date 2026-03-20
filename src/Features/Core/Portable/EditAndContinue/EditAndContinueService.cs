@@ -135,9 +135,9 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     {
         var documentTasks =
             from project in solution.Projects
-            where project.SupportsEditAndContinue()
+            where !project.IgnoreForEditAndContinue()
             from documentState in GetDocumentStates(project.State)
-            where documentState.SupportsEditAndContinue()
+            where !documentState.IgnoreForEditAndContinue()
             select documentState.GetTextAsync(cancellationToken).AsTask();
 
         _ = await Task.WhenAll(documentTasks).ConfigureAwait(false);

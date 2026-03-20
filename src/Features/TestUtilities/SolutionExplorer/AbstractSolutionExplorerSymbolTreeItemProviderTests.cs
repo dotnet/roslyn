@@ -19,7 +19,7 @@ public abstract class AbstractSolutionExplorerSymbolTreeItemProviderTests
     protected abstract TestWorkspace CreateWorkspace(string code);
 
     protected async Task TestNode<TNode>(
-        string code, string expected) where TNode : SyntaxNode
+        string code, string expected, bool returnNamespaces = false) where TNode : SyntaxNode
     {
         using var workspace = CreateWorkspace(code);
         var testDocument = workspace.Documents.Single();
@@ -32,7 +32,7 @@ public abstract class AbstractSolutionExplorerSymbolTreeItemProviderTests
         var diagnostics = node.GetDiagnostics();
         Assert.Empty(diagnostics);
 
-        var items = service.GetItems(document.Id, node, CancellationToken.None);
+        var items = service.GetItems(document.Id, node, returnNamespaces, CancellationToken.None);
 
         var actual = string.Join("\r\n", items);
         AssertEx.SequenceEqual(

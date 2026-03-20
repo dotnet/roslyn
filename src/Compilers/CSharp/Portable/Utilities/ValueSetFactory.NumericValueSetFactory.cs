@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// parameterized by a type class
         /// <see cref="INumericTC{T}"/> that provides the primitives for that type.
         /// </summary>
-        private struct NumericValueSetFactory<T> : IValueSetFactory<T>
+        private struct NumericValueSetFactory<T> : IConstantValueSetFactory<T>
         {
             private readonly INumericTC<T> _tc;
 
-            IValueSet IValueSetFactory.AllValues => NumericValueSet<T>.AllValues(_tc);
+            IConstantValueSet IConstantValueSetFactory.AllValues => NumericValueSet<T>.AllValues(_tc);
 
-            IValueSet IValueSetFactory.NoValues => NumericValueSet<T>.NoValues(_tc);
+            IConstantValueSet IConstantValueSetFactory.NoValues => NumericValueSet<T>.NoValues(_tc);
 
             public NumericValueSetFactory(INumericTC<T> tc) { this._tc = tc; }
 
-            public IValueSet<T> Related(BinaryOperatorKind relation, T value)
+            public IConstantValueSet<T> Related(BinaryOperatorKind relation, T value)
             {
                 switch (relation)
                 {
@@ -49,18 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
+            IConstantValueSet IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? NumericValueSet<T>.AllValues(_tc) : Related(relation, _tc.FromConstantValue(value));
 
-            public IValueSet Random(int expectedSize, Random random) =>
+            public IConstantValueSet Random(int expectedSize, Random random) =>
                 NumericValueSet<T>.Random(expectedSize, random, _tc);
 
-            ConstantValue IValueSetFactory.RandomValue(Random random)
+            ConstantValue IConstantValueSetFactory.RandomValue(Random random)
             {
                 return _tc.ToConstantValue(_tc.Random(random));
             }
 
-            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            bool IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
                 return _tc.Related(relation, _tc.FromConstantValue(left), _tc.FromConstantValue(right));
             }

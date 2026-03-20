@@ -21,6 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
 internal sealed partial class CPSProject : IWorkspaceProjectContext
 {
+    /// <summary>
+    /// Flag to control if this has already been disposed. Not a boolean only so it can be used with Interlocked.CompareExchange.
+    /// </summary>
+    private volatile int _disposed = 0;
+
     private readonly ProjectSystemProject _projectSystemProject;
 
     /// <summary>
@@ -239,6 +244,11 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
 
     public void Dispose()
     {
+        if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
+        {
+            return;
+        }
+
         _projectCodeModel?.OnProjectClosed();
         _projectSystemProjectOptionsProcessor?.Dispose();
         _projectSystemProject.RemoveFromWorkspace();

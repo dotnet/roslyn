@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
         <source>ClearStackTraceExplorerCommandName</source>
-        <target state="needs-review-translation">CleearStackTraceExplorerCommandName</target>
+        <target state="translated">ClearStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
@@ -307,6 +307,21 @@
         <target state="new">Warning</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidLogWorkspaceStructure|ButtonText">
+        <source>Log Roslyn Workspace Structure</source>
+        <target state="translated">Roslyn-Arbeitsbereichsstruktur protokollieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidLogWorkspaceStructure|CommandName">
+        <source>LogRoslynWorkspaceStructure</source>
+        <target state="translated">LogRoslynWorkspaceStructure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidLogWorkspaceStructure|LocCanonicalName">
+        <source>Project.LogRoslynWorkspaceStructure</source>
+        <target state="translated">Project.LogRoslynWorkspaceStructure</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
         <source>&amp;Analyzer...</source>
         <target state="translated">&amp;Analysetool...</target>
@@ -587,44 +602,44 @@
         <target state="translated">Zur Implementierung wechseln</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="new">Solution Explorer Symbol Tree</target>
+      <trans-unit id="cmdidShowInheritanceMargin|ButtonText">
+        <source>Show Inheritance</source>
+        <target state="translated">Vererbung anzeigen</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="new">Solution Explorer Symbol Tree</target>
+      <trans-unit id="cmdidShowInheritanceMargin|LocCanonicalName">
+        <source>Show Inheritance</source>
+        <target state="translated">Vererbung anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
-        <target state="new">Find All References</target>
+        <target state="translated">Alle Verweise suchen</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|LocCanonicalName">
         <source>FindAllReferences</source>
-        <target state="new">FindAllReferences</target>
+        <target state="translated">FindAllReferences</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToBase|ButtonText">
         <source>Go To Base</source>
-        <target state="new">Go To Base</target>
+        <target state="translated">Zu Basis wechseln</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToBase|LocCanonicalName">
         <source>GoToBase</source>
-        <target state="new">GoToBase</target>
+        <target state="translated">GoToBase</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToImplementation|ButtonText">
         <source>Go To Implementation</source>
-        <target state="new">Go To Implementation</target>
+        <target state="translated">Zur Implementierung wechseln</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToImplementation|LocCanonicalName">
         <source>GoToImplementation</source>
-        <target state="new">GoToImplementation</target>
+        <target state="translated">GoToImplementation</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|ButtonText">

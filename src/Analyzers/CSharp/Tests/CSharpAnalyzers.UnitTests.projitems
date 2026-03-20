@@ -39,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateConversionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateDeconstructMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HiddenExplicitCast\HiddenExplicitCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
@@ -50,6 +51,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberRequired\MakeMemberRequiredTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\MakeMemberStaticTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\MakeMethodSynchronousInterfaceImplementationOrOverrideTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeRefStruct\MakeRefStructTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructMemberReadOnly\MakeStructMemberReadOnlyTests.cs" />
@@ -64,6 +68,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\CSharpMatchFolderAndNamespaceTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\CSharpDeclareAsNullableCodeFixTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveAsyncModifier\RemoveAsyncModifierInterfaceImplementationOrOverrideTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveAsyncModifier\RemoveAsyncModifierTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveInKeyword\RemoveInKeywordCodeFixProviderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveNewModifier\RemoveNewModifierCodeFixProviderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />

@@ -85,6 +85,13 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - VSIX deployment targets multiple architectures - ensure platform-specific assets are handled
 - ServiceHub components require special deployment considerations for .NET Core vs Framework
 
+## Documentation
+
+**Creating new docs**:
+- Use **kebab-case** for file names (e.g., `roslyn-language-server-copilot-plugin.md`, not `Roslyn Language Server Copilot Plugin.md`)
+- Place docs in the appropriate subdirectory under `docs/` (e.g., `docs/contributing/`, `docs/compilers/`, `docs/features/`)
+- General docs that don't fit a subdirectory go directly in `docs/`
+
 ## Essential Files for Context
 
 - `docs/wiki/Roslyn-Overview.md` - Architecture deep-dive

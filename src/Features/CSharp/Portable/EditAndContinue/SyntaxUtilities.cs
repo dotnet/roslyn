@@ -197,7 +197,7 @@ internal static partial class SyntaxUtilities
         }
 
         return property.ExpressionBody == null
-            && property.AccessorList!.Accessors.Any(e => e.Body == null && e.ExpressionBody == null);
+            && property.AccessorList!.Accessors.Any(e => e is { Body: null, ExpressionBody: null });
     }
 
     /// <summary>

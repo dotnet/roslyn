@@ -30,10 +30,10 @@ internal sealed class RegisterSolutionSnapshotHandler : ILspServiceRequestHandle
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public Task<LspSolutionSnapshotId> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+    public async Task<LspSolutionSnapshotId> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
         var id = _registry.RegisterSolutionSnapshot(context.Solution);
-        return Task.FromResult(new LspSolutionSnapshotId(id.Id));
+        return new LspSolutionSnapshotId(id.Id);
     }
 }

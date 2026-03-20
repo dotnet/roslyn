@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
         {
             SourceHashAlgorithm.Sha1,
-            SourceHashAlgorithm.Sha256
+            SourceHashAlgorithm.Sha256,
+            SourceHashAlgorithm.Sha384,
+            SourceHashAlgorithm.Sha512
         };
 
         protected static void AssertJson(
@@ -256,6 +258,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var builder = PooledStringBuilder.GetInstance();
             DeterministicKeyBuilder.EncodeByteArrayValue(checksum.AsSpan(), builder);
             return builder.ToStringAndFree();
+        }
+
+        protected static string GetChecksum(byte[] sourceLinkBytes)
+        {
+            using var hashAlgorithm = CryptographicHashProvider.TryGetAlgorithm(SourceHashAlgorithms.Default);
+            var hash = hashAlgorithm!.ComputeHash(sourceLinkBytes);
+            return DeterministicKeyBuilder.EncodeByteArrayValue(hash);
         }
 
         protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, TParseOptions? parseOptions = null);
@@ -499,7 +508,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""pdbChecksumAlgorithm"": ""SHA256"",
   ""runtimeMetadataVersion"": null,
   ""defaultSourceFileEncoding"": null,
-  ""fallbackSourceFileEncoding"": null
+  ""fallbackSourceFileEncoding"": null,
+  ""sourceLink"": null
 }
 ", obj.ToString(Formatting.Indented));
         }
@@ -537,7 +547,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""pdbChecksumAlgorithm"": ""SHA256"",
   ""runtimeMetadataVersion"": null,
   ""defaultSourceFileEncoding"": null,
-  ""fallbackSourceFileEncoding"": null
+  ""fallbackSourceFileEncoding"": null,
+  ""sourceLink"": null
 }}
 ", obj.ToString(Formatting.Indented));
         }

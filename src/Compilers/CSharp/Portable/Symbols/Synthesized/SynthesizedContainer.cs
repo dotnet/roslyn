@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool IsUnionTypeCore => false;
+
         internal sealed override bool IsInterpolatedStringHandlerType => false;
 
         internal sealed override bool HasDeclaredRequiredMembers => false;
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => InterfacesNoUseSiteDiagnostics(basesBeingResolved);
 
-        public override bool MightContainExtensionMethods => false;
+        public override bool MightContainExtensions => false;
 
         public override int Arity => TypeParameters.Length;
 

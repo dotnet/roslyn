@@ -13,7 +13,6 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
@@ -100,15 +99,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     internal static string? GetVirtualProjectPath(string? documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-    /// <summary>
-    /// Indicates whether the editor considers the text to be a file-based program.
-    /// If this returns false, the text is either a miscellaneous file or is part of an ordinary project.
-    /// </summary>
-    /// <remarks>
-    /// The editor considers the text to be a file-based program if it has any '#!' or '#:' directives at the top.
-    /// Note that a file with top-level statements but no directives can still work with 'dotnet app.cs' etc. on the CLI, but will be treated as a misc file in the editor.
-    /// </remarks>
-    internal static bool IsFileBasedProgram(SourceText text)
+    internal static bool HasFileBasedAppDirectives(SourceText text)
     {
         var tokenizer = SyntaxFactory.CreateTokenParser(text, CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
         var result = tokenizer.ParseLeadingTrivia();
@@ -122,21 +113,6 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         return false;
     }
 
-    internal static async Task<bool> ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
-    {
-        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
-            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
-        {
-            return false;
-        }
-
-        var root = await tree.GetRootAsync(cancellationToken);
-        if (root is CompilationUnitSyntax compilationUnit)
-            return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
-
-        return false;
-    }
-
     #region Temporary copy of subset of dotnet run-api behavior for fallback: https://github.com/dotnet/roslyn/issues/78618
     // See https://github.com/dotnet/sdk/blob/b5dbc69cc28676ac6ea615654c8016a11b75e747/src/Cli/Microsoft.DotNet.Cli.Utils/Sha256Hasher.cs#L10
     private static class Sha256Hasher
@@ -145,7 +121,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(text);
             byte[] hash = SHA256.HashData(bytes);
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
             return Convert.ToHexStringLower(hash);
 #else
             return Convert.ToHexString(hash).ToLowerInvariant();

@@ -41,12 +41,21 @@ public partial class AbstractLanguageServerClientTests
             Dictionary<string, IList<LSP.Location>>? locations = null)
         {
             var pipeName = CreateNewPipeName();
-            var processStartInfo = CreateLspStartInfo(pipeName, extensionLogsPath, includeDevKitComponents, debugLsp);
+            var fullPipePath = GetFullPipePath(pipeName);
+
+            // Create the pipe server - the LSP server process will connect to this as a client.
+            var pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+
+            var processStartInfo = CreateLspStartInfo(fullPipePath, extensionLogsPath, includeDevKitComponents, debugLsp);
 
             var process = Process.Start(processStartInfo);
             Assert.NotNull(process);
 
-            var lspClient = new TestLspClient(process, pipeName, documents ?? [], locations ?? [], loggerFactory);
+            // Wait for the server process to connect to our pipe.
+            using var cts = new CancellationTokenSource(TimeOutMsNewProcess);
+            await pipeServer.WaitForConnectionAsync(cts.Token);
+
+            var lspClient = new TestLspClient(process, pipeServer, documents ?? [], locations ?? [], loggerFactory);
 
             // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
             if (process.HasExited)
@@ -65,15 +74,18 @@ public partial class AbstractLanguageServerClientTests
 
             static string CreateNewPipeName()
             {
-                const string WINDOWS_DOTNET_PREFIX = @"\\.\";
-
                 // The pipe name constructed by some systems is very long (due to temp path).
                 // Shorten the unique id for the pipe.
                 var newGuid = Guid.NewGuid().ToString();
-                var pipeName = newGuid.Split('-')[0];
+                return newGuid.Split('-')[0];
+            }
 
+            static string GetFullPipePath(string pipeName)
+            {
+                // The client creates the pipe server and passes the full pipe path to the LSP server process.
+                // On Windows this is \\.\pipe\<name>, on Unix it's a socket path.
                 return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? WINDOWS_DOTNET_PREFIX + pipeName
+                    ? @"\\.\pipe\" + pipeName
                     : Path.Combine(Path.GetTempPath(), pipeName + ".sock");
             }
 
@@ -123,7 +135,7 @@ public partial class AbstractLanguageServerClientTests
 
         internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
 
-        private TestLspClient(Process process, string pipeName, Dictionary<DocumentUri, SourceText> documents, Dictionary<string, IList<LSP.Location>> locations, ILoggerFactory loggerFactory)
+        private TestLspClient(Process process, Stream pipeStream, Dictionary<DocumentUri, SourceText> documents, Dictionary<string, IList<LSP.Location>> locations, ILoggerFactory loggerFactory)
         {
             _documents = documents;
             _locations = locations;
@@ -140,11 +152,8 @@ public partial class AbstractLanguageServerClientTests
 
             Assert.False(_process.HasExited);
 
-            var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
-            pipeClient.Connect(TimeOutMsNewProcess);
-
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(pipeClient, pipeClient, messageFormatter))
+            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(pipeStream, pipeStream, messageFormatter))
             {
                 AllowModificationWhileListening = true,
                 ExceptionStrategy = ExceptionProcessing.ISerializable,

@@ -161,7 +161,7 @@ abstract Microsoft.CodeAnalysis.SemanticModel.LookupLabelsCore(int position, str
 abstract Microsoft.CodeAnalysis.SemanticModel.LookupNamespacesAndTypesCore(int position, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol? container, string? name) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>
 abstract Microsoft.CodeAnalysis.SemanticModel.LookupStaticMembersCore(int position, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol? container, string? name) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>
 abstract Microsoft.CodeAnalysis.SemanticModel.LookupSymbolsCore(int position, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol? container, string? name, bool includeReducedExtensionMethods) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>
-abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
+[RSEXPERIMENTAL001]abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
 abstract Microsoft.CodeAnalysis.SemanticModel.OriginalPositionForSpeculation.get -> int
 abstract Microsoft.CodeAnalysis.SemanticModel.ParentModelCore.get -> Microsoft.CodeAnalysis.SemanticModel?
 abstract Microsoft.CodeAnalysis.SemanticModel.RootCore.get -> Microsoft.CodeAnalysis.SyntaxNode!
@@ -1298,7 +1298,7 @@ Microsoft.CodeAnalysis.GeneratorRunResult.Exception.get -> System.Exception?
 Microsoft.CodeAnalysis.GeneratorRunResult.GeneratedSources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
 Microsoft.CodeAnalysis.GeneratorRunResult.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorRunResult.GeneratorRunResult() -> void
-Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
 Microsoft.CodeAnalysis.GeneratorRunResult.TrackedOutputSteps.get -> System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IncrementalGeneratorRunStep!>>!
 Microsoft.CodeAnalysis.GeneratorRunResult.TrackedSteps.get -> System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IncrementalGeneratorRunStep!>>!
 Microsoft.CodeAnalysis.GeneratorSyntaxContext

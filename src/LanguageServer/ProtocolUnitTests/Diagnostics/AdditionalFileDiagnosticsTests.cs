@@ -229,7 +229,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            if (context.TextDocument is not null && context.TextDocument is not Document)
+            if (context.TextDocument is not null and not Document)
             {
                 return [new TestAdditionalFileDocumentSource(context.TextDocument)];
             }

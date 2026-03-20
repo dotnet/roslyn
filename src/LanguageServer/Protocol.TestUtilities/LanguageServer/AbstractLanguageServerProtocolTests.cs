@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -43,6 +44,9 @@ namespace Roslyn.Test.Utilities;
 public abstract partial class AbstractLanguageServerProtocolTests
 {
     protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
+
+    private protected static DocumentUri CreateAbsoluteDocumentUri(string suffix)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath(suffix));
 
     private protected readonly AbstractLspLogger TestOutputLspLogger;
     protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
@@ -354,7 +358,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var workspace = await CreateWorkspaceAsync(lspOptions, workspaceKind, mutatingLspWorkspace);
 
         workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([CreateTestAnalyzersReference()]));
+        var analyzerReferences = CreateTestAnalyzersReference();
+
+        if (lspOptions.AdditionalAnalyzers != null)
+            analyzerReferences = analyzerReferences.WithAdditionalAnalyzers(LanguageNames.CSharp, lspOptions.AdditionalAnalyzers);
+
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReferences]));
 
         return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
     }
@@ -658,6 +667,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 {
                     Capabilities = _initializationOptions.ClientCapabilities,
                     Locale = _initializationOptions.Locale,
+                    WorkspaceFolders = _initializationOptions.WorkspaceFolders,
                 }, CancellationToken.None);
             }
 
@@ -669,7 +679,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         protected virtual RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
         {
-            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
             var factory = TestWorkspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
             var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
@@ -678,7 +687,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
-            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, capabilitiesProvider, serverKind, logger, TestWorkspace.Services.HostServices);
+            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, logger, TestWorkspace.Services.HostServices);
 
             jsonRpc.StartListening();
             return languageServer;
@@ -819,6 +828,15 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             var didCloseParams = CreateDidCloseTextDocumentParams(documentUri);
             return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName, didCloseParams, CancellationToken.None);
+        }
+
+        public async Task RefreshSourceGeneratorsAsync(bool forceRegeneration)
+        {
+            var refreshSourceGeneratorsParams = new RefreshSourceGeneratorsParams(forceRegeneration);
+
+            // The refresh command should trigger source generators to run in both automatic and balanced mode.
+            await this.ExecuteRequestAsync<RefreshSourceGeneratorsParams, object>(WorkspaceRefreshSourceGeneratorsHandler.MethodName, refreshSourceGeneratorsParams, CancellationToken.None);
+            await this.WaitForSourceGeneratorsAsync();
         }
 
         public async Task ShutdownTestServerAsync()
