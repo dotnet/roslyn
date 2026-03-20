@@ -4249,7 +4249,7 @@ static class Extensions
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrue TrueTrue FalseFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueTrue TrueTrue FalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", """
 {
   // Code size       46 (0x2e)
