@@ -206,18 +206,45 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         var documentFilePath = GetDocumentFilePath(documentUri);
-        var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
-        var workspace = _workspaceFactory.MiscellaneousFilesWorkspace;
         var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
-        var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
-        var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
-        projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
-        var id = projectInfo.Documents.Single().Id;
-        var primordialDoc = workspace.CurrentSolution.GetRequiredDocument(id);
         var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
-        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
-        return primordialDoc;
+        var primordialProject = await this.TryBeginLoadingProjectWithPrimordialAsync(
+            documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
+
+        // TODO2: What are we supposed to do if we lose the race to add a document?
+        // I guess we could try looking it up over again? Or will LspWorkspaceManager do this for us?
+        return primordialProject?.Documents.Single();
+    }
+
+    /// <summary>
+    /// Used to begin loading a file-based app project for a file-based app on disk, if it hasn't started already,
+    /// when the caller doesn't need to use any results of the loading process.
+    /// </summary>
+    public async ValueTask TryBeginLoadingFileBasedAppAsync(string documentFilePath)
+    {
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(documentFilePath));
+        var sourceTextLoader = new WorkspaceFileTextLoader(_workspaceFactory.HostWorkspace.CurrentSolution.Services, documentFilePath, defaultEncoding: null);
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        if (!languageInfoProvider.TryGetLanguageInformation(ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath), lspLanguageId: "csharp", out var languageInformation))
+        {
+            Contract.Fail($"Could not find language information for '{documentFilePath}'");
+        }
+
+        await TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
+    }
+
+    public async ValueTask<Project?> TryBeginLoadingProjectWithPrimordialAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
+    {
+        return await base.TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProject, doDesignTimeBuild);
+
+        Project CreatePrimordialProject(ProjectSystemProjectFactory projectFactory)
+        {
+            var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
+            projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
+            return projectFactory.Workspace.CurrentSolution.GetRequiredProject(projectInfo.Id);
+        }
     }
 
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)

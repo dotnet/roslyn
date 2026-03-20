@@ -156,6 +156,36 @@ This uses the file-based program entry point file, translates it to a virtual ms
 
 It uses file watchers to watch the project globs and redo the design time build on relevant changes, such as changes to `#:` directives.
 
+## Automatic discovery
+
+The Roslyn LSP will automatically discover and load file-based apps in the opened workspace folders. The user can opt out of this discovery process by setting `"dotnet.projects.enableFileBasedProgramsAutomaticDiscovery": false`.
+
+Certain subfolders in a workspace are excluded from this discovery process:
+- Any folders which contain a `.csproj` file.
+- Any folders with names conventionally reserved for build artifacts, such as `artifacts`, `bin`, and `obj`.
+- Any folders marked "hidden" in the file system. `.git` and `.vs` typically fall into this.
+
+The first time discovery is performed in a workspace, the LSP will read all `.cs` files in the opened workspace folders which are not excluded by the above conditions. If the file content starts with `#!`, it is marked as a file-based app and loaded.
+
+A cache file is created after each discovery pass and stored in the user temp directory. This file holds:
+- The time that the previous discovery pass started.
+- Paths of file-based apps found during the last discovery pass.
+- Paths of folders that were found to contain `.csproj` files during the last discovery pass.
+
+The cache data allows the following optimizations in subsequent discovery passes:
+- Allows not reading any C# files whose last write time is older than the cached time.
+- Allows reducing the number of times we list files in directories whose last write time is older than the cached time.
+
+### `#!` requirement
+
+This design requires files to start with `#!` in order to participate in discovery.
+
+The reason for this is: we anticipate adding support for `#:` to non-entry-point files. This means that having `#:` is not going to be enough to identify a file as definitely the entry point.
+
+Instead, it will be necessary to search for both `#:` and top-level statements at a minimum. This cost is acceptable for files that were explicitly opened in the editor, but is a bit steep for a broad discovery pass.
+
+For this reason, we intend to put `#!`-at-start as a standard for entry points of file-based apps. We plan on shipping an analyzer which reports a warning in files which contain both `#:include` and top-level statements, but do not have `#!` at the top.
+
 ## Future considerations
 
 This section is not intended to serve as permanent documentation but as more of a roadmap for a series of changes we may make in this area in the near future. It should not be necessary to read/understand this in order to evaluate a PR currently under review. i.e. anything that the current PR is actually implementing is covered in previous sections.

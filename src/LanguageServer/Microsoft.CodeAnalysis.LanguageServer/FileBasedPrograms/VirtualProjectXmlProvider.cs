@@ -134,6 +134,21 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         }
     }
 
+    internal static string GetDiscoveryCacheDirectory(string workspaceFolder)
+    {
+        // We want a location where permissions are expected to be restricted to the current user.
+        string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? Path.GetTempPath()
+            : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        // Include workspace folder name so the cache directory name is not completely opaque.
+        string fileName = Path.GetFileNameWithoutExtension(workspaceFolder);
+        string hash = Sha256Hasher.HashWithNormalizedCasing(workspaceFolder);
+        string directoryName = $"{fileName}-{hash}";
+
+        return Path.Join(directory, "dotnet", "runfile-discovery", directoryName);
+    }
+
     // See https://github.com/dotnet/sdk/blob/5a4292947487a9d34f4256c1d17fb3dc26859174/src/Cli/dotnet/Commands/Run/VirtualProjectBuildingCommand.cs#L449
     internal static string GetArtifactsPath(string entryPointFileFullPath)
     {
