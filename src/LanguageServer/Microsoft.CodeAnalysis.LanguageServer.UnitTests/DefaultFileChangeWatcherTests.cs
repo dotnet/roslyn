@@ -254,6 +254,72 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         Assert.NotSame(NoOpWatchedFile.Instance, watcher2);
     }
 
+    [Fact]
+    public void EnqueueWatchingFile_ReachingMaximumWatcherCount_ConsolidatesToDirectoryWatch()
+    {
+        var watcher = new DefaultFileChangeWatcher();
+        var rootDirectory = _tempRoot.CreateDirectory();
+        using var context = watcher.CreateContext([]);
+        var fileChangeContext = (DefaultFileChangeWatcher.FileChangeContext)context;
+
+        var watchedFiles = new List<IWatchedFile>();
+        try
+        {
+            for (var i = 0; i < DefaultFileChangeWatcher.MaximumWatcherCount; i++)
+            {
+                var filePath = Path.Combine(rootDirectory.Path, $"file{i}.txt");
+                var watchedFile = context.EnqueueWatchingFile(filePath);
+                watchedFiles.Add(watchedFile);
+                Assert.NotSame(NoOpWatchedFile.Instance, watchedFile);
+            }
+
+            Assert.Equal(DefaultFileChangeWatcher.MaximumWatcherCount, DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedFileCount(fileChangeContext));
+            Assert.Equal(0, DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedDirectoryCount(fileChangeContext));
+
+            var nextFilePath = Path.Combine(rootDirectory.Path, "file-consolidated.txt");
+            var consolidatedWatch = context.EnqueueWatchingFile(nextFilePath);
+            Assert.Same(NoOpWatchedFile.Instance, consolidatedWatch);
+
+            Assert.Equal(1, DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedDirectoryCount(fileChangeContext));
+        }
+        finally
+        {
+            foreach (var watchedFile in watchedFiles)
+                watchedFile.Dispose();
+        }
+    }
+
+    [Fact]
+    public void EnqueueWatchingFile_AfterConsolidation_FilesInSameDirectoryReturnNoOp()
+    {
+        var watcher = new DefaultFileChangeWatcher();
+        var rootDirectory = _tempRoot.CreateDirectory();
+        using var context = watcher.CreateContext([]);
+
+        var watchedFiles = new List<IWatchedFile>();
+        try
+        {
+            for (var i = 0; i < DefaultFileChangeWatcher.MaximumWatcherCount; i++)
+            {
+                var filePath = Path.Combine(rootDirectory.Path, $"file{i}.txt");
+                watchedFiles.Add(context.EnqueueWatchingFile(filePath));
+            }
+
+            var triggerConsolidationPath = Path.Combine(rootDirectory.Path, "trigger.txt");
+            var triggerResult = context.EnqueueWatchingFile(triggerConsolidationPath);
+            Assert.Same(NoOpWatchedFile.Instance, triggerResult);
+
+            var fileInSameDirectory = Path.Combine(rootDirectory.Path, "same-directory.txt");
+            var sameDirectoryResult = context.EnqueueWatchingFile(fileInSameDirectory);
+            Assert.Same(NoOpWatchedFile.Instance, sameDirectoryResult);
+        }
+        finally
+        {
+            foreach (var watchedFile in watchedFiles)
+                watchedFile.Dispose();
+        }
+    }
+
     #region File System Event Tests
 
     /// <summary>

@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Roslyn.Utilities;
@@ -22,8 +24,13 @@ internal sealed partial class DefaultFileChangeWatcher
     internal sealed class FileChangeContext : IFileChangeContext, IEventRaiser
     {
         private readonly DefaultFileChangeWatcher _owner;
-        private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
+        private readonly HashSet<WatchedDirectory> _watchedDirectories;
         private readonly ImmutableArray<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> _fileSystemWatchersForWatchedDirectories;
+        private readonly HashSet<string> _watchedRootPaths;
+        private readonly List<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> _additionalFileSystemWatchersForWatchedDirectories = [];
+        private readonly Dictionary<string, int> _watchedFiles;
+        private readonly Dictionary<string, int> _watchedDirectoriesByPath;
+        private readonly object _gate = new();
         private bool _disposed = false;
 
         public FileChangeContext(DefaultFileChangeWatcher owner, ImmutableArray<WatchedDirectory> watchedDirectories)
@@ -32,13 +39,16 @@ internal sealed partial class DefaultFileChangeWatcher
 
             var watchedRootPaths = new HashSet<string>(s_pathStringComparer);
             var fileSystemWatchersForWatchedDirectoriesBuilder = ImmutableArray.CreateBuilder<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>>();
-            var watchedDirectoryBuilder = ImmutableArray.CreateBuilder<WatchedDirectory>(watchedDirectories.Length);
+            var watchedDirectoriesByPath = new Dictionary<string, int>(s_pathStringComparer);
+            var watchedDirectorySet = new HashSet<WatchedDirectory>();
             foreach (var watchedDirectory in watchedDirectories)
             {
                 if (!Directory.Exists(watchedDirectory.Path))
                     continue;
 
-                watchedDirectoryBuilder.Add(watchedDirectory);
+                watchedDirectorySet.Add(watchedDirectory);
+                watchedDirectoriesByPath.TryGetValue(watchedDirectory.Path, out var existingCount);
+                watchedDirectoriesByPath[watchedDirectory.Path] = existingCount + 1;
 
                 var rootPath = Path.GetPathRoot(watchedDirectory.Path)!;
                 if (!watchedRootPaths.Add(rootPath))
@@ -48,7 +58,10 @@ internal sealed partial class DefaultFileChangeWatcher
                 fileSystemWatchersForWatchedDirectoriesBuilder.Add(rootWatcher);
             }
 
-            _watchedDirectories = watchedDirectoryBuilder.ToImmutable();
+            _watchedDirectories = watchedDirectorySet;
+            _watchedRootPaths = watchedRootPaths;
+            _watchedFiles = new Dictionary<string, int>(s_pathStringComparer);
+            _watchedDirectoriesByPath = watchedDirectoriesByPath;
             _fileSystemWatchersForWatchedDirectories = fileSystemWatchersForWatchedDirectoriesBuilder.ToImmutable();
 
             // Attach watchers after fields are assigned to avoid race conditions where events
@@ -61,42 +74,118 @@ internal sealed partial class DefaultFileChangeWatcher
 
         void IEventRaiser.RaiseEvent(object? sender, FileSystemEventArgs e)
         {
-            if (_watchedDirectories.IsEmpty)
+            bool shouldRaise;
+            string? oldPathToRaise = null;
+
+            lock (_gate)
+            {
+                shouldRaise = ShouldRaiseForPath_NoLock(e.FullPath);
+
+                if (shouldRaise && e is RenamedEventArgs re)
+                    oldPathToRaise = re.OldFullPath;
+            }
+
+            if (!shouldRaise)
                 return;
 
-            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, e.FullPath, s_pathStringComparison))
-            {
-                FileChanged?.Invoke(this, e.FullPath);
+            FileChanged?.Invoke(this, e.FullPath);
 
-                // On Windows we only get a renamed event instead of separate delete/create events, so also raise
-                // a change event for the old file path.
-                if (e is RenamedEventArgs re && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    FileChanged?.Invoke(this, re.OldFullPath);
-            }
+            if (oldPathToRaise is not null)
+                FileChanged?.Invoke(this, oldPathToRaise);
         }
 
         public IWatchedFile EnqueueWatchingFile(string filePath)
         {
-            // If this path is already covered by one of our directory watchers, nothing further to do
-            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_pathStringComparison))
-                return NoOpWatchedFile.Instance;
+            lock (_gate)
+            {
+                // If this path is already covered by one of our directory watchers, nothing further to do
+                if (ShouldRaiseForPath_NoLock(filePath))
+                    return NoOpWatchedFile.Instance;
 
-            // If this path doesn't have a valid root, we can't watch it
-            var rootPath = Path.GetPathRoot(filePath);
-            if (string.IsNullOrEmpty(rootPath) || !Directory.Exists(rootPath))
-                return NoOpWatchedFile.Instance;
+                // If this path doesn't have a valid root, we can't watch it
+                var rootPath = Path.GetPathRoot(filePath);
+                if (string.IsNullOrEmpty(rootPath) || !Directory.Exists(rootPath))
+                    return NoOpWatchedFile.Instance;
 
-            var rootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
-            return new IndividualWatchedFile(this, filePath, rootWatcher);
+                // Once this context reaches the cap, consolidate by watching the parent directory and
+                // stop creating additional individual file watchers.
+                if (_watchedFiles.Count >= MaximumWatcherCount)
+                {
+                    var parentDirectory = Path.GetDirectoryName(filePath);
+                    if (parentDirectory is null || !Directory.Exists(parentDirectory))
+                        return NoOpWatchedFile.Instance;
+
+                    var watchedDirectory = new WatchedDirectory(parentDirectory, extensionFilters: []);
+                    if (_watchedDirectories.Add(watchedDirectory))
+                    {
+                        if (_watchedRootPaths.Add(rootPath))
+                        {
+                            var rootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
+                            _additionalFileSystemWatchersForWatchedDirectories.Add(rootWatcher);
+                            AttachWatcher(this, rootWatcher);
+                        }
+                    }
+
+                    _watchedDirectoriesByPath.TryGetValue(watchedDirectory.Path, out var existingCount);
+                    _watchedDirectoriesByPath[watchedDirectory.Path] = existingCount + 1;
+                    return NoOpWatchedFile.Instance;
+                }
+
+                _watchedFiles.TryGetValue(filePath, out var existingWatchCount);
+                _watchedFiles[filePath] = existingWatchCount + 1;
+
+                var individualRootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
+                return new IndividualWatchedFile(this, filePath, individualRootWatcher);
+            }
         }
 
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, true) == false)
             {
-                foreach (var rootWatcher in _fileSystemWatchersForWatchedDirectories)
-                    DetachAndDisposeWatcher(this, rootWatcher);
+                lock (_gate)
+                {
+                    foreach (var rootWatcher in _fileSystemWatchersForWatchedDirectories)
+                        DetachAndDisposeWatcher(this, rootWatcher);
+
+                    foreach (var rootWatcher in _additionalFileSystemWatchersForWatchedDirectories)
+                        DetachAndDisposeWatcher(this, rootWatcher);
+                }
             }
+        }
+
+        private void RemoveWatchedFile(string filePath)
+        {
+            lock (_gate)
+            {
+                if (!_watchedFiles.TryGetValue(filePath, out var existingWatchCount))
+                    return;
+
+                if (existingWatchCount == 1)
+                    _watchedFiles.Remove(filePath);
+                else
+                    _watchedFiles[filePath] = existingWatchCount - 1;
+            }
+        }
+
+        private bool ShouldRaiseForPath_NoLock(string filePath)
+        {
+            if (_watchedDirectories.Count == 0)
+                return false;
+
+            foreach (var watchedDirectory in _watchedDirectories)
+            {
+                if (filePath.StartsWith(watchedDirectory.Path, s_pathStringComparison))
+                {
+                    if (watchedDirectory.ExtensionFilters.Length == 0 ||
+                        watchedDirectory.ExtensionFilters.Any(filter => filePath.EndsWith(filter, s_pathStringComparison)))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private sealed class IndividualWatchedFile : IWatchedFile, IEventRaiser
@@ -133,7 +222,10 @@ internal sealed partial class DefaultFileChangeWatcher
             public void Dispose()
             {
                 if (Interlocked.Exchange(ref _disposed, true) == false)
+                {
+                    _context.RemoveWatchedFile(_filePath);
                     DetachAndDisposeWatcher(this, _watcher);
+                }
             }
         }
 
@@ -141,6 +233,12 @@ internal sealed partial class DefaultFileChangeWatcher
         {
             public static ImmutableArray<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> GetRootFileWatchers(FileChangeContext context)
                 => context._fileSystemWatchersForWatchedDirectories;
+
+            public static int GetWatchedDirectoryCount(FileChangeContext context)
+                => context._watchedDirectoriesByPath.Count;
+
+            public static int GetWatchedFileCount(FileChangeContext context)
+                => context._watchedFiles.Count;
         }
     }
 }

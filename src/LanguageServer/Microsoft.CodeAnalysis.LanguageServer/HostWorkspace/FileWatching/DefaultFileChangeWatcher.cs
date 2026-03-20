@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// </remarks>
 internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
 {
+    internal const int MaximumWatcherCount = 10;
+
     private static readonly StringComparer s_pathStringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         ? StringComparer.OrdinalIgnoreCase
         : StringComparer.Ordinal;
