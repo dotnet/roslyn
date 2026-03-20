@@ -1965,6 +1965,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // !(v != null) --> !(v != null)
                             falseTestPermitsTrueOther = false;
                             break;
+                        case BoundDagTypeTest t2 when !_forLowering:
+                            if (whenTrueValues is TypeUnionValueSet whenTrueUnionSet)
+                            {
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                                if (whenTrueUnionSet.TypeMatchesAllValuesIfAny(t2.Type, ref useSiteInfo))
+                                {
+                                    trueTestImpliesTrueOther = true;
+                                    _suitableForLowering = false;
+                                }
+                            }
+
+                            goto default;
                         default:
                             // !(v != null) --> !(v is T)
                             falseTestPermitsTrueOther = false;
@@ -2047,7 +2059,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // !(v == null) --> v != null
                             falseTestImpliesTrueOther = true;
                             break;
-                        case BoundDagTypeTest _:
+                        case BoundDagTypeTest t2:
+                            if (!_forLowering && whenFalseValues is TypeUnionValueSet whenFalseUnionSet)
+                            {
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                                if (whenFalseUnionSet.TypeMatchesAllValuesIfAny(t2.Type, ref useSiteInfo))
+                                {
+                                    falseTestImpliesTrueOther = true;
+                                    _suitableForLowering = false;
+                                }
+                            }
+
                             // v == null --> !(v is T)
                             trueTestPermitsTrueOther = false;
                             break;
