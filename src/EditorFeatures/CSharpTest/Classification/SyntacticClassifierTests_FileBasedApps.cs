@@ -47,25 +47,9 @@ public partial class SyntacticClassifierTests
             Punctuation.Text("@"),
             String("10.0.100-preview.3"));
 
-    // sdk: name only, no @ separator
-    [Theory, CombinatorialData]
-    public Task FileBasedApps_Sdk_03(TestHost testHost)
-        => TestAsync("""
-            #:sdk Microsoft.NET.Sdk
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("sdk"),
-            Identifier("Microsoft"),
-            Punctuation.Text("."),
-            Identifier("NET"),
-            Punctuation.Text("."),
-            Identifier("Sdk"));
-
     // sdk: @ separator with no version value after it
     [Theory, CombinatorialData]
-    public Task FileBasedApps_Sdk_04(TestHost testHost)
+    public Task FileBasedApps_Sdk_03(TestHost testHost)
         => TestAsync("""
             #:sdk Microsoft.NET.Sdk@
             """,
@@ -82,7 +66,7 @@ public partial class SyntacticClassifierTests
 
     // sdk: duplicate @ separators
     [Theory, CombinatorialData]
-    public Task FileBasedApps_Sdk_05(TestHost testHost)
+    public Task FileBasedApps_Sdk_04(TestHost testHost)
         => TestAsync("""
             #:sdk Microsoft.NET.Sdk@1.0@extra
             """,
@@ -100,7 +84,7 @@ public partial class SyntacticClassifierTests
 
     // sdk: no name, just @ and version
     [Theory, CombinatorialData]
-    public Task FileBasedApps_Sdk_06(TestHost testHost)
+    public Task FileBasedApps_Sdk_05(TestHost testHost)
         => TestAsync("""
             #:sdk @1.0
             """,
