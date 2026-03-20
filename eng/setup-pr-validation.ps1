@@ -34,19 +34,31 @@ try {
       }
     }
 
-    Write-Host "Setting up the build for PR validation by pulling refs/pull/$prNumber/merge..."
-    git pull gh refs/pull/$prNumber/merge
+    Write-Host "Setting up the build for PR validation by fetching refs/pull/$prNumber/merge..."
+    git fetch gh refs/pull/$prNumber/merge
     if (!$?) {
-      Write-Host "##vso[task.LogIssue type=error;]Pulling branch refs/pull/$prNumber/merge failed."
+      Write-Host "##vso[task.LogIssue type=error;]Fetching ref refs/pull/$prNumber/merge failed."
+      exit 1
+    }
+
+    git checkout FETCH_HEAD
+    if (!$?) {
+      Write-Host "##vso[task.LogIssue type=error;]Checking out FETCH_HEAD for refs/pull/$prNumber/merge failed."
       exit 1
     }
 
     if (!$enforceLatestCommit) {
-      Write-Host "Checking out the specified commit SHA ($commitSHA)..."
-      git checkout $commitSHA
-      if (!$?) {
-        Write-Host "##vso[task.LogIssue type=error;]Checking out commit SHA $commitSHA failed."
-        exit 1
+      $headSHA = git rev-parse HEAD
+      if ($headSHA.StartsWith($commitSHA)) {
+        Write-Host "HEAD ($headSHA) already matches the specified commit SHA ($commitSHA), skipping checkout."
+      }
+      else {
+        Write-Host "Checking out the specified commit SHA ($commitSHA)..."
+        git checkout $commitSHA
+        if (!$?) {
+          Write-Host "##vso[task.LogIssue type=error;]Checking out commit SHA $commitSHA failed."
+          exit 1
+        }
       }
     }
 }
