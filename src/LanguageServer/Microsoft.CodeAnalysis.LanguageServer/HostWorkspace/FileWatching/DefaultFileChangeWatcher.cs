@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// use the LSP one.
 /// </summary>
 /// <remarks>
-/// This implementation creates one <see cref="FileSystemWatcher"/> per root drive and uses filtering to route file
-/// change events to the appropriate watchers. The watchers are shared between all <see cref="FileChangeContext"/>
+/// This implementation creates one <see cref="FileSystemWatcher"/> per watched directory. The watchers are shared between all <see cref="FileChangeContext"/>
 /// instances and are disposed when all contexts using them have been disposed.
 /// </remarks>
 internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
@@ -29,17 +28,17 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
         ? StringComparison.OrdinalIgnoreCase
         : StringComparison.Ordinal;
 
-    private readonly ReferenceCountedDisposableCache<string, FileSystemWatcher> _sharedRootWatchers = new(s_pathStringComparer);
+    private readonly ReferenceCountedDisposableCache<string, FileSystemWatcher> _sharedDirectoryWatchers = new(s_pathStringComparer);
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => new FileChangeContext(this, watchedDirectories);
 
-    private IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> GetOrCreateSharedWatcher(string rootPath)
+    private IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> GetOrCreateSharedWatcher(string directoryPath)
     {
-        var rootWatcher = _sharedRootWatchers.GetOrCreate<object?>(rootPath, static (key, _) => new FileSystemWatcher(key), arg: null);
-        rootWatcher.Target.Value.IncludeSubdirectories = true;
-        rootWatcher.Target.Value.EnableRaisingEvents = true;
-        return rootWatcher;
+        var directoryWatcher = _sharedDirectoryWatchers.GetOrCreate<object?>(directoryPath, static (key, _) => new FileSystemWatcher(key), arg: null);
+        directoryWatcher.Target.Value.IncludeSubdirectories = true;
+        directoryWatcher.Target.Value.EnableRaisingEvents = true;
+        return directoryWatcher;
     }
 
     private static void AttachWatcher(IEventRaiser eventRaiser, IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> watcher)
@@ -66,7 +65,7 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
 
     internal static class TestAccessor
     {
-        public static IEnumerable<string> GetWatchedRootPaths(DefaultFileChangeWatcher watcher)
-            => ReferenceCountedDisposableCache<string, FileSystemWatcher>.TestAccessor.GetCacheKeys(watcher._sharedRootWatchers);
+        public static IEnumerable<string> GetWatchedDirectoryPaths(DefaultFileChangeWatcher watcher)
+            => ReferenceCountedDisposableCache<string, FileSystemWatcher>.TestAccessor.GetCacheKeys(watcher._sharedDirectoryWatchers);
     }
 }
