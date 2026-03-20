@@ -67,7 +67,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
 
         await using var buildHostProcessManager = new BuildHostProcessManager(
-            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+            _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
             globalMSBuildProperties: [],
             binaryLogPathProvider: null,
             _loggerFactory);
