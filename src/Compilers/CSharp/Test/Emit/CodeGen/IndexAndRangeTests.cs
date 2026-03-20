@@ -4547,20 +4547,20 @@ static class Util
 
 public class C
 {
-    private readonly int[] _values = new int[3];
+    private readonly int[] _values = new int[10];
 
     public int Length { get { System.Console.Write("Length "); return _values.Length; } }
 
     public ref int Slice(int start) => throw null;
 
-    public ref int Slice(int start, int length) { System.Console.Write("SliceStartLength "); return ref _values[start]; }
+    public ref int Slice(int start, int length) { System.Console.Write($"SliceStartLength({start},{length}) "); return ref _values[start]; }
 
     public override string ToString() => _values[1].ToString();
 }
 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length SliceStartLength 42"), verify: Verification.Skipped);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length SliceStartLength(1,9) 42"), verify: Verification.Skipped);
 
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.M", """
