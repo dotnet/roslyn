@@ -4565,22 +4565,25 @@ public class C
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.M", """
 {
-  // Code size       26 (0x1a)
+  // Code size       28 (0x1c)
   .maxstack  4
-  .locals init (int V_0)
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  newobj     "C..ctor()"
   IL_0005:  dup
   IL_0006:  ldc.i4.1
   IL_0007:  stloc.0
   IL_0008:  dup
   IL_0009:  callvirt   "int C.Length.get"
-  IL_000e:  pop
-  IL_000f:  ldloc.0
-  IL_0010:  ldloc.0
-  IL_0011:  callvirt   "ref int C.Slice(int, int)"
-  IL_0016:  ldc.i4.s   42
-  IL_0018:  stind.i4
-  IL_0019:  ret
+  IL_000e:  ldc.i4.1
+  IL_000f:  sub
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.0
+  IL_0012:  ldloc.1
+  IL_0013:  callvirt   "ref int C.Slice(int, int)"
+  IL_0018:  ldc.i4.s   42
+  IL_001a:  stind.i4
+  IL_001b:  ret
 }
 """);
         }
