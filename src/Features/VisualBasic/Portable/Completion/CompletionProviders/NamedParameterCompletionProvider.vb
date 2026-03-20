@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Protected Overrides Function GetTextChangeAsync(selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Protected Overrides Function GetTextChangeAsync(selectedItem As CompletionItem, options As CompletionOptions, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             Dim symbolItem = selectedItem
             Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
             Dim change As TextChange

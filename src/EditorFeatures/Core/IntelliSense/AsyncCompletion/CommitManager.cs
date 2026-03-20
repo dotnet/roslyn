@@ -178,7 +178,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
         return Commit(
             session, triggerDocument, completionService, subjectBuffer,
             roslynItem, sessionData.CompletionListSpan.Value, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
-            filterText, cancellationToken);
+            filterText, options, cancellationToken);
     }
 
     private AsyncCompletionData.CommitResult Commit(
@@ -192,6 +192,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
         ITextSnapshot triggerSnapshot,
         CompletionRules rules,
         string filterText,
+        CompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         _threadingContext.ThrowIfNotOnUIThread();
@@ -229,7 +230,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
             if (_textView is IDebuggerTextView)
                 roslynItem = ImportCompletionItem.MarkItemToAlwaysFullyQualify(roslynItem);
 
-            change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            change = completionService.GetChangeAsync(document, roslynItem, completionOptions, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
         }
         catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportAndCatch(e))
         {

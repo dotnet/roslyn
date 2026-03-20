@@ -641,7 +641,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         // changes to document, so the cursor position is tracked correctly.
         var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
 
-        var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
+        var commit = await service.GetChangeAsync(document, completionItem, options, commitChar, CancellationToken.None);
 
         var text = await document.GetTextAsync();
         var newText = text.WithChanges(commit.TextChange);
@@ -742,7 +742,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         if (commitChar == '\t' ||
             CommitManager.IsCommitCharacter(service.GetRules(options), firstItem, commitChar))
         {
-            var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
+            var textChange = (await service.GetChangeAsync(document, firstItem, options, commitChar, CancellationToken.None)).TextChange;
 
             // Adjust TextChange to include commit character, so long as it isn't TAB.
             if (commitChar != '\t')

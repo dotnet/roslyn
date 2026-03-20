@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Return True
         End Function
 
-        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, options As CompletionOptions, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, "InsertionText"))
         End Function
     End Class

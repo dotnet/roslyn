@@ -45,7 +45,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
     protected static CompletionItemRules GetRules()
         => s_defaultRules;
 
-    public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+    internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? commitKey = null, CancellationToken cancellationToken = default)
     {
         var (newDocument, newSpan) = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
         var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

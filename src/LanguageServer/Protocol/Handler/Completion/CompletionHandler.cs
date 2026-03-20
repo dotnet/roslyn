@@ -102,7 +102,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         var (list, isIncomplete, isHardSelection, resultId) = completionListResult.Value;
 
         var result = await CompletionResultFactory
-            .ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, isHardSelection, resultId, cancellationToken)
+            .ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, isHardSelection, resultId, completionOptions, cancellationToken)
             .ConfigureAwait(false);
 
         return result;

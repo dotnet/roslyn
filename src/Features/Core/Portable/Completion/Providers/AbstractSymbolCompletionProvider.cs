@@ -495,7 +495,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         return missingSymbols;
     }
 
-    public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
         => Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, GetInsertionText(selectedItem, ch)));
 
     private string GetInsertionText(CompletionItem item, char? ch)

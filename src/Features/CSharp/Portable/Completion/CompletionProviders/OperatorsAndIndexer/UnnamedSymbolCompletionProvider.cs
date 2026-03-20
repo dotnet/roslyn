@@ -138,9 +138,10 @@ internal sealed partial class UnnamedSymbolCompletionProvider : LSPCompletionPro
         }
     }
 
-    public override Task<CompletionChange> GetChangeAsync(
+    internal override Task<CompletionChange> GetChangeAsync(
         Document document,
         CompletionItem item,
+        CompletionOptions options,
         char? commitKey,
         CancellationToken cancellationToken)
     {

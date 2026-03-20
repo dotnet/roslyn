@@ -200,7 +200,7 @@ internal abstract class AbstractSpellCheckCodeFixProvider<TSimpleName> : CodeFix
     private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
     {
         var service = CompletionService.GetService(document);
-        var change = await service.GetChangeAsync(document, item, commitCharacter: null, cancellationToken).ConfigureAwait(false);
+        var change = await service.GetChangeAsync(document, item, CompletionOptions.Default, commitCharacter: null, cancellationToken).ConfigureAwait(false);
         var text = change.TextChange.NewText;
         var nonCharIndex = text.IndexOfAny(s_punctuation);
         return nonCharIndex > 0

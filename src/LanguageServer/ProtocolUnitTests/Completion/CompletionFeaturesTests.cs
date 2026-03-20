@@ -913,7 +913,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
             return CodeAnalysis.Completion.CompletionList.Create(defaultItemSpan, ReturnedItems);
         }
 
-        public override Task<CompletionChange> GetChangeAsync(Document document, CodeAnalysis.Completion.CompletionItem item, char? commitCharacter = null, CancellationToken cancellationToken = default)
+        internal override Task<CompletionChange> GetChangeAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, char? commitCharacter = null, CancellationToken cancellationToken = default)
         {
             Assert.Contains(item, ReturnedItems);
             throw new Exception("GetChangeAsync throws");

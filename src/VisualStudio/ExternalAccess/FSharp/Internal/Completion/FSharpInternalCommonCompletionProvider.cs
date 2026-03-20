@@ -28,9 +28,14 @@ internal sealed class FSharpInternalCommonCompletionProvider : CommonCompletionP
         return _provider.ProvideCompletionsAsync(context);
     }
 
-    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
     {
-        return _provider.GetTextChangeAsync(base.GetTextChangeAsync, selectedItem, ch, cancellationToken);
+        return _provider.GetTextChangeAsync(GetTextChangeAsyncWorkerAsync, selectedItem, ch, cancellationToken);
+
+        Task<TextChange?> GetTextChangeAsyncWorkerAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            return base.GetTextChangeAsync(selectedItem, options, ch, cancellationToken);
+        }
     }
 
     public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)

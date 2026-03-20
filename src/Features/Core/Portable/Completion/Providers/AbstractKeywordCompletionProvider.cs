@@ -72,6 +72,6 @@ internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LS
         return result.ToImmutableAndClear();
     }
 
-    public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
+    public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? ch, CancellationToken cancellationToken)
         => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
 }

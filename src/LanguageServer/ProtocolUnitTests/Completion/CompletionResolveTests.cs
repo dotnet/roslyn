@@ -196,7 +196,13 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M", isComplexTextEdit: true);
         var (textEdit, _, _) = await CompletionResultFactory.GenerateComplexTextEditAsync(
-            document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, insertNewPositionPlaceholder: true, CancellationToken.None).ConfigureAwait(false);
+            document,
+            new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices),
+            selectedItem,
+            snippetsSupported: true,
+            insertNewPositionPlaceholder: true,
+            Microsoft.CodeAnalysis.Completion.CompletionOptions.Default,
+            CancellationToken.None).ConfigureAwait(false);
 
         Assert.Equal("""
             public override void M()
@@ -513,9 +519,10 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             ImmutableHashSet<string> roles = null,
             CancellationToken cancellationToken = default) => CodeAnalysis.Completion.CompletionList.Empty;
 
-        public override async Task<CompletionChange> GetChangeAsync(
+        internal override async Task<CompletionChange> GetChangeAsync(
             Document document,
             CodeAnalysis.Completion.CompletionItem item,
+            CodeAnalysis.Completion.CompletionOptions options,
             char? commitCharacter = null,
             CancellationToken cancellationToken = default)
         {

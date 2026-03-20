@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeyValuePair(Of String, String)(InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier()))
         End Function
 
-        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, options As CompletionOptions, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             If ch = "("c Then
                 Dim insertionText As String = Nothing
                 If selectedItem.TryGetProperty(InsertionTextOnOpenParen, insertionText) Then
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
             End If
 
-            Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
+            Return Await MyBase.GetTextChangeAsync(document, selectedItem, options, ch, cancellationToken).ConfigureAwait(False)
         End Function
     End Class
 End Namespace

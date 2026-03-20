@@ -161,11 +161,11 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         }
     }
 
-    public sealed override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+    internal sealed override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? commitKey, CancellationToken cancellationToken)
     {
         // IsComplexTextEdit is true when we want to add async to the container or place await in front of the expression.
         if (!item.IsComplexTextEdit)
-            return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+            return await base.GetChangeAsync(document, item, options, commitKey, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
 
@@ -184,7 +184,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
                 // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.
                 // This is ensured by the ShouldMakeContainerAsync overrides.
                 Debug.Fail("Expected non-null value for declaration.");
-                return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                return await base.GetChangeAsync(document, item, options, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
             // Add the 'async' modifier at the appropriate location.

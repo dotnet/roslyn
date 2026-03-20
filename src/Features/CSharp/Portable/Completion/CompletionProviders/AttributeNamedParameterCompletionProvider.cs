@@ -243,7 +243,7 @@ internal sealed class AttributeNamedParameterCompletionProvider : LSPCompletionP
         return attributeType.GetAttributeNamedParameters(semanticModel.Compilation, within);
     }
 
-    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
         => Task.FromResult(GetTextChange(selectedItem, ch));
 
     private static TextChange? GetTextChange(CompletionItem selectedItem, char? ch)

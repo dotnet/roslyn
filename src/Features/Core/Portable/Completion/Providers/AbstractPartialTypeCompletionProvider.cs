@@ -110,7 +110,7 @@ internal abstract partial class AbstractPartialTypeCompletionProvider<TSyntaxCon
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
-    public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
     {
         var insertionText = SymbolCompletionItem.GetInsertionText(selectedItem);
         return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
