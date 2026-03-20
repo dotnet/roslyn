@@ -67,12 +67,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private readonly GeneratorDriverCache _driverCache = new GeneratorDriverCache();
 
+        /// <summary>
+        /// Optional compilation output cache. Non-null when <c>ROSLYN_CACHE_PATH</c> is set.
+        /// </summary>
+        private readonly CompilationCache? _compilationCache;
+
         internal CompilerServerHost(string clientDirectory, string? sdkDirectory, ICompilerServerLogger logger)
         {
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
             Logger = logger;
             AnalyzerAssemblyLoader = Microsoft.CodeAnalysis.AnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+            _compilationCache = CompilationCache.TryCreate(logger);
         }
 
         public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
@@ -86,7 +92,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader,
-                        _driverCache);
+                        _driverCache,
+                        cache: _compilationCache,
+                        logger: Logger);
                     return true;
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
@@ -95,7 +103,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader,
-                        _driverCache);
+                        _driverCache,
+                        cache: _compilationCache,
+                        logger: Logger);
                     return true;
                 default:
                     compiler = null;
@@ -143,52 +153,6 @@ Run Compilation for {request.RequestId}
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 
-            // Check whether compilation caching is enabled and, if so, attempt a cache lookup.
-            var cache = CompilationCache.TryCreate(Logger);
-            string? deterministicKey = null;
-            string? hashKey = null;
-            var dllName = compiler.Arguments.OutputFileName;
-
-            if (cache is not null && dllName is not null)
-            {
-                try
-                {
-                    deterministicKey = compiler.TryGetDeterministicKey(cancellationToken);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log($"Failed to compute deterministic key for {request.RequestId}, skipping cache: {ex.Message}");
-                }
-
-                if (deterministicKey is not null)
-                {
-                    hashKey = CompilationCache.ComputeHashKey(deterministicKey);
-
-                    if (cache.TryGetCachedResult(dllName, hashKey, Logger, out string? cachedDllPath))
-                    {
-                        try
-                        {
-                            var outputPath = compiler.Arguments.GetOutputFilePath(dllName);
-                            File.Copy(cachedDllPath, outputPath, overwrite: true);
-                            Logger.Log($"Cache hit satisfied for {request.RequestId}: {dllName} [{hashKey}]");
-                            return new CompletedBuildResponse(0, compiler.Arguments.Utf8Output, "");
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log($"Cache hit copy failed for {request.RequestId}, falling through to compilation: {ex.Message}");
-                        }
-                    }
-                    else
-                    {
-                        cache.LogCacheMiss(dllName, hashKey, deterministicKey, Logger);
-                    }
-                }
-            }
-
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
             try
             {
@@ -201,14 +165,6 @@ Run Compilation for {request.RequestId}
 Return code: {returnCode}
 Output:
 {outputString}");
-
-                // Populate the cache for successful compilations.
-                if (returnCode == 0 && cache is not null && dllName is not null && deterministicKey is not null && hashKey is not null)
-                {
-                    var outputPath = compiler.Arguments.GetOutputFilePath(dllName);
-                    cache.TryStoreResult(dllName, hashKey, outputPath, deterministicKey, Logger);
-                }
-
                 return new CompletedBuildResponse(returnCode, utf8output, outputString);
             }
             catch (Exception ex)
@@ -223,3 +179,4 @@ Output:
         }
     }
 }
+

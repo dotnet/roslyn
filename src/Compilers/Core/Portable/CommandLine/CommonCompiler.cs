@@ -946,6 +946,13 @@ namespace Microsoft.CodeAnalysis
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
+            var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken);
+            if (cachedExitCode.HasValue)
+            {
+                diagnostics.Free();
+                return cachedExitCode.Value;
+            }
+
             CompileAndEmit(
                 touchedFilesLogger,
                 ref compilation,
@@ -996,6 +1003,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             diagnostics.Free();
+
+            if (exitCode == Succeeded)
+            {
+                OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cancellationToken);
+            }
 
             return exitCode;
         }
@@ -1738,71 +1750,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates the compilation and computes the deterministic key for caching purposes.
-        /// Returns <see langword="null"/> if the compilation cannot be created or the key cannot be computed.
+        /// Attempts to satisfy this compilation from a cache, using already-computed compilation
+        /// inputs. Override in server compiler subclasses to provide caching. Return a non-null
+        /// value to short-circuit compilation with a cached exit code.
         /// </summary>
-        internal string? TryGetDeterministicKey(CancellationToken cancellationToken = default)
+        /// <remarks>
+        /// Called from <see cref="RunCore"/> after <paramref name="compilation"/>,
+        /// <paramref name="analyzers"/>, <paramref name="generators"/>, and
+        /// <paramref name="additionalTexts"/> are all resolved, but before
+        /// <see cref="CompileAndEmit"/> runs.
+        /// </remarks>
+        protected virtual int? CheckCache(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTexts,
+            CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            return null;
+        }
 
-            var diagnostics = DiagnosticBag.GetInstance();
-            try
-            {
-                AnalyzerConfigSet? analyzerConfigSet = null;
-                ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
-                AnalyzerConfigOptionsResult globalConfigOptions = default;
-
-                if (Arguments.AnalyzerConfigPaths.Length > 0)
-                {
-                    if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
-                    {
-                        return null;
-                    }
-
-                    globalConfigOptions = analyzerConfigSet.GlobalConfigOptions;
-                    sourceFileAnalyzerConfigOptions = Arguments.SourceFiles.SelectAsArray(
-                        f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
-                }
-
-                var compilation = CreateCompilation(
-                    TextWriter.Null,
-                    touchedFilesLogger: null,
-                    errorLoggerOpt: null,
-                    sourceFileAnalyzerConfigOptions,
-                    globalConfigOptions);
-                if (compilation == null)
-                {
-                    return null;
-                }
-
-                var diagnosticInfos = new List<DiagnosticInfo>();
-                ResolveAnalyzersFromArguments(
-                    diagnosticInfos,
-                    MessageProvider,
-                    compilation.Options,
-                    Arguments.SkipAnalyzers,
-                    out var analyzers,
-                    out var generators);
-
-                var additionalTextFiles = ResolveAdditionalFilesFromArguments(
-                    diagnosticInfos,
-                    MessageProvider,
-                    touchedFilesLogger: null);
-                var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
-
-                return compilation.GetDeterministicKey(
-                    additionalTexts,
-                    analyzers,
-                    generators,
-                    Arguments.PathMap,
-                    Arguments.EmitOptions,
-                    sourceLinkStream: null,
-                    Arguments.ManifestResources);
-            }
-            finally
-            {
-                diagnostics.Free();
-            }
+        /// <summary>
+        /// Notifies the compiler that a compilation completed successfully. Override in server
+        /// compiler subclasses to store the result in a cache.
+        /// </summary>
+        /// <remarks>
+        /// Called from <see cref="RunCore"/> after <see cref="CompileAndEmit"/> succeeds.
+        /// </remarks>
+        protected virtual void OnCompilationSucceeded(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTexts,
+            CancellationToken cancellationToken)
+        {
         }
 
         private void EmitDeterminismKey(
