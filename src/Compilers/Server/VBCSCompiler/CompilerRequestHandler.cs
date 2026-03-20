@@ -143,6 +143,40 @@ Run Compilation for {request.RequestId}
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 
+            // Check whether compilation caching is enabled and, if so, attempt a cache lookup.
+            var cache = CompilationCache.TryCreate(Logger);
+            string? deterministicKey = null;
+            string? hashKey = null;
+            var dllName = compiler.Arguments.OutputFileName;
+
+            if (cache is not null && dllName is not null)
+            {
+                deterministicKey = compiler.TryGetDeterministicKey(cancellationToken);
+                if (deterministicKey is not null)
+                {
+                    hashKey = CompilationCache.ComputeHashKey(deterministicKey);
+
+                    if (cache.TryGetCachedResult(dllName, hashKey, Logger, out string? cachedDllPath))
+                    {
+                        try
+                        {
+                            var outputPath = compiler.Arguments.GetOutputFilePath(dllName);
+                            File.Copy(cachedDllPath, outputPath, overwrite: true);
+                            Logger.Log($"Cache hit satisfied for {request.RequestId}: {dllName} [{hashKey}]");
+                            return new CompletedBuildResponse(0, compiler.Arguments.Utf8Output, "");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log($"Cache hit copy failed for {request.RequestId}, falling through to compilation: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        cache.LogCacheMiss(dllName, hashKey, deterministicKey, Logger);
+                    }
+                }
+            }
+
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
             try
             {
@@ -155,6 +189,14 @@ Run Compilation for {request.RequestId}
 Return code: {returnCode}
 Output:
 {outputString}");
+
+                // Populate the cache for successful compilations.
+                if (returnCode == 0 && cache is not null && dllName is not null && deterministicKey is not null && hashKey is not null)
+                {
+                    var outputPath = compiler.Arguments.GetOutputFilePath(dllName);
+                    cache.TryStoreResult(dllName, hashKey, outputPath, deterministicKey, Logger);
+                }
+
                 return new CompletedBuildResponse(returnCode, utf8output, outputString);
             }
             catch (Exception ex)

@@ -1737,6 +1737,78 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Creates the compilation and computes the deterministic key for caching purposes.
+        /// Returns <see langword="null"/> if the compilation cannot be created or the key cannot be computed.
+        /// </summary>
+        internal string? TryGetDeterministicKey(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            try
+            {
+                AnalyzerConfigSet? analyzerConfigSet = null;
+                ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
+                AnalyzerConfigOptionsResult globalConfigOptions = default;
+
+                if (Arguments.AnalyzerConfigPaths.Length > 0)
+                {
+                    if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
+                    {
+                        return null;
+                    }
+
+                    globalConfigOptions = analyzerConfigSet.GlobalConfigOptions;
+                    sourceFileAnalyzerConfigOptions = Arguments.SourceFiles.SelectAsArray(
+                        f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
+                }
+
+                var compilation = CreateCompilation(
+                    TextWriter.Null,
+                    touchedFilesLogger: null,
+                    errorLoggerOpt: null,
+                    sourceFileAnalyzerConfigOptions,
+                    globalConfigOptions);
+                if (compilation == null)
+                {
+                    return null;
+                }
+
+                var diagnosticInfos = new List<DiagnosticInfo>();
+                ResolveAnalyzersFromArguments(
+                    diagnosticInfos,
+                    MessageProvider,
+                    compilation.Options,
+                    Arguments.SkipAnalyzers,
+                    out var analyzers,
+                    out var generators);
+
+                var additionalTextFiles = ResolveAdditionalFilesFromArguments(
+                    diagnosticInfos,
+                    MessageProvider,
+                    touchedFilesLogger: null);
+                var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
+
+                return compilation.GetDeterministicKey(
+                    additionalTexts,
+                    analyzers,
+                    generators,
+                    Arguments.PathMap,
+                    Arguments.EmitOptions,
+                    sourceLinkStream: null,
+                    Arguments.ManifestResources);
+            }
+            catch (Exception) when (!cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+            finally
+            {
+                diagnostics.Free();
+            }
+        }
+
         private void EmitDeterminismKey(
             Compilation compilation,
             ICommonCompilerFileSystem fileSystem,
