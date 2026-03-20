@@ -48,11 +48,12 @@ internal sealed class IncludeAppDirectiveCompletionProvider() : AbstractAppDirec
         // In this case, 'contentPrefix' is 'path/to/fi'.
 
         var documentDirectory = PathUtilities.GetDirectoryName(context.Document.FilePath);
+        var baseDirectory = PathUtilities.IsAbsolute(documentDirectory) ? documentDirectory : null;
         var fileSystemHelper = new FileSystemCompletionHelper(
             Glyph.OpenFolder,
             Glyph.CSharpFile,
             searchPaths: [],
-            baseDirectory: PathUtilities.IsAbsolute(documentDirectory) ? documentDirectory : null,
+            baseDirectory,
             // Note: in the future, we may wish to use '<FileBasedProgramsItemMapping>' property
             // as a hint for which file extensions to show in this completion.
             // For now, we just allow any extension, and if user chooses a file with invalid extension, they'll just get a build error.
@@ -62,5 +63,20 @@ internal sealed class IncludeAppDirectiveCompletionProvider() : AbstractAppDirec
         var contentDirectory = PathUtilities.GetDirectoryName(contentPrefix.ToString());
         var items = await fileSystemHelper.GetItemsAsync(contentDirectory, context.CancellationToken).ConfigureAwait(false);
         context.AddItems(items);
+        if (baseDirectory != null || PathUtilities.IsAbsolute(contentDirectory))
+        {
+            addItem("*.cs");
+            addItem("**/*.cs");
+        }
+
+        void addItem(string text)
+        {
+            context.AddItem(CommonCompletionItem.Create(
+                text,
+                displayTextSuffix: "",
+                glyph: Glyph.CSharpFile,
+                description: text.ToSymbolDisplayParts(),
+                rules: CompletionItemRules.Default));
+        }
     }
 }

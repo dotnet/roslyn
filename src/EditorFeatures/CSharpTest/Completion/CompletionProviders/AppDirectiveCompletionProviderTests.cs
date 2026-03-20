@@ -152,6 +152,8 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
             """;
 
         await VerifyItemExistsAsync(markup, expectedItem: "SubDirectory");
+        await VerifyItemExistsAsync(markup, expectedItem: "*.cs");
+        await VerifyItemExistsAsync(markup, expectedItem: "**/*.cs");
     }
 
     [Fact]
@@ -177,10 +179,12 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
             </Workspace>
             """;
         await VerifyItemExistsAsync(markup, expectedItem: "Util.cs");
+        await VerifyItemExistsAsync(markup, expectedItem: "*.cs");
+        await VerifyItemExistsAsync(markup, expectedItem: "**/*.cs");
     }
 
     [Fact]
-    public async Task PathRecommendation_03()
+    public async Task PathRecommendation_Virtual_01()
     {
         // Test a virtual file scenario (e.g. ctrl+N in VS Code or other cases where there is not an actual file on disk.)
         var code = """
@@ -198,10 +202,33 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
         // In this case, only stuff like drive roots would be recommended.
         var expectedRoot = PlatformInformation.IsWindows ? "C:" : "/";
         await VerifyItemExistsAsync(markup, expectedRoot);
+        await VerifyItemIsAbsentAsync(markup, expectedItem: "*.cs");
+        await VerifyItemIsAbsentAsync(markup, expectedItem: "**/*.cs");
     }
 
     [Fact]
-    public async Task PathRecommendation_04()
+    public async Task PathRecommendation_Virtual_02()
+    {
+        // Test a virtual file scenario with an absolute path
+        var root = PlatformInformation.IsWindows ? "C:/temp" : "/temp";
+        var code = $"""
+            #:include {root}$$
+            """;
+
+        var markup = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+                    <Document FilePath="Untitled-1" ResolveFilePath="false"><![CDATA[{code}]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemExistsAsync(markup, expectedItem: "*.cs");
+        await VerifyItemExistsAsync(markup, expectedItem: "**/*.cs");
+    }
+
+    [Fact]
+    public async Task PathRecommendation_UnknownFileType()
     {
         using var tempRoot = new TempRoot();
         var tempDirectory = tempRoot.CreateDirectory();
@@ -230,6 +257,8 @@ public sealed class IncludeAppDirectiveCompletionProviderTests : AbstractAppDire
             </Workspace>
             """;
         await VerifyItemExistsAsync(markup, expectedItem: "UNKNOWN");
+        await VerifyItemExistsAsync(markup, expectedItem: "*.cs");
+        await VerifyItemExistsAsync(markup, expectedItem: "**/*.cs");
     }
 
     // Note: The editor uses a shared mechanism to filter out completion items which don't match the prefix of what the user is typing.
