@@ -180,24 +180,35 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static string ComputeDiff(string currentKey, string oldKey)
         {
-            var currentLines = new HashSet<string>(currentKey.Split('\n'));
-            var oldLines = new HashSet<string>(oldKey.Split('\n'));
+            static string[] SplitLines(string text)
+            {
+                var lines = text.Split('\n');
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    lines[i] = lines[i].TrimEnd('\r');
+                }
+
+                return lines;
+            }
+
+            var currentLines = new HashSet<string>(SplitLines(currentKey));
+            var oldLines = new HashSet<string>(SplitLines(oldKey));
 
             var diff = new StringBuilder();
 
-            foreach (var line in oldKey.Split('\n'))
+            foreach (var line in SplitLines(oldKey))
             {
                 if (!currentLines.Contains(line))
                 {
-                    diff.AppendLine($"- {line.TrimEnd('\r')}");
+                    diff.AppendLine($"- {line}");
                 }
             }
 
-            foreach (var line in currentKey.Split('\n'))
+            foreach (var line in SplitLines(currentKey))
             {
                 if (!oldLines.Contains(line))
                 {
-                    diff.AppendLine($"+ {line.TrimEnd('\r')}");
+                    diff.AppendLine($"+ {line}");
                 }
             }
 

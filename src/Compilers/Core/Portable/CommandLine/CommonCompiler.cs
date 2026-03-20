@@ -1799,10 +1799,6 @@ namespace Microsoft.CodeAnalysis
                     sourceLinkStream: null,
                     Arguments.ManifestResources);
             }
-            catch (Exception) when (!cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
             finally
             {
                 diagnostics.Free();

@@ -151,7 +151,19 @@ Run Compilation for {request.RequestId}
 
             if (cache is not null && dllName is not null)
             {
-                deterministicKey = compiler.TryGetDeterministicKey(cancellationToken);
+                try
+                {
+                    deterministicKey = compiler.TryGetDeterministicKey(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Failed to compute deterministic key for {request.RequestId}, skipping cache: {ex.Message}");
+                }
+
                 if (deterministicKey is not null)
                 {
                     hashKey = CompilationCache.ComputeHashKey(deterministicKey);
