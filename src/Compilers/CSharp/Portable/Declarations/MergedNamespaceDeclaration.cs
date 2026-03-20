@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -178,6 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static void populateNamespaceCounts(ArrayBuilder<SingleNamespaceDeclaration> namespaces, PooledDictionary<string, int> namespaceCounts)
                 {
+                    Debug.Assert(namespaces.Count > 0);
+
                     var name = namespaces[0].Name;
                     var count = 0;
 
@@ -203,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static void populateNamespaceGroups(ArrayBuilder<SingleNamespaceDeclaration> namespaces, PooledDictionary<string, (SingleNamespaceDeclaration[] Declarations, int Index)> namespaceGroups, PooledDictionary<string, int> namespaceCounts)
                 {
+                    Debug.Assert(namespaces.Count > 0);
+
                     var name = namespaces[0].Name;
                     var declarations = new SingleNamespaceDeclaration[namespaceCounts[name]];
                     var index = 0;
