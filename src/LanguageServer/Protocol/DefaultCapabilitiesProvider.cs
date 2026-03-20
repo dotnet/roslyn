@@ -20,7 +20,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
-/// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP. 
+/// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP.
 /// </summary>
 [Export(typeof(DefaultCapabilitiesProvider)), Shared]
 [ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.Any)]
@@ -85,6 +85,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 
         capabilities.FoldingRangeProvider = true;
         capabilities.SelectionRangeProvider = true;
+        capabilities.CallHierarchyProvider = true;
         capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
         capabilities.TextDocumentSync = new TextDocumentSyncOptions
         {

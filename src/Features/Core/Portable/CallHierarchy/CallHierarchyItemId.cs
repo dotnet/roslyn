@@ -8,12 +8,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CallHierarchy;
 
-internal sealed class CallHierarchyItemId(string symbolKeyData, ProjectId projectId)
+internal sealed record CallHierarchyItemId(string SymbolKeyData, ProjectId ProjectId)
 {
-    public string SymbolKeyData { get; } = symbolKeyData;
-
-    public ProjectId ProjectId { get; } = projectId;
-
     public static CallHierarchyItemId Create(ISymbol symbol, Project project, CancellationToken cancellationToken)
         => new(SymbolKey.CreateString(symbol, cancellationToken), project.Id);
 

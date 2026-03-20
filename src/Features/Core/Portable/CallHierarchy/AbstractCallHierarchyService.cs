@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -35,7 +36,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
             searchDescriptors);
     }
 
-    public async Task<ImmutableArray<CallHierarchySearchResult>> SearchAsync(
+    public async Task<ImmutableArray<CallHierarchySearchResult>> SearchIncomingCallsAsync(
         Solution solution,
         CallHierarchySearchDescriptor searchDescriptor,
         IImmutableSet<Document>? documents,
@@ -57,6 +58,20 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
             CallHierarchyRelationshipKind.Overrides => await SearchOverridesAsync(symbol, project, documents, cancellationToken).ConfigureAwait(false),
             _ => [],
         };
+    }
+
+    public async Task<ImmutableArray<CallHierarchyItemSearchResult>> SearchOutgoingCallsAsync(
+        Solution solution,
+        CallHierarchyItemId itemId,
+        IImmutableSet<Document>? documents,
+        CancellationToken cancellationToken)
+    {
+        var resolved = await itemId.TryResolveAsync(solution, cancellationToken).ConfigureAwait(false);
+        if (resolved == null)
+            return [];
+
+        var (symbol, project) = resolved.Value;
+        return await SearchOutgoingCallsAsync(symbol, project, documents, cancellationToken).ConfigureAwait(false);
     }
 
     private static bool SupportsCallHierarchy(ISymbol symbol)
@@ -190,6 +205,57 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         return await CreateSourceDeclarationResultsAsync(overrides, project, documents, cancellationToken).ConfigureAwait(false);
     }
 
+    private async Task<ImmutableArray<CallHierarchyItemSearchResult>> SearchOutgoingCallsAsync(
+        ISymbol symbol,
+        Project project,
+        IImmutableSet<Document>? documents,
+        CancellationToken cancellationToken)
+    {
+        var groupedResults = new Dictionary<CallHierarchyItemId, (CallHierarchyItemDescriptor Item, ArrayBuilder<Location> Locations)>();
+
+        foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+        {
+            var document = project.Solution.GetDocument(syntaxReference.SyntaxTree);
+            if (document == null || (documents != null && !documents.Contains(document)))
+                continue;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var operationRoots = await GetOperationRootsAsync(syntaxReference, semanticModel, cancellationToken).ConfigureAwait(false);
+
+            foreach (var operationRoot in operationRoots)
+            {
+                foreach (var operation in operationRoot.DescendantsAndSelf())
+                {
+                    var referencedSymbol = GetReferencedSymbol(operation);
+                    if (referencedSymbol == null || !SupportsCallHierarchy(referencedSymbol))
+                        continue;
+
+                    var referencedProject = project.Solution.GetProject(referencedSymbol.ContainingAssembly, cancellationToken) ?? project;
+                    var item = await CreateItemAsync(referencedSymbol, referencedProject, cancellationToken).ConfigureAwait(false);
+                    if (item == null)
+                        continue;
+
+                    if (!groupedResults.TryGetValue(item.ItemId, out var entry))
+                    {
+                        entry = (item, ArrayBuilder<Location>.GetInstance());
+                        groupedResults.Add(item.ItemId, entry);
+                    }
+
+                    entry.Locations.Add(operation.Syntax.GetLocation());
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+        }
+
+        using var _ = ArrayBuilder<CallHierarchyItemSearchResult>.GetInstance(out var results);
+        foreach (var (_, value) in groupedResults)
+        {
+            results.Add(new CallHierarchyItemSearchResult(value.Item, value.Locations.ToImmutableAndClear()));
+        }
+
+        return results.ToImmutableAndClear();
+    }
+
     private async Task<ImmutableArray<CallHierarchySearchResult>> CreateCallerResultsAsync(
         IEnumerable<SymbolCallerInfo> callers,
         Project project,
@@ -250,4 +316,55 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
 
         return results.ToImmutableAndClear();
     }
+
+    private static IOperation? GetReferencedSymbolOperationRoot(IOperation operation)
+    {
+        while (operation.Parent != null)
+            operation = operation.Parent;
+
+        return operation;
+    }
+
+    private static async Task<ImmutableArray<IOperation>> GetOperationRootsAsync(
+        SyntaxReference syntaxReference,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        var syntax = await syntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+        if (semanticModel.Language == LanguageNames.VisualBasic && syntax.Parent != null)
+            syntax = syntax.Parent;
+
+        using var _ = ArrayBuilder<IOperation>.GetInstance(out var operations);
+        using var __ = PooledHashSet<SyntaxNode>.GetInstance(out var seenRootSyntaxes);
+
+        AddOperation(semanticModel.GetOperation(syntax, cancellationToken));
+
+        foreach (var descendant in syntax.DescendantNodesAndSelf())
+        {
+            AddOperation(semanticModel.GetOperation(descendant, cancellationToken));
+        }
+
+        return operations.ToImmutableAndClear();
+
+        void AddOperation(IOperation? operation)
+        {
+            if (operation == null)
+                return;
+
+            var root = GetReferencedSymbolOperationRoot(operation);
+            if (root != null && seenRootSyntaxes.Add(root.Syntax))
+                operations.Add(root);
+        }
+    }
+
+    private static ISymbol? GetReferencedSymbol(IOperation operation)
+        => operation switch
+        {
+            IInvocationOperation invocation => invocation.TargetMethod,
+            IObjectCreationOperation objectCreation => objectCreation.Constructor,
+            IPropertyReferenceOperation propertyReference => propertyReference.Property,
+            IEventReferenceOperation eventReference => eventReference.Event,
+            IFieldReferenceOperation fieldReference => fieldReference.Field,
+            _ => null,
+        };
 }
