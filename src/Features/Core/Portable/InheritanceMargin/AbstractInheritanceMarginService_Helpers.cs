@@ -294,7 +294,7 @@ internal abstract partial class AbstractInheritanceMarginService
         CancellationToken cancellationToken)
     {
         // Get all base types.
-        var allBaseSymbols = typeHierarchyService.GetBaseTypesAndInterfaces(memberSymbol);
+        var allBaseSymbols = typeHierarchyService.GetBaseTypesAndInterfaces(memberSymbol, transitive: true);
 
         // Filter out
         // 1. System.Object. (otherwise margin would be shown for all classes)
