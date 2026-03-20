@@ -976,8 +976,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return property.GetTypeOrReturnType();
 
                     case BoundCall call:
-                        Debug.Assert(!call.Method.IsExtensionBlockMember());
-                        return AsMemberOfType(inputType, call.Method).GetTypeOrReturnType();
+                        MethodSymbol method;
+                        if (call.Method.IsExtensionBlockMember())
+                        {
+                            var reinferenceResult = ReInferMethodAndVisitArguments(
+                                e,
+                                receiverOpt: new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType),
+                                receiverType: TypeWithState.Create(inputType, NullableFlowState.NotNull),
+                                call.Method,
+                                call.Arguments,
+                                call.ArgumentRefKindsOpt,
+                                call.ArgsToParamsOpt,
+                                call.DefaultArguments,
+                                call.Expanded,
+                                call.InvokedAsExtensionMethod);
+
+                            method = reinferenceResult.Member;
+                        }
+                        else
+                        {
+                            method = (MethodSymbol)AsMemberOfType(inputType, call.Method);
+                        }
+
+                        return method.GetTypeOrReturnType();
 
                     case BoundArrayAccess arrayAccess:
                         return isSlice

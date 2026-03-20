@@ -988,27 +988,76 @@ class X
     [Fact]
     public void ListPattern_MissingMembers_ArrayLength()
     {
-        var source = @"
+        // Array without Length property
+        var corlibSource = """
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Attribute { }
+    public class Array { }
+    public class Enum { }
+    public class Exception { }
+    public class Type { }
+    public struct RuntimeTypeHandle { }
+    public struct Nullable<T> where T : struct { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Collections
+{
+    public interface IEnumerable { }
+}
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static T[] GetSubArray<T>(T[] array, Range range) => throw null;
+    }
+}
+""";
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__get_Length));
+        var corlibRef = corlib.EmitToImageReference();
+
+        var source = """
 class X
 {
     public void M(int[] a)
     {
         _ = a is [0];
-        _ = a is [.._];
-        _ = a[^1];
-        _ = a[..];
-    } 
+    }
 }
-" + TestSources.GetSubArray;
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
-        compilation.MakeMemberMissing(SpecialMember.System_Array__Length);
-        compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS0656: Missing compiler required member 'System.Array.Length'
+""";
+        var compilation = CreateEmptyCompilation(source, references: [corlibRef], parseOptions: TestOptions.RegularWithListPatterns);
+        compilation.VerifyDiagnostics(
+            // (5,18): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
             //         _ = a is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Array", "Length").WithLocation(6, 18),
-            // (7,18): error CS0656: Missing compiler required member 'System.Array.Length'
-            //         _ = a is [.._];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.._]").WithArguments("System.Array", "Length").WithLocation(7, 18));
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[0]").WithArguments("int[]").WithLocation(5, 18));
     }
 
     [Fact]

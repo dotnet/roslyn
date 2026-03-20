@@ -47653,5 +47653,78 @@ class Program
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        public void MissingMember_ArrayLength()
+        {
+            var source = """
+int[] i = [1, 2];
+int[] j = [0, .. i];
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            string minCorlibSource = """
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Enum { }
+    public class Attribute { }
+    public class Array { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+}
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+    public interface IEnumerator
+    {
+        object Current { get; }
+        bool MoveNext();
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IEnumerable<T> : IEnumerable
+    {
+        new IEnumerator<T> GetEnumerator();
+    }
+    public interface IEnumerator<T> : IEnumerator
+    {
+        new T Current { get; }
+    }
+    public class List<T> : IEnumerable<T>
+    {
+        public List() { }
+        public List(int i) { }
+        public void Add(T item) { }
+        public T[] ToArray() { return null; }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() { return null; }
+        IEnumerator IEnumerable.GetEnumerator() { return null; }
+    }
+}
+""";
+            var corlib = CreateEmptyCompilation(minCorlibSource);
+            corlib.VerifyDiagnostics();
+            Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__Length));
+            var corlibRef = corlib.EmitToImageReference();
+
+            comp = CreateEmptyCompilation(source, references: [corlibRef]);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
