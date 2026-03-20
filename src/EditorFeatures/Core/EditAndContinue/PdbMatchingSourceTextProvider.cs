@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -18,7 +19,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
-/// Notifies EnC service of host workspace events.
+/// Captures <see cref="DocumentState"/> of documents that transition from being backed by <see cref="FileTextLoader"/> to being backed by text buffer when a document is opened in the editor.
+/// Gives us an opportunity to observe the version of the source text that matches the one used to produce the PDB. After the document is opened the content can be updated in-memory (in the editor),
+/// saved to disk and the version that matches the PDB lost.
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 [Export(typeof(PdbMatchingSourceTextProvider))]

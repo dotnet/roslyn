@@ -357,12 +357,6 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             targetFramework);
     }
 
-    internal static SourceText CreateText(string source, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
-    {
-        encoding ??= Encoding.UTF8;
-        return SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source)), encoding, checksumAlgorithm);
-    }
-
     internal Guid EmitLibrary(
         ProjectId projectId,
         IEnumerable<(SourceText text, string filePath)> sources,
@@ -484,13 +478,16 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return moduleId;
     }
 
-    internal static SourceText CreateText(string source)
-        => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default);
+    internal static SourceText CreateText(string source, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
+    {
+        encoding ??= Encoding.UTF8;
+        return SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source)), encoding, checksumAlgorithm);
+    }
 
-    internal static SourceText CreateTextFromFile(string path)
+    internal static SourceText CreateTextFromFile(string path, Encoding? encoding = null)
     {
         using var stream = File.OpenRead(path);
-        return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithms.Default);
+        return SourceText.From(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithms.Default);
     }
 
     internal static TextSpan GetSpan(string str, string substr)
