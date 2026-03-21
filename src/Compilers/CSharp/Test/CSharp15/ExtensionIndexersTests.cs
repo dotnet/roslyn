@@ -9518,7 +9518,7 @@ namespace Outer
     }
 
     [Fact]
-    public void SpreadPattern_20()
+    public void SlicePattern_20()
     {
         // extension Length + extension this[int] + classic extension Slice(int, int)
         var src = """
