@@ -390,6 +390,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function ProjectReferenceInformation_UnmanagedProject() As Task
+            Using environment = New TestEnvironment()
+                ' Ensure that ProjectSystemProjectFactory does not track ProjectReferenceInformation for projects it didn't add ("unmanaged projects").
+                ' Doing so can cause ProjectSystemProjectFactory's internal invariants to be violated when the unmanaged project is removed.
+                Dim unmanagedProjectId As ProjectId = Nothing
+                environment.Workspace.SetCurrentSolution(
+                    Function(solution)
+                        Dim project = solution.AddProject("UnmanagedProject", "UnmanagedProject", LanguageNames.CSharp)
+                        unmanagedProjectId = project.Id
+                        Return project.Solution
+                    End Function, WorkspaceChangeKind.ProjectAdded)
+
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)
+                project1.OutputFilePath = "C:\out1.dll"
+                ' Changing the output path again will cause us to search the workspace for projects which had a ProjectReference to 'project1', based on its previous OutputPath,
+                ' and change them back to MetadataReferences if applicable. This can cause us to inadvertently hold onto information for unmanaged projects.
+                project1.OutputFilePath = "C:\out2.dll"
+
+                ' Remove the unmanaged project
+                environment.Workspace.SetCurrentSolution(
+                    Function(solution) solution.RemoveProject(unmanagedProjectId), WorkspaceChangeKind.ProjectAdded)
+
+                project1.RemoveFromWorkspace()
+            End Using
+        End Function
+
         ''' <summary>
         ''' Stress test that creates multiple threads which randomly create projects, add/remove
         ''' metadata references (including shared references and project output references),

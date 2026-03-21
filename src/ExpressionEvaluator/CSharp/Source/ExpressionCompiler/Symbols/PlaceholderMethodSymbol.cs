@@ -281,6 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {
             builderArgument = null;
