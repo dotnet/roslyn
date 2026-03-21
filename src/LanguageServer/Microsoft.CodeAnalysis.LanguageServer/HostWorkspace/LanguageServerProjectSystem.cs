@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -81,6 +82,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(projectPath));
         if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
             return null;
 
@@ -90,21 +92,14 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
         return new RemoteProjectLoadResult
         {
-            ProjectFile = loadedFile,
+            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
+            DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
             ProjectFactory = _hostProjectFactory,
             IsFileBasedProgram = false,
             IsMiscellaneousFile = false,
+            HasAllInformation = true,
             PreferredBuildHostKind = preferredBuildHostKind,
             ActualBuildHostKind = actualBuildHostKind
         };
-    }
-
-    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        Dictionary<string, ProjectLoadState> loadedProjects,
-        string projectPath,
-        ProjectLoadState.Primordial projectState,
-        CancellationToken cancellationToken)
-    {
-        throw ExceptionUtilities.Unreachable();
     }
 }

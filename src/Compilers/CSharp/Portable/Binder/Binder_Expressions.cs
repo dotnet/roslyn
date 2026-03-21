@@ -9624,7 +9624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (receiver.Type.SpecialType == SpecialType.System_String && !scope.HasValue)
                 {
                     // Look for Substring
-                    var substring = (MethodSymbol)binder.GetSpecialTypeMember(SpecialMember.System_String__Substring, diagnostics, syntax);
+                    var substring = (MethodSymbol)binder.GetSpecialTypeMember(SpecialMember.System_String__SubstringIntInt, diagnostics, syntax);
                     if (substring is object)
                     {
                         var methods = ArrayBuilder<MethodSymbol>.GetInstance(1);

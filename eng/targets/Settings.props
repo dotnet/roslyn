@@ -85,6 +85,11 @@
     <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
 
+  <!-- When DotNetBuildTests is explicitly false, exclude test projects from building entirely. -->
+  <PropertyGroup Condition="'$(DotNetBuildTests)' == 'false' and ('$(IsTestProject)' == 'true' or '$(IsTestUtilityProject)' == 'true' or '$(ExcludeFromDotNetBuild)' == 'true')">
+    <ExcludeFromBuild>true</ExcludeFromBuild>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
     <!--
       Choose default target frameworks to use for testing on Mono and Core.

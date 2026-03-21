@@ -2482,6 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnionConstructorCallsDefaultConstructor = 9375,
 
         ERR_UnsafeConstructorConstraint = 9376,
+        WRN_UnsafeMeaningless = 9377,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
