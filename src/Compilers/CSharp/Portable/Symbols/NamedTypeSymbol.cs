@@ -1809,7 +1809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsUnionTypeCore { get; }
 
-        internal ImmutableArray<TypeSymbol> UnionCaseTypes
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes // PROTOTYPE: Cache result for definitions?
         {
             get
             {
