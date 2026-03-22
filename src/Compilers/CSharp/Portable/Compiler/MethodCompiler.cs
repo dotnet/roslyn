@@ -1787,10 +1787,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                // Basic blocks contain poolable builders for IL and sequence points. Free those back
-                // to their pools.
-                builder.FreeBasicBlocks();
-
                 // Remember diagnostics.
                 diagnostics.AddRange(diagnosticsForThisMethod);
                 diagnosticsForThisMethod.Free();

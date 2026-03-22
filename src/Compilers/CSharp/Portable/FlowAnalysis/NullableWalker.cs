@@ -3501,6 +3501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             }
 
+            _variables.Free();
             _variables = _variables.Container!;
             this.State = oldState;
 #if DEBUG

@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void Free()
             {
-                Container?.Free();
                 _variableBySlot.Free();
                 _variableTypes.Free();
                 _variableSlot.Free();

@@ -5873,6 +5873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
+            memberNameMap.Free();
 
             return new BoundObjectInitializerExpression(
                 initializerSyntax,

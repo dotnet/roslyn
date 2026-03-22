@@ -207,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 this.RealizeBlocks();
 
                 // no more new data.
+                this.FreeBasicBlocks();
                 _currentBlock = null;
                 _lastCompleteBlock = null;
             }

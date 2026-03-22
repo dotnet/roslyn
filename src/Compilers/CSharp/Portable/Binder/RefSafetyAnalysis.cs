@@ -749,9 +749,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
                     GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments, isExtensionBlockMethod);
-                    _ = new PlaceholderRegion(this, placeholders);
+                    using var _ = new PlaceholderRegion(this, placeholders);
+                    Visit(arg);
                 }
-                Visit(arg);
+                else
+                {
+                    Visit(arg);
+                }
             }
         }
 

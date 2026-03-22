@@ -574,6 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containingTypeMapOpt: null,
                 useSiteInfo: ref useSiteInfo);
 
+            typeArgumentsBuilder.Free();
+
             ReportUseSiteInfo(overloadResolutionResult.ResultsBuilder, ref useSiteInfo);
         }
 

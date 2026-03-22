@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamespaceOrTypeSymbol? _aliasTarget;
 
         // lazy binding
-        private BindingDiagnosticBag? _aliasTargetDiagnostics;
+        private StrongBox<ReadOnlyBindingDiagnostic<AssemblySymbol>>? _aliasTargetDiagnostics;
 
         internal AliasSymbolFromSyntax(SourceNamespaceSymbol containingSymbol, UsingDirectiveSyntax syntax)
             : base(syntax.Alias!.Name.Identifier.ValueText, containingSymbol, ImmutableArray.Create(syntax.Alias!.Name.Identifier.GetLocation()), isExtern: false)
@@ -325,10 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Interlocked.CompareExchange(ref _aliasTarget, symbol, null) is null)
                 {
-                    // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
-                    // can force the prompt evaluation of lazy initialized diagnostics.  That in turn can 
-                    // call back into GetAliasTarget on the same thread resulting in a dead lock scenario.
-                    bool won = Interlocked.Exchange(ref _aliasTargetDiagnostics, newDiagnostics) == null;
+                    bool won = Interlocked.Exchange(ref _aliasTargetDiagnostics, new StrongBox<ReadOnlyBindingDiagnostic<AssemblySymbol>>(newDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false))) == null;
                     Debug.Assert(won, "Only one thread can win the alias target CompareExchange");
 
                     _state.NotePartComplete(CompletionPart.AliasTarget);
@@ -345,13 +343,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _aliasTarget!;
         }
 
-        internal BindingDiagnosticBag AliasTargetDiagnostics
+        internal ReadOnlyBindingDiagnostic<AssemblySymbol> AliasTargetDiagnostics
         {
             get
             {
                 GetAliasTarget(null);
                 RoslynDebug.Assert(_aliasTargetDiagnostics != null);
-                return _aliasTargetDiagnostics;
+                return _aliasTargetDiagnostics.Value;
             }
         }
 
