@@ -5,6 +5,7 @@
 using System;
 using System.Reflection;
 using System.Threading;
+using Xunit;
 using Xunit.Sdk;
 
 #if DEBUG
@@ -22,7 +23,7 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 {
     /// <summary>
     /// When set to <see langword="true"/>, allocation stack traces are captured for each pooled object,
-    /// making it easier to locate the source of leaks. This adds overhead, so it is off by default.
+    /// making it easier to locate the source of leaks. This adds significant overhead, so it is off by default.
     /// </summary>
     public bool TraceLeaks { get; set; }
 
@@ -52,6 +53,9 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
             s_skipValidation.Value = true;
             return;
         }
+
+        Assert.True(!TraceLeaks || string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CI")),
+            "Tracing leaks is very slow, shouldn't be set in CI.");
 
         PoolTracker.StartTracking(out var context, TraceLeaks);
         _context = context;

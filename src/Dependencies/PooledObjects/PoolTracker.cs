@@ -14,6 +14,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
+#if DEBUG
 /// <summary>
 /// Tracks outstanding pooled object allocations, enabling per-test leak detection.
 /// When tracking is active (via <see cref="StartTracking"/>), every <see cref="ObjectPool{T}.Allocate"/>
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects;
 /// <see cref="PoolTrackingContext.HasLeaks"/> reveals whether any pooled objects were not returned.
 /// All tracking is DEBUG-only and compiles out in Release builds.
 /// </summary>
+#endif
 internal static class PoolTracker
 {
 #if DEBUG
