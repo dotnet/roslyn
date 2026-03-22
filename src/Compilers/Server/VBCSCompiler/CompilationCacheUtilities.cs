@@ -67,25 +67,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             hashKey = CompilationCache.ComputeHashKey(deterministicKey);
 
-            if (cache.TryGetCachedResult(dllName, hashKey, logger, out var cachedDllPath))
+            var outputFiles = BuildOutputFiles(arguments, dllName);
+            if (cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger))
             {
-                try
-                {
-                    var outputPath = arguments.GetOutputFilePath(dllName);
-                    File.Copy(cachedDllPath, outputPath, overwrite: true);
-                    logger.Log($"Cache hit satisfied: {dllName} [{hashKey}]");
-                    return CommonCompiler.Succeeded;
-                }
-                catch (IOException ex)
-                {
-                    logger.Log($"Cache hit copy failed, falling through to compilation: {ex.Message}");
-                }
-            }
-            else
-            {
-                cache.LogCacheMiss(dllName, hashKey, deterministicKey, logger);
+                logger.Log($"Cache hit satisfied: {dllName} [{hashKey}]");
+                return CommonCompiler.Succeeded;
             }
 
+            cache.LogCacheMiss(dllName, hashKey, deterministicKey, logger);
             return null;
         }
 
@@ -105,8 +94,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             var dllName = arguments.OutputFileName;
-            var outputPath = arguments.GetOutputFilePath(dllName);
-            cache.TryStoreResult(dllName, hashKey, outputPath, deterministicKey, logger);
+            var outputFiles = BuildOutputFiles(arguments, dllName);
+            cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, logger);
+        }
+
+        private static CompilationOutputFiles BuildOutputFiles(CommandLineArguments arguments, string dllName)
+        {
+            return new CompilationOutputFiles
+            {
+                AssemblyPath = arguments.GetOutputFilePath(dllName),
+                PdbPath = arguments.EmitPdbFile ? arguments.GetPdbFilePath(dllName) : null,
+                RefAssemblyPath = arguments.OutputRefFilePath,
+                XmlDocPath = arguments.DocumentationPath,
+            };
         }
     }
 }

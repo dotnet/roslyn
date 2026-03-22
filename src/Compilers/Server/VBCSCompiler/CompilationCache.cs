@@ -14,17 +14,47 @@ using Microsoft.CodeAnalysis.CommandLine;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>
+    /// Holds the paths to all compiler output files for a single compilation.
+    /// </summary>
+    internal readonly struct CompilationOutputFiles
+    {
+        /// <summary>The absolute path of the main output assembly. Always set.</summary>
+        public string AssemblyPath { get; init; }
+
+        /// <summary>The absolute path of the PDB file, or <see langword="null"/> if no PDB file is emitted.</summary>
+        public string? PdbPath { get; init; }
+
+        /// <summary>The absolute path of the reference assembly, or <see langword="null"/> if none is produced.</summary>
+        public string? RefAssemblyPath { get; init; }
+
+        /// <summary>The absolute path of the XML documentation file, or <see langword="null"/> if none is produced.</summary>
+        public string? XmlDocPath { get; init; }
+    }
+
+    /// <summary>
     /// Provides a file-system based cache for compilation outputs.
     /// The cache is enabled by setting the <c>ROSLYN_CACHE_PATH</c> environment variable
     /// to the directory where cached outputs should be stored.
     /// </summary>
     /// <remarks>
-    /// Cache layout: <c>$ROSLYN_CACHE_PATH/&lt;dll name&gt;/&lt;sha-256&gt;/&lt;dll name&gt;</c>
-    /// Each cache entry also stores the full deterministic key as <c>&lt;dll name&gt;.key</c>.
+    /// Cache layout: <c>$ROSLYN_CACHE_PATH/&lt;dll name&gt;/&lt;sha-256&gt;/</c>.
+    /// Each entry directory contains the following files (when present):
+    /// <list type="bullet">
+    ///   <item><c>assembly</c> — the main output assembly (always present in a valid entry)</item>
+    ///   <item><c>pdb</c> — the PDB debug symbols</item>
+    ///   <item><c>refassembly</c> — the reference assembly</item>
+    ///   <item><c>xmldoc</c> — the XML documentation file</item>
+    ///   <item><c>&lt;dll name&gt;.key</c> — the full deterministic key JSON</item>
+    /// </list>
     /// </remarks>
     internal sealed class CompilationCache
     {
         internal const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
+
+        private const string AssemblyFileName = "assembly";
+        private const string PdbFileName = "pdb";
+        private const string RefAssemblyFileName = "refassembly";
+        private const string XmlDocFileName = "xmldoc";
 
         private readonly string _cachePath;
 
@@ -62,31 +92,59 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private string GetCacheEntryDirectory(string dllName, string hashKey)
             => Path.Combine(_cachePath, dllName, hashKey);
 
-        private string GetCachedDllPath(string dllName, string hashKey)
-            => Path.Combine(GetCacheEntryDirectory(dllName, hashKey), dllName);
-
         private string GetCachedKeyPath(string dllName, string hashKey)
             => Path.Combine(GetCacheEntryDirectory(dllName, hashKey), dllName + ".key");
 
         /// <summary>
         /// Checks whether a cached result exists for the given DLL name and hash key.
-        /// Logs a cache hit message if found.
+        /// On a hit, all cached output files are copied to the paths specified by
+        /// <paramref name="outputFiles"/>. Returns <see langword="false"/> if no cached
+        /// entry exists or if any required file copy fails.
         /// </summary>
-        internal bool TryGetCachedResult(
+        internal bool TryRestoreCachedResult(
             string dllName,
             string hashKey,
-            ICompilerServerLogger logger,
-            [NotNullWhen(true)] out string? cachedDllPath)
+            CompilationOutputFiles outputFiles,
+            ICompilerServerLogger logger)
         {
-            cachedDllPath = GetCachedDllPath(dllName, hashKey);
-            if (File.Exists(cachedDllPath))
+            var entryDir = GetCacheEntryDirectory(dllName, hashKey);
+            var cachedAssemblyPath = Path.Combine(entryDir, AssemblyFileName);
+            if (!File.Exists(cachedAssemblyPath))
             {
-                logger.Log($"Cache hit: {dllName} [{hashKey}]");
-                return true;
+                return false;
             }
 
-            cachedDllPath = null;
-            return false;
+            logger.Log($"Cache hit: {dllName} [{hashKey}]");
+
+            try
+            {
+                File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
+
+                TryCopyOptional(entryDir, PdbFileName, outputFiles.PdbPath);
+                TryCopyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
+                TryCopyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"Cache hit restore failed, falling through to compilation: {ex.Message}");
+                return false;
+            }
+
+            return true;
+
+            static void TryCopyOptional(string entryDir, string cachedFileName, string? targetPath)
+            {
+                if (targetPath is null)
+                {
+                    return;
+                }
+
+                var cachedPath = Path.Combine(entryDir, cachedFileName);
+                if (File.Exists(cachedPath))
+                {
+                    File.Copy(cachedPath, targetPath, overwrite: true);
+                }
+            }
         }
 
         /// <summary>
@@ -147,13 +205,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Stores the compiled DLL and its deterministic key in the cache.
+        /// Stores all compiled outputs and the deterministic key in the cache.
+        /// Only files that actually exist at the given paths are stored.
         /// Failures are logged but do not propagate as exceptions.
         /// </summary>
         internal void TryStoreResult(
             string dllName,
             string hashKey,
-            string outputDllPath,
+            CompilationOutputFiles outputFiles,
             string deterministicKey,
             ICompilerServerLogger logger)
         {
@@ -162,7 +221,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var cacheDir = GetCacheEntryDirectory(dllName, hashKey);
                 Directory.CreateDirectory(cacheDir);
 
-                File.Copy(outputDllPath, GetCachedDllPath(dllName, hashKey), overwrite: true);
+                File.Copy(outputFiles.AssemblyPath, Path.Combine(cacheDir, AssemblyFileName), overwrite: true);
+
+                TryCopyOptional(outputFiles.PdbPath, Path.Combine(cacheDir, PdbFileName));
+                TryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(cacheDir, RefAssemblyFileName));
+                TryCopyOptional(outputFiles.XmlDocPath, Path.Combine(cacheDir, XmlDocFileName));
+
                 File.WriteAllText(GetCachedKeyPath(dllName, hashKey), deterministicKey, Encoding.UTF8);
 
                 logger.Log($"Cache stored: {dllName} [{hashKey}]");
@@ -170,6 +234,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             catch (Exception ex)
             {
                 logger.Log($"Cache store failed for {dllName} [{hashKey}]: {ex.Message}");
+            }
+
+            static void TryCopyOptional(string? sourcePath, string destPath)
+            {
+                if (sourcePath is not null && File.Exists(sourcePath))
+                {
+                    File.Copy(sourcePath, destPath, overwrite: true);
+                }
             }
         }
 

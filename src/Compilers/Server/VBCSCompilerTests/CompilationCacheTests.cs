@@ -82,39 +82,115 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
-        public void TryGetCachedResult_ReturnsFalse_WhenEntryMissing()
+        public void TryRestoreCachedResult_ReturnsFalse_WhenEntryMissing()
         {
             var cacheDir = Temp.CreateDirectory().Path;
             var cache = CreateCache(cacheDir);
+            var outputDir = Temp.CreateDirectory().Path;
 
-            var result = cache.TryGetCachedResult("Util.dll", "abc123", _logger, out var path);
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, "Util.dll"),
+            };
+
+            var result = cache.TryRestoreCachedResult("Util.dll", "abc123", outputFiles, _logger);
 
             Assert.False(result);
-            Assert.Null(path);
+            Assert.False(File.Exists(outputFiles.AssemblyPath));
         }
 
         [Fact]
-        public void TryGetCachedResult_ReturnsTrue_WhenEntryExists()
+        public void TryRestoreCachedResult_ReturnsTrue_WhenEntryExists()
         {
             var cacheDir = Temp.CreateDirectory().Path;
             var cache = CreateCache(cacheDir);
             var dllName = "Util.dll";
             var hashKey = "abc123def456";
+            var outputDir = Temp.CreateDirectory().Path;
 
             // Create the cache entry manually.
             var entryDir = Path.Combine(cacheDir, dllName, hashKey);
             Directory.CreateDirectory(entryDir);
-            var cachedDll = Path.Combine(entryDir, dllName);
-            File.WriteAllBytes(cachedDll, [1, 2, 3]);
+            File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [1, 2, 3]);
 
-            var result = cache.TryGetCachedResult(dllName, hashKey, _logger, out var path);
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, dllName),
+            };
+
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, _logger);
 
             Assert.True(result);
-            Assert.Equal(cachedDll, path);
+            Assert.True(File.Exists(outputFiles.AssemblyPath));
+            Assert.Equal([1, 2, 3], File.ReadAllBytes(outputFiles.AssemblyPath));
         }
 
         [Fact]
-        public void TryStoreResult_WritesFilesCorrectly()
+        public void TryRestoreCachedResult_RestoresAllOutputFiles()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var hashKey = "fullhash";
+            var outputDir = Temp.CreateDirectory().Path;
+
+            // Create cache entry with all output files.
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Directory.CreateDirectory(entryDir);
+            File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [1]);
+            File.WriteAllBytes(Path.Combine(entryDir, "pdb"), [2]);
+            File.WriteAllBytes(Path.Combine(entryDir, "refassembly"), [3]);
+            File.WriteAllBytes(Path.Combine(entryDir, "xmldoc"), [4]);
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, dllName),
+                PdbPath = Path.Combine(outputDir, "MyLib.pdb"),
+                RefAssemblyPath = Path.Combine(outputDir, "ref", dllName),
+                XmlDocPath = Path.Combine(outputDir, "MyLib.xml"),
+            };
+
+            Directory.CreateDirectory(Path.Combine(outputDir, "ref"));
+
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, _logger);
+
+            Assert.True(result);
+            Assert.Equal([1], File.ReadAllBytes(outputFiles.AssemblyPath));
+            Assert.Equal([2], File.ReadAllBytes(outputFiles.PdbPath!));
+            Assert.Equal([3], File.ReadAllBytes(outputFiles.RefAssemblyPath!));
+            Assert.Equal([4], File.ReadAllBytes(outputFiles.XmlDocPath!));
+        }
+
+        [Fact]
+        public void TryRestoreCachedResult_SkipsOptionalFiles_WhenNotCached()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var hashKey = "assemblonly";
+            var outputDir = Temp.CreateDirectory().Path;
+
+            // Cache entry with only the assembly.
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Directory.CreateDirectory(entryDir);
+            File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [10]);
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, dllName),
+                PdbPath = Path.Combine(outputDir, "MyLib.pdb"),
+            };
+
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, _logger);
+
+            Assert.True(result);
+            Assert.True(File.Exists(outputFiles.AssemblyPath));
+            // PDB was requested but not cached — should not be written.
+            Assert.False(File.Exists(outputFiles.PdbPath!));
+        }
+
+        [Fact]
+        public void TryStoreResult_WritesAllOutputFiles()
         {
             var cacheDir = Temp.CreateDirectory().Path;
             var cache = CreateCache(cacheDir);
@@ -122,32 +198,79 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var hashKey = CompilationCache.ComputeHashKey("some key");
             var deterministicKey = """{ "compilation": "data" }""";
 
-            // Create a fake output DLL.
+            // Create fake output files.
             var outputDir = Temp.CreateDirectory().Path;
-            var outputDll = Path.Combine(outputDir, dllName);
-            File.WriteAllBytes(outputDll, [10, 20, 30]);
+            var assemblyPath = Path.Combine(outputDir, dllName);
+            var pdbPath = Path.Combine(outputDir, "MyLib.pdb");
+            var refPath = Path.Combine(outputDir, "ref", dllName);
+            var xmlPath = Path.Combine(outputDir, "MyLib.xml");
+            Directory.CreateDirectory(Path.Combine(outputDir, "ref"));
+            File.WriteAllBytes(assemblyPath, [10, 20, 30]);
+            File.WriteAllBytes(pdbPath, [40, 50]);
+            File.WriteAllBytes(refPath, [60]);
+            File.WriteAllBytes(xmlPath, [70, 80, 90]);
 
-            cache.TryStoreResult(dllName, hashKey, outputDll, deterministicKey, _logger);
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = assemblyPath,
+                PdbPath = pdbPath,
+                RefAssemblyPath = refPath,
+                XmlDocPath = xmlPath,
+            };
 
-            // Check the cached DLL exists.
-            var expectedDllPath = Path.Combine(cacheDir, dllName, hashKey, dllName);
-            Assert.True(File.Exists(expectedDllPath));
-            Assert.Equal([10, 20, 30], File.ReadAllBytes(expectedDllPath));
+            cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, _logger);
 
-            // Check the cached key file exists.
-            var expectedKeyPath = Path.Combine(cacheDir, dllName, hashKey, dllName + ".key");
-            Assert.True(File.Exists(expectedKeyPath));
-            Assert.Equal(deterministicKey, File.ReadAllText(expectedKeyPath, Encoding.UTF8));
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Assert.Equal([10, 20, 30], File.ReadAllBytes(Path.Combine(entryDir, "assembly")));
+            Assert.Equal([40, 50], File.ReadAllBytes(Path.Combine(entryDir, "pdb")));
+            Assert.Equal([60], File.ReadAllBytes(Path.Combine(entryDir, "refassembly")));
+            Assert.Equal([70, 80, 90], File.ReadAllBytes(Path.Combine(entryDir, "xmldoc")));
+            Assert.Equal(deterministicKey, File.ReadAllText(Path.Combine(entryDir, dllName + ".key"), Encoding.UTF8));
         }
 
         [Fact]
-        public void TryStoreResult_DoesNotThrow_WhenOutputFileNotFound()
+        public void TryStoreResult_SkipsOptionalFiles_WhenNotPresent()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var hashKey = CompilationCache.ComputeHashKey("key");
+
+            // Only the assembly exists.
+            var outputDir = Temp.CreateDirectory().Path;
+            var assemblyPath = Path.Combine(outputDir, dllName);
+            File.WriteAllBytes(assemblyPath, [1, 2, 3]);
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = assemblyPath,
+                PdbPath = null,
+                RefAssemblyPath = null,
+                XmlDocPath = null,
+            };
+
+            cache.TryStoreResult(dllName, hashKey, outputFiles, "key", _logger);
+
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Assert.True(File.Exists(Path.Combine(entryDir, "assembly")));
+            Assert.False(File.Exists(Path.Combine(entryDir, "pdb")));
+            Assert.False(File.Exists(Path.Combine(entryDir, "refassembly")));
+            Assert.False(File.Exists(Path.Combine(entryDir, "xmldoc")));
+        }
+
+        [Fact]
+        public void TryStoreResult_DoesNotThrow_WhenAssemblyFileNotFound()
         {
             var cacheDir = Temp.CreateDirectory().Path;
             var cache = CreateCache(cacheDir);
 
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = "/nonexistent/path/Util.dll",
+            };
+
             // No exception should escape even if the source file doesn't exist.
-            cache.TryStoreResult("Util.dll", "hash", "/nonexistent/path/Util.dll", "key", _logger);
+            cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", _logger);
         }
 
         [Fact]
@@ -160,19 +283,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var hashKey = CompilationCache.ComputeHashKey(deterministicKey);
 
             var outputDir = Temp.CreateDirectory().Path;
-            var outputDll = Path.Combine(outputDir, dllName);
-            File.WriteAllBytes(outputDll, [0xAB, 0xCD]);
+            var assemblyPath = Path.Combine(outputDir, dllName);
+            File.WriteAllBytes(assemblyPath, [0xAB, 0xCD]);
+
+            var restoreDir = Temp.CreateDirectory().Path;
+            var restoreFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(restoreDir, dllName),
+            };
 
             // Initially no cache hit.
-            Assert.False(cache.TryGetCachedResult(dllName, hashKey, _logger, out _));
+            Assert.False(cache.TryRestoreCachedResult(dllName, hashKey, restoreFiles, _logger));
 
             // Store the result.
-            cache.TryStoreResult(dllName, hashKey, outputDll, deterministicKey, _logger);
+            var storeFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
+            cache.TryStoreResult(dllName, hashKey, storeFiles, deterministicKey, _logger);
 
             // Now there should be a cache hit.
-            Assert.True(cache.TryGetCachedResult(dllName, hashKey, _logger, out var cachedPath));
-            Assert.NotNull(cachedPath);
-            Assert.Equal([0xAB, 0xCD], File.ReadAllBytes(cachedPath));
+            Assert.True(cache.TryRestoreCachedResult(dllName, hashKey, restoreFiles, _logger));
+            Assert.Equal([0xAB, 0xCD], File.ReadAllBytes(restoreFiles.AssemblyPath));
         }
 
         [Fact]
@@ -204,8 +333,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var oldEntryDir = Path.Combine(cacheDir, dllName, oldHashKey);
             Directory.CreateDirectory(oldEntryDir);
             File.WriteAllText(Path.Combine(oldEntryDir, dllName + ".key"), oldKeyContent, Encoding.UTF8);
-            // Also place a fake DLL so the directory exists.
-            File.WriteAllBytes(Path.Combine(oldEntryDir, dllName), [1]);
+            // Also place a fake assembly so the directory looks like a valid entry.
+            File.WriteAllBytes(Path.Combine(oldEntryDir, "assembly"), [1]);
 
             var logMessages = new List<string>();
             var logger = new CollectingLogger(logMessages);
