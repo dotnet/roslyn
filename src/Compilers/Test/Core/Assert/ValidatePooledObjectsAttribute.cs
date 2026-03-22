@@ -4,6 +4,7 @@
 
 using System;
 using System.Reflection;
+using System.Threading;
 using Xunit.Sdk;
 
 #if DEBUG
@@ -25,13 +26,33 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     /// </summary>
     public bool TraceLeaks { get; set; }
 
+    /// <summary>
+    /// When set to a non-<see langword="null"/> value, pool leak validation is skipped.
+    /// The value should describe the reason for skipping. When applied at the method level,
+    /// this also suppresses validation from a class-level attribute.
+    /// </summary>
+    public string? Skip { get; set; }
+
 #if DEBUG
+    /// <summary>
+    /// Set to <see langword="true"/> on the current execution context when any instance
+    /// has <see cref="Skip"/> set. Once set, all instances (including a class-level attribute)
+    /// suppress leak validation for the current test.
+    /// </summary>
+    private static readonly AsyncLocal<bool> s_skipValidation = new();
+
     private PoolTrackingContext? _context;
 #endif
 
     public override void Before(MethodInfo methodUnderTest)
     {
 #if DEBUG
+        if (Skip is not null)
+        {
+            s_skipValidation.Value = true;
+            return;
+        }
+
         PoolTracker.StartTracking(out var context, TraceLeaks);
         _context = context;
 #endif
@@ -40,12 +61,15 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     public override void After(MethodInfo methodUnderTest)
     {
 #if DEBUG
+        if (Skip is not null)
+            return;
+
         var context = _context;
         _context = null;
 
         PoolTracker.StopTracking();
 
-        if (context?.HasLeaks == true)
+        if (!s_skipValidation.Value && context?.HasLeaks == true)
         {
             throw new XunitException(context.GetLeakSummary());
         }
