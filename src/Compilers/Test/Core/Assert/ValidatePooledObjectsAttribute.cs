@@ -26,23 +26,22 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     public bool TraceLeaks { get; set; }
 
 #if DEBUG
-    [ThreadStatic]
-    private static PoolTrackingContext? s_context;
+    private PoolTrackingContext? _context;
 #endif
 
     public override void Before(MethodInfo methodUnderTest)
     {
 #if DEBUG
         PoolTracker.StartTracking(out var context, TraceLeaks);
-        s_context = context;
+        _context = context;
 #endif
     }
 
     public override void After(MethodInfo methodUnderTest)
     {
 #if DEBUG
-        var context = s_context;
-        s_context = null;
+        var context = _context;
+        _context = null;
 
         PoolTracker.StopTracking();
 
