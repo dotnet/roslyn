@@ -251,12 +251,37 @@ namespace Microsoft.CodeAnalysis
             writer.WriteKey("options");
             WriteCompilationOptions(writer, compilationOptions);
 
+            // Collect unique ParseOptions from all syntax trees and write them as a top-level array.
+            // Each syntax tree will reference its ParseOptions by index into this array, avoiding
+            // repetition when all (or most) trees share the same options.
+            var parseOptionsMap = new Dictionary<ParseOptions, int>();
+            var parseOptionsList = new List<ParseOptions>();
+            foreach (var syntaxTree in syntaxTrees)
+            {
+                var treeOptions = syntaxTree.Options;
+                if (treeOptions is not null && !parseOptionsMap.ContainsKey(treeOptions))
+                {
+                    parseOptionsMap[treeOptions] = parseOptionsList.Count;
+                    parseOptionsList.Add(treeOptions);
+                }
+            }
+
+            writer.WriteKey("parseOptions");
+            writer.WriteArrayStart();
+            foreach (var parseOptions in parseOptionsList)
+            {
+                WriteParseOptions(writer, parseOptions);
+            }
+            writer.WriteArrayEnd();
+
             writer.WriteKey("syntaxTrees");
             writer.WriteArrayStart();
             foreach (var syntaxTree in syntaxTrees)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                WriteSyntaxTree(writer, syntaxTree, pathMap, options, cancellationToken);
+                var treeOptions = syntaxTree.Options;
+                var parseOptionsIndex = treeOptions is not null ? parseOptionsMap[treeOptions] : (int?)null;
+                WriteSyntaxTree(writer, syntaxTree, parseOptionsIndex, pathMap, options, cancellationToken);
             }
             writer.WriteArrayEnd();
 
@@ -293,6 +318,7 @@ namespace Microsoft.CodeAnalysis
         private void WriteSyntaxTree(
             JsonWriter writer,
             SyntaxTreeKey syntaxTree,
+            int? parseOptionsIndex,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
@@ -301,8 +327,7 @@ namespace Microsoft.CodeAnalysis
             WriteFilePath(writer, "fileName", syntaxTree.FilePath, pathMap, options);
             writer.WriteKey("text");
             WriteSourceText(writer, syntaxTree.GetText(cancellationToken));
-            writer.WriteKey("parseOptions");
-            WriteParseOptions(writer, syntaxTree.Options);
+            writer.Write("parseOptions", parseOptionsIndex);
             writer.WriteObjectEnd();
         }
 
