@@ -979,17 +979,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_targetType is NamedTypeSymbol namedType &&
                     _binder.HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
                 {
-                    if (constructor is null)
-                    {
-                        // No specific constructor was found to break the cycle - this is a true infinite chain.
-                        Debug.Assert(inProgressConstructor is not null);
-                        _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
-                        return null;
-                    }
-
-                    // A parameterless constructor was set during conversion classification (by
-                    // HasCollectionExpressionApplicableConstructor) to break the cycle. Proceed with it.
-                    Debug.Assert(constructor.Parameters.IsEmpty);
+                    Debug.Assert(inProgressConstructor is not null);
+                    _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
+                    return null;
                 }
 
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
@@ -1055,7 +1047,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression collectionCreation;
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
-                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
+                        // When withElement is present, we don't push the ParamsCollectionTypeInProgressBinder because
+                        // the with-element arguments are passed directly to the constructor. The inner params collection
+                        // creation (if any) will push its own binder and detect cycles at that level.
+                        var binder = withElement is null
+                            ? new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, bindingCollectionExpressionWithArguments: false, constructor)
+                            : @this._binder;
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
@@ -1623,26 +1620,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (HasParamsCollectionTypeInProgress(namedType, out _, out _))
                 {
-                    if (!hasWithElement)
-                    {
-                        // We are in a cycle, but without a with-element, a parameterless constructor can break the
-                        // cycle since it won't recursively invoke the params constructor. Check if one is accessible.
-                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                        var candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
-                            namedType, allowProtectedConstructorsOfBaseType: false,
-                            out _, ref useSiteInfo);
-
-                        foreach (var ctor in candidateConstructors)
-                        {
-                            if (ctor.Parameters.IsEmpty)
-                            {
-                                constructor = ctor;
-                                isExpanded = false;
-                                return true;
-                            }
-                        }
-                    }
-
                     // We are in a cycle. Optimistically assume we have the right constructor to break the cycle
                     return true;
                 }

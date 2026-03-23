@@ -8301,9 +8301,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (3,6): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int>.MyCollection(int, params MyCollection<int>)'
             // c = [with()];
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("x", "MyCollection<int>.MyCollection(int, params MyCollection<int>)").WithLocation(3, 6),
-            // (4,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(T, params MyCollection<T>)'.
+            // (4,6): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int>.MyCollection(int, params MyCollection<int>)'
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(T, params MyCollection<T>)").WithLocation(4, 6),
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with(1)").WithArguments("y", "MyCollection<int>.MyCollection(int, params MyCollection<int>)").WithLocation(4, 6),
             // (8,30): error CS9228: Non-array params collection type must have an applicable constructor that can be called with no arguments.
             //     public MyCollection(T x, params MyCollection<T> y)
             Diagnostic(ErrorCode.ERR_ParamsCollectionMissingConstructor, "params MyCollection<T> y").WithLocation(8, 30));
