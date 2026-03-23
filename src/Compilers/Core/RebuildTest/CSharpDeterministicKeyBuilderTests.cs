@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": ""Unicode (UTF-8)""
         },
-        ""parseOptions"": 0
+        ""parseOptionsIndex"": 0
       }
     ]
   },
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha1"",
       ""encodingName"": ""Unicode (UTF-8)""
     }},
-    ""parseOptions"": 0
+    ""parseOptionsIndex"": 0
   }}
 ]";
             AssertJsonSection(expected, key, "compilation.syntaxTrees");
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha256"",
       ""encodingName"": ""Unicode (UTF-8)""
     },
-    ""parseOptions"": 0
+    ""parseOptionsIndex"": 0
   }
 ]
 ", compiler);
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": null
         },
-        ""parseOptions"": 0
+        ""parseOptionsIndex"": 0
       }
     ]
   }
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           "checksumAlgorithm": "Sha256",
           "encodingName": "Unicode (UTF-8)"
         },
-        "parseOptions": 0
+        "parseOptionsIndex": 0
       }
     ]
   },
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "checksumAlgorithm": "Sha1",
       "encodingName": "Unicode (UTF-8)"
     },
-    "parseOptions": 0
+    "parseOptionsIndex": 0
   },
   {
     "fileName": "file2.cs",
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "checksumAlgorithm": "Sha256",
       "encodingName": "Unicode (UTF-8)"
     },
-    "parseOptions": 0
+    "parseOptionsIndex": 0
   }
 ]
 """, key, "compilation.syntaxTrees");
@@ -741,8 +741,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             // Both syntax trees reference index 0.
             var syntaxTreesArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.syntaxTrees").Value;
-            Assert.Equal(0, syntaxTreesArray[0].Value<int>("parseOptions"));
-            Assert.Equal(0, syntaxTreesArray[1].Value<int>("parseOptions"));
+            Assert.Equal(0, syntaxTreesArray[0].Value<int>("parseOptionsIndex"));
+            Assert.Equal(0, syntaxTreesArray[1].Value<int>("parseOptionsIndex"));
         }
     }
 }

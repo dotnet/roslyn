@@ -254,14 +254,12 @@ namespace Microsoft.CodeAnalysis
             // Collect unique ParseOptions from all syntax trees and write them as a top-level array.
             // Each syntax tree will reference its ParseOptions by index into this array, avoiding
             // repetition when all (or most) trees share the same options.
-            var parseOptionsMap = new Dictionary<ParseOptions, int>();
             var parseOptionsList = new List<ParseOptions>();
             foreach (var syntaxTree in syntaxTrees)
             {
                 var treeOptions = syntaxTree.Options;
-                if (treeOptions is not null && !parseOptionsMap.TryGetValue(treeOptions, out _))
+                if (!parseOptionsList.Contains(treeOptions))
                 {
-                    parseOptionsMap.Add(treeOptions, parseOptionsList.Count);
                     parseOptionsList.Add(treeOptions);
                 }
             }
@@ -279,9 +277,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var syntaxTree in syntaxTrees)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var treeOptions = syntaxTree.Options;
-                var parseOptionsIndex = treeOptions is not null ? parseOptionsMap[treeOptions] : (int?)null;
-                WriteSyntaxTree(writer, syntaxTree, parseOptionsIndex, pathMap, options, cancellationToken);
+                WriteSyntaxTree(writer, syntaxTree, parseOptionsList.IndexOf(syntaxTree.Options), pathMap, options, cancellationToken);
             }
             writer.WriteArrayEnd();
 
@@ -318,7 +314,7 @@ namespace Microsoft.CodeAnalysis
         private void WriteSyntaxTree(
             JsonWriter writer,
             SyntaxTreeKey syntaxTree,
-            int? parseOptionsIndex,
+            int parseOptionsIndex,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
@@ -327,7 +323,7 @@ namespace Microsoft.CodeAnalysis
             WriteFilePath(writer, "fileName", syntaxTree.FilePath, pathMap, options);
             writer.WriteKey("text");
             WriteSourceText(writer, syntaxTree.GetText(cancellationToken));
-            writer.Write("parseOptions", parseOptionsIndex);
+            writer.Write("parseOptionsIndex", parseOptionsIndex);
             writer.WriteObjectEnd();
         }
 

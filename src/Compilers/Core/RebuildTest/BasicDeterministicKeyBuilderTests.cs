@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha256"",
       ""encodingName"": ""Unicode (UTF-8)""
     },
-    ""parseOptions"": 0
+    ""parseOptionsIndex"": 0
   }
 ]
 ", compiler);
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": null
         },
-        ""parseOptions"": 0
+        ""parseOptionsIndex"": 0
       }
     ]
   }
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha256"",
           ""encodingName"": ""Unicode (UTF-8)""
         }},
-        ""parseOptions"": 0
+        ""parseOptionsIndex"": 0
       }}
     ]
   }},
@@ -442,9 +442,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             // tree1 and tree3 share options1 (index 0); tree2 has options2 (index 1).
             var syntaxTreesArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.syntaxTrees").Value;
-            Assert.Equal(0, syntaxTreesArray[0].Value<int>("parseOptions"));
-            Assert.Equal(1, syntaxTreesArray[1].Value<int>("parseOptions"));
-            Assert.Equal(0, syntaxTreesArray[2].Value<int>("parseOptions"));
+            Assert.Equal(0, syntaxTreesArray[0].Value<int>("parseOptionsIndex"));
+            Assert.Equal(1, syntaxTreesArray[1].Value<int>("parseOptionsIndex"));
+            Assert.Equal(0, syntaxTreesArray[2].Value<int>("parseOptionsIndex"));
         }
     }
 }

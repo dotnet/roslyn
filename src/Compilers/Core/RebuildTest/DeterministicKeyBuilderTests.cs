@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var treesProperty = GetJsonProperty(key, "compilation.syntaxTrees");
             var trees = (JArray)treesProperty.Value;
             var treeObj = (JObject)trees[0];
-            var parseOptionsIndex = treeObj.Value<int>("parseOptions");
+            var parseOptionsIndex = treeObj.Value<int>("parseOptionsIndex");
             var parseOptionsArray = (JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
             return (JObject)parseOptionsArray[parseOptionsIndex];
         }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     }}
   }}
 ]";
-                AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptions");
+                AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptionsIndex");
             }
         }
 
