@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Shared]
 [Export(typeof(IEditAndContinueSolutionProvider))]
-[Export(typeof(EditAndContinueLanguageService))]
+[Export(typeof(EditorManagedHotReloadLanguageService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class EditAndContinueLanguageService(
+internal sealed class EditorManagedHotReloadLanguageService(
     EditAndContinueSessionState sessionState,
     Lazy<IHostWorkspaceProvider> workspaceProvider,
     Lazy<IManagedHotReloadService> debuggerService,

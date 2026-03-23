@@ -45,12 +45,12 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
 
     private volatile int _isLogCollectionInProgress;
 
-    private readonly Lazy<EditAndContinueLanguageService>? _encService;
+    private readonly Lazy<EditorManagedHotReloadLanguageService>? _encService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public EditAndContinueFeedbackDiagnosticFileProvider(
-        [Import(AllowDefault = true)] Lazy<EditAndContinueLanguageService>? encService = null)
+        [Import(AllowDefault = true)] Lazy<EditorManagedHotReloadLanguageService>? encService = null)
     {
         _encService = encService;
 

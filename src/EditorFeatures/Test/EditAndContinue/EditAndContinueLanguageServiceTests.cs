@@ -46,7 +46,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             (!string.IsNullOrWhiteSpace(d.FilePath) ? $" {d.FilePath}({d.Span.StartLine}, {d.Span.StartColumn}, {d.Span.EndLine}, {d.Span.EndColumn}):" : "") +
             $" {d.Message}";
 
-    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
+    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditorManagedHotReloadLanguageService languageService, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
             .AddExcludedPartTypes(typeof(ServiceBrokerProvider))
@@ -72,7 +72,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         solution = workspace.CurrentSolution;
         service = GetEditAndContinueService(workspace);
-        languageService = workspace.GetService<EditAndContinueLanguageService>();
+        languageService = workspace.GetService<EditorManagedHotReloadLanguageService>();
         return workspace;
     }
 
@@ -116,7 +116,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
 
-        var localService = localWorkspace.GetService<EditAndContinueLanguageService>();
+        var localService = localWorkspace.GetService<EditorManagedHotReloadLanguageService>();
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
