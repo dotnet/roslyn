@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1647,6 +1647,23 @@ class C
 }";
 
             var verifier = CompileAndVerify(source: source, expectedOutput: "123");
+        }
+
+        [Fact, WorkItem(82552, "https://github.com/dotnet/roslyn/issues/82552")]
+        public void ByteNullableCompoundAssignment_NoFalseCS8619()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void M()
+                    {
+                        byte? b = 1;
+                        b -= 1;
+                    }
+                }
+                """;
+            CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics();
         }
 
         #region "Regression"

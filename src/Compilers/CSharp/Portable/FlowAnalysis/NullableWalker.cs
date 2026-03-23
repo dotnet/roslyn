@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9814,6 +9814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
+            var conversionFromBinding = conversion;
 
             if (isSuppressed || conversionOperand.IsSuppressed)
             {
@@ -10153,13 +10154,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
-                    if (assignmentKind == AssignmentKind.Argument)
+                    // https://github.com/dotnet/roslyn/issues/82552: WRN_NullabilityMismatchInAssignment is for
+                    // reference-type nullability mismatches. Skip when the conversion from binding is nullable-with-numeric
+                    // (e.g. int? to byte? in compound assignment) where the mismatch is a numeric type difference.
+                    var underlying = conversionFromBinding.UnderlyingConversions;
+                    bool isNullableNumericConversion = conversionFromBinding.IsNullable && underlying.Length == 1 && underlying[0].IsNumeric;
+                    if (!isNullableNumericConversion)
                     {
-                        ReportNullabilityMismatchInArgument(getDiagnosticLocation(), operandType.Type, parameterOpt, targetType, forOutput: false);
-                    }
-                    else
-                    {
-                        ReportNullabilityMismatchInAssignment(getDiagnosticLocation(), GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        if (assignmentKind == AssignmentKind.Argument)
+                        {
+                            ReportNullabilityMismatchInArgument(getDiagnosticLocation(), operandType.Type, parameterOpt, targetType, forOutput: false);
+                        }
+                        else
+                        {
+                            ReportNullabilityMismatchInAssignment(getDiagnosticLocation(), GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        }
                     }
                 }
             }
