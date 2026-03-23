@@ -7274,7 +7274,10 @@ _ = c[1..^1];
 
 static class E
 {
-    public static C Slice(this C c, dynamic d1, dynamic d2) => throw null;
+    extension(C c)
+    {
+        public C Slice(dynamic d1, dynamic d2) => throw null;
+    }
 }
 
 class C
