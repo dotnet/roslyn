@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis
             foreach (var syntaxTree in syntaxTrees)
             {
                 var treeOptions = syntaxTree.Options;
-                if (treeOptions is not null && !parseOptionsMap.ContainsKey(treeOptions))
+                if (treeOptions is not null && !parseOptionsMap.TryGetValue(treeOptions, out _))
                 {
-                    parseOptionsMap[treeOptions] = parseOptionsList.Count;
+                    parseOptionsMap.Add(treeOptions, parseOptionsList.Count);
                     parseOptionsList.Add(treeOptions);
                 }
             }

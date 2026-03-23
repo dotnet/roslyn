@@ -425,9 +425,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var options1 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(new KeyValuePair<string, object>("DEBUG", true));
             var options2 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(new KeyValuePair<string, object>("RELEASE", true));
 
-            var tree1 = VisualBasicSyntaxTree.ParseText("' class A", path: "a.vb", options: options1);
-            var tree2 = VisualBasicSyntaxTree.ParseText("' class B", path: "b.vb", options: options2);
-            var tree3 = VisualBasicSyntaxTree.ParseText("' class C", path: "c.vb", options: options1);
+            var tree1 = VisualBasicSyntaxTree.ParseText("Class A\nEnd Class", path: "a.vb", options: options1);
+            var tree2 = VisualBasicSyntaxTree.ParseText("Class B\nEnd Class", path: "b.vb", options: options2);
+            var tree3 = VisualBasicSyntaxTree.ParseText("Class C\nEnd Class", path: "c.vb", options: options1);
 
             var compilation = VisualBasicCompilation.Create(
                 "test",
