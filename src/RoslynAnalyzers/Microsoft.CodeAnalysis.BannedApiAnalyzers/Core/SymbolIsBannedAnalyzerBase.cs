@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         {
                             GeneratedKind.MarkedGenerated => false,
                             GeneratedKind.NotGenerated => true,
-                            _ => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken),
+                            _ => !(isGeneratedCode ?? GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken)),
                         };
                     });
             }
