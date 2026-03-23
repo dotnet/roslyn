@@ -105,6 +105,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             return;
         }
 
+        if (!globalOptionService.GetOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery))
+        {
+            _logger.LogDebug(@"""dotnet.fileBasedApps.enableAutomaticDiscovery"" is false. Not discovering entry points.");
+            return;
+        }
+
         if (lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>()
             is not FileBasedProgramsProjectSystem fileBasedProgramsProjectSystem)
         {

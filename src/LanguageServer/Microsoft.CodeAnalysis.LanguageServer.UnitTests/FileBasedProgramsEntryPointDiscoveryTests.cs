@@ -258,7 +258,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     [Fact]
     public async Task TestDiscovery_05()
     {
-        // Ensure discovery doesn't occur when relevant options are disabled
+        // Ensure discovery doesn't occur when 'dotnet.projects.enableFileBasedPrograms: false' is set
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
         var tempDir = _tempRoot.CreateDirectory();
 
@@ -277,6 +277,42 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, false),
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+            ]
+        });
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        await discovery.FindAndLoadEntryPointsAsync();
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
+        Assert.Null(workspace);
+        Assert.Null(document);
+    }
+
+    [Fact]
+    public async Task TestDiscovery_06()
+    {
+        // Ensure discovery doesn't occur when 'dotnet.fileBasedApps.enableAutomaticDiscovery: false' is set
+        // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
+        var tempDir = _tempRoot.CreateDirectory();
+
+        // Delete artifacts from possible previous runs of this test
+        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        if (Directory.Exists(cacheDirectory))
+            Directory.Delete(cacheDirectory, recursive: true);
+
+        var appText = """
+            #:sdk Microsoft.Net.SDK
+            Console.WriteLine("Hello World");
+            """;
+        var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
             WorkspaceFolders =
             [
                 new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
