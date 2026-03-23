@@ -651,6 +651,91 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
         [Fact]
         [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedDeclarationDoesSkipsGeneratedPartialSymbolAttributeAnalysisAsync()
+        {
+            const string bannedText = "T:BannedAttribute";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        [Banned]
+                        partial class C
+                        {
+                        }
+                        """),
+                        ("Shared.cs", """
+                        using System;
+
+                        [AttributeUsage(AttributeTargets.All, Inherited = true)]
+                        class BannedAttribute : Attribute
+                        {
+                        }
+                        """),
+                        ("Test0.cs", """
+                        partial class C
+                        {
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        <Banned>
+                        Partial Class C
+                        End Class
+                        """),
+                        ("Shared.vb", """
+                        Imports System
+
+                        <AttributeUsage(AttributeTargets.All, Inherited:=True)>
+                        Class BannedAttribute
+                            Inherits Attribute
+                        End Class
+                        """),
+                        ("Test0.vb", """
+                        Partial Class C
+                        End Class
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
         public async Task GeneratedDeclarationDoesNotSkipNonGeneratedPartialSymbolUsageAnalysisAsync()
         {
             const string bannedText = "T:N.Banned";

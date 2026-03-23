@@ -278,12 +278,11 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         }
 
                         var generatedCodeKind = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options);
-
                         return generatedCodeKind switch
                         {
                             GeneratedKind.MarkedGenerated => false,
                             GeneratedKind.NotGenerated => true,
-                            _ => GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken),
+                            _ => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken),
                         };
                     });
             }
