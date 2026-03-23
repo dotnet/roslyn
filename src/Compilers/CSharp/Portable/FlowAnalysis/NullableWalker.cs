@@ -10154,9 +10154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
-                    // https://github.com/dotnet/roslyn/issues/82552: WRN_NullabilityMismatchInAssignment is for
-                    // reference-type nullability mismatches. Skip when the conversion from binding is nullable-with-numeric
-                    // (e.g. int? to byte? in compound assignment) where the mismatch is a numeric type difference.
                     var underlying = conversionFromBinding.UnderlyingConversions;
                     bool isNullableNumericConversion = conversionFromBinding.IsNullable && underlying.Length == 1 && underlying[0].IsNumeric;
                     if (!isNullableNumericConversion)
