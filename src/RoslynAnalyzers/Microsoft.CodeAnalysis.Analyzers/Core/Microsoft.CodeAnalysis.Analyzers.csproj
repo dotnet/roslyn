@@ -9,6 +9,7 @@
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <DefineConstants Condition="'$(DotNetBuildSourceOnly)' != 'true'">$(DefineConstants);MICROSOFT_CODEANALYSIS_USINGSOURCEPACKAGEBUILD</DefineConstants>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
