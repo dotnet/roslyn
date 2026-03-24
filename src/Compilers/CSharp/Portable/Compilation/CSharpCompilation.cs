@@ -3824,6 +3824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ilBuilder.EmitRet(isVoid: true);
                 ilBuilder.Realize();
+                ilBuilder.FreeBasicBlocks();
                 moduleBeingBuilt.RootModuleType.SetStaticConstructorBody(ilBuilder.RealizedIL);
             }
         }

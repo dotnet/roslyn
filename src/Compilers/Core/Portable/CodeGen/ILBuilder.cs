@@ -207,7 +207,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 this.RealizeBlocks();
 
                 // no more new data.
-                this.FreeBasicBlocks();
                 _currentBlock = null;
                 _lastCompleteBlock = null;
             }
@@ -241,12 +240,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 this.SeqPointsOpt = null;
             }
 
-            // Note: _allocatedILMarkers is not freed here because it may still be needed
-            // by GetILOffsetFromMarker() calls after Realize(). Call FreeMarkers() separately.
-        }
-
-        internal void FreeMarkers()
-        {
             if (_allocatedILMarkers != null)
             {
                 _allocatedILMarkers.Free();

@@ -734,6 +734,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 ilBuilder.EmitRet(isVoid: true);
                 ilBuilder.Realize();
+                ilBuilder.FreeBasicBlocks();
 
                 return new Cci.StaticConstructor(containingType, ilBuilder.MaxStack, ilBuilder.RealizedIL);
             }
@@ -1160,6 +1161,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Return.
             ilBuilder.EmitRet(isVoid: false);
             ilBuilder.Realize();
+            ilBuilder.FreeBasicBlocks();
 
             return new BytesToStringHelper(
                 containingType: containingType,

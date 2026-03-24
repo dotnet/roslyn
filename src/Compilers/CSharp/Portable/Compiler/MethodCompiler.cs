@@ -1435,6 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
+            builder.FreeBasicBlocks();
 
             _moduleBeingBuiltOpt.TestData?.SetMethodILBuilder(methodSymbol, builder);
 
@@ -1787,8 +1788,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                // Free IL markers after Generate() has consumed them via GetILOffsetFromMarker().
-                builder.FreeMarkers();
+                // Basic blocks contain poolable builders for IL and sequence points. Free those back
+                // to their pools.
+                builder.FreeBasicBlocks();
 
                 // Remember diagnostics.
                 diagnostics.AddRange(diagnosticsForThisMethod);

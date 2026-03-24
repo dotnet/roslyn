@@ -1732,8 +1732,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       codeCoverageSpans:=codeCoverageSpans,
                                       isPrimaryConstructor:=False)
             Finally
-                ' Free IL markers used by the builder (basic blocks are freed in Realize).
-                builder.FreeMarkers()
+                ' Free resources used by the basic blocks in the builder.
+                builder.FreeBasicBlocks()
             End Try
         End Function
 
